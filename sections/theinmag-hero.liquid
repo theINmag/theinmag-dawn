@@ -15,6 +15,16 @@
   assign image_right = section.settings.image_right
   assign image_left_alt = section.settings.image_left_alt | default: 'An Australian child reading theINmag, the magazine for creative kids.'
   assign image_right_alt = section.settings.image_right_alt | default: 'A creation by an Australian kid published in theINmag.'
+
+  # Wrap the emphasis word with a span so it renders slightly larger.
+  # Case-sensitive match - if the word appears in the headline it gets
+  # the bump; otherwise the headline renders as-is.
+  assign headline_html = section.settings.headline
+  assign emphasis = section.settings.emphasis_word
+  if emphasis != blank and headline_html contains emphasis
+    assign emphasis_wrap = '<span class="theinmag-hero__headline-emphasis">' | append: emphasis | append: '</span>'
+    assign headline_html = headline_html | replace: emphasis, emphasis_wrap
+  endif
 -%}
 
 <section
@@ -60,7 +70,7 @@
           class="theinmag-hero__headline"
           id="theinmag-hero-headline-{{ section.id }}"
         >
-          {{- section.settings.headline -}}
+          {{ headline_html }}
         </h1>
 
         {%- if section.settings.subhead != blank -%}
@@ -69,10 +79,18 @@
           </p>
         {%- endif -%}
 
+        {%- comment -%}
+          Visual classes deliberately swapped vs the cta_primary/secondary
+          setting names: the FIRST button (Membership) renders outlined
+          white, the SECOND button (Send IN content) renders as the
+          yellow stamp. Yellow draws attention to the playful, lower-
+          friction action - submitting a kid creation - which feeds
+          the magazine's content loop.
+        {%- endcomment -%}
         <div class="theinmag-hero__ctas">
           {%- if section.settings.cta_primary_label != blank -%}
             <a
-              class="theinmag-btn theinmag-btn--primary"
+              class="theinmag-btn theinmag-btn--secondary-on-image"
               href="{{ section.settings.cta_primary_link | default: '#' }}"
             >
               {{- section.settings.cta_primary_label -}}
@@ -80,7 +98,7 @@
           {%- endif -%}
           {%- if section.settings.cta_secondary_label != blank -%}
             <a
-              class="theinmag-btn theinmag-btn--secondary-on-image"
+              class="theinmag-btn theinmag-btn--primary"
               href="{{ section.settings.cta_secondary_link | default: '#' }}"
             >
               {{- section.settings.cta_secondary_label -}}
@@ -170,6 +188,19 @@
     .theinmag-hero__pane { aspect-ratio: auto; }
   }
 
+  /* Flat darken overlay - applied to BOTH panes so the photos sit at
+     a consistent (slightly cooler) brightness. Subtle enough that the
+     photo still leads visually, dark enough to take the edge off the
+     brightness and help white text on the left pane sit cleanly. */
+  .theinmag-hero__pane::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(42, 31, 61, 0.20);
+    z-index: 1;
+    pointer-events: none;
+  }
+
   .theinmag-hero__image {
     position: absolute;
     inset: 0;
@@ -180,28 +211,27 @@
     display: block;
   }
 
-  /* Dark gradient scrim - left pane only.
-     Ensures white text passes WCAG AA contrast regardless of how bright
-     the lower-left of the photo turns out to be. Strongest at the
-     bottom-left where text sits, fades to transparent towards top-right
-     so the photo still leads visually. */
+  /* Dark gradient scrim - left pane only, sits on top of the flat
+     darken. Adds extra contrast specifically where the text sits
+     (bottom-left), fades to nothing towards top-right so the photo
+     still reads. */
   .theinmag-hero__scrim {
     position: absolute;
     inset: 0;
     background: linear-gradient(
       135deg,
-      rgba(42, 31, 61, 0.62) 0%,
-      rgba(42, 31, 61, 0.40) 35%,
-      rgba(42, 31, 61, 0.10) 65%,
+      rgba(42, 31, 61, 0.55) 0%,
+      rgba(42, 31, 61, 0.32) 35%,
+      rgba(42, 31, 61, 0.05) 65%,
       rgba(42, 31, 61, 0) 80%
     );
     pointer-events: none;
-    z-index: 1;
+    z-index: 2;
   }
 
   .theinmag-hero__content {
     position: absolute;
-    z-index: 2;
+    z-index: 3;
     bottom: var(--space-xl);
     left: var(--space-lg);
     right: var(--space-lg);
@@ -247,6 +277,16 @@
       0 1px 2px rgba(0, 0, 0, 0.65),
       0 2px 8px rgba(0, 0, 0, 0.45),
       0 4px 24px rgba(0, 0, 0, 0.30);
+  }
+
+  /* Emphasis word treatment - slightly larger, tight line-height so
+     the bigger word doesn't push surrounding lines apart. Driven by
+     the emphasis_word setting; defaults to "creative". */
+  .theinmag-hero__headline-emphasis {
+    display: inline-block;
+    font-size: 1.15em;
+    line-height: 1;
+    vertical-align: -0.04em;
   }
 
   .theinmag-hero__subhead {
@@ -425,14 +465,21 @@
       "default": "The magazine\nfor creative kids"
     },
     {
+      "type": "text",
+      "id": "emphasis_word",
+      "label": "Word to emphasise (slightly larger)",
+      "info": "Case-sensitive. The first match in the headline gets a slightly larger size. Leave blank for no emphasis.",
+      "default": "creative"
+    },
+    {
       "type": "textarea",
       "id": "subhead",
       "label": "Subhead",
-      "default": "where Aussie kids get published - no ads, just creativity"
+      "default": "Where Aussie kids get published - no ads, just creativity"
     },
     {
       "type": "header",
-      "content": "Primary CTA (yellow stamp)"
+      "content": "First button - outlined white (Membership by default)"
     },
     {
       "type": "text",
@@ -447,7 +494,7 @@
     },
     {
       "type": "header",
-      "content": "Secondary CTA (outlined white on image)"
+      "content": "Second button - yellow stamp (Send IN by default)"
     },
     {
       "type": "text",
