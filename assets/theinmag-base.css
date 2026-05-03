@@ -8,6 +8,10 @@
    No em dashes anywhere - hyphens only.
    ========================================================================== */
 
+/* ----- Google Fonts: Inter (body) + Caveat (rare emphasis) ----- */
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@400;500;600;700&display=swap');
+
 /* ----- Self-hosted heading font ----- */
 
 @font-face {
@@ -68,10 +72,22 @@
     --color-link: var(--color-teal-dark);
     --color-link-hover: var(--color-purple-dark);
 
-    /* ----- Fonts ----- */
+    /* ----- Fonts (theINmag tokens) ----- */
     --font-heading: 'Post Regular', 'Caveat', Georgia, serif;
     --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --font-emphasis: 'Caveat', cursive;
+
+    /* ----- Override Dawn's typography variables -----
+       Dawn applies these via .h0/.h1/.h2 class selectors and on body,
+       so redefining them here makes every Dawn heading and body element
+       use theINmag fonts without touching theme.liquid or settings_data.json. */
+    --font-heading-family: 'Post Regular', 'Caveat', Georgia, serif;
+    --font-heading-style: normal;
+    --font-heading-weight: 400;
+    --font-body-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-body-style: normal;
+    --font-body-weight: 400;
+    --font-body-weight-bold: 700;
 
     /* ----- Spacing scale ----- */
     --space-xs: 4px;
@@ -118,11 +134,18 @@ body {
 }
 
 h1,
-h2 {
+h2,
+.h0,
+.h1,
+.h2 {
     font-family: var(--font-heading);
     font-weight: 400;
     letter-spacing: 0;
     color: var(--color-text);
+    /* Post Regular ships in weight 400 only - prevent the browser
+       from synthesising a fake-bold when Dawn applies font-weight: 700
+       to heading classes. Renders at 400 instead. */
+    font-synthesis: none;
 }
 
 h3,
