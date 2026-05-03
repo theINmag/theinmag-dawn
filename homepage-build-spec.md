@@ -35,8 +35,8 @@ These rules apply across every section on the homepage. Locked.
 
 - **Hero headline:** "The magazine for creative kids"
 - **Hero subhead:** "Where Aussie kids get published - no ads, just creativity"
-- **Primary CTA label:** "Get the Membership" (yellow)
-- **Secondary CTA label:** "See Inside" (outlined purple)
+- **Primary CTA label:** "Grab a membership" (yellow stamp)
+- **Secondary CTA label:** "Send IN content" (outlined white on photo background; outlined purple is the default everywhere else)
 - **Audience tile labels:** Parents / Teachers / Homeschoolers / Kids (drop the "For" on tiles, keep "For" in nav dropdown)
 - **Announcement bar message 1:** "Get ready - Mag [X] dropping in [N] days" (auto-calculated, days only - never hours/minutes)
 - **Announcement bar message 2:** "Free shipping on orders over $40" (threshold editable in admin)
@@ -99,29 +99,30 @@ These rules apply across every section on the homepage. Locked.
 ---
 
 ### Section 1 - Split-screen hero
-**Reference:** `/reference/maude/maude-hero-desktop.png`, `/reference/maude/maude-hero-mobile.png`
+**Reference:** `/reference/maude/Maude desktop hero (full split-screen visible).jpg`, `/reference/maude/Maude mobile hero (Chrome DevTools → mobile view → screenshot).jpg`
 
-**Pattern:** Two paired image blocks side-by-side on desktop, stacked vertically on mobile. Each block has its own headline, subhead, and CTA.
+**Pattern (LOCKED May 3 2026 evening - Option A, mirrors Maude exactly):** Two paired image blocks side-by-side on desktop, stacked vertically on mobile. ALL text content (headline + subhead + both CTAs) sits on the LEFT image only. The right image is pure photography, no text overlay. Text is left-aligned, white, positioned in the lower-left third of the left image. Concentrating text on one side and letting the other breathe is the Maude move that drives the premium blink-test impression.
 
-**Left block - "Kids reading it":**
-- Background: full-bleed real photo of a kid reading the mag (HERO_-prefixed image from /assets/, e.g. `HERO_kid-reading-mag.jpg`)
-- Headline (overlay): "The magazine for creative kids" (Post Regular, large, white text or dark depending on photo)
-- Subhead: "Where Aussie kids get published - no ads, just creativity"
-- CTA: "Get the Membership" (yellow primary)
+**Left image - "Kids reading it" (carries all text + CTAs):**
+- Background: full-bleed real photo of a kid reading the mag (`HERO_kid-reading-mag.jpg` in `/assets/`)
+- Dark gradient scrim from the lower-left corner so white text passes WCAG AA contrast regardless of photo brightness
+- Headline (overlay, white): "The magazine for creative kids" - Post Regular, large, left-aligned
+- Subhead (overlay, white): "where Aussie kids get published - no ads, just creativity" - Inter regular, smaller, left-aligned, lowercase to match the live Wix site's wording exactly
+- Primary CTA: "Grab a membership" (yellow stamp - softer than "Get the Membership", confirmed May 3 2026)
+- Secondary CTA: "Send IN content" (outlined white - documented adaptation of the outlined-purple secondary for dark photo backgrounds)
 
-**Right block - "Kids in it":**
-- Background: full-bleed striking kid creation in matching colour palette (HERO_-prefixed, e.g. `HERO_kid-creation-art.jpg`)
-- Headline (overlay): **[TBD - workshop with Tam]** - something that captures the "yours could be next" promise. Constraints: smart brevity, no em dashes, gerund or strong verb preferred. Examples to react to: "Send IN your creation." / "Get your kid in print." / "Make something. Send it IN."
-- Subhead: "Aussie kids fill every page. Yours could be next." (this earlier subhead works perfectly here, just not as the locked main hero subhead)
-- CTA: "Send IN your creation" (outlined purple secondary)
+**Right image - "Kids in it" (image-only, no overlay text):**
+- Background: full-bleed striking kid creation in warm palette (`HERO_kid-creation-art.jpg` in `/assets/`)
+- No headline, no subhead, no CTA, no overlay - pure photography
+- The right image's job is to balance the left visually and signal "this is what gets published" without competing with the left's text
 
-**Mobile behaviour:** stacks vertically, left block on top. Both images keep full-bleed treatment. Headlines remain large (Post Regular handles the responsive scaling via clamp()). CTAs stack as full-width buttons on mobile.
+**Mobile behaviour:** stacks vertically. Left image on top with all text + CTAs in its lower-left. Right image immediately below, still image-only. Headlines scale via Post Regular's clamp(). CTAs stack vertically full-width on mobile.
 
-**Animation:** subtle scroll reveal as user enters the page (fade up, 0.4s ease, both blocks together so they feel paired rather than sequential). Respect prefers-reduced-motion.
+**Animation:** subtle scroll reveal as user enters the page (fade up, 0.4s ease, both blocks together so they feel paired rather than sequential). Respects prefers-reduced-motion.
 
-**Trust micro-bar:** sits below both blocks (full-width strip across desktop, no split). "Made in Australia · 100% kid-created · Ad-free · Tri-annual"
+**Trust micro-bar:** sits below both blocks as a full-width strip (no split). Peach background, dark sandy orange text - this is the first place the homepage's locked peach accent introduces itself. Copy: "Printed sustainably in Australia · 100% kid-created · Always ad-free · Tri-annual"
 
-**AEO:** Organisation schema (Ryan + Tam as Person entities), BreadcrumbList schema. H1 is the locked hero headline.
+**AEO:** Organisation schema (Ryan + Tam as Person entities), BreadcrumbList schema. H1 is the locked hero headline ("The magazine for creative kids"). Image alt text descriptive and keyword-aware on both images.
 
 ---
 
@@ -633,8 +634,10 @@ The QUESTION text uses customer search language (e.g. "Will my child's work actu
 ## Outstanding questions to resolve before building
 
 **Hero (Section 1):**
-- [ ] Right-block hero headline copy (workshop with Tam)
-- [ ] Confirm two hero images selected from asset library and prefixed HERO_
+- [x] Pattern locked May 3 2026 evening: text on left image only (Maude pattern), right image is pure photography. No right-block headline needed.
+- [x] Two hero images live in `/assets/` with HERO_ prefix: `HERO_kid-reading-mag.jpg` + `HERO_kid-creation-art.jpg`
+- [x] CTA labels locked: "Grab a membership" (primary) / "Send IN content" (secondary)
+- [x] Trust micro-bar copy locked: "Printed sustainably in Australia · 100% kid-created · Always ad-free · Tri-annual"
 
 **Press band (Section 3):**
 - [x] 6 press logos saved to `/assets/press-logos/` at correct dimensions (600x200 PNG, transparent)
@@ -700,6 +703,8 @@ The QUESTION text uses customer search language (e.g. "Will my child's work actu
 ---
 
 ## Change log
+
+- May 3 2026 (late evening) - **Section 1 hero v2 locked + built.** Pattern decision: Option A (Maude exact pattern) - text + CTAs concentrate on left image, right image is pure photography. Right-block headline TBD removed. Headline stays "The magazine for creative kids" (Post Regular, white, left-aligned), subhead "where Aussie kids get published - no ads, just creativity" (Inter, white, lowercase to match live Wix site). CTA labels softened: "Grab a membership" (was "Get the Membership"), "Send IN content" (was "See Inside" / "Send IN your creation"). Trust micro-bar copy refined: "Printed sustainably in Australia · 100% kid-created · Always ad-free · Tri-annual". New CSS variant `theinmag-btn--secondary-on-image` (outlined white) for secondary CTAs on dark photo backgrounds - outlined purple stays the default everywhere else. Trust strip uses peach pair (`#FCDDB8` bg, `#D9783A` text) - first appearance of the locked homepage peach accent. Built as `sections/theinmag-hero.liquid`, wired into `templates/index.json` as the first section.
 
 - May 3 2026 (evening) - **Major spec expansion.** Sections 6-10 + Footer + Section 0 (site-wide announcement bar) all specified in detail. Sitemap reconciliation: original 15 sections collapsed to 10 + footer (sitemap Sections 4 + 5 folded into our Section 6 "Meet Tam + current issue"; sitemap Section 13 newsletter moved to footer; sitemap Sections 7 gallery + 8 how-it-works + 9 featured kids carousel deferred or dropped). FAQ section question count changed from sitemap-default 4 to 5; new question added: "How are families actually using it at home?" Order rationale: doubt → trust → use → commercial → frequency. All FAQ answers drafted by Ryan/Tam and polished to brand voice in this session, locked verbatim. New principle introduced: question-voice-vs-answer-voice (questions in customer search language for AEO match, answers in brand language for trust). Instagram feed app locked: Instafeed by Mintt with PageSpeed checkpoint required per CLAUDE.md. Announcement bar locked to days-only countdown (no hours/minutes - kid-first reasoning). Membership variant names locked: 4-Issue / 8-Issue / Rolling Membership. Hero v1 archived: `theinmag-hero.liquid` renamed to `theinmag-hero-v1-archived.liquid` and removed from `templates/index.json`. Reference folders created and populated: `/reference/maude/` (12 screenshots), `/assets/press-logos/` (6 of target 8 logos at 600x200 PNG).
 

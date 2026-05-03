@@ -1,0 +1,530 @@
+{%- comment -%}
+  theinmag-hero (v2)
+  Homepage above-the-fold hero. Maude exact pattern.
+  - Two paired images side-by-side on desktop, stacked on mobile.
+  - All text + CTAs sit on the LEFT image only. Right image is photography-only.
+  - White text, left-aligned, lower-left third of the left image.
+  - Dark gradient scrim ensures WCAG AA contrast regardless of photo brightness.
+  - Trust micro-bar full-width strip below uses peach pair (homepage accent).
+  - Mobile-first. No em dashes. Custom properties only.
+  Spec: homepage-build-spec.md Section 1.
+{%- endcomment -%}
+
+{%- liquid
+  assign image_left = section.settings.image_left
+  assign image_right = section.settings.image_right
+  assign image_left_alt = section.settings.image_left_alt | default: 'An Australian child reading theINmag, the magazine for creative kids.'
+  assign image_right_alt = section.settings.image_right_alt | default: 'A creation by an Australian kid published in theINmag.'
+-%}
+
+<section
+  class="theinmag-hero"
+  aria-labelledby="theinmag-hero-headline-{{ section.id }}"
+>
+  <div class="theinmag-hero__split">
+
+    {%- comment -%} LEFT IMAGE - carries text + CTAs {%- endcomment -%}
+    <div class="theinmag-hero__pane theinmag-hero__pane--left">
+      {%- if image_left != blank -%}
+        <img
+          class="theinmag-hero__image"
+          src="{{ image_left | image_url: width: 1600 }}"
+          srcset="
+            {{ image_left | image_url: width: 600 }} 600w,
+            {{ image_left | image_url: width: 900 }} 900w,
+            {{ image_left | image_url: width: 1200 }} 1200w,
+            {{ image_left | image_url: width: 1600 }} 1600w,
+            {{ image_left | image_url: width: 2000 }} 2000w
+          "
+          sizes="(min-width: 990px) 50vw, 100vw"
+          width="{{ image_left.width }}"
+          height="{{ image_left.height }}"
+          alt="{{ image_left_alt | escape }}"
+          loading="eager"
+          fetchpriority="high"
+        >
+      {%- else -%}
+        <img
+          class="theinmag-hero__image"
+          src="{{ 'HERO_kid-reading-mag.jpg' | asset_url }}"
+          alt="{{ image_left_alt | escape }}"
+          loading="eager"
+          fetchpriority="high"
+        >
+      {%- endif -%}
+
+      <div class="theinmag-hero__scrim" aria-hidden="true"></div>
+
+      <div class="theinmag-hero__content">
+        <h1
+          class="theinmag-hero__headline"
+          id="theinmag-hero-headline-{{ section.id }}"
+        >
+          {{- section.settings.headline -}}
+        </h1>
+
+        {%- if section.settings.subhead != blank -%}
+          <p class="theinmag-hero__subhead">
+            {{- section.settings.subhead -}}
+          </p>
+        {%- endif -%}
+
+        <div class="theinmag-hero__ctas">
+          {%- if section.settings.cta_primary_label != blank -%}
+            <a
+              class="theinmag-btn theinmag-btn--primary"
+              href="{{ section.settings.cta_primary_link | default: '#' }}"
+            >
+              {{- section.settings.cta_primary_label -}}
+            </a>
+          {%- endif -%}
+          {%- if section.settings.cta_secondary_label != blank -%}
+            <a
+              class="theinmag-btn theinmag-btn--secondary-on-image"
+              href="{{ section.settings.cta_secondary_link | default: '#' }}"
+            >
+              {{- section.settings.cta_secondary_label -}}
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+
+    {%- comment -%} RIGHT IMAGE - photography-only {%- endcomment -%}
+    <div class="theinmag-hero__pane theinmag-hero__pane--right">
+      {%- if image_right != blank -%}
+        <img
+          class="theinmag-hero__image"
+          src="{{ image_right | image_url: width: 1600 }}"
+          srcset="
+            {{ image_right | image_url: width: 600 }} 600w,
+            {{ image_right | image_url: width: 900 }} 900w,
+            {{ image_right | image_url: width: 1200 }} 1200w,
+            {{ image_right | image_url: width: 1600 }} 1600w,
+            {{ image_right | image_url: width: 2000 }} 2000w
+          "
+          sizes="(min-width: 990px) 50vw, 100vw"
+          width="{{ image_right.width }}"
+          height="{{ image_right.height }}"
+          alt="{{ image_right_alt | escape }}"
+          loading="eager"
+        >
+      {%- else -%}
+        <img
+          class="theinmag-hero__image"
+          src="{{ 'HERO_kid-creation-art.jpg' | asset_url }}"
+          alt="{{ image_right_alt | escape }}"
+          loading="eager"
+        >
+      {%- endif -%}
+    </div>
+
+  </div>
+
+  {%- if section.settings.show_trust_bar -%}
+    <ul class="theinmag-hero__trust" role="list">
+      {%- if section.settings.trust_1 != blank -%}<li>{{ section.settings.trust_1 }}</li>{%- endif -%}
+      {%- if section.settings.trust_2 != blank -%}<li>{{ section.settings.trust_2 }}</li>{%- endif -%}
+      {%- if section.settings.trust_3 != blank -%}<li>{{ section.settings.trust_3 }}</li>{%- endif -%}
+      {%- if section.settings.trust_4 != blank -%}<li>{{ section.settings.trust_4 }}</li>{%- endif -%}
+    </ul>
+  {%- endif -%}
+</section>
+
+{% stylesheet %}
+  /* ================================================================
+     theinmag-hero (v2 - Maude exact pattern)
+     Two-pane split, text on left only, photography on right.
+     ================================================================ */
+
+  .theinmag-hero {
+    background-color: var(--color-cream);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theinmag-hero__split {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-hero__split {
+      grid-template-columns: 1fr 1fr;
+      min-height: clamp(560px, 75vh, 800px);
+    }
+  }
+
+  .theinmag-hero__pane {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-hero__pane { aspect-ratio: 16 / 10; }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-hero__pane { aspect-ratio: auto; }
+  }
+
+  .theinmag-hero__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  /* Dark gradient scrim - left pane only.
+     Ensures white text passes WCAG AA contrast regardless of how bright
+     the lower-left of the photo turns out to be. Strongest at the
+     bottom-left where text sits, fades to transparent towards top-right
+     so the photo still leads visually. */
+  .theinmag-hero__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(42, 31, 61, 0.62) 0%,
+      rgba(42, 31, 61, 0.40) 35%,
+      rgba(42, 31, 61, 0.10) 65%,
+      rgba(42, 31, 61, 0) 80%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .theinmag-hero__content {
+    position: absolute;
+    z-index: 2;
+    bottom: var(--space-xl);
+    left: var(--space-lg);
+    right: var(--space-lg);
+    max-width: 32ch;
+    color: #ffffff;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-hero__content {
+      bottom: var(--space-2xl);
+      left: var(--space-2xl);
+      right: var(--space-2xl);
+      max-width: 36ch;
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-hero__content {
+      bottom: var(--space-3xl);
+      left: var(--space-3xl);
+      right: auto;
+      max-width: 38ch;
+    }
+  }
+
+  .theinmag-hero__headline {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(36px, 6vw, 64px);
+    line-height: 1.05;
+    letter-spacing: 0;
+    color: #ffffff;
+    margin: 0;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.30);
+  }
+
+  .theinmag-hero__subhead {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: clamp(15px, 1.7vw, 18px);
+    line-height: 1.5;
+    color: #ffffff;
+    margin: 0;
+    max-width: 36ch;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  .theinmag-hero__ctas {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-hero__ctas {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-md);
+    }
+  }
+
+  /* ================================================================
+     Buttons - locked sticker convention.
+     Primary: yellow stamp (per design tokens).
+     Secondary-on-image: outlined white. Documented adaptation of the
+     outlined-purple secondary for dark photo backgrounds where dark
+     purple wouldn't read. Outlined purple is still the default
+     everywhere else on the site (cream sections, etc).
+     ================================================================ */
+
+  .theinmag-btn {
+    display: inline-block;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+    transition: background-color var(--transition-standard),
+                color var(--transition-standard),
+                box-shadow var(--transition-standard),
+                translate var(--transition-standard);
+    border: none;
+    text-align: center;
+    line-height: 1.2;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  .theinmag-btn--primary {
+    font-family: var(--font-heading);
+    background-color: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    box-shadow: var(--shadow-button-yellow);
+    padding: 14px 28px;
+    font-size: 17px;
+    font-weight: 400;
+  }
+
+  .theinmag-btn--primary:hover,
+  .theinmag-btn--primary:focus-visible {
+    background-color: var(--color-purple-dark);
+    color: #ffffff;
+    translate: 0 2px;
+    box-shadow: var(--shadow-button-pressed);
+    outline: none;
+  }
+
+  .theinmag-btn--secondary-on-image {
+    font-family: var(--font-body);
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .theinmag-btn--secondary-on-image:hover,
+  .theinmag-btn--secondary-on-image:focus-visible {
+    background-color: #ffffff;
+    color: var(--color-inky-purple-navy);
+    outline: none;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-btn--primary { padding: 16px 32px; font-size: 19px; }
+    .theinmag-btn--secondary-on-image { padding: 12px 26px; font-size: 16px; }
+  }
+
+  /* ================================================================
+     Trust micro-bar - peach pair (homepage accent).
+     ================================================================ */
+
+  .theinmag-hero__trust {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-md) var(--space-md);
+    background-color: var(--color-peach);
+    color: var(--color-sandy-orange-dark);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  .theinmag-hero__trust li {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--space-sm);
+    line-height: 1.7;
+  }
+
+  /* Pseudo-element separator - looks clean even when items wrap. */
+  .theinmag-hero__trust li + li::before {
+    content: "·";
+    margin-right: var(--space-md);
+    font-weight: 700;
+    opacity: 0.6;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-hero__trust {
+      font-size: 14px;
+      padding: var(--space-lg) var(--space-md);
+    }
+    .theinmag-hero__trust li { padding: 0 var(--space-md); }
+  }
+
+  /* ================================================================
+     Reduced motion.
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-btn { transition: background-color 0.01ms, color 0.01ms; }
+    .theinmag-btn--primary:hover,
+    .theinmag-btn--primary:focus-visible { translate: 0 0; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "theINmag hero",
+  "tag": "section",
+  "class": "theinmag-hero-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Maude exact pattern: text + CTAs sit on the LEFT image, right image is photography-only. Edit copy and CTAs below; swap images via the image pickers."
+    },
+    {
+      "type": "header",
+      "content": "Headline + subhead (left image overlay)"
+    },
+    {
+      "type": "textarea",
+      "id": "headline",
+      "label": "Headline (H1)",
+      "default": "The magazine for creative kids"
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "where Aussie kids get published - no ads, just creativity"
+    },
+    {
+      "type": "header",
+      "content": "Primary CTA (yellow stamp)"
+    },
+    {
+      "type": "text",
+      "id": "cta_primary_label",
+      "label": "Label",
+      "default": "Grab a membership"
+    },
+    {
+      "type": "url",
+      "id": "cta_primary_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Secondary CTA (outlined white on image)"
+    },
+    {
+      "type": "text",
+      "id": "cta_secondary_label",
+      "label": "Label",
+      "default": "Send IN content"
+    },
+    {
+      "type": "url",
+      "id": "cta_secondary_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Left image (carries text + CTAs)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Real photo of an Australian kid reading theINmag. Falls back to HERO_kid-reading-mag.jpg in /assets/ if not set here."
+    },
+    {
+      "type": "image_picker",
+      "id": "image_left",
+      "label": "Left image"
+    },
+    {
+      "type": "text",
+      "id": "image_left_alt",
+      "label": "Left image alt text",
+      "info": "Descriptive and keyword-aware. Drives AEO."
+    },
+    {
+      "type": "header",
+      "content": "Right image (photography only, no overlay)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Real kid creation in warm palette. Falls back to HERO_kid-creation-art.jpg in /assets/ if not set here."
+    },
+    {
+      "type": "image_picker",
+      "id": "image_right",
+      "label": "Right image"
+    },
+    {
+      "type": "text",
+      "id": "image_right_alt",
+      "label": "Right image alt text"
+    },
+    {
+      "type": "header",
+      "content": "Trust micro-bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust_bar",
+      "label": "Show trust micro-bar",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "trust_1",
+      "label": "Item 1",
+      "default": "Printed sustainably in Australia"
+    },
+    {
+      "type": "text",
+      "id": "trust_2",
+      "label": "Item 2",
+      "default": "100% kid-created"
+    },
+    {
+      "type": "text",
+      "id": "trust_3",
+      "label": "Item 3",
+      "default": "Always ad-free"
+    },
+    {
+      "type": "text",
+      "id": "trust_4",
+      "label": "Item 4",
+      "default": "Tri-annual"
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag hero"
+    }
+  ]
+}
+{% endschema %}
