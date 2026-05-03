@@ -1,6 +1,6 @@
 # theINmag Design Tokens
 ### Single source of truth for every visual decision in the Shopify build
-*Updated: May 3 2026 — full rewrite after design audit of mag08 + live site*
+*Updated: May 3 2026 - full rewrite after design audit of mag08 + live site*
 *Supersedes all previous versions*
 
 This file is referenced in CLAUDE.md and read by Claude Code at the start of every build session. Update it when decisions change. Stale tokens cause inconsistent builds.
@@ -9,15 +9,15 @@ This file is referenced in CLAUDE.md and read by Claude Code at the start of eve
 
 ## How to read this document
 
-Every colour and type choice is followed by a one-line "why" so the system stays trustworthy even for anyone making decisions visually. Ryan is colourblind — every important text-on-colour pairing meets WCAG AA contrast (4.5:1 for body, 3:1 for large text). These ratios are pre-validated. Don't introduce new colour pairings without validating contrast first.
+Every colour and type choice is followed by a one-line "why" so the system stays trustworthy even for anyone making decisions visually. Ryan is colourblind - every important text-on-colour pairing meets WCAG AA contrast (4.5:1 for body, 3:1 for large text). These ratios are pre-validated. Don't introduce new colour pairings without validating contrast first.
 
 ---
 
 ## Colour system
 
-theINmag's brand is genuinely a multi-colour palette where colours work as friendly background fields, not just accents. Every saturated colour has a soft companion. The pairings are the system — that's what makes the brand feel coherent across so many colours rather than chaotic.
+theINmag's brand is genuinely a multi-colour palette where colours work as friendly background fields, not just accents. Every saturated colour has a soft companion. The pairings are the system - that's what makes the brand feel coherent across so many colours rather than chaotic.
 
-### The colour pairs (LOCKED — this is THE core principle)
+### The colour pairs (LOCKED - this is THE core principle)
 
 Every coloured section uses one of these pairings. Light tone for backgrounds, dark companion for text and emphasis on top. Never mix companions across pairs.
 
@@ -45,17 +45,17 @@ Every coloured section uses one of these pairings. Light tone for backgrounds, d
     Contrast ratio:    5.1:1 (passes AA)
     Why:               Mint and sage are the magazine's nature colours. Use on Gallery, For Kids, anything that should feel fresh and growing.
 
-#### Cream pair (the workhorse — body text, default backgrounds)
+#### Cream pair (the workhorse - body text, default backgrounds)
     Cream:             #FBF6EA   (default page background, calm sections)
     Inky purple-navy:  #2A1F3D   (default body text, default heading colour where pairs don't apply)
     Contrast ratio:    13.4:1 (passes AAA)
-    Why:               Cream is warmer than white, less aggressive than pure paper-white. Inky purple-navy is warmer than #1a1a1a and reads better against cream. This is the universal pair — works everywhere, never wrong.
+    Why:               Cream is warmer than white, less aggressive than pure paper-white. Inky purple-navy is warmer than #1a1a1a and reads better against cream. This is the universal pair - works everywhere, never wrong.
 
 #### Sky pair (used sparingly, for callouts and links)
     Sky blue:          #C9E5E8   (callout backgrounds, light feature blocks)
     Dark teal:         #2D6878   (callout text, link colour)
     Contrast ratio:    5.4:1 (passes AA)
-    Why:               Used rarely on purpose — sky is the magazine's accent for special moments. The dark teal is also the default link colour throughout the site.
+    Why:               Used rarely on purpose - sky is the magazine's accent for special moments. The dark teal is also the default link colour throughout the site.
 
 ### Accent colours (use sparingly, like stamps)
 
@@ -64,7 +64,7 @@ Every coloured section uses one of these pairings. Light tone for backgrounds, d
     Text on yellow:     #2A1F3D (the inky purple-navy)
     Yellow shadow:      #D4A02E
     Contrast ratio:     9.1:1 on yellow (passes AAA)
-    Why:                Yellow is the brand's signature stamp colour. Used for CTAs, the "made by kids, for kids" sticker, and small attention moments. NEVER use yellow as a big background field — it's a stamp, not a wall.
+    Why:                Yellow is the brand's signature stamp colour. Used for CTAs, the "made by kids, for kids" sticker, and small attention moments. NEVER use yellow as a big background field - it's a stamp, not a wall.
 
 #### Cherry magenta (rare inline emphasis only)
     Cherry:             #B8265E
@@ -72,7 +72,7 @@ Every coloured section uses one of these pairings. Light tone for backgrounds, d
 
 ### Pattern overlay tones (for soft visual depth)
 
-Used as semi-transparent shapes layered behind solid colour fields — the "wave" or "blob" shapes seen across the homepage.
+Used as semi-transparent shapes layered behind solid colour fields - the "wave" or "blob" shapes seen across the homepage.
 
     Purple wave:       #C9B5DB at 60% opacity (sits on lavender background)
     Coral wave:        #F5C7B5 at 70% opacity (sits on salmon background)
@@ -84,9 +84,9 @@ Used as semi-transparent shapes layered behind solid colour fields — the "wave
 ### Critical rules (LOCKED)
 
 - ALWAYS use a pair together. Light background, dark companion for text/accents on top.
-- NEVER mix pair members across pairs. Don't put dark purple on a peach background — use the dark sandy orange for that. The pairings ARE the system.
+- NEVER mix pair members across pairs. Don't put dark purple on a peach background - use the dark sandy orange for that. The pairings ARE the system.
 - Yellow is a stamp colour, never a background field.
-- Cream and inky purple-navy are universal — they work with any pair as a fallback.
+- Cream and inky purple-navy are universal - they work with any pair as a fallback.
 - All text-on-colour combinations must hit WCAG AA contrast minimum. The pairs above are pre-validated. New pairings require validation at contrastchecker.com or similar.
 
 ---
@@ -98,18 +98,18 @@ The brand has three distinct type roles. Match each role to the right font.
 ### Heading font (display, hero, section titles)
 
     Font:              Post Regular
-    Source:            Self-hosted from /assets/ — see "Font loading" below
+    Source:            Self-hosted from /assets/ - see "Font loading" below
     Licence:           Pixel Surplus Web Font Licence, 0-10k pageviews/month tier
     Purchased:         May 3 2026, $64 USD
     Designer:          Javier Guaschetti
     Distributor:       Pixel Surplus (pixelsurplus.com)
-    Licence proof:     Google Drive — Website design / Shopify Assets / 23. theINmag - Licences / POST/
+    Licence proof:     Google Drive - Website design / Shopify Assets / 23. theINmag - Licences / POST/
     Files in repo:     /assets/post-webfont.woff2 (primary)
                        /assets/post-webfont.woff (fallback)
     Fallback stack:    'Post Regular', 'Caveat', Georgia, serif
     Letter-spacing:    0
     Line-height:       1.15 (tight for impact)
-    Weight:            400 (single weight — Post Regular is one cut only)
+    Weight:            400 (single weight - Post Regular is one cut only)
     Usage:             H1, H2, hero text, section titles, large emphasis moments
     Why:               Post Regular is the same hand-lettered font Lou uses across the print magazine. Print and web now feel like the same brand. Self-hosted for performance and licence compliance.
 
@@ -149,11 +149,11 @@ For magazine-style "DRAWING!" or "LOUDER!" inline emphasis effects:
     Color:       #B8265E (cherry magenta)
     Size:        slightly larger than surrounding text (1.15em)
     Weight:      700 (bold)
-    Why:         Caveat gives "I'm a real person, lettering this in" energy. Use sparingly — 1-2 spans per blog post maximum, never in headlines, never as a substitute for proper Post Regular headings.
+    Why:         Caveat gives "I'm a real person, lettering this in" energy. Use sparingly - 1-2 spans per blog post maximum, never in headlines, never as a substitute for proper Post Regular headings.
 
 ### Font loading strategy
 
-Post Regular is self-hosted (we paid for the licence, files are in /assets/). Inter and Caveat load from Google Fonts. The @font-face declaration for Post Regular goes in /assets/theinmag-base.css. Use font-display: swap on every font so text shows in the fallback while the custom font loads — never blocks rendering.
+Post Regular is self-hosted (we paid for the licence, files are in /assets/). Inter and Caveat load from Google Fonts. The @font-face declaration for Post Regular goes in /assets/theinmag-base.css. Use font-display: swap on every font so text shows in the fallback while the custom font loads - never blocks rendering.
 
 ---
 
@@ -161,22 +161,22 @@ Post Regular is self-hosted (we paid for the licence, files are in /assets/). In
 
 theINmag buttons are hand-drawn-feeling sticker shapes with a soft drop shadow. They look like things a kid stuck on the page. This is the live Wix convention and we keep it.
 
-### Primary CTA — the yellow stamp button
+### Primary CTA - the yellow stamp button
 
     Background:        #F9C23C (theINmag yellow)
     Text colour:       #2A1F3D (inky purple-navy)
     Text style:        Post Regular, uppercase, 16-18px depending on context
     Letter-spacing:    0.02em
     Padding:           14px 28px (mobile) / 16px 32px (desktop)
-    Border-radius:     32px (generous pill shape — feels like a sticker)
-    Shadow:            0 4px 0 #D4A02E (solid offset, not blurred — sticker effect)
+    Border-radius:     32px (generous pill shape - feels like a sticker)
+    Shadow:            0 4px 0 #D4A02E (solid offset, not blurred - sticker effect)
     Border:            none (the shadow does the visual lifting)
     Hover state:       Background shifts to #5D3A7A (dark purple), text shifts to #FFFFFF
     Hover transform:   translateY(2px) AND shadow becomes 0 2px 0 #4A2D62 (button "presses down")
     Transition:        all 0.15s ease
     Why:               This convention exists on the live site, customers expect it, conversion is at 6%. Don't break what's working. The press-down effect makes the button feel responsive and physical.
 
-### Secondary CTA — the outlined purple button
+### Secondary CTA - the outlined purple button
 
     Background:        transparent
     Text colour:       #5D3A7A (dark purple)
@@ -188,9 +188,9 @@ theINmag buttons are hand-drawn-feeling sticker shapes with a soft drop shadow. 
     Transition:        all 0.2s ease
     Why:               Where a yellow stamp would be too loud (multiple CTAs on a page, lower-priority actions), the outlined purple keeps the sticker shape but quieter.
 
-### Tertiary — text link only
+### Tertiary - text link only
 
-    Text colour:       #2D6878 (dark teal — the link colour from the sky pair)
+    Text colour:       #2D6878 (dark teal - the link colour from the sky pair)
     Text decoration:   underline (thin, 1px)
     Hover:             Text shifts to #5D3A7A (dark purple), underline thickens to 2px
     Why:               For inline links inside body copy. Never use as primary CTA.
@@ -230,7 +230,7 @@ theINmag's shapes are organic, slightly imperfect. Never sharp geometric corners
     md:        12px     (input fields, small cards)
     lg:        20px     (cards, image containers)
     xl:        28px     (large cards, feature blocks)
-    button:    32px     (CTA buttons — generous pill shape)
+    button:    32px     (CTA buttons - generous pill shape)
     pill:      9999px   (avatars, audience tiles, pure pills)
     organic:   SVG masks for genuine torn-paper / hand-drawn edges (see "Shape language" below)
 
@@ -263,7 +263,7 @@ Why: tinted purple shadows feel warmer and more theINmag than pure rgba(0,0,0). 
 
 ALL decorative animation respects prefers-reduced-motion. If a user has it set, disable float, wiggle, scroll reveal, and press-down. Functional animations (loading spinners, cart drawer slide) can stay.
 
-Test all animation on actual Pixel 6 before sign-off — never just desktop browser simulator.
+Test all animation on actual Pixel 6 before sign-off - never just desktop browser simulator.
 
 ---
 
@@ -283,7 +283,7 @@ These don't exist yet. Created or migrated as the build progresses. Naming conve
 
 ---
 
-## Brand language (LOCKED — never deviate)
+## Brand language (LOCKED - never deviate)
 
 These rules apply across every page, every blog post, every email, every agent output.
 
@@ -295,7 +295,7 @@ A girl in a school told us "art is not work" and that's brand-defining. Across t
     Wrong: "Submit your artwork"           Right: "Submit your creation"
     Wrong: "Get your work published"       Right: "Get your creation published"
 
-Universal across all categories — art, writing, photo, puzzle, joke, hobby. "Creation" works for everything.
+Universal across all categories - art, writing, photo, puzzle, joke, hobby. "Creation" works for everything.
 
 ### No em dashes
 
@@ -332,7 +332,7 @@ Primary nav order:
 6. Freebies
 7. About (dropdown: Our Story / Where we'll be next / Stockists / Schools / Contact)
 
-Persistent CTA right of nav: "Send IN" button — yellow primary, purple hover.
+Persistent CTA right of nav: "Send IN" button - yellow primary, purple hover.
 
 ---
 
@@ -340,9 +340,9 @@ Persistent CTA right of nav: "Send IN" button — yellow primary, purple hover.
 
 Two distinct authorial voices on the blog and in customer comms:
 
-Ryan — Smart brevity, Axios/Guy Raz energy, short punchy sentences, genuine pride in kids' creations, occasional gentle humour, professional friend.
+Ryan - Smart brevity, Axios/Guy Raz energy, short punchy sentences, genuine pride in kids' creations, occasional gentle humour, professional friend.
 
-Tam — Slightly warmer and nurturing, educational authority without being academic, excellent with parent and teacher audiences. Social Sands framework knowledge feeds into social content.
+Tam - Slightly warmer and nurturing, educational authority without being academic, excellent with parent and teacher audiences. Social Sands framework knowledge feeds into social content.
 
 Voice profile documents to be built Week 1 from real exported emails, social captions, and DMs.
 
@@ -364,13 +364,13 @@ Voice profile documents to be built Week 1 from real exported emails, social cap
 
 - All custom sections: theinmag- prefix
 - CSS: custom properties only, no hardcoded colour values (use the tokens above)
-- Mobile-first always — test on actual Pixel 6 before desktop
+- Mobile-first always - test on actual Pixel 6 before desktop
 - Test on multiple viewport widths: 375px (small iPhone), 390px (standard iPhone), 412px (Pixel 6)
 - Never edit theme.liquid directly
 - All custom CSS in section-level Custom CSS boxes or assets/theinmag-base.css
 - Respect prefers-reduced-motion in all animations
 - Image alt text: always descriptive, always keyword-aware (drives AEO)
-- No em dashes anywhere — including code comments
+- No em dashes anywhere - including code comments
 - All text-on-colour pairings must hit WCAG AA contrast minimum (use tokens above which are pre-validated)
 
 ---
@@ -390,17 +390,17 @@ Voice profile documents to be built Week 1 from real exported emails, social cap
 - Character images: < 100KB after compression
 - Hero-worthy kid art: prefix filename with HERO_
 
-Asset library audit + TinyPNG compression done May 1 2026 — every image now within target weight.
+Asset library audit + TinyPNG compression done May 1 2026 - every image now within target weight.
 
 ---
 
 ## Reference sites (study throughout build)
 
-1. getmaude.com / getmaude.com/blogs/themaudern — primary structural reference
-2. whogivesacrap.org (AU) — reviews, subscriptions, animations
-3. nuggetcomfort.com — kids brand, illustrations, motion
-4. magicspoon.com — scroll-triggered animations
-5. uppercasemagazine.com — magazine subscription model on Shopify
+1. getmaude.com / getmaude.com/blogs/themaudern - primary structural reference
+2. whogivesacrap.org (AU) - reviews, subscriptions, animations
+3. nuggetcomfort.com - kids brand, illustrations, motion
+4. magicspoon.com - scroll-triggered animations
+5. uppercasemagazine.com - magazine subscription model on Shopify
 
 ---
 
@@ -422,7 +422,7 @@ Asset library audit + TinyPNG compression done May 1 2026 — every image now wi
 
 ---
 
-## Workshop pricing convention (current — flagged for review)
+## Workshop pricing convention (current - flagged for review)
 
 - School workshops: $250 for 2 hours (under-priced, revisit after first 6-12 months of bookings)
 - Homeschool sessions: ~$5 per family, paid cash or Square on the day, separate from Shopify entirely

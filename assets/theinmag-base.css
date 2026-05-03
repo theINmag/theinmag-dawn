@@ -1,0 +1,182 @@
+/* ==========================================================================
+   theinmag-base.css
+   Foundation styles for the theINmag Shopify theme
+   - @font-face for self-hosted Post Regular
+   - CSS custom properties for every locked design token
+   - Sitewide typographic defaults
+   Read theinmag-design-tokens.md before adding to this file.
+   No em dashes anywhere - hyphens only.
+   ========================================================================== */
+
+/* ----- Self-hosted heading font ----- */
+
+@font-face {
+    font-family: 'Post Regular';
+    src: url('post-webfont.woff2') format('woff2'),
+        url('post-webfont.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ----- Design token custom properties ----- */
+
+:root {
+
+    /* ----- Colour pairs ----- */
+
+    /* Purple pair (primary brand) */
+    --color-lavender: #E8DEEF;
+    --color-purple-dark: #5D3A7A;
+
+    /* Coral pair (warmth, energy) */
+    --color-salmon: #FBE0D6;
+    --color-coral-dark: #C9543E;
+
+    /* Peach pair (shop, products) */
+    --color-peach: #FCDDB8;
+    --color-sandy-orange-dark: #D9783A;
+
+    /* Mint pair (kids, gallery, fresh) */
+    --color-mint: #D6EAD9;
+    --color-sage-dark: #4A7C5C;
+
+    /* Cream pair (universal workhorse) */
+    --color-cream: #FBF6EA;
+    --color-inky-purple-navy: #2A1F3D;
+
+    /* Sky pair (callouts, links) */
+    --color-sky: #C9E5E8;
+    --color-teal-dark: #2D6878;
+
+    /* ----- Accent colours ----- */
+    --color-yellow: #F9C23C;
+    --color-yellow-shadow: #D4A02E;
+    --color-cherry: #B8265E;
+
+    /* ----- Pattern overlays ----- */
+    --color-wave-purple: #C9B5DB;
+    --color-wave-coral: #F5C7B5;
+    --color-wave-peach: #F8C99E;
+    --color-wave-mint: #B8DCC0;
+    --color-wave-sky: #B5DDE1;
+
+    /* ----- Semantic defaults (use these in components) ----- */
+    --color-page-bg: var(--color-cream);
+    --color-text: var(--color-inky-purple-navy);
+    --color-text-muted: #6b6b6b;
+    --color-link: var(--color-teal-dark);
+    --color-link-hover: var(--color-purple-dark);
+
+    /* ----- Fonts ----- */
+    --font-heading: 'Post Regular', 'Caveat', Georgia, serif;
+    --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-emphasis: 'Caveat', cursive;
+
+    /* ----- Spacing scale ----- */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    --space-3xl: 64px;
+    --space-4xl: 96px;
+    --space-5xl: 128px;
+
+    /* ----- Border radius ----- */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --radius-button: 32px;
+    --radius-pill: 9999px;
+
+    /* ----- Shadows ----- */
+    --shadow-card: 0 2px 12px rgba(123, 79, 158, 0.08);
+    --shadow-card-hover: 0 4px 20px rgba(123, 79, 158, 0.15);
+    --shadow-button-yellow: 0 4px 0 var(--color-yellow-shadow);
+    --shadow-button-pressed: 0 2px 0 #4A2D62;
+    --shadow-modal: 0 8px 32px rgba(123, 79, 158, 0.18);
+
+    /* ----- Transitions ----- */
+    --transition-standard: 0.15s ease;
+    --transition-hover: 0.2s ease;
+
+}
+
+/* ----- Sitewide typographic defaults ----- */
+
+body {
+    font-family: var(--font-body);
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--color-text);
+    background-color: var(--color-page-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--color-text);
+}
+
+h3,
+h4,
+h5 {
+    font-family: var(--font-body);
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+h1 {
+    font-size: clamp(32px, 6vw, 56px);
+    line-height: 1.1;
+}
+
+h2 {
+    font-size: clamp(26px, 4.5vw, 40px);
+    line-height: 1.15;
+}
+
+h3 {
+    font-size: clamp(22px, 3.5vw, 30px);
+    line-height: 1.2;
+}
+
+h4 {
+    font-size: clamp(18px, 2.5vw, 22px);
+    line-height: 1.3;
+}
+
+h5 {
+    font-size: 16px;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+/* Caveat emphasis - rare hand-lettered moments inside body text */
+.theinmag-emphasis {
+    font-family: var(--font-emphasis);
+    font-weight: 700;
+    font-size: 1.15em;
+    color: var(--color-cherry);
+}
+
+/* Respect reduced motion preferences across the site */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
