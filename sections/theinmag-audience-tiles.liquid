@@ -1,0 +1,464 @@
+{%- comment -%}
+  theinmag-audience-tiles
+  Section 4. Four full-bleed image tiles linking to the audience pages.
+
+  Layout:
+  - Below 1200px: horizontal scroll carousel with snap. Each tile is
+                  ~85vw on phone, ~60vw on tablet/narrow desktop so
+                  the next tile peeks at the right edge as a "swipe
+                  for more" cue.
+  - >= 1200px:    4-up single row, all four tiles fit, no scroll.
+
+  Section heading "Designed with you in mind" sits absolute-positioned
+  at the bottom of the section across all viewports. On narrow
+  viewports the heading stays locked while the tiles scroll
+  horizontally underneath it - playful theINmag move on top of the
+  Maude pattern.
+
+  Spec: homepage-build-spec.md Section 4.
+{%- endcomment -%}
+
+{%- liquid
+  assign tiles = section.blocks
+  assign heading_text = section.settings.heading | default: 'Designed with you in mind'
+-%}
+
+<section
+  class="theinmag-tiles"
+  aria-labelledby="theinmag-tiles-heading-{{ section.id }}"
+>
+  <div class="theinmag-tiles__scroller">
+    <ul class="theinmag-tiles__grid" role="list">
+      {%- for block in tiles -%}
+        {%- liquid
+          assign label = block.settings.label
+          assign link = block.settings.link
+          assign image = block.settings.image
+          assign image_alt = block.settings.image_alt | default: label
+          assign fallback_filename = block.settings.fallback_filename
+        -%}
+        <li class="theinmag-tiles__item" {{ block.shopify_attributes }}>
+          <a
+            class="theinmag-tile"
+            href="{{ link | default: '#' }}"
+            aria-label="{{ label | escape }} - learn more"
+          >
+            <span class="theinmag-tile__media">
+              {%- if image != blank -%}
+                <img
+                  class="theinmag-tile__image"
+                  src="{{ image | image_url: width: 1200 }}"
+                  srcset="
+                    {{ image | image_url: width: 600 }} 600w,
+                    {{ image | image_url: width: 900 }} 900w,
+                    {{ image | image_url: width: 1200 }} 1200w,
+                    {{ image | image_url: width: 1800 }} 1800w
+                  "
+                  sizes="(min-width: 1200px) 25vw, (min-width: 750px) 60vw, 85vw"
+                  width="{{ image.width }}"
+                  height="{{ image.height }}"
+                  alt="{{ image_alt | escape }}"
+                  loading="lazy"
+                >
+              {%- elsif fallback_filename != blank -%}
+                <img
+                  class="theinmag-tile__image"
+                  src="{{ fallback_filename | asset_url }}"
+                  alt="{{ image_alt | escape }}"
+                  loading="lazy"
+                >
+              {%- else -%}
+                <span class="theinmag-tile__image theinmag-tile__image--empty" aria-hidden="true"></span>
+              {%- endif -%}
+              <span class="theinmag-tile__darken" aria-hidden="true"></span>
+            </span>
+
+            <span class="theinmag-tile__label">{{ label }}</span>
+          </a>
+        </li>
+      {%- else -%}
+        <li class="theinmag-tiles__empty">
+          <p>Add audience tiles in the theme editor.</p>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+
+  <div class="theinmag-tiles__heading-scrim" aria-hidden="true"></div>
+  <h2
+    id="theinmag-tiles-heading-{{ section.id }}"
+    class="theinmag-tiles__heading"
+  >
+    {{ heading_text }}
+  </h2>
+</section>
+
+{% stylesheet %}
+  /* ================================================================
+     theinmag-audience-tiles (Section 4)
+     ================================================================ */
+
+  .theinmag-tiles {
+    position: relative;
+    background-color: var(--color-cream);
+    /* Section padding is 0 - tiles are full-bleed at every viewport,
+       and the heading is an overlay positioned against the section. */
+    padding: 0;
+    overflow: hidden;
+  }
+
+  /* ================================================================
+     Scroller
+     - Below 1200px: overflow-x scroll with snap
+     - >= 1200px:    overflow visible, the grid switches to 4-up
+     ================================================================ */
+
+  .theinmag-tiles__scroller {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    /* Hide scrollbar visually - the peeking next tile is the
+       affordance for "swipe for more". */
+    scrollbar-width: none;
+  }
+  .theinmag-tiles__scroller::-webkit-scrollbar { display: none; }
+
+  @media (min-width: 1200px) {
+    .theinmag-tiles__scroller {
+      overflow: visible;
+      scroll-snap-type: none;
+    }
+  }
+
+  /* ================================================================
+     Grid
+     ================================================================ */
+
+  .theinmag-tiles__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+
+  @media (min-width: 1200px) {
+    .theinmag-tiles__grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .theinmag-tiles__item {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    /* Phone: tile is ~85vw so the next peeks on the right. */
+    flex: 0 0 auto;
+    width: 85vw;
+    max-width: 480px;
+    scroll-snap-align: start;
+  }
+
+  /* Tablet + narrow desktop (up to 1199px): tile is 60vw, capped at
+     600px. Keeps the slide carousel feeling consistent across the
+     whole non-grid range. */
+  @media (min-width: 750px) {
+    .theinmag-tiles__item {
+      width: 60vw;
+      max-width: 600px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .theinmag-tiles__item {
+      width: auto;
+      max-width: none;
+      flex: initial;
+    }
+  }
+
+  .theinmag-tiles__empty {
+    list-style: none;
+    width: 100%;
+    text-align: center;
+    padding: var(--space-3xl) var(--space-md);
+    color: var(--color-text-muted);
+    font-family: var(--font-body);
+  }
+
+  /* ================================================================
+     Tile
+     ================================================================ */
+
+  .theinmag-tile {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    background-color: var(--color-cream);
+  }
+
+  .theinmag-tile__media {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .theinmag-tile__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .theinmag-tile__image--empty {
+    background-color: var(--color-lavender);
+  }
+
+  /* Uniform darken across the whole photo - matches every tile to a
+     similar brightness regardless of how the photo was lit. The
+     bottom heading scrim adds extra darkness over this for the
+     overlay heading legibility. */
+  .theinmag-tile__darken {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    transition: background-color var(--transition-hover);
+    z-index: 1;
+  }
+
+  .theinmag-tile:hover .theinmag-tile__image,
+  .theinmag-tile:focus-visible .theinmag-tile__image {
+    transform: scale(1.04);
+  }
+
+  .theinmag-tile:hover .theinmag-tile__darken,
+  .theinmag-tile:focus-visible .theinmag-tile__darken {
+    background-color: rgba(0, 0, 0, 0.32);
+  }
+
+  .theinmag-tile:focus-visible {
+    outline: 3px solid var(--color-yellow);
+    outline-offset: -6px;
+  }
+
+  /* ================================================================
+     Tile label - top-left, white, Inter 600. No text-shadow.
+     Legibility relies on the uniform tile darken (0.25 alpha) +
+     the contrast of white on darker tones. If a photo's top-left
+     area is too bright for white text to read, that needs a tighter
+     crop or a different photo rather than a CSS shadow.
+     ================================================================ */
+
+  .theinmag-tile__label {
+    position: absolute;
+    top: var(--space-md);
+    left: var(--space-md);
+    z-index: 2;
+    pointer-events: none;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(16px, 1.8vw, 19px);
+    line-height: 1.5;
+    letter-spacing: 0;
+    color: #ffffff;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-tile__label {
+      top: var(--space-lg);
+      left: var(--space-lg);
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .theinmag-tile__label {
+      top: var(--space-xl);
+      left: var(--space-xl);
+    }
+  }
+
+  /* ================================================================
+     Section heading - "Designed with you in mind"
+     Absolute-positioned overlay at every viewport. On the narrow
+     scroll layouts it stays locked while tiles slide underneath.
+     ================================================================ */
+
+  .theinmag-tiles__heading {
+    position: absolute;
+    bottom: clamp(20px, 4vh, 56px);
+    left: 0;
+    right: 0;
+    z-index: 3;
+    margin: 0;
+    padding: 0 var(--space-md);
+    font-family: var(--font-heading);
+    font-weight: 400;
+    /* Bumped from clamp(28px, 5vw, 56px). At narrow desktop widths
+       (750-1199px) the previous clamp landed in the 35-50px range
+       which read small against the photos. New floor 36px keeps it
+       substantial on phone too. text-wrap: balance gives nicer
+       2-line wraps on smaller viewports where it doesn't fit on one
+       line (~24 chars at the chosen size). */
+    font-size: clamp(36px, 6vw, 68px);
+    line-height: 1.05;
+    text-wrap: balance;
+    color: #ffffff;
+    text-align: center;
+    pointer-events: none;
+    text-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.55),
+      0 4px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Bottom gradient that runs across the visible tile area. Sits
+     between the photos and the heading. Gives the white heading a
+     darker field to land on regardless of what each photo looks
+     like at that vertical band. */
+  .theinmag-tiles__heading-scrim {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 38%;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.50) 0%,
+      rgba(0, 0, 0, 0.25) 55%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-tile__image,
+    .theinmag-tile__darken {
+      transition: none;
+    }
+    .theinmag-tile:hover .theinmag-tile__image,
+    .theinmag-tile:focus-visible .theinmag-tile__image {
+      transform: none;
+    }
+    .theinmag-tiles__scroller {
+      scroll-behavior: auto;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "theINmag audience tiles",
+  "tag": "section",
+  "class": "theinmag-tiles-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Four audience tiles. Below 1200px the tiles become a horizontal scroll carousel - swipe to see all four. Heading 'Designed with you in mind' stays locked over the bottom of the tiles at every viewport."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section heading",
+      "info": "Sits over the bottom of the tile row at every viewport.",
+      "default": "Designed with you in mind"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tile",
+      "name": "Audience tile",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label (single word)",
+          "info": "e.g. Parents, Teachers, Homeschoolers, Kids. Renders white in Inter 600 (matches the hero subhead).",
+          "default": "Parents"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Tile link"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Background image",
+          "info": "1800x1800 square JPG, under 300KB after TinyPNG. Falls back to the filename below if not set."
+        },
+        {
+          "type": "text",
+          "id": "fallback_filename",
+          "label": "Fallback filename in /assets/",
+          "info": "Used only if no image is uploaded above. Asset-folder filename, no path.",
+          "default": "HERO_audiences-parents.jpg"
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Image alt text",
+          "info": "Descriptive and keyword-aware. Drives AEO."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag audience tiles",
+      "blocks": [
+        {
+          "type": "tile",
+          "settings": {
+            "label": "Parents",
+            "link": "/pages/for-parents",
+            "fallback_filename": "HERO_audiences-parents.jpg",
+            "image_alt": "An Australian parent reading theINmag with their child."
+          }
+        },
+        {
+          "type": "tile",
+          "settings": {
+            "label": "Teachers",
+            "link": "/pages/for-teachers",
+            "fallback_filename": "HERO_audiences-teachers.jpg",
+            "image_alt": "An Australian teacher using theINmag with their classroom."
+          }
+        },
+        {
+          "type": "tile",
+          "settings": {
+            "label": "Homeschoolers",
+            "link": "/pages/for-homeschoolers",
+            "fallback_filename": "HERO_audiences-homeschoolers.jpg",
+            "image_alt": "An Australian homeschool family at the kitchen table with theINmag."
+          }
+        },
+        {
+          "type": "tile",
+          "settings": {
+            "label": "Kids",
+            "link": "/pages/for-kids",
+            "fallback_filename": "HERO_audiences-kids.jpg",
+            "image_alt": "An Australian kid drawing alongside their copy of theINmag."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

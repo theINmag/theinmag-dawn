@@ -38,8 +38,9 @@ These rules apply across every section on the homepage. Locked.
 - **Primary CTA label:** "Grab a membership" (yellow stamp)
 - **Secondary CTA label:** "Send IN content" (outlined white on photo background; outlined purple is the default everywhere else)
 - **Audience tile labels:** Parents / Teachers / Homeschoolers / Kids (drop the "For" on tiles, keep "For" in nav dropdown)
-- **Announcement bar message 1:** "Get ready - Mag [X] dropping in [N] days" (auto-calculated, days only - never hours/minutes)
-- **Announcement bar message 2:** "Free shipping on orders over $40" (threshold editable in admin)
+- **Section 4 heading:** "Designed with you in mind" (umbrella label for the four audience tiles - reads better than "Who's it for?" or "Who reads theINmag?" because the four categories are who the mag is *designed for*, not necessarily who reads it)
+- **Announcement bar message 1:** "Get ready - Mag[X] dropping in [N] days" (auto-calculated, days only - never hours/minutes; Mag and issue number rendered as one word, no space)
+- **Announcement bar message 2:** "Free shipping on orders over $40 📮" (threshold editable in admin; postbox emoji is locked content - kid-fun stamp on the otherwise plain shipping line)
 - **Section 6 heading:** "Meet Tam, co-founder of theINmag"
 - **Section 6 sub-heading:** "Take a peek inside Mag[X] with Tam" (auto-pulls issue number)
 - **Section 9 heading:** "Hey adults, come hang with us!"
@@ -73,18 +74,25 @@ These rules apply across every section on the homepage. Locked.
 - Threshold lives in section schema as a setting (changeable in Shopify admin without code edits)
 - Optional CTA link to /shop
 
-**Cycle behaviour:**
-- Each message visible for ~6 seconds
-- Smooth opacity fade between (0.4s ease)
-- Pause cycle on hover so visitors can finish reading
-- Respects `prefers-reduced-motion`: instant swap with no fade
+**Display behaviour (LOCKED May 3 2026 evening session 3):**
+- Desktop (>= 750px): both messages visible side-by-side, static, no cycling. Cycling reads as distracting on a wide bar with room for both. Premium feel = static dual-message.
+- Mobile (< 750px): single message visible at a time, cycles between the two. 6-second hold each, 0.4s opacity cross-fade, pause on hover/focus. Mobile redesign pending - the cycle is provisional until next session's mobile pass.
+- Respects `prefers-reduced-motion`: cycle transition becomes instant (no fade) on mobile; desktop is static regardless.
+
+**Stamp word treatment:** Two Post Regular hooks per countdown message, both at 1.8em (~2x the Inter base):
+1. "Get ready" - the playful stamp opener
+2. The day count (e.g. "37") - the changing variable also gets the stamp treatment so the eye-catching number reads as part of the playful run, not the boring data
+
+Live-day message ("MagX is here!") is fully wrapped in a single hook span - the whole celebratory line gets Post.
+
+"MagX" is rendered as one word (no space between Mag and the issue number) per the locked content list above. Bar min-height bumped to 42/48px (mobile/desktop) to fit the larger hook without crowding.
 
 **Style (using design tokens):**
 - Background: inky purple-navy `#2A1F3D`
 - Text: cream `#FBF6EA`
-- Font: Inter 500, 14px
+- Font: Inter 500, 13px mobile / 14px desktop
 - Padding: 10-12px vertical desktop, 8-10px mobile, generous horizontal
-- Small × dismiss button on the right - cookie-remembered for 7 days
+- No dismiss button - the bar always shows. Removed in session 5 after the cookie persistence created friction during dev/preview and there's no compelling user reason for a dismiss on a strip carrying countdown + shipping info.
 
 **Schema settings:**
 - Toggle on/off per message
@@ -180,18 +188,33 @@ These rules apply across every section on the homepage. Locked.
 ### Section 4 - Audience category tiles
 **Reference:** `/reference/maude/maude-tiles-desktop.png`, `/reference/maude/maude-tiles-mobile.png`
 
-**Pattern:** 4 full-bleed image tiles in a 2x2 grid on desktop, single column on mobile. Each tile is its own clickable card linking to the relevant audience page.
+**Pattern (LOCKED May 3 2026 evening session 5):**
+- **Below 1200px** (phone, tablet, narrow + medium desktop): horizontal scroll carousel. Tiles are ~85vw on phone (max 480px), ~60vw on tablet/narrow desktop (max 600px) so the next tile peeks at the right edge - the peek is the "swipe for more" affordance. Scroll-snap-x mandatory, scrollbar hidden.
+- **>= 1200px**: 4-up single row, all four tiles fit, no scroll. Maude reference confirmed.
+- The grid breakpoint was pushed from 990px to 1200px in session 5 - at 990-1199px the grid felt cramped on common laptop widths, slide reads better there.
+- No gaps between tiles - the row reads as one continuous photographic band.
+
+**Section heading: "Designed with you in mind"** (Post Regular, white, large) sits as an absolute-positioned overlay across the bottom of the visible tile area at every viewport. On the carousel the heading stays LOCKED while tiles slide horizontally underneath - playful theINmag move on top of the Maude pattern.
 
 **Each tile contains:**
 - Background: kid creation OR real photo of audience using the mag (e.g. teacher with classroom, parent reading with kid, homeschool family at kitchen table, kid drawing)
-- Single-word label, top-left, large text in Post Regular (drop the "For" - just "Parents", "Teachers", "Homeschoolers", "Kids")
-- Whole tile is clickable - links to /for-parents, /for-teachers, /for-homeschoolers, /for-kids respectively
-- Subtle zoom on hover (transform: scale(1.02), 0.3s ease) - respects prefers-reduced-motion
+- Single-word label, top-left, white. Inter 600 at clamp(16px, 1.8vw, 19px) - matches the hero subhead exactly. No text-shadow. Legibility relies on the uniform tile darken (0.25 alpha). Drop the "For" - just "Parents", "Teachers", "Homeschoolers", "Kids".
+- Whole tile is clickable - links to /pages/for-parents, /pages/for-teachers, /pages/for-homeschoolers, /pages/for-kids respectively (override per tile in admin if slugs differ)
+- Subtle zoom on hover (transform: scale(1.04), 0.4s ease) - respects prefers-reduced-motion
 - No additional copy on the tile - the image and label do the work
+- No coloured pills, no per-tile colour pair styling. The earlier sticker-pill colour-pair approach was reverted in session 3 - it read as cheap rather than premium when seen against real photography. White text on photo = the premium move.
 
-**Mobile behaviour:** single column, tiles stack vertically. Each tile maintains full-bleed treatment. Label position consistent.
+**Photo darken:** Uniform `rgba(0, 0, 0, 0.25)` flat alpha across the whole tile (was a top-darker gradient). Brings every photo to a similar moody brightness regardless of how each was originally lit. Hover bumps to 0.32.
 
-**Aspect ratio:** tiles are roughly square on desktop (allows the 2x2 to feel balanced). On mobile, tiles can be slightly taller to give photography room.
+**Bottom heading scrim:** A linear gradient runs across the bottom 38% of the section (full-bleed, on top of whatever tiles are currently visible) - from transparent at top to rgba(0, 0, 0, 0.50) at the bottom edge. Sits above the photo darken but below the heading. Stacked with the per-tile darken, the bottom of the section reaches an effective ~0.62 alpha, plenty for white heading text to read on any photo.
+
+**Aspect ratio:** 4/5 portrait at every viewport.
+
+**Font journey for labels (current state: Inter 600, no shadow):**
+- Session 2: Built with coloured-pill labels, light pair tone bg + dark companion text. Reverted - read as cheap on photography.
+- Session 3: Switched to Inter 600 white with text-shadow + top gradient scrim. Worked but felt slightly less premium than Maude's serif labels.
+- Session 4: Tried Post Regular at clamp(24px, 2.6vw, 32px) for premium-for-the-category feel. Ryan judged it not the right move.
+- Session 5 (current): Reverted to Inter 600 white at the original clamp(16px, 1.8vw, 19px), no text-shadow. Uniform tile darken (0.25 alpha) carries legibility. If a photo's top-left corner is too bright for white text to read, that's a photo crop call rather than a CSS fix.
 
 **Why drop the "For":** Single-word labels carry their own meaning when paired with strong photography. "Teachers" lands harder than "For Teachers" because there's no preposition between the audience and the word. The dropdown nav can keep "For Parents" because dropdowns benefit from prepositional clarity, but the homepage tiles don't need it.
 
@@ -703,6 +726,20 @@ The QUESTION text uses customer search language (e.g. "Will my child's work actu
 ---
 
 ## Change log
+
+- May 4 2026 (early hours session 8) - **Header iteration pass with Ryan in browser preview.** Layout flipped from "sticker + logo on left, nav right, CTA + cart far right" to **"sticker + nav (INfo / Gallery / Blog / Freebies) on left, then logo + Shop + cart + Send IN content all bunched together on the right"** - Ryan's call after eyeballing the first build. Made-by-kids sticker scaled up significantly (100/150/180/210px across breakpoints, was 56/72/84). Header CTA now desktop-only (>= 990px) - the phone + tablet row was crowding with the CTA, hamburger, cart, logo, sticker all competing. Drawer carries the same CTA at the bottom for everyone below desktop. Hamburger sized down (44 -> 40), border-radius dropped (12px -> 8px) and shadow tightened (3px -> 2px) - Ryan noted it read "too chunky" and "too rounded". Drawer flattened: INfo accordion replaced with a static uppercase group label + sub-items rendered inline as siblings, matching the live mobile drawer's flat scannable list. CTA on desktop bumped 14px -> 16px -> 18px after Ryan flagged the text felt small. Sticky moved off `.theinmag-header` onto the section wrapper class `.theinmag-header-section` - Dawn's sticky pattern relies on a JS-added class our custom header doesn't inherit. Big debug rabbit hole on a 30-40px gap between header and hero that survived multiple targeted fixes; landed it with `!important` rules in `assets/theinmag-base.css` zeroing margin/padding on `.shopify-section-group-header-group`, `main#MainContent`, and the first section inside main. Schema gotchas hit and fixed inline: `url`-type settings reject external URL defaults (use `text` instead); a schema can't define both `default` and `presets` (use `default` for sections pinned in JSON files). Both saved to memory for future builds.
+
+- May 3 2026 (evening session 7) - **Site-wide header built.** New `sections/theinmag-header.liquid` replaces Dawn's stock header inside `sections/header-group.json`. Layout: three-zone grid on desktop (sticker + logo left, nav centre-right [Shop / INfo / Gallery / Blog / Freebies], cart + persistent yellow "Send IN content" CTA on the right). Mobile collapses to sticker + logo + cart + hamburger; the hamburger opens a full slide-down drawer that mirrors the live mobile site (full_logo top, stacked centred nav with INfo expanding inline as an accordion, yellow CTA, IG/FB/YT social row at the bottom). **Locked nav revised** - "Send IN" graduated from nav item to persistent CTA; "Who's it for?" + "About" collapsed into a single "INfo" dropdown carrying audience pages + Our Story. Updated under "Navigation language" in `theinmag-design-tokens.md`. **Sticky behaviour: always-on**, soft shadow appears once scrolled. Hide-on-scroll-down (Dawn's default) rejected as too clever for a grandparent + kid audience. **Account icon dropped** - membership is conceptually separate from Shopify customer login; showing a person icon invites the wrong mental model. **Shared button CSS lifted** out of `theinmag-hero.liquid` into `assets/theinmag-base.css` so the header CTA, hero, and future sections share one definition (third section was about to duplicate them). New `--secondary` variant added (outlined dark purple on cream surfaces) per the design tokens spec - the hero's `--secondary-on-image` keeps its outlined-white-on-photography role. Logo assets in place at `/assets/header_logo.svg` (header wordmark only), `/assets/madebykids_logo.svg` (sticker for left of header), `/assets/full_logo.svg` (drawer wordmark + made-by-kids stack). Socials saved to memory for future footer + contact reuse.
+
+- May 3 2026 (evening session 6) - **Sections 0 + 4 polish pass.** Section 0: copy + presentation tweaks. "Mag 10" rendered as "Mag10" (one word, locked). Days number ("37" etc.) wrapped in a `__hook` span so it gets the same Post Regular stamp treatment as "Get ready" - two playful Post moments per countdown line. Hook size bumped from 1.18em to 1.8em (~2x the Inter base) per Ryan's direction. Bar min-height grown 36/40 → 42/48 to give the larger hook breathing room. `line-height: 0.9` + `vertical-align: -0.12em` on the hook keeps the bigger characters from blowing up the line-box. Postbox emoji 📮 added to the end of the shipping message - locked content, kid-fun stamp. The skip-to-content link Dawn ships with stays as-is - it's hidden by default and only appears on focus (WCAG 2.4.1 compliance), and Ryan was just seeing it because he had focus on it. Section 4: heading clamp bumped from clamp(28px, 5vw, 56px) to clamp(36px, 6vw, 68px). At 750-1199px (the slide carousel range) the previous clamp landed at 35-50px which read small against the photos. Floor 36 wraps "Designed with you in mind" to 2 lines on phone (under ~430px viewport); `text-wrap: balance` added so the wrap is centred rather than orphaned.
+
+- May 3 2026 (evening session 5) - **Sections 0 + 4 third design review.** Section 0: dismiss button + 7-day cookie removed entirely. Reasoning: cookie persistence was creating friction during dev/preview (a stray test click hides the bar for a week), and there's no compelling user reason to dismiss a strip carrying just countdown + shipping info. The `request.design_mode` bypass added in session 4 is gone with the cookie. Schema setting `show_dismiss` removed. Section 4: tile labels reverted from Post Regular back to Inter 600 white at clamp(16px, 1.8vw, 19px). Text-shadow removed - relying on the uniform 0.25 tile darken for legibility. Slide-to-grid breakpoint pushed from 990px to 1200px - at common laptop widths (1100-1199px) the slide carousel reads better than the cramped grid. Tablet/narrow-desktop tile max-width bumped from 540px to 600px to keep the slide feeling substantial across the wider range.
+
+- May 3 2026 (evening session 4) - **Sections 0 + 4 second design review.** Announcement bar: added `request.design_mode` bypass on the dismiss cookie - inside the Shopify admin theme editor, the bar always shows so the editor can see what they're styling (cookie still applies on the live storefront and in `shopify theme dev` local previews). Section 4: layout changed from grid-only to scroll-carousel-on-narrow + grid-on-desktop. Below 990px the four tiles become a horizontal scroll-snap carousel - tile width 85vw on phone / 60vw on tablet so the next tile peeks at the right edge as a swipe affordance. Scrollbar visually hidden. Heading "Designed with you in mind" lifted out of the scroll container so it stays locked at the bottom of the section while tiles slide underneath - new pattern adapting Maude's 4-up scroll to theINmag's overlay-heading move. Heading is now an absolute-positioned overlay at every viewport (was desktop-only before). Tile photo treatment changed from top-darker gradient to uniform rgba(0,0,0,0.25) flat darken - matches all photos to a similar brightness regardless of original lighting. Tile labels switched from Inter 600 (hero-subhead match) to Post Regular at clamp(24px, 2.6vw, 32px). Reasoning: Maude's labels feel more premium because their primary serif is doing the lifting; theINmag's equivalent move is to use Post Regular (already loaded, brand-aligned, premium-for-the-category) rather than a body font. Principle 19 stays compliant - Post used as label display, not body. Mobile/tablet redesign now folded into the same Section 4 spec rather than left as next-session work.
+
+- May 3 2026 (evening session 3) - **Sections 0 + 4 first design review.** Announcement bar: cycling reverted on desktop - both messages now visible side-by-side at >= 750px, static, no fade. Mobile keeps the cycle for now (provisional, redesign next session). New "stamp word" treatment - "Get ready" in the countdown and the whole "Mag X is here!" live message render in Post Regular at 1.18em via a `__hook` span inside the captured Liquid output. Brand voice on a strip that's otherwise Inter. Section 4: layout swapped from 2x2 to 4-up single row on desktop (Maude reference confirmed). Per-tile colour-pair sticker pills reverted - Ryan's call: pills read as cheap, not premium. New treatment: white labels (Inter 600, matches hero subhead font) top-left of each tile with text-shadow + per-tile top gradient scrim for legibility. Section heading "Designed with you in mind" repositioned on desktop as an absolute overlay across the bottom of the four tiles, with a section-level bottom gradient scrim (38% height, fades to rgba 0,0,0,0.55) ensuring the white heading text reads on any photo. Mobile keeps the heading above the grid in normal flow (dark-on-cream). Tile aspect 4/5 portrait at every viewport. Tablet (750-989px) gets a 2x2 grid as the in-between. `colour_pair` schema setting + per-tile pair classes removed (no longer used). Mobile redesign for both sections is the next call.
+
+- May 3 2026 (evening session 2) - **Section 0 announcement bar built. Section 4 audience tiles built.** Section 0 lives at `sections/theinmag-announcement-bar.liquid`, wired into `sections/header-group.json` above the header. Dawn's default `announcement-bar` removed from the order array (file kept on disk per never-delete rule). Two cycling messages on a 6s interval with 0.4s opacity cross-fade, pause on hover/focus, dismiss × button setting a 7-day cookie. Countdown is days-only, computed in Liquid via `'now' | date: '%s'` math, with a 2-day grace window (switches to "Mag X is here!" on release day, hides automatically after). `next_release_date` stored as text `YYYY-MM-DD` in the section schema (no native section-schema date type) - flagged for future migration to a shop metafield once Section 6 + Klaviyo also need the same date. Section 4 lives at `sections/theinmag-audience-tiles.liquid`, wired into `templates/index.json` directly after the hero (will reorder once Sections 2 & 3 are built between them). Aspect ratio 1/1 desktop, 4/5 mobile. Per-tile colour pair pill labels - Parents=coral, Teachers=purple, Homeschoolers=peach, Kids=mint. Section heading "Designed with you in mind" locked (replaces earlier consideration of "Who's it for?" / "Who reads theINmag?" - the four categories are who the mag is designed *for*, not who actually reads it - majority of readers are kids). Four hero images in place at `/assets/HERO_audiences-{parents,teachers,homeschoolers,kids}.jpg`, all under 200KB. Audience page link defaults `/pages/for-parents` etc. - editable per tile.
 
 - May 3 2026 (late evening) - **Section 1 hero v2 locked + built.** Pattern decision: Option A (Maude exact pattern) - text + CTAs concentrate on left image, right image is pure photography. Right-block headline TBD removed. Headline stays "The magazine for creative kids" (Post Regular, white, left-aligned), subhead "where Aussie kids get published - no ads, just creativity" (Inter, white, lowercase to match live Wix site). CTA labels softened: "Grab a membership" (was "Get the Membership"), "Send IN content" (was "See Inside" / "Send IN your creation"). Trust micro-bar copy refined: "Printed sustainably in Australia · 100% kid-created · Always ad-free · Tri-annual". New CSS variant `theinmag-btn--secondary-on-image` (outlined white) for secondary CTAs on dark photo backgrounds - outlined purple stays the default everywhere else. Trust strip uses peach pair (`#FCDDB8` bg, `#D9783A` text) - first appearance of the locked homepage peach accent. Built as `sections/theinmag-hero.liquid`, wired into `templates/index.json` as the first section.
 

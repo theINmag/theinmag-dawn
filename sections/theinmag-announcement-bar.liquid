@@ -1,0 +1,384 @@
+{%- comment -%}
+  theinmag-announcement-bar
+  Site-wide announcement strip. Lives at the very top of every page
+  (above header/nav) via header-group.json.
+
+  - Two messages.
+  - Message 1 = countdown to next mag release (days only).
+    Switches to "Mag X is here!" on release day. Hides automatically
+    two days after the release.
+  - Message 2 = free shipping promo (threshold editable in admin).
+  - Desktop (>= 750px): both messages side-by-side, static.
+  - Mobile (< 750px): single message visible, cycles 6s with fade.
+  - prefers-reduced-motion: instant swap, no fade on mobile.
+  - No dismiss button - the bar always shows.
+
+  Spec: homepage-build-spec.md Section 0.
+{%- endcomment -%}
+
+{%- liquid
+  assign release_date_str = section.settings.release_date | strip
+  assign issue_number = section.settings.issue_number | strip
+  assign shipping_threshold = section.settings.shipping_threshold | default: 40
+
+  assign show_msg_1 = section.settings.show_msg_1
+  assign show_msg_2 = section.settings.show_msg_2
+
+  assign msg_1_text = ''
+  assign msg_1_state = 'hidden'
+
+  if show_msg_1 and release_date_str != blank and issue_number != blank
+    assign release_ts = release_date_str | date: '%s' | times: 1
+    assign now_ts = 'now' | date: '%s' | times: 1
+    assign diff_seconds = release_ts | minus: now_ts
+    assign one_day = 86400
+    assign days_until = diff_seconds | divided_by: one_day
+
+    if diff_seconds > 0 and days_until == 0
+      assign days_until = 1
+    endif
+
+    if days_until > 0
+      assign msg_1_state = 'countdown'
+      assign day_label = 'days'
+      if days_until == 1
+        assign day_label = 'day'
+      endif
+      capture msg_1_text
+        echo '<span class="theinmag-announcement__hook">Get ready</span> - Mag'
+        echo issue_number
+        echo ' dropping in <span class="theinmag-announcement__hook">'
+        echo days_until
+        echo '</span> '
+        echo day_label
+      endcapture
+    elsif days_until >= -2
+      assign msg_1_state = 'live'
+      capture msg_1_text
+        echo '<span class="theinmag-announcement__hook">Mag'
+        echo issue_number
+        echo ' is here!</span>'
+      endcapture
+    endif
+  endif
+
+  assign msg_2_text = ''
+  if show_msg_2
+    capture msg_2_text
+      echo 'Free shipping on orders over $'
+      echo shipping_threshold
+      echo ' 📮'
+    endcapture
+  endif
+-%}
+
+{%- if msg_1_text != blank or msg_2_text != blank -%}
+  <aside
+    class="theinmag-announcement"
+    data-theinmag-announcement
+    role="region"
+    aria-label="Site announcements"
+  >
+    <div class="theinmag-announcement__inner">
+      <div class="theinmag-announcement__messages" aria-live="polite">
+
+        {%- if msg_1_text != blank -%}
+          {%- if section.settings.msg_1_link != blank -%}
+            <a
+              class="theinmag-announcement__message is-active"
+              data-msg-index="0"
+              href="{{ section.settings.msg_1_link }}"
+            >
+              {{- msg_1_text -}}
+            </a>
+          {%- else -%}
+            <span class="theinmag-announcement__message is-active" data-msg-index="0">
+              {{- msg_1_text -}}
+            </span>
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- if msg_2_text != blank -%}
+          {%- assign msg_2_index = 1 -%}
+          {%- if msg_1_text == blank -%}{%- assign msg_2_index = 0 -%}{%- endif -%}
+          {%- if section.settings.msg_2_link != blank -%}
+            <a
+              class="theinmag-announcement__message{% if msg_2_index == 0 %} is-active{% endif %}"
+              data-msg-index="{{ msg_2_index }}"
+              href="{{ section.settings.msg_2_link }}"
+            >
+              {{- msg_2_text -}}
+            </a>
+          {%- else -%}
+            <span
+              class="theinmag-announcement__message{% if msg_2_index == 0 %} is-active{% endif %}"
+              data-msg-index="{{ msg_2_index }}"
+            >
+              {{- msg_2_text -}}
+            </span>
+          {%- endif -%}
+        {%- endif -%}
+
+      </div>
+    </div>
+  </aside>
+{%- endif -%}
+
+{% stylesheet %}
+  /* ================================================================
+     theinmag-announcement-bar
+     ================================================================ */
+
+  .theinmag-announcement {
+    background-color: var(--color-inky-purple-navy);
+    color: var(--color-cream);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    position: relative;
+    z-index: 5;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-announcement { font-size: 14px; }
+  }
+
+  .theinmag-announcement__inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Bumped from 36/40 to 42/48 so the larger Post hook breathes. */
+    min-height: 42px;
+    padding: 8px var(--space-md);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-announcement__inner {
+      min-height: 48px;
+      padding: 10px var(--space-lg);
+    }
+  }
+
+  .theinmag-announcement__messages {
+    position: relative;
+    display: grid;
+    grid-template-areas: "stack";
+    width: 100%;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .theinmag-announcement__message {
+    grid-area: stack;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .theinmag-announcement__message.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  a.theinmag-announcement__message {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  a.theinmag-announcement__message:hover,
+  a.theinmag-announcement__message:focus-visible {
+    text-decoration-thickness: 2px;
+    outline: none;
+  }
+
+  /* "Get ready" + the days number + "MagX is here!" stamp moments -
+     Post Regular at ~2x the Inter base. Carried inside the message
+     text as spans so the rest stays in Inter. line-height: 0.9 keeps
+     the bigger Post characters from blowing up the line-box and
+     making the bar grow disproportionately tall. */
+  .theinmag-announcement__hook {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 1.8em;
+    line-height: 0.9;
+    letter-spacing: 0;
+    vertical-align: -0.12em;
+    display: inline-block;
+  }
+
+  /* Desktop: both messages side-by-side, no cycling. The JS detects
+     this breakpoint and stops the timer so messages stay static. */
+  @media (min-width: 750px) {
+    .theinmag-announcement__messages {
+      grid-template-areas: none;
+      grid-template-columns: none;
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-md) var(--space-2xl);
+    }
+
+    .theinmag-announcement__message {
+      grid-area: auto;
+      opacity: 1;
+      pointer-events: auto;
+      transition: none;
+    }
+  }
+
+  /* Reduced motion: kill the cross-fade. JS will instant-swap. */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-announcement__message {
+      transition: opacity 0.01ms;
+    }
+  }
+{% endstylesheet %}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-announcement]');
+    if (!root) return;
+
+    var messages = Array.prototype.slice.call(
+      root.querySelectorAll('.theinmag-announcement__message')
+    );
+    if (messages.length < 2) return;
+
+    var index = 0;
+    var intervalMs = 6000;
+    var timer = null;
+
+    // Desktop shows both messages side-by-side via CSS - no cycle.
+    // Mobile cycles through them with a fade.
+    var desktopMQ = window.matchMedia('(min-width: 750px)');
+
+    function show(i) {
+      messages.forEach(function (el, idx) {
+        if (idx === i) el.classList.add('is-active');
+        else el.classList.remove('is-active');
+      });
+    }
+
+    function tick() {
+      index = (index + 1) % messages.length;
+      show(index);
+    }
+
+    function stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function start() {
+      stop();
+      if (desktopMQ.matches) return;
+      timer = setInterval(tick, intervalMs);
+    }
+
+    function handleViewportChange() {
+      if (desktopMQ.matches) {
+        stop();
+      } else {
+        index = 0;
+        show(0);
+        start();
+      }
+    }
+
+    if (desktopMQ.addEventListener) {
+      desktopMQ.addEventListener('change', handleViewportChange);
+    } else if (desktopMQ.addListener) {
+      desktopMQ.addListener(handleViewportChange);
+    }
+
+    var inner = root.querySelector('.theinmag-announcement__inner');
+    if (inner) {
+      inner.addEventListener('mouseenter', stop);
+      inner.addEventListener('mouseleave', start);
+      inner.addEventListener('focusin', stop);
+      inner.addEventListener('focusout', start);
+    }
+
+    start();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag announcement bar",
+  "tag": "aside",
+  "class": "theinmag-announcement-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Site-wide strip above the header. Both messages show side-by-side on desktop; mobile cycles between them with a fade. Always visible - no dismiss button."
+    },
+    {
+      "type": "header",
+      "content": "Message 1 - Next issue countdown"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_msg_1",
+      "label": "Show countdown message",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "release_date",
+      "label": "Next release date",
+      "info": "Format: YYYY-MM-DD (e.g. 2026-06-10). Days-only countdown - no hours/minutes. Hides automatically two days after the release.",
+      "default": "2026-06-10"
+    },
+    {
+      "type": "text",
+      "id": "issue_number",
+      "label": "Issue number",
+      "info": "Whole number only (e.g. 10).",
+      "default": "10"
+    },
+    {
+      "type": "url",
+      "id": "msg_1_link",
+      "label": "Link (optional)",
+      "info": "Where the countdown message points. Usually the current issue product page."
+    },
+    {
+      "type": "header",
+      "content": "Message 2 - Free shipping"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_msg_2",
+      "label": "Show shipping message",
+      "default": true
+    },
+    {
+      "type": "number",
+      "id": "shipping_threshold",
+      "label": "Free shipping threshold ($)",
+      "default": 40
+    },
+    {
+      "type": "url",
+      "id": "msg_2_link",
+      "label": "Link (optional)",
+      "info": "Usually /collections/all or /shop."
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag announcement bar"
+    }
+  ]
+}
+{% endschema %}

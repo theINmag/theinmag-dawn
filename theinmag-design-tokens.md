@@ -321,18 +321,25 @@ Homepage hero headline: "The magazine for creative kids" with subhead "Where Aus
 
 ---
 
-## Navigation language (LOCKED)
+## Navigation language (LOCKED - revised May 3 2026 evening session 7)
 
 Primary nav order:
 1. Shop
-2. Who's it for? (dropdown: For Parents / For Teachers / For Homeschoolers / For Kids)
-3. Send IN
-4. Gallery
-5. Blog
-6. Freebies
-7. About (dropdown: Our Story / Where we'll be next / Stockists / Schools / Contact)
+2. INfo (dropdown: For Parents / For Teachers / For Homeschoolers / For Kids / Our Story)
+3. Gallery
+4. Blog
+5. Freebies
 
-Persistent CTA right of nav: "Send IN" button - yellow primary, purple hover.
+Persistent CTA right of nav: "Send IN content" button - yellow primary stamp, purple hover. Always visible at >= 750px viewport. On phone the same CTA lives at the bottom of the mobile drawer.
+
+INfo dropdown: opens on hover and keyboard focus on desktop, expands as an inline accordion inside the mobile drawer. The five sub-items above are the launch set; admins can add Stockists / Where we'll be next / Schools later via section blocks without a code edit.
+
+Why the change from "Who's it for?" + "Send IN" + "About":
+- "Send IN" graduated from a nav item to a persistent CTA - it's the single highest-value action on the site, treating it as just-another-link buried it. The yellow stamp button keeps it always-on.
+- "Who's it for?" (the dropdown for the four audience pages) and "About" (Our Story etc) collapsed into a single "INfo" dropdown. Two dropdowns competing for attention in a five-item nav read as bureaucratic. One INfo dropdown carries both audience pages and the Our Story link.
+- Brand-pun preserved: "INfo" capitalises IN to match the theINmag / Send IN / INkids family. Lowercase "fo" keeps the eye on the IN.
+
+Account icon: deliberately omitted. Shopify customer accounts are not theINmag membership - showing a person icon invites the wrong-mental-model confusion ("where do I log in to my membership?"). If account-related self-serve becomes useful later, surface it from the footer rather than the header.
 
 ---
 

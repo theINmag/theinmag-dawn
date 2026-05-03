@@ -15,6 +15,56 @@
         "trust_4": "Tri-annual"
       }
     },
+    "theinmag_audience_tiles": {
+      "type": "theinmag-audience-tiles",
+      "blocks": {
+        "tile-parents": {
+          "type": "tile",
+          "settings": {
+            "label": "Parents",
+            "link": "/pages/for-parents",
+            "fallback_filename": "HERO_audiences-parents.jpg",
+            "image_alt": "An Australian parent reading theINmag with their child."
+          }
+        },
+        "tile-teachers": {
+          "type": "tile",
+          "settings": {
+            "label": "Teachers",
+            "link": "/pages/for-teachers",
+            "fallback_filename": "HERO_audiences-teachers.jpg",
+            "image_alt": "An Australian teacher using theINmag with their classroom."
+          }
+        },
+        "tile-homeschoolers": {
+          "type": "tile",
+          "settings": {
+            "label": "Homeschoolers",
+            "link": "/pages/for-homeschoolers",
+            "fallback_filename": "HERO_audiences-homeschoolers.jpg",
+            "image_alt": "An Australian homeschool family at the kitchen table with theINmag."
+          }
+        },
+        "tile-kids": {
+          "type": "tile",
+          "settings": {
+            "label": "Kids",
+            "link": "/pages/for-kids",
+            "fallback_filename": "HERO_audiences-kids.jpg",
+            "image_alt": "An Australian kid drawing alongside their copy of theINmag."
+          }
+        }
+      },
+      "block_order": [
+        "tile-parents",
+        "tile-teachers",
+        "tile-homeschoolers",
+        "tile-kids"
+      ],
+      "settings": {
+        "heading": "Designed with you in mind"
+      }
+    },
     "rich_text": {
       "type": "rich-text",
       "blocks": {
@@ -170,6 +220,7 @@
   },
   "order": [
     "theinmag_hero",
+    "theinmag_audience_tiles",
     "rich_text",
     "featured_collection",
     "collage",

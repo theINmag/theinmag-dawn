@@ -2,43 +2,84 @@
   "name": "t:sections.header.name",
   "type": "header",
   "sections": {
-    "announcement-bar": {
-      "type": "announcement-bar",
+    "theinmag-announcement-bar": {
+      "type": "theinmag-announcement-bar",
+      "settings": {
+        "show_msg_1": true,
+        "release_date": "2026-06-10",
+        "issue_number": "10",
+        "msg_1_link": "",
+        "show_msg_2": true,
+        "shipping_threshold": 40,
+        "msg_2_link": ""
+      }
+    },
+    "theinmag-header": {
+      "type": "theinmag-header",
       "blocks": {
-        "announcement-bar-0": {
-          "type": "announcement",
+        "info-parents": {
+          "type": "dropdown_item",
           "settings": {
-            "text": "Welcome to our store",
-            "text_alignment": "center",
-            "color_scheme": "scheme-1",
-            "link": ""
+            "label": "For Parents",
+            "link": "/pages/for-parents"
+          }
+        },
+        "info-teachers": {
+          "type": "dropdown_item",
+          "settings": {
+            "label": "For Teachers",
+            "link": "/pages/for-teachers"
+          }
+        },
+        "info-homeschoolers": {
+          "type": "dropdown_item",
+          "settings": {
+            "label": "For Homeschoolers",
+            "link": "/pages/for-homeschoolers"
+          }
+        },
+        "info-kids": {
+          "type": "dropdown_item",
+          "settings": {
+            "label": "For Kids",
+            "link": "/pages/for-kids"
+          }
+        },
+        "info-our-story": {
+          "type": "dropdown_item",
+          "settings": {
+            "label": "Our Story",
+            "link": "/pages/our-story"
           }
         }
       },
       "block_order": [
-        "announcement-bar-0"
-      ]
-    },
-    "header": {
-      "type": "header",
+        "info-parents",
+        "info-teachers",
+        "info-homeschoolers",
+        "info-kids",
+        "info-our-story"
+      ],
       "settings": {
-        "color_scheme": "scheme-1",
-        "logo_position": "middle-left",
-        "menu": "main-menu",
-        "menu_type_desktop": "dropdown",
-        "sticky_header_type": "on-scroll-up",
-        "show_line_separator": true,
-        "enable_country_selector": true,
-        "enable_language_selector": true,
-        "mobile_logo_position": "center",
-        "margin_bottom": 0,
-        "padding_top": 20,
-        "padding_bottom": 20
+        "cta_label": "Send IN content",
+        "cta_link": "/pages/send-in-content",
+        "nav_1_label": "Shop",
+        "nav_1_link": "/collections/all",
+        "nav_2_label": "INfo",
+        "nav_3_label": "Gallery",
+        "nav_3_link": "/pages/gallery",
+        "nav_4_label": "Blog",
+        "nav_4_link": "/blogs/news",
+        "nav_5_label": "Freebies",
+        "nav_5_link": "/pages/freebies",
+        "instagram_url": "https://www.instagram.com/the.inmag/",
+        "facebook_url": "https://www.facebook.com/theINmagazine/",
+        "youtube_url": "https://www.youtube.com/@theINmag/videos"
       }
     }
   },
   "order": [
-    "announcement-bar",
-    "header"
+    "theinmag-announcement-bar",
+    "theinmag-header"
   ]
 }

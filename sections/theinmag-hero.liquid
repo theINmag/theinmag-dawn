@@ -385,79 +385,8 @@
     }
   }
 
-  /* ================================================================
-     Buttons - locked sticker convention.
-     Primary: yellow stamp (per design tokens).
-     Secondary-on-image: outlined white. Documented adaptation of the
-     outlined-purple secondary for dark photo backgrounds where dark
-     purple wouldn't read. Outlined purple is still the default
-     everywhere else on the site (cream sections, etc).
-     ================================================================ */
-
-  .theinmag-btn {
-    /* inline-flex with align-items: center vertically centers the
-       label inside the button's min-height (44px touch-target).
-       inline-block leaves extra space at the bottom which makes the
-       label look like it's sitting high in the pill. */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    border-radius: var(--radius-button);
-    cursor: pointer;
-    transition: background-color var(--transition-standard),
-                color var(--transition-standard),
-                box-shadow var(--transition-standard),
-                translate var(--transition-standard);
-    border: none;
-    text-align: center;
-    line-height: 1.2;
-    min-height: 44px;
-    box-sizing: border-box;
-  }
-
-  .theinmag-btn--primary {
-    font-family: var(--font-heading);
-    background-color: var(--color-yellow);
-    color: var(--color-inky-purple-navy);
-    box-shadow: var(--shadow-button-yellow);
-    padding: 11px 20px;
-    font-size: 14px;
-    font-weight: 400;
-  }
-
-  .theinmag-btn--primary:hover,
-  .theinmag-btn--primary:focus-visible {
-    background-color: var(--color-purple-dark);
-    color: #ffffff;
-    translate: 0 2px;
-    box-shadow: var(--shadow-button-pressed);
-    outline: none;
-  }
-
-  .theinmag-btn--secondary-on-image {
-    font-family: var(--font-body);
-    background: transparent;
-    color: #ffffff;
-    border: 2px solid #ffffff;
-    padding: 8px 16px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  .theinmag-btn--secondary-on-image:hover,
-  .theinmag-btn--secondary-on-image:focus-visible {
-    background-color: #ffffff;
-    color: var(--color-inky-purple-navy);
-    outline: none;
-  }
-
-  @media (min-width: 750px) {
-    .theinmag-btn--primary { padding: 16px 32px; font-size: 19px; }
-    .theinmag-btn--secondary-on-image { padding: 12px 26px; font-size: 16px; }
-  }
+  /* Button styles (.theinmag-btn, --primary, --secondary-on-image) live
+     in assets/theinmag-base.css so all sections share one definition. */
 
   /* ================================================================
      Trust micro-bar - peach pair (homepage accent).
