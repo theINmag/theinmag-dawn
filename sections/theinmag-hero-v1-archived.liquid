@@ -1,0 +1,449 @@
+{%- comment -%}
+  theinmag-hero
+  Homepage above-the-fold hero.
+  - Headline is LOCKED brand promise (four words, gerund) - hardcoded.
+  - Cream + purple pair + yellow stamp CTA (per design principles 16, 18).
+  - Floating kid creations either side, animation respects prefers-reduced-motion.
+  - Trust micro-bar with bullet separators.
+  - Mobile-first. No em dashes. Custom properties only.
+{%- endcomment -%}
+
+<section
+  class="theinmag-hero"
+  aria-labelledby="theinmag-hero-headline-{{ section.id }}"
+>
+  <div class="theinmag-hero__container">
+
+    {%- if section.settings.art_left != blank -%}
+      <figure class="theinmag-hero__art theinmag-hero__art--left">
+        <img
+          src="{{ section.settings.art_left | image_url: width: 600 }}"
+          srcset="
+            {{ section.settings.art_left | image_url: width: 240 }} 240w,
+            {{ section.settings.art_left | image_url: width: 400 }} 400w,
+            {{ section.settings.art_left | image_url: width: 600 }} 600w
+          "
+          sizes="(min-width: 990px) 18vw, 22vw"
+          width="{{ section.settings.art_left.width }}"
+          height="{{ section.settings.art_left.height }}"
+          alt="{{ section.settings.art_left.alt | default: section.settings.art_left_caption | escape }}"
+          loading="eager"
+        >
+        {%- if section.settings.art_left_caption != blank -%}
+          <figcaption class="theinmag-hero__art-caption">
+            {{- section.settings.art_left_caption -}}
+          </figcaption>
+        {%- endif -%}
+      </figure>
+    {%- endif -%}
+
+    <div class="theinmag-hero__content">
+      <h1
+        class="theinmag-hero__headline"
+        id="theinmag-hero-headline-{{ section.id }}"
+      >
+        <span class="theinmag-hero__headline-line">The magazine for</span>
+        <span class="theinmag-hero__headline-line"><span class="theinmag-hero__headline-emphasis">creative</span> kids.</span>
+      </h1>
+
+      {%- if section.settings.subheadline != blank -%}
+        <p class="theinmag-hero__subheadline">
+          {{- section.settings.subheadline -}}
+        </p>
+      {%- endif -%}
+
+      <div class="theinmag-hero__ctas">
+        {%- if section.settings.cta_primary_label != blank -%}
+          <a
+            class="theinmag-btn theinmag-btn--primary"
+            href="{{ section.settings.cta_primary_link | default: '#' }}"
+          >
+            {{- section.settings.cta_primary_label -}}
+          </a>
+        {%- endif -%}
+        {%- if section.settings.cta_secondary_label != blank -%}
+          <a
+            class="theinmag-btn theinmag-btn--secondary"
+            href="{{ section.settings.cta_secondary_link | default: '#' }}"
+          >
+            {{- section.settings.cta_secondary_label -}}
+          </a>
+        {%- endif -%}
+      </div>
+
+      <ul class="theinmag-hero__trust" role="list">
+        {%- if section.settings.trust_1 != blank -%}<li>{{ section.settings.trust_1 }}</li>{%- endif -%}
+        {%- if section.settings.trust_2 != blank -%}<li>{{ section.settings.trust_2 }}</li>{%- endif -%}
+        {%- if section.settings.trust_3 != blank -%}<li>{{ section.settings.trust_3 }}</li>{%- endif -%}
+        {%- if section.settings.trust_4 != blank -%}<li>{{ section.settings.trust_4 }}</li>{%- endif -%}
+      </ul>
+    </div>
+
+    {%- if section.settings.art_right != blank -%}
+      <figure class="theinmag-hero__art theinmag-hero__art--right">
+        <img
+          src="{{ section.settings.art_right | image_url: width: 600 }}"
+          srcset="
+            {{ section.settings.art_right | image_url: width: 240 }} 240w,
+            {{ section.settings.art_right | image_url: width: 400 }} 400w,
+            {{ section.settings.art_right | image_url: width: 600 }} 600w
+          "
+          sizes="(min-width: 990px) 18vw, 22vw"
+          width="{{ section.settings.art_right.width }}"
+          height="{{ section.settings.art_right.height }}"
+          alt="{{ section.settings.art_right.alt | default: section.settings.art_right_caption | escape }}"
+          loading="eager"
+        >
+        {%- if section.settings.art_right_caption != blank -%}
+          <figcaption class="theinmag-hero__art-caption">
+            {{- section.settings.art_right_caption -}}
+          </figcaption>
+        {%- endif -%}
+      </figure>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{% stylesheet %}
+  .theinmag-hero {
+    background-color: var(--color-cream);
+    color: var(--color-text);
+    padding: var(--space-2xl) var(--space-md) var(--space-3xl);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theinmag-hero__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theinmag-hero__content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
+    max-width: 640px;
+    margin: 0 auto;
+    padding: var(--space-md) 0;
+  }
+
+  .theinmag-hero__headline {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(40px, 9vw, 76px);
+    line-height: 1.05;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--color-purple-dark);
+    max-width: 22ch;
+  }
+
+  .theinmag-hero__headline-line {
+    display: block;
+  }
+
+  .theinmag-hero__headline-emphasis {
+    display: inline-block;
+    font-size: 1.3em;
+    line-height: 0.9;
+    vertical-align: -0.04em;
+  }
+
+  .theinmag-hero__subheadline {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: clamp(17px, 2.4vw, 22px);
+    line-height: 1.5;
+    margin: 0;
+    color: var(--color-text);
+    max-width: 32ch;
+  }
+
+  .theinmag-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-top: var(--space-xs);
+  }
+
+  /* ----- Buttons (locked spec - design tokens) ----- */
+  .theinmag-btn {
+    display: inline-block;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+    transition: background-color var(--transition-standard),
+                color var(--transition-standard),
+                box-shadow var(--transition-standard),
+                translate var(--transition-standard);
+    border: none;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .theinmag-btn--primary {
+    font-family: var(--font-heading);
+    background-color: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    box-shadow: var(--shadow-button-yellow);
+    padding: 14px 28px;
+    font-size: 17px;
+    font-weight: 400;
+  }
+
+  .theinmag-btn--primary:hover,
+  .theinmag-btn--primary:focus-visible {
+    background-color: var(--color-purple-dark);
+    color: #ffffff;
+    translate: 0 2px;
+    box-shadow: var(--shadow-button-pressed);
+    outline: none;
+  }
+
+  .theinmag-btn--secondary {
+    font-family: var(--font-body);
+    background: transparent;
+    color: var(--color-purple-dark);
+    border: 2px solid var(--color-purple-dark);
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .theinmag-btn--secondary:hover,
+  .theinmag-btn--secondary:focus-visible {
+    background-color: var(--color-purple-dark);
+    color: #ffffff;
+    outline: none;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-btn--primary { padding: 16px 32px; font-size: 19px; }
+    .theinmag-btn--secondary { padding: 12px 26px; font-size: 16px; }
+  }
+
+  /* ----- Trust micro-bar ----- */
+  .theinmag-hero__trust {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-md) 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-xs) 0;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text);
+    letter-spacing: 0.02em;
+  }
+
+  .theinmag-hero__trust li {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--space-md);
+  }
+
+  .theinmag-hero__trust li + li {
+    border-left: 1px solid var(--color-purple-dark);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-hero__trust { font-size: 14px; }
+  }
+
+  /* ----- Floating kid creations ----- */
+  .theinmag-hero__art {
+    position: absolute;
+    z-index: 1;
+    margin: 0;
+    width: clamp(90px, 22vw, 160px);
+    pointer-events: none;
+    animation: theinmag-hero-float 4s ease-in-out infinite;
+  }
+
+  .theinmag-hero__art img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .theinmag-hero__art-caption {
+    display: block;
+    margin-top: var(--space-xs);
+    font-family: var(--font-body);
+    font-size: 11px;
+    line-height: 1.3;
+    color: var(--color-text-muted);
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+  .theinmag-hero__art--left {
+    top: 0;
+    left: -2%;
+    rotate: -7deg;
+    animation-delay: 0s;
+  }
+
+  .theinmag-hero__art--right {
+    top: 0;
+    right: -2%;
+    rotate: 5deg;
+    animation-delay: 1.5s;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-hero__art {
+      width: clamp(140px, 20vw, 220px);
+    }
+    .theinmag-hero__art--left { top: 8%; left: 2%; }
+    .theinmag-hero__art--right { top: 6%; right: 2%; }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-hero__art {
+      width: clamp(180px, 18vw, 280px);
+    }
+    .theinmag-hero__art--left { top: 10%; left: 3%; rotate: -8deg; }
+    .theinmag-hero__art--right { top: 8%; right: 3%; rotate: 6deg; }
+  }
+
+  @keyframes theinmag-hero-float {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -10px; }
+  }
+
+  /* ----- Reduced motion ----- */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-hero__art { animation: none; }
+    .theinmag-btn { transition: background-color 0.01ms, color 0.01ms; }
+    .theinmag-btn--primary:hover,
+    .theinmag-btn--primary:focus-visible { translate: 0 0; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "theINmag hero (v1 archived)",
+  "tag": "section",
+  "class": "theinmag-hero-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Headline 'Publishing creative Aussie kids.' is locked - it's the brand promise, four words, gerund. Edit subheadline, CTAs, trust items and floating kid creations below."
+    },
+    {
+      "type": "textarea",
+      "id": "subheadline",
+      "label": "Subheadline",
+      "default": "Where Aussie kids get published - no ads, just creativity."
+    },
+    {
+      "type": "header",
+      "content": "Primary CTA (yellow stamp)"
+    },
+    {
+      "type": "text",
+      "id": "cta_primary_label",
+      "label": "Label",
+      "default": "Get the Membership"
+    },
+    {
+      "type": "url",
+      "id": "cta_primary_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Secondary CTA (outlined purple)"
+    },
+    {
+      "type": "text",
+      "id": "cta_secondary_label",
+      "label": "Label",
+      "default": "See Inside"
+    },
+    {
+      "type": "url",
+      "id": "cta_secondary_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Floating kid creations (either side)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Real kid creations only. Transparent PNG ideal. Always include a named attribution."
+    },
+    {
+      "type": "image_picker",
+      "id": "art_left",
+      "label": "Left art"
+    },
+    {
+      "type": "text",
+      "id": "art_left_caption",
+      "label": "Left art attribution",
+      "info": "e.g. Maya, age 9 - Fremantle WA"
+    },
+    {
+      "type": "image_picker",
+      "id": "art_right",
+      "label": "Right art"
+    },
+    {
+      "type": "text",
+      "id": "art_right_caption",
+      "label": "Right art attribution"
+    },
+    {
+      "type": "header",
+      "content": "Trust micro-bar"
+    },
+    {
+      "type": "text",
+      "id": "trust_1",
+      "label": "Item 1",
+      "default": "Made in Australia"
+    },
+    {
+      "type": "text",
+      "id": "trust_2",
+      "label": "Item 2",
+      "default": "100% kid-created"
+    },
+    {
+      "type": "text",
+      "id": "trust_3",
+      "label": "Item 3",
+      "default": "Ad-free"
+    },
+    {
+      "type": "text",
+      "id": "trust_4",
+      "label": "Item 4",
+      "default": "Tri-annual"
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag hero (v1 archived)"
+    }
+  ]
+}
+{% endschema %}
