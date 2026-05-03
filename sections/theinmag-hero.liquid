@@ -310,7 +310,7 @@
   .theinmag-hero__headline {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(36px, 6vw, 64px);
+    font-size: clamp(38px, 6vw, 64px);
     line-height: 1.05;
     letter-spacing: 0;
     color: #ffffff;
@@ -395,7 +395,13 @@
      ================================================================ */
 
   .theinmag-btn {
-    display: inline-block;
+    /* inline-flex with align-items: center vertically centers the
+       label inside the button's min-height (44px touch-target).
+       inline-block leaves extra space at the bottom which makes the
+       label look like it's sitting high in the pill. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.02em;
