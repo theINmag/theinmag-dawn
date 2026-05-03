@@ -317,7 +317,7 @@ URL slugs and external nav use universal language ("/for-kids", "For Kids"). The
 
 ### Hero headline (LOCKED)
 
-The site-wide brand promise is "Publishing creative Aussie kids." Four words, gerund. Used as the primary hero headline on the homepage. Echoed in every audience page hero with audience-specific framing.
+Homepage hero headline: "The magazine for creative kids" with subhead "Where Aussie kids get published - no ads, just creativity". Audience pages echo this with audience-specific framing. Full hero structure (split-screen, both blocks, CTAs, trust micro-bar) lives in `homepage-build-spec.md` Section 1.
 
 ---
 

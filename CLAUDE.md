@@ -9,7 +9,7 @@ This file is read by Claude Code at the start of every build session. Keep it un
 Migrating theINmag (theinmag.com.au) from Wix to Shopify during housesit starting May 1 2026.
 Base theme: Dawn (clean install, version controlled in this repo).
 Brand: Australia's magazine made by kids, for kids. 100% kid-created, ad-free, sustainably printed.
-Hero promise: "Publishing creative Aussie kids."
+Hero headline (LOCKED): "The magazine for creative kids" with subhead "Where Aussie kids get published - no ads, just creativity". Full hero spec in `homepage-build-spec.md`.
 Three goals: (1) lift conversion from 6% to 8-10%, (2) increase professionalism and joy, (3) offer more products with easier purchase paths.
 Critical deadline: site live before mid-June 2026 (Queensland trip + Dept of Education promo).
 
@@ -115,12 +115,12 @@ Judge.me / Sky Pilot / Klaviyo / Make.com / JotForm / AusPost API / GA4 / Lucky 
 
 ## Session start checklist (every time)
 
-1. Confirm Ryan has committed AND pushed to GitHub since last session.
+1. Verify `theinmag-dawn/` git is clean and on `main`. Claude Code drives commits and pushes from here forward (origin: github.com/theINmag/theinmag-dawn). Commit at meaningful checkpoints, push at session end.
 2. Track exchange count, flag at 12 of 15 max - break to fresh chat at the limit.
 3. Confirm one specific task for this conversation.
 4. Confirm prompt specificity before writing any code.
-5. Read both companion files (design tokens + design principles) when judgment is needed.
+5. Read both companion files (design tokens + design principles) when judgment is needed. Read `homepage-build-spec.md` when working on any homepage section.
 
 ---
 
-*CLAUDE.md last updated: May 3 2026 - fonts locked (Post Regular + Inter), design audit complete, three project files in place.*
+*CLAUDE.md last updated: May 3 2026 - fonts locked (Post Regular + Inter), design audit complete, three project files in place. Hero headline aligned to homepage build spec ("The magazine for creative kids"). Git ownership note: Claude Code commits/pushes from here forward.*

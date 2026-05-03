@@ -229,7 +229,7 @@ Brand voice vs SEO. Blog posts need question-format H2s and FAQPage schema for A
 
 Featured kids vs site speed. The named-kid attributions are the brand's most powerful trust device. Every single page should have at least one. But the gallery and product pages can't load every image at once. Lazy-load aggressively, prioritise above-the-fold attribution visibility, accept that below-the-fold attributions can fade in as the visitor scrolls.
 
-Colour richness vs cohesion. theINmag has six colour pairs plus accents. That's a lot. The risk: every page tries to use every pair and the site looks chaotic. The fix: each page picks 2-3 pairs maximum and sticks to them. Homepage uses cream + purple + one accent. For Parents uses cream + coral. For Kids uses cream + mint + yellow. The cream pair is universal — it lives on every page.
+Colour richness vs cohesion. theINmag has six colour pairs plus accents. That's a lot. The risk: every page tries to use every pair and the site looks chaotic. The fix: each page picks 2-3 pairs maximum and sticks to them. **Homepage uses cream (universal base) + peach (the warm orange wash from the live Wix site that's converting at 6%) + purple as a rare accent + yellow stamp on primary CTAs.** For Parents uses cream + coral. For Kids uses cream + mint + yellow. The cream pair is universal — it lives on every page.
 
 ---
 
@@ -241,4 +241,4 @@ Date the additions. Over time, this becomes a record of how theINmag's design ph
 
 ---
 
-*Original 15 principles sourced from a 750-website designer YouTube transcript, May 2026. Principles 16-19 added May 3 2026 from full design audit of mag08 + live Wix site + Post Regular/Inter font system decision. Living document — add to it as cornerstone principles emerge.*
+*Original 15 principles sourced from a 750-website designer YouTube transcript, May 2026. Principles 16-19 added May 3 2026 from full design audit of mag08 + live Wix site + Post Regular/Inter font system decision. May 3 2026 (evening): homepage palette locked to cream + peach + purple + yellow stamp under "Colour richness vs cohesion" — peach replaces the earlier "cream + purple + one accent" framing based on Ryan's reference to the live Wix site's warm orange wash. Living document — add to it as cornerstone principles emerge.*
