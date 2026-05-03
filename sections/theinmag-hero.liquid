@@ -27,13 +27,30 @@
   {%- assign headline_html = headline_html | replace: emphasis, emphasis_wrap -%}
 {%- endif -%}
 
+{%- comment -%}
+  Wrap "no ads, just creativity" in a nowrap span. When the subhead
+  doesn't fit on a single line (mobile), the whole clause stays
+  together and wraps to line 2 - putting the break before "no"
+  rather than the natural break between "no" and "ads".
+{%- endcomment -%}
+{%- assign subhead_html = section.settings.subhead -%}
+{%- assign subhead_clause = 'no ads, just creativity' -%}
+{%- if subhead_html contains subhead_clause -%}
+  {%- capture clause_wrap -%}<span class="theinmag-hero__subhead-clause">{{ subhead_clause }}</span>{%- endcapture -%}
+  {%- assign subhead_html = subhead_html | replace: subhead_clause, clause_wrap -%}
+{%- endif -%}
+
 <section
   class="theinmag-hero"
   aria-labelledby="theinmag-hero-headline-{{ section.id }}"
 >
   <div class="theinmag-hero__split">
 
-    {%- comment -%} LEFT IMAGE - carries text + CTAs {%- endcomment -%}
+    {%- comment -%}
+      LEFT pane - kid reading photo. Hidden on mobile (artwork is the
+      only image at smaller viewports). Carries the gradient scrim
+      that boosts text contrast on desktop.
+    {%- endcomment -%}
     <div class="theinmag-hero__pane theinmag-hero__pane--left">
       {%- if image_left != blank -%}
         <img
@@ -46,7 +63,7 @@
             {{ image_left | image_url: width: 1600 }} 1600w,
             {{ image_left | image_url: width: 2000 }} 2000w
           "
-          sizes="(min-width: 990px) 50vw, 100vw"
+          sizes="(min-width: 990px) 50vw, 0px"
           width="{{ image_left.width }}"
           height="{{ image_left.height }}"
           alt="{{ image_left_alt | escape }}"
@@ -64,51 +81,13 @@
       {%- endif -%}
 
       <div class="theinmag-hero__scrim" aria-hidden="true"></div>
-
-      <div class="theinmag-hero__content">
-        <h1
-          class="theinmag-hero__headline"
-          id="theinmag-hero-headline-{{ section.id }}"
-        >
-          {{ headline_html }}
-        </h1>
-
-        {%- if section.settings.subhead != blank -%}
-          <p class="theinmag-hero__subhead">
-            {{- section.settings.subhead -}}
-          </p>
-        {%- endif -%}
-
-        {%- comment -%}
-          Visual classes deliberately swapped vs the cta_primary/secondary
-          setting names: the FIRST button (Membership) renders outlined
-          white, the SECOND button (Send IN content) renders as the
-          yellow stamp. Yellow draws attention to the playful, lower-
-          friction action - submitting a kid creation - which feeds
-          the magazine's content loop.
-        {%- endcomment -%}
-        <div class="theinmag-hero__ctas">
-          {%- if section.settings.cta_primary_label != blank -%}
-            <a
-              class="theinmag-btn theinmag-btn--secondary-on-image"
-              href="{{ section.settings.cta_primary_link | default: '#' }}"
-            >
-              {{- section.settings.cta_primary_label -}}
-            </a>
-          {%- endif -%}
-          {%- if section.settings.cta_secondary_label != blank -%}
-            <a
-              class="theinmag-btn theinmag-btn--primary"
-              href="{{ section.settings.cta_secondary_link | default: '#' }}"
-            >
-              {{- section.settings.cta_secondary_label -}}
-            </a>
-          {%- endif -%}
-        </div>
-      </div>
     </div>
 
-    {%- comment -%} RIGHT IMAGE - photography-only {%- endcomment -%}
+    {%- comment -%}
+      RIGHT pane - kid creation artwork. Visible at every viewport.
+      Carries its own scrim that activates on mobile when the artwork
+      is the sole image and content overlays it.
+    {%- endcomment -%}
     <div class="theinmag-hero__pane theinmag-hero__pane--right">
       {%- if image_right != blank -%}
         <img
@@ -135,6 +114,54 @@
           loading="eager"
         >
       {%- endif -%}
+
+      <div class="theinmag-hero__scrim" aria-hidden="true"></div>
+    </div>
+
+    {%- comment -%}
+      Content (H1, subhead, CTAs) lives at the split level, not inside
+      a pane. On desktop it overlays the LEFT pane (kid reading photo).
+      On mobile - where the LEFT pane is hidden - it overlays the
+      RIGHT pane (artwork). One DOM element, two layouts.
+    {%- endcomment -%}
+    <div class="theinmag-hero__content">
+      <h1
+        class="theinmag-hero__headline"
+        id="theinmag-hero-headline-{{ section.id }}"
+      >
+        {{ headline_html }}
+      </h1>
+
+      {%- if subhead_html != blank -%}
+        <p class="theinmag-hero__subhead">
+          {{ subhead_html }}
+        </p>
+      {%- endif -%}
+
+      {%- comment -%}
+        Visual classes deliberately swapped vs the cta_primary/secondary
+        setting names: FIRST button (Membership) renders outlined white,
+        SECOND button (Send IN content) renders as the yellow stamp.
+        Yellow draws attention to the playful, lower-friction action.
+      {%- endcomment -%}
+      <div class="theinmag-hero__ctas">
+        {%- if section.settings.cta_primary_label != blank -%}
+          <a
+            class="theinmag-btn theinmag-btn--secondary-on-image"
+            href="{{ section.settings.cta_primary_link | default: '#' }}"
+          >
+            {{- section.settings.cta_primary_label -}}
+          </a>
+        {%- endif -%}
+        {%- if section.settings.cta_secondary_label != blank -%}
+          <a
+            class="theinmag-btn theinmag-btn--primary"
+            href="{{ section.settings.cta_secondary_link | default: '#' }}"
+          >
+            {{- section.settings.cta_secondary_label -}}
+          </a>
+        {%- endif -%}
+      </div>
     </div>
 
   </div>
@@ -162,6 +189,7 @@
   }
 
   .theinmag-hero__split {
+    position: relative;
     display: grid;
     grid-template-columns: 1fr;
     gap: 0;
@@ -186,6 +214,20 @@
 
   @media (min-width: 990px) {
     .theinmag-hero__pane { aspect-ratio: auto; }
+  }
+
+  /* Mobile: hide the kid-reading photo (left pane). Artwork is the
+     only hero image; text overlays it directly. */
+  @media (max-width: 989px) {
+    .theinmag-hero__pane--left { display: none; }
+  }
+
+  /* Right-pane scrim is hidden on desktop (artwork stays clean) and
+     activated on mobile (where text overlays the artwork and needs
+     the contrast boost). Left-pane scrim is the inverse. */
+  .theinmag-hero__pane--right .theinmag-hero__scrim { display: none; }
+  @media (max-width: 989px) {
+    .theinmag-hero__pane--right .theinmag-hero__scrim { display: block; }
   }
 
   /* Flat darken overlay - applied to BOTH panes so the photos sit at
@@ -229,6 +271,10 @@
     z-index: 2;
   }
 
+  /* Content is positioned absolute relative to the SPLIT (its parent),
+     not a pane. On mobile (left pane hidden) it overlays the artwork.
+     On desktop it overlays the left pane via a right: 50% cap to stay
+     within the left half of the split. */
   .theinmag-hero__content {
     position: absolute;
     z-index: 3;
@@ -255,14 +301,15 @@
     .theinmag-hero__content {
       bottom: var(--space-3xl);
       left: var(--space-3xl);
-      right: auto;
+      right: 50%;
+      padding-right: var(--space-2xl);
     }
   }
 
   .theinmag-hero__headline {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(36px, 6vw, 64px);
+    font-size: clamp(44px, 6vw, 64px);
     line-height: 1.05;
     letter-spacing: 0;
     color: #ffffff;
@@ -308,10 +355,21 @@
     .theinmag-hero__subhead { max-width: none; }
   }
 
+  /* Keeps "no ads, just creativity" together as a single unbreakable
+     unit. On desktop the whole subhead fits on one line so this has
+     no effect. On mobile the clause won't fit alongside the rest of
+     the line, so it wraps as a unit - putting the line break BEFORE
+     "no" instead of between "no" and "ads". */
+  .theinmag-hero__subhead-clause {
+    white-space: nowrap;
+  }
+
   .theinmag-hero__ctas {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    /* Mobile: content-width pills (not stretched) - feels less heavy
+       on a narrow viewport and matches Maude's mobile pattern. */
+    align-items: flex-start;
     gap: var(--space-sm);
     margin-top: var(--space-xs);
   }
@@ -358,8 +416,8 @@
     background-color: var(--color-yellow);
     color: var(--color-inky-purple-navy);
     box-shadow: var(--shadow-button-yellow);
-    padding: 14px 28px;
-    font-size: 17px;
+    padding: 12px 22px;
+    font-size: 15px;
     font-weight: 400;
   }
 
@@ -377,8 +435,8 @@
     background: transparent;
     color: #ffffff;
     border: 2px solid #ffffff;
-    padding: 10px 22px;
-    font-size: 14px;
+    padding: 9px 18px;
+    font-size: 13px;
     font-weight: 600;
   }
 
