@@ -1,0 +1,681 @@
+{%- comment -%}
+  theinmag-meet-tam
+  Meet Tam + peek-inside-the-latest-issue video. Sits directly below
+  the philosophy section in the homepage order and shares the same
+  lavender bg (#C9B5DB) so the two read as one continuous purple
+  surface broken only by the founders moment finishing and the video
+  beginning.
+
+  Layout:
+    - Mobile: stacked - video > heading > role > intro > CTA.
+    - Desktop: Maude-style split. Video portrait on the left, copy
+      stack on the right with heading, role, intro, CTA.
+
+  Video: native HTML5 <video> with poster + preload="metadata" so the
+  big file only downloads when the visitor clicks play. Page-load cost
+  is just the poster JPG. Brand control via the white border + warm
+  purple drop shadow, no third-party player chrome.
+
+  CTA: defaults to "Grab the latest issue" -> /products/mag10. Admin
+  can swap to membership in the editor.
+
+  Decorative kid-drawn leaves PNG sits behind the content via a
+  ::before pseudo - same pattern as the rainbow on philosophy and the
+  dots on mission.
+
+  Spec: homepage-build-spec.md Section 6. Tokens: theinmag-design-tokens.md.
+{%- endcomment -%}
+
+{%- liquid
+  assign video_src = ''
+  if section.settings.video_filename != blank
+    assign video_src = section.settings.video_filename | asset_url
+  endif
+
+  assign poster_src = ''
+  if section.settings.poster_filename != blank
+    assign poster_src = section.settings.poster_filename | asset_url
+  endif
+
+  assign leaves_src = 'whiteleaves.png' | asset_url
+
+  assign shape_filename = section.settings.heading_shape_filename | default: 'meet-tam-heading-shape.png'
+  assign shape_src = shape_filename | asset_url
+
+  assign heading = section.settings.heading | default: 'Meet Tam'
+  assign role = section.settings.role | default: 'Co-founder of theINmag'
+  assign intro = section.settings.intro
+  assign cta_label = section.settings.cta_label | default: 'Grab the latest issue'
+  assign cta_link = section.settings.cta_link | default: '/products/mag10'
+  assign poster_alt = section.settings.poster_alt | default: 'Tam holding the latest theINmag issue, mid sentence with a smile.'
+
+  capture brand_html
+    echo '<span class="theinmag-brand">the<span class="theinmag-brand__in">IN</span>mag</span>'
+  endcapture
+  assign role_html = role | replace: 'theINmag', brand_html
+  assign intro_html = intro | replace: 'theINmag', brand_html
+-%}
+
+<section
+  class="theinmag-meet-tam"
+  aria-labelledby="theinmag-meet-tam-heading"
+>
+  <div class="theinmag-meet-tam__card">
+    <div class="theinmag-meet-tam__bg theinmag-meet-tam__bg--leaves" style="background-image: url('{{ leaves_src }}');" aria-hidden="true"></div>
+
+    <div class="theinmag-meet-tam__inner">
+      <div class="theinmag-meet-tam__media">
+        <div class="theinmag-meet-tam__video-wrap" data-meet-tam-video-wrap>
+        {%- if video_src != blank -%}
+          <video
+            class="theinmag-meet-tam__video"
+            {% if poster_src != blank %}poster="{{ poster_src }}"{% endif %}
+            autoplay
+            muted
+            loop
+            playsinline
+            controls
+            preload="metadata"
+            aria-label="{{ poster_alt | escape }}"
+          >
+            <source src="{{ video_src }}" type="video/mp4">
+          </video>
+          <button
+            type="button"
+            class="theinmag-meet-tam__sound-toggle"
+            data-meet-tam-sound-toggle
+            aria-label="Unmute video"
+            aria-pressed="false"
+          >
+            {%- comment -%}
+              Two icons stacked, one shown at a time. JS toggles the
+              [hidden] attribute as the muted state flips. Button stays
+              visible after first click so the visitor can re-mute.
+            {%- endcomment -%}
+            <svg class="theinmag-meet-tam__sound-icon" data-icon="muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+            <svg class="theinmag-meet-tam__sound-icon" data-icon="unmuted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          </button>
+        {%- elsif poster_src != blank -%}
+          {%- comment -%}
+            Fallback when only the poster is available (video file not
+            yet uploaded). Renders the still so the section still has
+            its visual centrepiece while waiting for the video.
+          {%- endcomment -%}
+          <img
+            class="theinmag-meet-tam__video"
+            src="{{ poster_src }}"
+            alt="{{ poster_alt | escape }}"
+            loading="lazy"
+            width="540"
+            height="960"
+          >
+        {%- endif -%}
+        </div>
+      </div>
+
+      <div class="theinmag-meet-tam__copy">
+        <div class="theinmag-meet-tam__heading-wrap">
+          {%- if shape_src != blank -%}
+            <img
+              class="theinmag-meet-tam__heading-shape"
+              src="{{ shape_src }}"
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+            >
+          {%- endif -%}
+          <h2 id="theinmag-meet-tam-heading" class="theinmag-meet-tam__heading">{{ heading }}</h2>
+        </div>
+        {%- if role != blank -%}
+          <p class="theinmag-meet-tam__role">{{ role_html }}</p>
+        {%- endif -%}
+        {%- if intro != blank -%}
+          <p class="theinmag-meet-tam__intro">{{ intro_html }}</p>
+        {%- endif -%}
+        {%- if cta_label != blank -%}
+          <a class="theinmag-meet-tam__cta" href="{{ cta_link }}">{{ cta_label }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-meet-tam
+     The meet-tam content lives inside a centred CARD that sits on top
+     of philosophy's lavender (which continues seamlessly through this
+     section's bg). The card pops off the lavender with a generous
+     drop shadow, creating the standalone "this is its own moment"
+     feel without needing a divider line.
+     ================================================================ */
+
+  .theinmag-meet-tam {
+    position: relative;
+    /* Lavender matches the philosophy section above so the two
+       surfaces read as one continuous purple field. The card on top
+       is what creates the visual break, not a colour change. */
+    background-color: #C9B5DB;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    /* Tight top padding so the card sits close to the philosophy
+       content above; generous bottom padding so the lavender below
+       the card breathes. */
+    padding: clamp(16px, 1.6vw, 24px) clamp(16px, 3vw, 32px) clamp(48px, 6vw, 80px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam {
+      padding: clamp(20px, 1.8vw, 32px) clamp(24px, 4vw, 48px) clamp(64px, 6vw, 96px);
+    }
+  }
+
+  /* ================================================================
+     The card itself.
+     Pink fill, rounded corners, layered drop shadow. overflow: hidden
+     clips the dot and leaf textures cleanly to the card's rounded
+     corners.
+     ================================================================ */
+  .theinmag-meet-tam__card {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #E8D1E6;
+    /* Square corners on the card per Ryan; the video inside keeps its
+       own rounded corners. */
+    border-radius: 0;
+    overflow: hidden;
+    padding: clamp(40px, 6vw, 72px) clamp(20px, 4vw, 48px);
+    box-shadow:
+      0 24px 56px rgba(42, 31, 61, 0.22),
+      0 8px 18px rgba(42, 31, 61, 0.12);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__card {
+      padding: clamp(56px, 5vw, 80px) clamp(40px, 5vw, 72px);
+    }
+  }
+
+  /* ================================================================
+     Decorative bg layer (leaves only)
+     The dots layer was removed - leaves alone carry enough texture.
+     ================================================================ */
+
+  /* Compound selector (specificity 0,2,0) so display:block beats Dawn's
+     base.css `div:empty { display: none }` rule (0,1,1). The leaves div
+     is intentionally empty - just a background-image holder - so without
+     this override Dawn collapses it and nothing renders. */
+  .theinmag-meet-tam__card .theinmag-meet-tam__bg {
+    display: block;
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    background-repeat: no-repeat;
+  }
+
+  /* --- Leaves (right-column accent layer) ---
+     Pre-whitened leaves PNG anchored to the bottom-right corner of the
+     card. Rotated 90 degrees counter-clockwise so the leaves point in
+     the brand-correct orientation. Opacity 0.7 keeps it as decorative
+     texture rather than a competing visual. */
+  .theinmag-meet-tam__bg--leaves {
+    /* Mobile: bottom-right area under the copy stack. */
+    bottom: 0;
+    right: 0;
+    width: 90%;
+    height: 60%;
+    background-size: auto 100%;
+    background-position: right bottom;
+    background-repeat: no-repeat;
+    opacity: 0.7;
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__bg--leaves {
+      /* Desktop: bottom-right under the copy column, taller so leaves
+         visibly rise up behind the heading/role/intro/CTA stack. */
+      bottom: 0;
+      right: 0;
+      top: auto;
+      width: 55%;
+      height: 80%;
+      background-size: auto 100%;
+      background-position: right bottom;
+    }
+  }
+
+  .theinmag-meet-tam__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 4vw, 40px);
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Desktop: split layout. Video left, copy right.
+     The 0.9fr / 1.1fr ratio gives the copy column slightly more room so
+     the heading + paragraph + CTA don't feel cramped beside the
+     portrait video. */
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__inner {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: clamp(40px, 6vw, 80px);
+      text-align: left;
+      align-items: center;
+    }
+  }
+
+  /* ================================================================
+     Video / poster media
+     ================================================================ */
+
+  .theinmag-meet-tam__media {
+    display: flex;
+    justify-content: center;
+  }
+
+  .theinmag-meet-tam__video-wrap {
+    /* Anchor for the absolutely-positioned unmute button overlay. */
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .theinmag-meet-tam__video {
+    display: block;
+    width: 100%;
+    /* Mobile cap so the video doesn't dominate small screens - a phone-
+       sized portrait video looks intentional, not like an upload bug. */
+    max-width: 320px;
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
+    /* White border + layered drop shadow so the video reads as a
+       polaroid lifting off the lavender bg. Two-stop shadow gives the
+       "pop" feel: a soft long shadow for depth + a tighter near shadow
+       for the lifted edge. */
+    background-color: var(--color-inky-purple-navy, #2A1F3D);
+    border: 8px solid #FFFFFF;
+    border-radius: 18px;
+    box-shadow:
+      0 18px 44px rgba(42, 31, 61, 0.28),
+      0 6px 14px rgba(42, 31, 61, 0.18);
+    /* Slight darken so the bright daylight in Tam's poster doesn't
+       compete with the rest of the section. Applies to both poster and
+       playing video. */
+    filter: brightness(0.88);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__video {
+      /* Larger on desktop. The portrait aspect is shortened from 9/16
+         to 9/13 so the video doesn't tower over the copy column - the
+         video file is still 1080x1920 internally, but object-fit cover
+         crops the top/bottom to fit the shorter frame on screen. */
+      max-width: 440px;
+      aspect-ratio: 9 / 13;
+      border-width: 10px;
+      border-radius: 22px;
+    }
+  }
+
+  /* ================================================================
+     Sound toggle overlay
+     Round icon-only button in the top-right of the video. Stays put
+     after the first interaction so the visitor can re-mute as well as
+     unmute. Two stacked SVGs (muted, unmuted); JS toggles the [hidden]
+     attribute as the video.muted state flips.
+     ================================================================ */
+  .theinmag-meet-tam__sound-toggle {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 5;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(42, 31, 61, 0.82);
+    color: var(--color-cream, #FBF6EA);
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__sound-toggle {
+      top: 18px;
+      right: 18px;
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  .theinmag-meet-tam__sound-toggle:hover,
+  .theinmag-meet-tam__sound-toggle:focus-visible {
+    background-color: rgba(42, 31, 61, 1);
+    transform: translateY(-1px);
+    outline: 2px solid var(--color-cream, #FBF6EA);
+    outline-offset: 2px;
+  }
+
+  .theinmag-meet-tam__sound-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .theinmag-meet-tam__sound-icon[hidden] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-meet-tam__sound-toggle {
+      transition: none;
+    }
+    .theinmag-meet-tam__sound-toggle:hover,
+    .theinmag-meet-tam__sound-toggle:focus-visible {
+      transform: none;
+    }
+  }
+
+  /* ================================================================
+     Copy stack
+     ================================================================ */
+
+  .theinmag-meet-tam__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(10px, 1.4vw, 16px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__copy {
+      align-items: flex-start;
+      max-width: 56ch;
+    }
+  }
+
+  /* ================================================================
+     Heading + decorative shape behind it
+     The shape PNG (transparent-bg, hand-drawn coral/pink blob) sits
+     absolutely positioned behind the heading, slightly oversized so
+     it pokes out around the "Meet Tam" word. Heading sits above via
+     z-index.
+     ================================================================ */
+  .theinmag-meet-tam__heading-wrap {
+    position: relative;
+    display: inline-block;
+  }
+
+  .theinmag-meet-tam__heading-shape {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* Oversized so the shape extends past the heading text on all
+       sides like a hand-drawn sticker or highlighter behind the word.
+       Bumped from 115% to 150% per Ryan for stronger presence. */
+    width: 150%;
+    height: auto;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .theinmag-meet-tam__heading,
+  .theinmag-meet-tam__role,
+  .theinmag-meet-tam__intro {
+    /* Sit above the heading shape (which is z-index 0). */
+    position: relative;
+    z-index: 1;
+  }
+
+  .theinmag-meet-tam__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(40px, 6.5vw, 64px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-meet-tam__role {
+    margin: 0;
+    /* Hand-lettered Post Regular for the role line - matches the live
+       site treatment where the role uses the same hand-drawn voice as
+       the heading, just smaller. */
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(18px, 2.2vw, 26px);
+    line-height: 1.25;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+  }
+
+  .theinmag-meet-tam__intro {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.6vw, 18px);
+    line-height: 1.65;
+    max-width: 48ch;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.92;
+  }
+
+  /* ================================================================
+     theINmag brand emphasis - the "IN" pun
+     When "theINmag" appears in body copy or headings rendered in Post
+     Regular, the IN is bumped up to 1.2em so the brand pun reads as
+     intentional. The role line and intro paragraph in this section
+     pass through a Liquid `replace` filter that wraps theINmag with
+     this markup automatically.
+     ================================================================ */
+  .theinmag-brand {
+    font-family: inherit;
+  }
+  .theinmag-brand__in {
+    /* Sized for visible pun without towering over the surrounding
+       letters. Dialed back 20% from a 2.2em first pass. */
+    font-size: 1.8em;
+    font-weight: inherit;
+    font-style: inherit;
+    letter-spacing: 0;
+    line-height: 0.9;
+    /* Downshift so the bigger IN sits centred on the baseline. */
+    vertical-align: -0.12em;
+  }
+
+  /* Yellow stamp CTA per design tokens. Same hover/press behaviour as
+     the rest of the brand's primary buttons. */
+  .theinmag-meet-tam__cta {
+    display: inline-block;
+    background-color: #F9C23C;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    /* Bigger than the standard CTA size so this primary "Grab the
+       latest issue" action reads as the focal call. */
+    font-size: clamp(18px, 2vw, 22px);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    /* Slimmer pill - text size unchanged, just tighter padding so the
+       button feels less heavy beside the copy. */
+    padding: 11px 24px;
+    border-radius: var(--radius-button, 32px);
+    text-decoration: none;
+    box-shadow: 0 4px 0 #D4A02E;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    margin-top: clamp(8px, 1vw, 16px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__cta {
+      padding: 13px 28px;
+    }
+  }
+
+  .theinmag-meet-tam__cta:hover,
+  .theinmag-meet-tam__cta:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #4A2D62;
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-meet-tam__cta {
+      transition: none;
+    }
+    .theinmag-meet-tam__cta:hover,
+    .theinmag-meet-tam__cta:focus-visible {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    const wrap = document.querySelector('[data-meet-tam-video-wrap]');
+    if (!wrap) return;
+    const video = wrap.querySelector('video');
+    const button = wrap.querySelector('[data-meet-tam-sound-toggle]');
+    if (!video || !button) return;
+    const mutedIcon = button.querySelector('[data-icon="muted"]');
+    const unmutedIcon = button.querySelector('[data-icon="unmuted"]');
+
+    function syncUI() {
+      const isMuted = video.muted;
+      if (mutedIcon) mutedIcon.hidden = !isMuted;
+      if (unmutedIcon) unmutedIcon.hidden = isMuted;
+      button.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
+      button.setAttribute('aria-pressed', isMuted ? 'false' : 'true');
+    }
+
+    button.addEventListener('click', function () {
+      video.muted = !video.muted;
+      // Some browsers pause video on first interaction with sound -
+      // restart playback to keep the loop seamless.
+      const playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(function () { /* swallow autoplay errors */ });
+      }
+      syncUI();
+    });
+
+    // Keep the icon in sync if the visitor uses the native controls
+    // bar to mute/unmute instead of clicking our overlay button.
+    video.addEventListener('volumechange', syncUI);
+    syncUI();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag meet Tam",
+  "tag": "section",
+  "class": "theinmag-meet-tam-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Video"
+    },
+    {
+      "type": "paragraph",
+      "content": "Drop the video MP4 and a poster JPG into /assets/ and reference them by filename. Recommended: 1080x1920 portrait MP4 H.264, target under 20MB. Poster is a still from the video, JPG, under 300KB. Page-load impact is just the poster - the video file only downloads when a visitor clicks play."
+    },
+    {
+      "type": "text",
+      "id": "video_filename",
+      "label": "Video filename",
+      "info": "e.g. meet-tam-current.mp4"
+    },
+    {
+      "type": "text",
+      "id": "poster_filename",
+      "label": "Poster image filename",
+      "info": "e.g. meet-tam-poster.jpg"
+    },
+    {
+      "type": "text",
+      "id": "poster_alt",
+      "label": "Poster alt text"
+    },
+    {
+      "type": "header",
+      "content": "Heading + decorative shape"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Meet Tam"
+    },
+    {
+      "type": "text",
+      "id": "heading_shape_filename",
+      "label": "Heading shape filename",
+      "info": "Transparent PNG dropped into /assets/ that sits behind the heading text. Defaults to meet-tam-heading-shape.png. Leave blank to render no shape."
+    },
+    {
+      "type": "text",
+      "id": "role",
+      "label": "Role",
+      "default": "Co-founder of theINmag"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro paragraph"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "Grab the latest issue"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Button link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag meet Tam",
+      "settings": {
+        "video_filename": "meet-tam-current.mp4",
+        "poster_filename": "meet-tam-poster.jpg",
+        "poster_alt": "Tam holding the latest theINmag issue.",
+        "heading": "Meet Tam",
+        "heading_shape_filename": "meet-tam-heading-shape.png",
+        "role": "Co-founder of theINmag",
+        "intro": "Take a peek inside the latest issue with Tam - favourite spreads, brilliant kid creations, and what to expect.",
+        "cta_label": "Grab the latest issue",
+        "cta_link": "/products/mag10"
+      }
+    }
+  ]
+}
+{% endschema %}

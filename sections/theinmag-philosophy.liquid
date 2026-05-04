@@ -1,0 +1,849 @@
+{%- comment -%}
+  theinmag-philosophy
+  Founders + philosophy block, sits between the audience tiles and the
+  rich-text section. Maude-style split: founders photo on the right
+  (bleeds to the viewport edge), four large vertically-stacked anchor
+  labels on the left. The active anchor's paragraph is always visible
+  below the stack - no closed state. Hover/focus on desktop swaps the
+  active anchor; tap does the same on mobile.
+
+  Defaults to "our philosophy" active on load. Sticky: once the user
+  hovers or taps an anchor, that anchor stays active until another is
+  hovered/tapped (matches Maude's behaviour).
+
+  Treatment: friendly mid-lavender feature surface (#C9B5DB - the
+  "purple wave" overlay token used as a solid here) with inky purple-
+  navy text. A hand-drawn rainbow PNG ghosts behind the anchor stack to
+  break the flat field; mix-blend-mode multiply hides the PNG's white
+  bbox fill while the deep-purple strokes naturally darken into the
+  lavender as soft arcs. Earlier dark-#5D3A7A treatment felt too stark
+  against the cream-heavy rest of the page - this lighter purple is the
+  current experiment per Ryan's call (May 4 2026).
+
+  Spec: homepage-build-spec.md Section 5. Tokens: theinmag-design-tokens.md.
+{%- endcomment -%}
+
+{%- liquid
+  assign blocks = section.blocks | where: 'type', 'anchor'
+  assign aeo_heading = section.settings.aeo_heading | default: "Who's behind theINmag?"
+  assign founders_alt = section.settings.image_alt | default: 'theINmag founders Ryan and Tam, photographed at a market with their copy of the magazine.'
+
+  assign image_src = ''
+  if section.settings.image != blank
+    assign image_src = section.settings.image | image_url: width: 2000
+  elsif section.settings.fallback_filename != blank
+    assign image_src = section.settings.fallback_filename | asset_url
+  endif
+
+  assign rainbow_src = 'rainbow.png' | asset_url
+
+  assign character_count = 0
+  for i in (1..3)
+    assign img_key = 'character_' | append: i
+    assign filename_key = 'character_' | append: i | append: '_filename'
+    if section.settings[img_key] != blank or section.settings[filename_key] != blank
+      assign character_count = character_count | plus: 1
+    endif
+  endfor
+
+  assign founder_one_name = section.settings.founder_one_name | default: 'Ryan'
+  assign founder_one_role = section.settings.founder_one_role | default: 'Co-founder'
+  assign founder_two_name = section.settings.founder_two_name | default: 'Tam'
+  assign founder_two_role = section.settings.founder_two_role | default: 'Co-founder'
+  assign org_name = section.settings.org_name | default: 'theINmag'
+  assign org_url = section.settings.org_url | default: 'https://theinmag.com.au'
+-%}
+
+<section
+  class="theinmag-philosophy"
+  data-theinmag-philosophy
+  aria-labelledby="theinmag-philosophy-heading"
+  style="--rainbow-url: url('{{ rainbow_src }}');"
+>
+  <h2 id="theinmag-philosophy-heading" class="theinmag-philosophy__a11y-heading">{{ aeo_heading }}</h2>
+
+  <div class="theinmag-philosophy__inner">
+    <div class="theinmag-philosophy__copy">
+      {%- if blocks.size > 0 -%}
+        <ul class="theinmag-philosophy__anchors" role="list" data-theinmag-philosophy-anchors>
+          {%- for block in blocks -%}
+            <li class="theinmag-philosophy__anchor-item" {{ block.shopify_attributes }}>
+              <button
+                type="button"
+                class="theinmag-philosophy__anchor"
+                data-theinmag-philosophy-trigger
+                data-paragraph="{{ block.settings.paragraph | escape }}"
+                aria-controls="theinmag-philosophy-paragraph"
+              >
+                {{ block.settings.label }}
+              </button>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        <div class="theinmag-philosophy__reveal" data-theinmag-philosophy-reveal>
+          <p
+            id="theinmag-philosophy-paragraph"
+            class="theinmag-philosophy__paragraph"
+            data-theinmag-philosophy-paragraph
+            aria-live="polite"
+          ></p>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="theinmag-philosophy__photo-col">
+      <div class="theinmag-philosophy__photo-wrap">
+        {%- if image_src != blank -%}
+          <img
+            class="theinmag-philosophy__photo"
+            src="{{ image_src }}"
+            alt="{{ founders_alt | escape }}"
+            loading="lazy"
+            width="1200"
+            height="1500"
+          >
+        {%- endif -%}
+      </div>
+
+      {%- if character_count > 0 -%}
+        {%- liquid
+          assign char_attrs = ''
+          for i in (1..3)
+            assign img_key = 'character_' | append: i
+            assign filename_key = 'character_' | append: i | append: '_filename'
+            assign alt_key = 'character_' | append: i | append: '_alt'
+            assign char_img = section.settings[img_key]
+            assign char_filename = section.settings[filename_key]
+            assign src = ''
+            if char_img != blank
+              assign src = char_img | image_url: width: 400
+            elsif char_filename != blank
+              assign src = char_filename | asset_url
+            endif
+            if src != blank
+              assign alt_val = section.settings[alt_key] | default: '' | escape
+              assign char_attrs = char_attrs | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
+              assign char_attrs = char_attrs | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
+            endif
+          endfor
+        -%}
+        <div class="theinmag-philosophy__character" data-theinmag-philosophy-character{{ char_attrs }}></div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "name": {{ founder_one_name | json }},
+      "jobTitle": {{ founder_one_role | json }},
+      "worksFor": {
+        "@type": "Organization",
+        "name": {{ org_name | json }},
+        "url": {{ org_url | json }}
+      }
+    },
+    {
+      "@type": "Person",
+      "name": {{ founder_two_name | json }},
+      "jobTitle": {{ founder_two_role | json }},
+      "worksFor": {
+        "@type": "Organization",
+        "name": {{ org_name | json }},
+        "url": {{ org_url | json }}
+      }
+    }
+  ]
+}
+</script>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-philosophy
+     Mid-lavender feature surface with inky purple-navy text. Photo
+     bleeds to the right viewport edge on desktop - no purple gutter
+     beside the photo. Photo height is locked to the copy column so
+     it never extends past the paragraph.
+     ================================================================ */
+
+  .theinmag-philosophy {
+    position: relative;
+    /* Friendly mid-lavender. Hex held inline (not via token) because the
+       design tokens file specs --color-purple-dark for feature surfaces;
+       this lighter value is an experiment for the founders block only. */
+    background-color: #C9B5DB;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    /* Tighter top padding than the previous pass - the audience tiles
+       above were leaving too much purple gutter before the photo. */
+    padding: clamp(28px, 4vw, 56px) clamp(20px, 4vw, 48px) clamp(40px, 5vw, 80px);
+    overflow: hidden;
+    /* No opacity fade-in on the section itself - Ryan flagged that the
+       fade made the page bg flash through during scroll. The lavender
+       is always solid; only the character pop + pulse hint animate. */
+  }
+
+  /* Hand-drawn rainbow arch ghosting behind the headings. The PNG has a
+     near-transparent white fill (3% alpha) inside its bbox plus deep-
+     purple strokes (4% alpha). On the lavender bg, mix-blend-mode
+     multiply makes the white fill effectively invisible (white * any =
+     any) while the dark strokes multiply the lavender into a softer
+     purple, reading as ghostly arcs. opacity 1 lets the natural alpha
+     do the work - boosting via filter pulled the bbox edges back into
+     view. Pointer-events off so it never intercepts clicks. */
+  .theinmag-philosophy::before {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    background-image: var(--rainbow-url);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: top left;
+    mix-blend-mode: multiply;
+    /* Mobile: tucked behind the headings, big enough to read as a
+       decorative arc without dominating. */
+    top: -8%;
+    left: -15%;
+    width: 90%;
+    height: 70%;
+    opacity: 1;
+    z-index: 0;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-philosophy::before {
+      /* Desktop: arc sits over the upper-left area, framing the heading
+         stack. Sized to span ~half the section width. */
+      top: -10%;
+      left: -8%;
+      width: 55%;
+      height: 90%;
+    }
+  }
+
+
+  @media (min-width: 990px) {
+    .theinmag-philosophy {
+      /* No right padding so the photo bleeds to the viewport edge.
+         Generous left padding still gives the headings air. */
+      padding: clamp(32px, 4vw, 64px) 0 clamp(48px, 5vw, 80px) clamp(32px, 5vw, 80px);
+    }
+  }
+
+  .theinmag-philosophy__a11y-heading {
+    /* AEO heading, hidden visually. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .theinmag-philosophy__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    /* Mobile gap is tight - the photo sits directly under the paragraph
+       so the founders moment lands close to the writing. Desktop
+       overrides to a wider gutter between the two columns. */
+    gap: clamp(16px, 3vw, 32px);
+    /* Mobile: start-aligned (photo and copy are sequential, not
+       parallel). Desktop overrides to stretch so the photo matches
+       the copy column's locked height exactly. */
+    align-items: start;
+  }
+
+  /* Tablet+: copy on the left, photo flush to the right edge.
+     align-items: stretch lets the photo column take whatever height
+     the copy column ends up at - the reveal panel's min-height locks
+     the copy column to a stable height so the photo doesn't resize
+     when paragraphs swap. */
+  @media (min-width: 990px) {
+    .theinmag-philosophy__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: clamp(32px, 5vw, 72px);
+      align-items: stretch;
+    }
+  }
+
+  /* ================================================================
+     Photo column position-relative is DESKTOP-ONLY. On mobile the
+     character (a child of photo-col in DOM) skips photo-col's bounds
+     and positions absolutely against .inner instead - this lets the
+     character pop into the upper-right of the section beside the
+     headings rather than being trapped below in the photo's column.
+     ================================================================ */
+
+  /* ================================================================
+     Photo column
+     The .photo-col wraps the photo + the character sticker so the
+     character can be absolutely positioned relative to the photo's
+     left edge and pop out into the headings gap. The .photo-wrap
+     keeps overflow: hidden to clip the image to its bounds; the col
+     stays overflow-visible so the character can extend beyond.
+     ================================================================ */
+
+  .theinmag-philosophy__photo-col {
+    /* No position on mobile - see comment block above. */
+  }
+
+  .theinmag-philosophy__photo-wrap {
+    /* No border-radius - sharp edges read as premium on photography. */
+    overflow: hidden;
+    /* z-index: 2 so the photo sits ABOVE the character (z-index: 1)
+       and the character peeks out from behind the photo's left edge. */
+    position: relative;
+    z-index: 2;
+  }
+
+  .theinmag-philosophy__photo {
+    display: block;
+    width: 100%;
+    /* Mobile: portrait crop with a fixed aspect-ratio so the photo
+       sizes naturally above the stacked copy. */
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    /* Slight darken so the photo doesn't feel hot against the dark
+       audience-tile photography sitting above it. */
+    filter: brightness(0.9);
+  }
+
+  @media (min-width: 990px) {
+    /* Desktop: photo-col fills its grid cell so the character can be
+       positioned against a stable column height. Combined with the
+       copy column's locked height, this keeps the photo the same shape
+       regardless of which paragraph is active and stops the photo from
+       extending past the bottom of the paragraph. */
+    .theinmag-philosophy__photo-col {
+      position: relative;
+      height: 100%;
+    }
+    .theinmag-philosophy__photo-wrap {
+      height: 100%;
+    }
+    .theinmag-philosophy__photo {
+      height: 100%;
+      aspect-ratio: auto;
+    }
+  }
+
+  /* ================================================================
+     Character sticker - random kid creation pops in alongside the
+     headings. Same pattern as the mission section: data-src-1/2/3 are
+     populated by Liquid; JS picks one at page load.
+
+     Mobile: positioned absolutely against .inner, top-right of the
+     section beside the heading stack. Reveals via opacity fade when
+     the section enters the viewport.
+
+     Desktop: positioned within photo-col (which becomes position-
+     relative at >=990px). Starts FULLY behind the photo's left edge
+     (invisible), then slides leftward on scroll into view so the
+     character looks like it's popping out from behind the photo.
+     Lands centred in the visible lavender between the headings and
+     the photo's left edge.
+     ================================================================ */
+
+  .theinmag-philosophy__character {
+    display: block;
+    position: absolute;
+    /* Mobile placement: upper-right area of .inner, vertically aligned
+       with the middle of the heading stack. */
+    top: clamp(56px, 14vw, 100px);
+    right: clamp(8px, 3vw, 16px);
+    width: clamp(95px, 22vw, 130px);
+    pointer-events: none;
+    z-index: 1;
+    /* Mobile reveal: opacity-only so the bob (transform-based) doesn't
+       fight the reveal. JS adds is-popped on scroll into viewport. */
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    animation: theinmag-philosophy-character-bob 4s ease-in-out infinite;
+  }
+
+  .theinmag-philosophy__character.is-popped {
+    opacity: 1;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-philosophy__character {
+      /* Override mobile placement - desktop anchors to photo-col with
+         left positioning so the slide animation works. top 10% lands
+         the character's TOP edge near the upper third of the column,
+         which puts its visual centre roughly halfway between the top
+         of the paragraph and the top of the photo (the headings stack
+         pushes the paragraph down by ~250px in the copy column). */
+      top: 10%;
+      right: auto;
+      /* Initial: fully behind photo's left edge. With photo-wrap at
+         z-index 2 covering the whole photo-col, character at left: 0
+         (z-index 1) is entirely hidden. The pop animation reveals it. */
+      left: 0;
+      /* 10% smaller than the previous pass per Ryan's call. */
+      width: clamp(139px, 14vw, 202px);
+      /* Desktop is opacity-stable; the slide on `left` is the reveal. */
+      opacity: 1;
+      transition: left 0.7s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    /* Popped state: character slides out from behind the photo. Pushed
+       further left than the previous pass so the character lands
+       centred in the visible lavender (rather than peeking from the
+       photo's edge). */
+    .theinmag-philosophy__character.is-popped {
+      left: clamp(-200px, -13vw, -120px);
+    }
+  }
+
+  /* Reduced motion: keep character visible at its destination position
+     without animating the entrance. */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-philosophy__character {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) and (min-width: 990px) {
+    .theinmag-philosophy__character {
+      left: clamp(-200px, -13vw, -120px);
+    }
+  }
+
+  .theinmag-philosophy__character-img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @keyframes theinmag-philosophy-character-bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-5px) rotate(2deg); }
+  }
+
+  /* ================================================================
+     Copy column - anchor stack + always-on paragraph below
+     ================================================================ */
+
+  .theinmag-philosophy__copy {
+    /* Top-aligned so the anchors sit higher in the section, matching
+       the Maude reference where the labels are not vertically centred. */
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    padding-top: clamp(8px, 1.5vw, 16px);
+  }
+
+  .theinmag-philosophy__anchors {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.4vw, 18px);
+  }
+
+  .theinmag-philosophy__anchor-item {
+    margin: 0;
+  }
+
+  .theinmag-philosophy__anchor {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 6px 0;
+    margin: 0;
+    cursor: pointer;
+    text-align: left;
+    /* Inter regular per spec - reflective/editorial section. */
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(30px, 4.8vw, 48px);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    /* Muted ink so the active anchor pops. Light-bg variant. */
+    color: rgba(42, 31, 61, 0.4);
+    transition: color var(--transition-hover, 0.2s ease), transform var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-philosophy__anchor:hover,
+  .theinmag-philosophy__anchor:focus-visible {
+    color: rgba(42, 31, 61, 0.75);
+    outline: none;
+  }
+
+  .theinmag-philosophy__anchor:focus-visible {
+    outline: 2px dashed var(--color-inky-purple-navy, #2A1F3D);
+    outline-offset: 6px;
+    border-radius: 2px;
+  }
+
+  .theinmag-philosophy__anchor.is-active {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* One-time pulse hint on the first anchor when the section enters
+     viewport. Subtle nudge so the muted-by-default state breathes.
+     JS removes the class on first interaction. */
+  .theinmag-philosophy__anchor.is-pulse-hint.is-pulsing {
+    animation: theinmag-philosophy-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes theinmag-philosophy-pulse {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(4px); }
+  }
+
+  /* ================================================================
+     Reveal panel - always visible, swaps content on active change
+     min-height locks the panel height so swapping between long and
+     short paragraphs never reflows the section.
+     ================================================================ */
+
+  .theinmag-philosophy__reveal {
+    margin-top: clamp(24px, 3vw, 40px);
+    max-width: 56ch;
+  }
+
+  /* Min-height locks the copy column on desktop only so (a) the photo
+     column stays the same height across all four anchor states, and
+     (b) the photo never extends below the bottom of the paragraph.
+     On mobile the photo sits BELOW the paragraph in the stack, so a
+     min-height there would just create dead lavender between the
+     paragraph and the photo - keep mobile natural-height. */
+  @media (min-width: 990px) {
+    .theinmag-philosophy__reveal {
+      min-height: 220px;
+    }
+  }
+
+  .theinmag-philosophy__paragraph {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.6vw, 18px);
+    line-height: 1.65;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  /* Quick fade when the active anchor changes - paragraph dips out,
+     content swaps, paragraph fades back in. */
+  .theinmag-philosophy__reveal.is-swapping .theinmag-philosophy__paragraph {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  /* ================================================================
+     Reduced motion: skip the section reveal, the pulse hint, the swap
+     fade. State changes still happen, just instantly.
+     ================================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-philosophy__anchor,
+    .theinmag-philosophy__paragraph {
+      transition: none;
+    }
+    .theinmag-philosophy__anchor.is-pulse-hint.is-pulsing {
+      animation: none;
+    }
+    .theinmag-philosophy__character {
+      animation: none;
+      transition: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    const root = document.querySelector('[data-theinmag-philosophy]');
+    if (!root) return;
+
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const triggers = Array.from(root.querySelectorAll('[data-theinmag-philosophy-trigger]'));
+    const reveal = root.querySelector('[data-theinmag-philosophy-reveal]');
+    const paragraphEl = root.querySelector('[data-theinmag-philosophy-paragraph]');
+
+    if (!triggers.length || !reveal || !paragraphEl) return;
+
+    /* ----------------------------------------------------------------
+       Pulse hint - first anchor pulses once until the user interacts.
+       The first anchor is also the default active one, so the pulse
+       reads as "and there are more like this" rather than "click me".
+       ---------------------------------------------------------------- */
+    triggers[0].classList.add('is-pulse-hint');
+
+    let activeTrigger = null;
+    let swapTimer = null;
+
+    function clearPulse() {
+      const pulser = root.querySelector('.theinmag-philosophy__anchor.is-pulse-hint.is-pulsing');
+      if (pulser) pulser.classList.remove('is-pulsing');
+    }
+
+    function applyContent(trigger) {
+      paragraphEl.textContent = trigger.dataset.paragraph || '';
+    }
+
+    function setActive(trigger, opts) {
+      if (activeTrigger === trigger) return;
+      const initial = !!(opts && opts.initial);
+
+      triggers.forEach(function (t) {
+        t.classList.toggle('is-active', t === trigger);
+      });
+      activeTrigger = trigger;
+
+      if (initial || reducedMotion) {
+        applyContent(trigger);
+        return;
+      }
+
+      // Fade out, swap, fade in.
+      reveal.classList.add('is-swapping');
+      window.clearTimeout(swapTimer);
+      swapTimer = window.setTimeout(function () {
+        applyContent(trigger);
+        reveal.classList.remove('is-swapping');
+      }, 160);
+    }
+
+    /* ----------------------------------------------------------------
+       Default active = first anchor on load (always shows a paragraph
+       underneath - no closed state). Sticky: once another anchor is
+       hovered/tapped, it stays active until the next interaction. No
+       revert on mouseleave (matches Maude).
+       ---------------------------------------------------------------- */
+    setActive(triggers[0], { initial: true });
+
+    triggers.forEach(function (trigger) {
+      // Desktop hover.
+      trigger.addEventListener('mouseenter', function () {
+        clearPulse();
+        setActive(trigger);
+      });
+      // Mobile tap + accessibility.
+      trigger.addEventListener('click', function () {
+        clearPulse();
+        setActive(trigger);
+      });
+      // Keyboard focus.
+      trigger.addEventListener('focus', function () {
+        clearPulse();
+        setActive(trigger);
+      });
+    });
+
+    /* ----------------------------------------------------------------
+       Section-level click also dismisses the pulse hint - even if the
+       user tapped the photo or whitespace, they've engaged.
+       ---------------------------------------------------------------- */
+    root.addEventListener('click', clearPulse);
+
+    /* ----------------------------------------------------------------
+       Random character sticker. Up to three options are stored as
+       data-src-1/2/3 (with paired alt). One is chosen at random on
+       load and rendered into the container. Note the dataset['src-1']
+       form - data-src-1 maps via a hyphen-digit key, NOT the camelCase
+       dataset.src1.
+       ---------------------------------------------------------------- */
+    const characterContainer = root.querySelector('[data-theinmag-philosophy-character]');
+    if (characterContainer) {
+      const sources = [];
+      for (let i = 1; i <= 3; i++) {
+        const src = characterContainer.dataset['src-' + i];
+        if (src) {
+          sources.push({
+            src: src,
+            alt: characterContainer.dataset['alt-' + i] || ''
+          });
+        }
+      }
+      if (sources.length) {
+        const chosen = sources[Math.floor(Math.random() * sources.length)];
+        const img = document.createElement('img');
+        img.className = 'theinmag-philosophy__character-img';
+        img.src = chosen.src;
+        img.alt = chosen.alt;
+        characterContainer.appendChild(img);
+      }
+    }
+
+    /* ----------------------------------------------------------------
+       Scroll-triggered section reveal + first-view pulse hint +
+       character pop. Scroll listener (rather than IntersectionObserver)
+       for parity with the other theinmag- sections - some embedded
+       contexts skip IO. One-shot: removes its own listener after firing.
+       ---------------------------------------------------------------- */
+    const firstAnchor = triggers[0];
+
+    function checkEnter() {
+      const rect = root.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.8) {
+        if (firstAnchor && !reducedMotion) {
+          firstAnchor.classList.add('is-pulsing');
+        }
+        if (characterContainer && !reducedMotion) {
+          characterContainer.classList.add('is-popped');
+        }
+        window.removeEventListener('scroll', onScroll);
+      }
+    }
+
+    function onScroll() {
+      window.requestAnimationFrame(checkEnter);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    checkEnter();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag philosophy",
+  "tag": "section",
+  "class": "theinmag-philosophy-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Founders photo"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Founders photo"
+    },
+    {
+      "type": "text",
+      "id": "fallback_filename",
+      "label": "Fallback filename",
+      "info": "Used when the image picker is empty. Filename of an image in /assets/."
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text"
+    },
+    {
+      "type": "header",
+      "content": "Accessibility + AEO"
+    },
+    {
+      "type": "text",
+      "id": "aeo_heading",
+      "label": "Visually-hidden H2 (question form)",
+      "info": "Powers AEO and screen readers. Question format per house style."
+    },
+    {
+      "type": "header",
+      "content": "Founders schema (Person JSON-LD)"
+    },
+    { "type": "text", "id": "founder_one_name", "label": "Founder 1 name" },
+    { "type": "text", "id": "founder_one_role", "label": "Founder 1 role" },
+    { "type": "text", "id": "founder_two_name", "label": "Founder 2 name" },
+    { "type": "text", "id": "founder_two_role", "label": "Founder 2 role" },
+    { "type": "text", "id": "org_name", "label": "Organisation name" },
+    { "type": "text", "id": "org_url", "label": "Organisation URL" },
+    {
+      "type": "header",
+      "content": "Character sticker (random)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Up to three kid-creation characters can be uploaded. One is picked at random per page load and pops out from behind the founders photo on scroll. Drop transparent PNGs into /assets/ and reference them by filename, or use the image picker."
+    },
+    { "type": "image_picker", "id": "character_1", "label": "Character 1 image" },
+    { "type": "text", "id": "character_1_filename", "label": "Character 1 fallback filename" },
+    { "type": "text", "id": "character_1_alt", "label": "Character 1 alt text" },
+    { "type": "image_picker", "id": "character_2", "label": "Character 2 image" },
+    { "type": "text", "id": "character_2_filename", "label": "Character 2 fallback filename" },
+    { "type": "text", "id": "character_2_alt", "label": "Character 2 alt text" },
+    { "type": "image_picker", "id": "character_3", "label": "Character 3 image" },
+    { "type": "text", "id": "character_3_filename", "label": "Character 3 fallback filename" },
+    { "type": "text", "id": "character_3_alt", "label": "Character 3 alt text" }
+  ],
+  "blocks": [
+    {
+      "type": "anchor",
+      "name": "Anchor",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Anchor label",
+          "default": "our philosophy",
+          "info": "Stays lowercase to match the Maude pattern. The four labels are LOCKED to the universal set: our philosophy, our standards, our impact, our story."
+        },
+        {
+          "type": "textarea",
+          "id": "paragraph",
+          "label": "Reveal paragraph",
+          "info": "40-60 words. Shows below the anchor stack when this anchor is active."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag philosophy",
+      "settings": {
+        "fallback_filename": "HERO_founders-atthemarket.jpg",
+        "image_alt": "theINmag founders Ryan and Tam at a market with their copy of the magazine.",
+        "aeo_heading": "Who's behind theINmag?",
+        "founder_one_name": "Ryan",
+        "founder_one_role": "Co-founder, theINmag",
+        "founder_two_name": "Tam",
+        "founder_two_role": "Co-founder, theINmag",
+        "org_name": "theINmag",
+        "org_url": "https://theinmag.com.au",
+        "character_1_filename": "character-philosophy-1.png",
+        "character_1_alt": "A theINmag reader's drawing.",
+        "character_2_filename": "character-philosophy-2.png",
+        "character_2_alt": "A theINmag reader's drawing.",
+        "character_3_filename": "character-philosophy-3.png",
+        "character_3_alt": "A theINmag reader's drawing."
+      },
+      "blocks": [
+        {
+          "type": "anchor",
+          "settings": {
+            "label": "our philosophy",
+            "paragraph": "Creativity is the foundation of impactful learning. theINmag is a safe place for kids to explore, stay curious, and be inspired - and a real chance to see their creation in print. No grades, no right answers. Just the joy of being seen, heard and celebrated for what you make."
+          }
+        },
+        {
+          "type": "anchor",
+          "settings": {
+            "label": "our standards",
+            "paragraph": "We're set on giving Aussie kids the best magazine on the market. Always ad-free. Sustainably printed in Melbourne. The reason we go this hard on quality? Seeing your creation in a beautifully made magazine respects the kid who made it - way more than a cheap mag or a forgotten website ever could."
+          }
+        },
+        {
+          "type": "anchor",
+          "settings": {
+            "label": "our impact",
+            "paragraph": "Read by thousands of kids in every state and territory, theINmag turns creativity into connection. The first time a kid sees their creation in print, something shifts. They start to see themselves as a creator - someone whose ideas are worth a real, printed page. That's the impact we're chasing."
+          }
+        },
+        {
+          "type": "anchor",
+          "settings": {
+            "label": "our story",
+            "paragraph": "Two former teachers with a small idea that wouldn't quit. Ryan and Tam sold the house to fund theINmag, and they're now travelling Australia in their self-converted van with their baby Nora - meeting kids, schools and families face to face, and reminding every Aussie kid their voice belongs in print."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

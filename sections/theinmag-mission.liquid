@@ -1,0 +1,992 @@
+{%- comment -%}
+  theinmag-mission
+  Sand-coloured band sitting between the hero and the audience tiles.
+  Two stacked pieces inside one section:
+    1. Feature row + mission statement.
+       Four slogans (peach pair: black default, dark sandy orange on
+       hover/focus) separated by orange dots. Default state renders the
+       brand mission underneath. Hovering or focusing a slogan swaps
+       the mission line to a feature-specific sentence.
+       Mobile: the slogan row becomes a horizontal scroll-snap carousel
+       so users can swipe rather than vertically stack the four items.
+    2. Three product link cards (Membership / Latest mag / Build a
+       bundle). Default + hover image per card. Whole card is a link.
+
+  The four slogans here intentionally replace the hero's trust micro-bar
+  (show_trust_bar is set to false on the hero in index.json) - the
+  feature row and the mission statement together are a richer surface
+  for the same information immediately below the hero.
+
+  Spec: theinmag-design-tokens.md (peach pair, Inter 600 subhead size,
+  prefers-reduced-motion, no em dashes).
+{%- endcomment -%}
+
+{%- liquid
+  assign default_message = section.settings.default_message | default: 'Our mission is to empower kids and support parents and teachers.'
+  assign feature_blocks = section.blocks | where: 'type', 'feature'
+  assign product_blocks = section.blocks | where: 'type', 'product_link'
+
+  assign character_count = 0
+  for i in (1..3)
+    assign img_key = 'character_' | append: i
+    assign filename_key = 'character_' | append: i | append: '_filename'
+    if section.settings[img_key] != blank or section.settings[filename_key] != blank
+      assign character_count = character_count | plus: 1
+    endif
+  endfor
+-%}
+
+<section class="theinmag-mission" data-theinmag-mission aria-labelledby="theinmag-mission-heading">
+  <h2 id="theinmag-mission-heading" class="theinmag-mission__a11y-heading">What makes theINmag different?</h2>
+
+  <div class="theinmag-mission__panel" style="--dots-url: url('{{ 'Dots.png' | asset_url }}');">
+
+  {%- if feature_blocks.size > 0 -%}
+    <div class="theinmag-mission__band">
+      <ul class="theinmag-mission__features" role="list">
+        {%- for block in feature_blocks -%}
+          <li class="theinmag-mission__feature" {{ block.shopify_attributes }}>
+            <button
+              type="button"
+              class="theinmag-mission__slogan"
+              data-mission-trigger
+              data-message="{{ block.settings.hover_message | escape }}"
+            >
+              {{ block.settings.label }}
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      <p
+        class="theinmag-mission__statement"
+        data-mission-statement
+        data-default-message="{{ default_message | escape }}"
+        aria-live="polite"
+      >
+        {{ default_message }}
+      </p>
+    </div>
+  {%- endif -%}
+
+  {%- if product_blocks.size > 0 -%}
+    <div class="theinmag-mission__products-wrap">
+      {%- if character_count > 0 -%}
+        {%- liquid
+          assign char_attrs = ''
+          for i in (1..3)
+            assign img_key = 'character_' | append: i
+            assign filename_key = 'character_' | append: i | append: '_filename'
+            assign alt_key = 'character_' | append: i | append: '_alt'
+            assign attr_key = 'character_' | append: i | append: '_attribution'
+            assign char_img = section.settings[img_key]
+            assign char_filename = section.settings[filename_key]
+            assign src = ''
+            if char_img != blank
+              assign src = char_img | image_url: width: 400
+            elsif char_filename != blank
+              assign src = char_filename | asset_url
+            endif
+            if src != blank
+              assign alt_val = section.settings[alt_key] | default: '' | escape
+              assign attr_val = section.settings[attr_key] | default: '' | escape
+              assign char_attrs = char_attrs | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
+              assign char_attrs = char_attrs | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
+              assign char_attrs = char_attrs | append: ' data-attribution-' | append: i | append: '="' | append: attr_val | append: '"'
+            endif
+          endfor
+        -%}
+        <div class="theinmag-mission__character" data-theinmag-character{{ char_attrs }}></div>
+      {%- endif -%}
+
+    <ul class="theinmag-mission__products" role="list">
+      {%- for block in product_blocks -%}
+        {%- liquid
+          assign default_src = ''
+          assign hover_src = ''
+          if block.settings.image != blank
+            assign default_src = block.settings.image | image_url: width: 1200
+          elsif block.settings.fallback_filename != blank
+            assign default_src = block.settings.fallback_filename | asset_url
+          endif
+          if block.settings.hover_image != blank
+            assign hover_src = block.settings.hover_image | image_url: width: 1200
+          elsif block.settings.fallback_hover_filename != blank
+            assign hover_src = block.settings.fallback_hover_filename | asset_url
+          endif
+        -%}
+        <li class="theinmag-mission__product-item" {{ block.shopify_attributes }}>
+          <a class="theinmag-mission__product" href="{{ block.settings.link | default: '#' }}">
+            <span class="theinmag-mission__product-frame">
+              {%- if default_src != blank -%}
+                <img
+                  class="theinmag-mission__product-image theinmag-mission__product-image--default"
+                  src="{{ default_src }}"
+                  alt="{{ block.settings.image_alt | default: block.settings.label }}"
+                  loading="lazy"
+                  width="600"
+                  height="600"
+                >
+              {%- endif -%}
+              {%- if hover_src != blank -%}
+                <img
+                  class="theinmag-mission__product-image theinmag-mission__product-image--hover"
+                  src="{{ hover_src }}"
+                  alt=""
+                  loading="lazy"
+                  aria-hidden="true"
+                  width="600"
+                  height="600"
+                >
+              {%- endif -%}
+              <span class="theinmag-mission__product-label">{{ block.settings.label }}</span>
+            </span>
+            <div class="theinmag-mission__product-meta">
+              {%- if block.settings.tagline != blank -%}
+                <span class="theinmag-mission__product-tagline">{{ block.settings.tagline }}</span>
+              {%- endif -%}
+              {%- if block.settings.price != blank -%}
+                <span class="theinmag-mission__product-price">{{ block.settings.price }}</span>
+              {%- endif -%}
+            </div>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+    </div>
+  {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-mission
+     Section uses the peach pair: light peach background (#FCDDB8) with
+     dark sandy orange (#D9783A) for accents and hover state. Default
+     text is inky purple-navy (#2A1F3D) - the universal cream-pair
+     companion that's the default on every section.
+     ================================================================ */
+
+  .theinmag-mission {
+    --mission-bg: var(--color-peach, #FCDDB8);
+    --mission-accent: var(--color-sandy-orange-dark, #D9783A);
+    --mission-ink: var(--color-inky-purple-navy, #2A1F3D);
+
+    /* Full-bleed cream wrapper. Top padding is zero so the sand panel
+       butts directly against the hero's bottom edge - no cream stripe
+       between them. Cream still shows on the sides and below the panel
+       so the "frame" effect holds on three sides. */
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--mission-ink);
+    padding: 0 clamp(16px, 3vw, 32px) clamp(24px, 4vw, 48px);
+  }
+
+  /* The sand panel - the "card" that pops out of the cream. Modal-level
+     purple-tinted shadow per the design tokens for a more pronounced
+     glow than the card token gave (Ryan asked for a stronger pop). The
+     shadow on the top edge is clipped by the hero above, but the bottom
+     and side glow read clearly against the cream frame. */
+  .theinmag-mission__panel {
+    position: relative;
+    background-color: var(--mission-bg);
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: clamp(24px, 4vw, 56px) clamp(20px, 4vw, 64px);
+    box-shadow: 0 8px 32px rgba(123, 79, 158, 0.18);
+    /* Clip the dots layer to the panel - the oversized background
+       extends beyond panel edges to give the "pattern continues" feel,
+       but we don't want it bleeding into the cream gutter outside. */
+    overflow: hidden;
+  }
+
+  /* ================================================================
+     Dots background layer
+     A hand-drawn dot trail (Dots.png) sits behind the slogan band and
+     product cards. The PNG ships in coral pink, but we use it as a
+     mask-image rather than background-image so the dots render in
+     whatever colour we paint behind the mask - in this case the peach
+     wave overlay token (#F8C99E). This keeps the dot colour in-system
+     with the rest of the panel and softer than the sandy-orange accent.
+
+     mask-size auto 140% renders the image taller than the panel so
+     the top and bottom edges clip; mask-position right -360px center
+     pushes a meaningful chunk of the image past the right edge so
+     plenty of dots clip off the right. Pattern reads as continuing in
+     all three directions.
+
+     --dots-url is set inline on the panel markup since stylesheet
+     blocks can't take Liquid.
+     ================================================================ */
+  .theinmag-mission__panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    /* Peach wave token - the design system's prescribed pattern overlay
+       tone for peach surfaces. Lighter than the sandy-orange accent
+       which read too dark in the panel; still visibly distinct from the
+       peach background. */
+    background-color: #F8C99E;
+    -webkit-mask-image: var(--dots-url);
+    mask-image: var(--dots-url);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: auto 140%;
+    mask-size: auto 140%;
+    -webkit-mask-position: right -360px center;
+    mask-position: right -360px center;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.7;
+  }
+
+  /* Lift every child of the panel above the dots layer. The panel's
+     content (band, products-wrap, the character sticker inside it) is
+     the "reading layer"; dots are the texture layer underneath. */
+  .theinmag-mission__band,
+  .theinmag-mission__products-wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  .theinmag-mission__a11y-heading {
+    /* AEO/accessibility: heading is question-format per CLAUDE.md, but
+       the visible UI is the slogan row, so the heading itself is hidden. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ================================================================
+     Slogan band
+     ================================================================ */
+
+  .theinmag-mission__band {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+    text-align: center;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-mission__band {
+      padding: 0 var(--space-xl);
+    }
+  }
+
+  /* Slogan band stays centred. Tried nudging the band right of dead-
+     centre to balance the character popping up at the products' top-
+     left, but at common laptop widths (~960-1100px) any extra left
+     padding pushed "Tri-annual" onto a second line - and the user's
+     "slogans on one line on desktop" rule wins ties. */
+
+  /* Mobile-first: horizontal scroll-snap so users can swipe through the
+     four slogans rather than reading them stacked. The peek of the next
+     slogan at the right edge is the "swipe for more" affordance, same
+     pattern as the audience tiles. Scrollbar hidden, snap-x mandatory. */
+  .theinmag-mission__features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--space-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* Bleed the scroll container to the section edges so the first
+       slogan sits at the visual margin, not pinned in the centre. */
+    margin: 0 calc(-1 * var(--space-md));
+    padding: 0 var(--space-md) var(--space-sm);
+  }
+
+  .theinmag-mission__features::-webkit-scrollbar {
+    display: none;
+  }
+
+  .theinmag-mission__feature {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    position: relative;
+    /* Orange dot separator between feature items, never after the last
+       one. ::after pseudo-element so the dot doesn't show up in screen
+       reader output as part of the slogan label. */
+    padding-right: var(--space-md);
+  }
+
+  .theinmag-mission__feature:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--mission-accent);
+  }
+
+  /* Desktop+: switch to a centred inline row, drop the scroll affordance.
+     Spacing kept tight (sm gap + md padding-right = 24px between items)
+     so all four slogans fit on one line at common laptop widths. */
+  @media (min-width: 750px) {
+    .theinmag-mission__features {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      overflow: visible;
+      margin: 0;
+      padding: 0;
+    }
+
+    .theinmag-mission__feature {
+      padding-right: var(--space-md);
+    }
+
+    .theinmag-mission__feature:not(:last-child)::after {
+      right: -2px;
+    }
+  }
+
+  .theinmag-mission__slogan {
+    /* Reset button defaults so it reads as plain text. */
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    /* Match the hero subhead exactly per spec - same shape and size. */
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(16px, 1.8vw, 19px);
+    line-height: 1.5;
+    letter-spacing: 0;
+    color: var(--mission-ink);
+    transition: color var(--transition-standard, 0.15s ease);
+    /* Whitespace: keep the slogan as one unit on every viewport. */
+    white-space: nowrap;
+  }
+
+  .theinmag-mission__slogan:hover,
+  .theinmag-mission__slogan:focus-visible,
+  .theinmag-mission__slogan.is-active {
+    color: var(--mission-accent);
+    outline: none;
+  }
+
+  .theinmag-mission__slogan:focus-visible {
+    /* Restore an outline for keyboard users only. */
+    outline: 2px dashed var(--mission-accent);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  /* ================================================================
+     Mission statement
+     ================================================================ */
+
+  .theinmag-mission__statement {
+    margin: var(--space-lg) auto 0;
+    /* Mobile: tight max-width so the line wraps cleanly. Desktop: drop
+       the cap so each message lays out on a single line at common widths
+       (the longest message is ~75 chars). The panel's max-width still
+       constrains the overall area, so the line never runs ridiculously
+       wide. */
+    max-width: 56ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.8vw, 19px);
+    line-height: 1.6;
+    color: var(--mission-accent);
+    transition: opacity 0.18s ease;
+    min-height: 3em;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-mission__statement {
+      max-width: none;
+    }
+  }
+
+  .theinmag-mission__statement.is-swapping {
+    opacity: 0;
+  }
+
+  /* Emphasis inside the mission sentences. Same Post Regular treatment
+     as .theinmag-announcement__hook so the two surfaces feel related -
+     hand-lettered word lifted out of an Inter line. line-height 0.9 +
+     vertical-align keep the bigger Post characters from blowing the
+     line-box out. */
+  .theinmag-mission__statement strong {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 1.8em;
+    line-height: 0.9;
+    letter-spacing: 0;
+    vertical-align: -0.12em;
+    display: inline-block;
+    color: inherit;
+  }
+
+  /* ================================================================
+     Product cards (3-up)
+     ================================================================ */
+
+  .theinmag-mission__products {
+    list-style: none;
+    margin: clamp(32px, 5vw, 56px) auto 0;
+    padding: 0 var(--space-md);
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-mission__products {
+      padding: 0 var(--space-xl);
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-xl);
+    }
+  }
+
+  /* Each product link IS a card now, but a sharp-cornered cream one
+     sitting inside the sand panel - so the orange surrounds it and the
+     card pops the same way the panel pops out of the page. The image
+     fills the top of the card, label overlays the blank top-left space
+     the photographer left, tagline + price sit below in cream space. */
+  .theinmag-mission__product {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background-color: var(--color-cream, #FBF6EA);
+    padding-bottom: clamp(16px, 2vw, 24px);
+    transition: transform var(--transition-hover, 0.2s ease), box-shadow var(--transition-hover, 0.2s ease);
+    /* Subtle shadow so the card lifts off the sand the same way the
+       panel lifts off the page. */
+    box-shadow: 0 1px 6px rgba(123, 79, 158, 0.06);
+  }
+
+  .theinmag-mission__product:hover,
+  .theinmag-mission__product:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 20px rgba(123, 79, 158, 0.15);
+    outline: none;
+  }
+
+  .theinmag-mission__product:focus-visible {
+    box-shadow: 0 0 0 3px var(--mission-accent), 0 4px 20px rgba(123, 79, 158, 0.15);
+  }
+
+  .theinmag-mission__product-frame {
+    position: relative;
+    display: block;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+  }
+
+  .theinmag-mission__product-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-mission__product-image--hover {
+    opacity: 0;
+  }
+
+  .theinmag-mission__product:hover .theinmag-mission__product-image--default,
+  .theinmag-mission__product:focus-visible .theinmag-mission__product-image--default {
+    opacity: 0;
+  }
+
+  .theinmag-mission__product:hover .theinmag-mission__product-image--hover,
+  .theinmag-mission__product:focus-visible .theinmag-mission__product-image--hover {
+    opacity: 1;
+  }
+
+  /* Product name sits inside the image, top-left. Relies on the blank
+     space photographers left in the corner for legibility - no scrim
+     or text-shadow. Inky purple-navy matches the body copy elsewhere. */
+  .theinmag-mission__product-label {
+    position: absolute;
+    top: var(--space-md);
+    left: var(--space-md);
+    right: var(--space-md);
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(18px, 2.2vw, 22px);
+    line-height: 1.3;
+    color: var(--mission-ink);
+    z-index: 1;
+  }
+
+  .theinmag-mission__product-meta {
+    /* Sits in the cream card footer with comfortable horizontal padding
+       so tagline and price breathe inside the card. */
+    padding: clamp(14px, 1.6vw, 20px) clamp(16px, 1.8vw, 24px) 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .theinmag-mission__product-tagline {
+    flex: 1;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--mission-ink);
+    opacity: 0.85;
+  }
+
+  .theinmag-mission__product-price {
+    flex: 0 0 auto;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.3;
+    color: var(--mission-ink);
+    white-space: nowrap;
+  }
+
+  /* ================================================================
+     Random kid-character sticker
+     One of up to three character images is picked at page load by JS.
+     The character is anchored to the top-left of the first product card
+     (membership) and pokes up from behind it - z-index stack makes the
+     card cover the lower half of the character, the rest peeks above.
+     Hidden on mobile to avoid the slogan-overlap concern Ryan flagged.
+     ================================================================ */
+
+  .theinmag-mission__products-wrap {
+    /* Anchor for the absolutely-positioned character sticker. */
+    position: relative;
+  }
+
+  .theinmag-mission__character {
+    display: none;
+  }
+
+  /* Show on tablet+ (750px) - the products grid switches to 3-up at this
+     breakpoint, which is when "behind the membership tile" makes sense.
+     On phones the products stack and the character would overlap items
+     below it, so it stays hidden there. */
+  @media (min-width: 750px) {
+    .theinmag-mission__character {
+      display: block;
+      position: absolute;
+      /* INITIAL state: bottom: calc(100% - X) places the character's
+         bottom edge X pixels below the products-wrap top - so most of
+         the character is above the products, bottom X tucked behind
+         the membership card. Transition on `bottom` lets it slide
+         smoothly up to the popped state when scroll triggers it. */
+      bottom: calc(100% - clamp(50px, 5vw, 80px));
+      left: clamp(-12px, -1vw, 0px);
+      width: clamp(100px, 10vw, 150px);
+      pointer-events: none;
+      z-index: 0;
+      animation: theinmag-mission-bob 4s ease-in-out infinite;
+      transition: bottom 0.7s cubic-bezier(0.34, 1.4, 0.64, 1), left 0.7s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    /* POPPED state: triggered when the section comes into view (JS adds
+       the class on scroll). Character lifts to sit roughly halfway
+       between the top of the sand panel and the membership tile - high
+       enough that no part is behind the card, low enough that it feels
+       framed by the slogan + product space rather than rocketing into
+       the hero. Slight overshoot in the easing gives the "pop" feel. */
+    .theinmag-mission__character.is-popped {
+      bottom: calc(100% + clamp(8px, 1vw, 20px));
+    }
+
+    /* Products sit ABOVE the character so the lower portion of the
+       character is hidden behind the membership card. */
+    .theinmag-mission__product {
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  /* Reduced-motion: skip the pop and the bob entirely. The character
+     just sits in its initial position. */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-mission__character {
+      transition: none;
+    }
+    .theinmag-mission__character.is-popped {
+      bottom: calc(100% - clamp(50px, 5vw, 80px));
+    }
+  }
+
+  .theinmag-mission__character-img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .theinmag-mission__character-attribution {
+    display: block;
+    margin-top: 4px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 11px;
+    line-height: 1.3;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mission-ink);
+    opacity: 0.7;
+    text-align: center;
+  }
+
+  @keyframes theinmag-mission-bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-6px) rotate(2deg); }
+  }
+
+  /* Reduced motion: kill the fade swap, the card lift, the image cross-
+     fade and the character bob. Hover state still works, just without
+     transitions. */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-mission__statement,
+    .theinmag-mission__product,
+    .theinmag-mission__product-image {
+      transition: none;
+    }
+
+    .theinmag-mission__product:hover,
+    .theinmag-mission__product:focus-visible {
+      transform: none;
+    }
+
+    .theinmag-mission__character {
+      animation: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    const root = document.querySelector('[data-theinmag-mission]');
+    if (!root) return;
+
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ----------------------------------------------------------------
+       Slogan hover -> mission swap. No locking - hover/focus shows the
+       slogan's message, mouseleave/blur reverts to the default mission.
+       On touch, the synthesised mouseenter on tap shows the message
+       while the user keeps reading; tapping elsewhere reverts.
+       ---------------------------------------------------------------- */
+    const statement = root.querySelector('[data-mission-statement]');
+    const triggers = root.querySelectorAll('[data-mission-trigger]');
+
+    if (statement && triggers.length) {
+      const defaultMessage = statement.dataset.defaultMessage || statement.innerHTML.trim();
+      let pendingMessage = null;
+      let swapTimer = null;
+      let activeTrigger = null;
+
+      function setMessage(message) {
+        if (!message || message === statement.innerHTML.trim()) return;
+
+        if (reducedMotion) {
+          statement.innerHTML = message;
+          return;
+        }
+
+        pendingMessage = message;
+        statement.classList.add('is-swapping');
+        clearTimeout(swapTimer);
+        swapTimer = setTimeout(function () {
+          statement.innerHTML = pendingMessage;
+          statement.classList.remove('is-swapping');
+        }, 180);
+      }
+
+      function render() {
+        triggers.forEach(function (t) { t.classList.toggle('is-active', t === activeTrigger); });
+        setMessage(activeTrigger ? activeTrigger.dataset.message : defaultMessage);
+      }
+
+      triggers.forEach(function (trigger) {
+        const enter = function () { activeTrigger = trigger; render(); };
+        const leave = function () { if (activeTrigger === trigger) { activeTrigger = null; render(); } };
+
+        trigger.addEventListener('mouseenter', enter);
+        trigger.addEventListener('mouseleave', leave);
+        trigger.addEventListener('focus', enter);
+        trigger.addEventListener('blur', leave);
+      });
+    }
+
+    /* ----------------------------------------------------------------
+       Random character sticker. Up to three options are stored as
+       data-src-1/2/3 (with paired alt + attribution). One is chosen at
+       random on load and rendered into the container.
+       ---------------------------------------------------------------- */
+    const characterContainer = root.querySelector('[data-theinmag-character]');
+    if (characterContainer) {
+      const sources = [];
+      for (let i = 1; i <= 3; i++) {
+        // Note: data-src-1 maps to dataset['src-1'] (digits don't trigger
+        // the camelCase conversion), not dataset.src1.
+        const src = characterContainer.dataset['src-' + i];
+        if (src) {
+          sources.push({
+            src: src,
+            alt: characterContainer.dataset['alt-' + i] || '',
+            attribution: characterContainer.dataset['attribution-' + i] || ''
+          });
+        }
+      }
+
+      if (sources.length) {
+        const chosen = sources[Math.floor(Math.random() * sources.length)];
+        const img = document.createElement('img');
+        img.className = 'theinmag-mission__character-img';
+        img.src = chosen.src;
+        img.alt = chosen.alt;
+        // No loading="lazy" - the bob animation needs the natural
+        // dimensions resolved upfront so the absolute-positioned parent
+        // sizes correctly. PNGs are small.
+        characterContainer.appendChild(img);
+
+        if (chosen.attribution) {
+          const caption = document.createElement('span');
+          caption.className = 'theinmag-mission__character-attribution';
+          caption.textContent = chosen.attribution;
+          characterContainer.appendChild(caption);
+        }
+      }
+
+      /* Scroll-triggered "pop". Character starts behind the membership
+         card; once the user has scrolled the products area into view,
+         the .is-popped class lifts the character up to sit beside the
+         slogans. One-shot - it doesn't reset on scroll back up.
+
+         Plain scroll listener rather than IntersectionObserver so the
+         trigger is reliable in every environment (some embedded /
+         automation contexts skip IO callbacks). Listener removes
+         itself after firing. */
+      const productsList = root.querySelector('.theinmag-mission__products');
+      if (productsList) {
+        var popped = false;
+        var checkPop = function () {
+          if (popped) return;
+          var rect = productsList.getBoundingClientRect();
+          // Trigger when the products area's top has risen above 80%
+          // of the viewport - i.e. the user has scrolled the section
+          // into the visible reading zone.
+          if (rect.top < window.innerHeight * 0.8) {
+            popped = true;
+            characterContainer.classList.add('is-popped');
+            window.removeEventListener('scroll', onScroll);
+          }
+        };
+        var onScroll = function () {
+          window.requestAnimationFrame(checkPop);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        // Run once immediately in case the page already loaded scrolled.
+        checkPop();
+      }
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag mission",
+  "tag": "section",
+  "class": "theinmag-mission-section",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "default_message",
+      "label": "Mission statement (default)",
+      "default": "Our mission is <strong>empowering</strong> kids and <strong>supporting</strong> parents and teachers.",
+      "info": "Shows by default. Wrap any words you want lifted into Post Regular in <strong>...</strong> tags. Swaps to a feature-specific sentence when a slogan is hovered or focused."
+    },
+    {
+      "type": "header",
+      "content": "Character sticker (random)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Up to three kid-creation characters can be uploaded. One is picked at random per page load. Drop transparent PNGs into /assets/ and reference them by filename, or use the image picker."
+    },
+    { "type": "image_picker", "id": "character_1", "label": "Character 1 image" },
+    { "type": "text", "id": "character_1_filename", "label": "Character 1 fallback filename" },
+    { "type": "text", "id": "character_1_alt", "label": "Character 1 alt text" },
+    { "type": "text", "id": "character_1_attribution", "label": "Character 1 attribution", "info": "e.g. \"Pepe B., age 10, Epsom VIC\"" },
+    { "type": "image_picker", "id": "character_2", "label": "Character 2 image" },
+    { "type": "text", "id": "character_2_filename", "label": "Character 2 fallback filename" },
+    { "type": "text", "id": "character_2_alt", "label": "Character 2 alt text" },
+    { "type": "text", "id": "character_2_attribution", "label": "Character 2 attribution" },
+    { "type": "image_picker", "id": "character_3", "label": "Character 3 image" },
+    { "type": "text", "id": "character_3_filename", "label": "Character 3 fallback filename" },
+    { "type": "text", "id": "character_3_alt", "label": "Character 3 alt text" },
+    { "type": "text", "id": "character_3_attribution", "label": "Character 3 attribution" }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Slogan",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Slogan",
+          "default": "Slogan"
+        },
+        {
+          "type": "textarea",
+          "id": "hover_message",
+          "label": "Hover/tap message",
+          "info": "Shows below the slogan row when this slogan is hovered, focused or tapped."
+        }
+      ]
+    },
+    {
+      "type": "product_link",
+      "name": "Product link",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Product label",
+          "default": "Product"
+        },
+        {
+          "type": "text",
+          "id": "tagline",
+          "label": "Tagline (optional)"
+        },
+        {
+          "type": "text",
+          "id": "price",
+          "label": "Price (optional)",
+          "info": "Free-form text - e.g. \"$23.95\", \"From $89\", \"Build yours\"."
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Default image"
+        },
+        {
+          "type": "text",
+          "id": "fallback_filename",
+          "label": "Default image fallback filename",
+          "info": "Used when the image picker is empty. Filename of an image in /assets/."
+        },
+        {
+          "type": "image_picker",
+          "id": "hover_image",
+          "label": "Hover image"
+        },
+        {
+          "type": "text",
+          "id": "fallback_hover_filename",
+          "label": "Hover image fallback filename"
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Image alt text"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag mission",
+      "blocks": [
+        {
+          "type": "feature",
+          "settings": {
+            "label": "Printed sustainably in Australia",
+            "hover_message": "That's right, locally in Melbourne by our friends at <strong>PrintGraphics PrintGreen</strong>."
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "label": "100% kid-created",
+            "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a voice. Seen, heard and celebrated."
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "label": "Always ad-free",
+            "hover_message": "This is super important to us. <strong>No ads. Ever.</strong>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "label": "Tri-annual",
+            "hover_message": "New issues drop each <strong>February, June and October</strong>."
+          }
+        },
+        {
+          "type": "product_link",
+          "settings": {
+            "label": "theINmag Membership",
+            "tagline": "Every issue delivered, no fuss.",
+            "price": "From $89",
+            "link": "/products/theinmag-membership",
+            "fallback_filename": "product-membership.jpg",
+            "fallback_hover_filename": "product-membership-hover.jpg",
+            "image_alt": "theINmag membership pack with the latest issue."
+          }
+        },
+        {
+          "type": "product_link",
+          "settings": {
+            "label": "Single issue",
+            "tagline": "120+ pages of kid-made creativity.",
+            "price": "$23.95",
+            "link": "/products/mag10",
+            "fallback_filename": "product-mag.jpg",
+            "fallback_hover_filename": "product-mag-hover.jpg",
+            "image_alt": "Cover of the latest theINmag issue."
+          }
+        },
+        {
+          "type": "product_link",
+          "settings": {
+            "label": "Build a bundle",
+            "tagline": "Pick the issues your kid will love most.",
+            "price": "Build yours",
+            "link": "/products/build-a-bundle",
+            "fallback_filename": "product-bundle.jpg",
+            "fallback_hover_filename": "product-bundle-hover.jpg",
+            "image_alt": "Stack of hand-picked theINmag issues."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

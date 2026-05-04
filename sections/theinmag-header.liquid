@@ -385,15 +385,10 @@
     transition: box-shadow var(--transition-standard);
     /* Reset the line-height: 0 from the wrapper for the actual content. */
     line-height: 1.4;
-    /* Hairline divider so the cream header reads as a distinct band
-       above the cream hero. Subtle - only shows up at the colour
-       boundary, doesn't compete visually. */
-    border-bottom: 1px solid rgba(42, 31, 61, 0.06);
   }
 
   .theinmag-header.is-scrolled {
     box-shadow: 0 2px 12px rgba(42, 31, 61, 0.08);
-    border-bottom-color: transparent;
   }
 
   .theinmag-header__inner {
@@ -432,6 +427,24 @@
     align-items: center;
     line-height: 0;
     flex-shrink: 0;
+    /* Bleed the bubble past the inner's left + bottom padding so it
+       sits flush against the header's bottom-left corner, matching the
+       existing theinmag.com.au header. align-self overrides the inner's
+       align-items: center so the sticker hugs the bottom edge.
+
+       The SVG asset's viewBox is cropped tight to the visible scribble
+       (left/right/bottom = 0% padding), so the negative margins simply
+       cancel the inner element's padding -- no fudge factor required. */
+    align-self: flex-end;
+    margin-left: calc(-1 * var(--space-md));
+    margin-bottom: -6px;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-header__sticker-link {
+      margin-left: calc(-1 * var(--space-xl));
+      margin-bottom: -8px;
+    }
   }
 
   .theinmag-header__sticker {

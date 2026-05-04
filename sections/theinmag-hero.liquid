@@ -184,6 +184,12 @@
 
   .theinmag-hero {
     background-color: var(--color-cream);
+    /* Explicit zero padding so the section that follows (mission band)
+       can butt up against the hero's bottom edge with no cream stripe.
+       The archived v1 hero defines a .theinmag-hero { padding: ... }
+       rule that gets compiled into the same global stylesheet and would
+       otherwise bleed in here. */
+    padding: 0;
     position: relative;
     overflow: hidden;
   }

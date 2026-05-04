@@ -8,11 +8,113 @@
         "subhead": "Where Aussie kids get published - no ads, just creativity",
         "cta_primary_label": "Grab a membership",
         "cta_secondary_label": "Send IN content",
-        "show_trust_bar": true,
+        "show_trust_bar": false,
         "trust_1": "Printed sustainably in Australia",
         "trust_2": "100% kid-created",
         "trust_3": "Always ad-free",
         "trust_4": "Tri-annual"
+      }
+    },
+    "theinmag_mission": {
+      "type": "theinmag-mission",
+      "blocks": {
+        "feature-1": {
+          "type": "feature",
+          "settings": {
+            "label": "Printed sustainably in Australia",
+            "hover_message": "That's right, locally in Melbourne by our friends at <strong>PrintGraphics PrintGreen</strong>."
+          }
+        },
+        "feature-2": {
+          "type": "feature",
+          "settings": {
+            "label": "100% kid-created",
+            "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a voice. <strong>Seen, heard and celebrated.</strong>"
+          }
+        },
+        "feature-3": {
+          "type": "feature",
+          "settings": {
+            "label": "Always ad-free",
+            "hover_message": "This is super important to us. <strong>No ads. Ever.</strong>"
+          }
+        },
+        "feature-4": {
+          "type": "feature",
+          "settings": {
+            "label": "Tri-annual",
+            "hover_message": "New issues drop each <strong>February, June and October</strong>."
+          }
+        },
+        "product-membership": {
+          "type": "product_link",
+          "settings": {
+            "label": "theINmag Membership",
+            "tagline": "Every issue delivered, no fuss.",
+            "price": "From $89",
+            "link": "/products/theinmag-membership",
+            "fallback_filename": "product-membership.jpg",
+            "fallback_hover_filename": "product-membership-hover.jpg",
+            "image_alt": "theINmag membership pack with the latest issue."
+          }
+        },
+        "product-mag": {
+          "type": "product_link",
+          "settings": {
+            "label": "Single issue",
+            "tagline": "120+ pages of kid-made creativity.",
+            "price": "$23.95",
+            "link": "/products/mag10",
+            "fallback_filename": "product-mag.jpg",
+            "fallback_hover_filename": "product-mag-hover.jpg",
+            "image_alt": "Cover of the latest theINmag issue."
+          }
+        },
+        "product-bundle": {
+          "type": "product_link",
+          "settings": {
+            "label": "Build a bundle",
+            "tagline": "Pick the issues your kid will love most.",
+            "price": "Build yours",
+            "link": "/products/build-a-bundle",
+            "fallback_filename": "product-bundle.jpg",
+            "fallback_hover_filename": "product-bundle-hover.jpg",
+            "image_alt": "Stack of hand-picked theINmag issues."
+          }
+        }
+      },
+      "block_order": [
+        "feature-1",
+        "feature-2",
+        "feature-3",
+        "feature-4",
+        "product-membership",
+        "product-mag",
+        "product-bundle"
+      ],
+      "settings": {
+        "default_message": "Our mission is <strong>empowering</strong> kids and <strong>supporting</strong> parents and teachers.",
+        "character_1_filename": "character-mission-1.png",
+        "character_1_alt": "A theINmag reader's drawing.",
+        "character_2_filename": "character-mission-2.png",
+        "character_2_alt": "A theINmag reader's drawing.",
+        "character_3_filename": "character-mission-3.png",
+        "character_3_alt": "A theINmag reader's drawing."
+      }
+    },
+    "theinmag_press_band": {
+      "type": "theinmag-press-band",
+      "blocks": {
+        "press-1": { "type": "press_logo", "settings": { "fallback_filename": "press-1.png", "alt": "Press mention" } },
+        "press-2": { "type": "press_logo", "settings": { "fallback_filename": "press-2.png", "alt": "Press mention" } },
+        "press-3": { "type": "press_logo", "settings": { "fallback_filename": "press-3.png", "alt": "Press mention" } },
+        "press-4": { "type": "press_logo", "settings": { "fallback_filename": "press-4.png", "alt": "Press mention" } },
+        "press-5": { "type": "press_logo", "settings": { "fallback_filename": "press-5.png", "alt": "Press mention", "size": "large" } },
+        "press-6": { "type": "press_logo", "settings": { "fallback_filename": "press-6.png", "alt": "Press mention" } }
+      },
+      "block_order": ["press-1", "press-2", "press-3", "press-4", "press-5", "press-6"],
+      "settings": {
+        "heading": "Seen IN"
       }
     },
     "theinmag_audience_tiles": {
@@ -63,6 +165,76 @@
       ],
       "settings": {
         "heading": "Designed with you in mind"
+      }
+    },
+    "theinmag_philosophy": {
+      "type": "theinmag-philosophy",
+      "blocks": {
+        "anchor-philosophy": {
+          "type": "anchor",
+          "settings": {
+            "label": "our philosophy",
+            "paragraph": "Creativity is the foundation of impactful learning. theINmag is a safe place for kids to explore, stay curious, and be inspired - and a real chance to see their creation in print. No grades, no right answers. Just the joy of being seen, heard and celebrated for what you make."
+          }
+        },
+        "anchor-standards": {
+          "type": "anchor",
+          "settings": {
+            "label": "our standards",
+            "paragraph": "We're set on giving Aussie kids the best magazine on the market. Always ad-free. Sustainably printed in Melbourne. The reason we go this hard on quality? Seeing your creation in a beautifully made magazine respects the kid who made it - way more than a cheap mag or a forgotten website ever could."
+          }
+        },
+        "anchor-impact": {
+          "type": "anchor",
+          "settings": {
+            "label": "our impact",
+            "paragraph": "Read by thousands of kids in every state and territory, theINmag turns creativity into connection. The first time a kid sees their creation in print, something shifts. They start to see themselves as a creator - someone whose ideas are worth a real, printed page. That's the impact we're chasing."
+          }
+        },
+        "anchor-story": {
+          "type": "anchor",
+          "settings": {
+            "label": "our story",
+            "paragraph": "Two former teachers with a small idea that wouldn't quit. Ryan and Tam sold the house to fund theINmag, and they're now travelling Australia in their self-converted van with their baby Nora - meeting kids, schools and families face to face, and reminding every Aussie kid their voice belongs in print."
+          }
+        }
+      },
+      "block_order": [
+        "anchor-philosophy",
+        "anchor-standards",
+        "anchor-impact",
+        "anchor-story"
+      ],
+      "settings": {
+        "fallback_filename": "HERO_founders-atthemarket.jpg",
+        "image_alt": "theINmag founders Ryan and Tam at a market with their copy of the magazine.",
+        "aeo_heading": "Who's behind theINmag?",
+        "founder_one_name": "Ryan",
+        "founder_one_role": "Co-founder, theINmag",
+        "founder_two_name": "Tam",
+        "founder_two_role": "Co-founder, theINmag",
+        "org_name": "theINmag",
+        "org_url": "https://theinmag.com.au",
+        "character_1_filename": "character-philosophy-1.png",
+        "character_1_alt": "A theINmag reader's drawing.",
+        "character_2_filename": "character-philosophy-2.png",
+        "character_2_alt": "A theINmag reader's drawing.",
+        "character_3_filename": "character-philosophy-3.png",
+        "character_3_alt": "A theINmag reader's drawing."
+      }
+    },
+    "theinmag_meet_tam": {
+      "type": "theinmag-meet-tam",
+      "settings": {
+        "video_filename": "meet-tam-current.mp4",
+        "poster_filename": "meet-tam-poster.jpg",
+        "poster_alt": "Tam holding the latest theINmag issue.",
+        "heading": "Meet Tam",
+        "heading_shape_filename": "meet-tam-heading-shape.png",
+        "role": "Co-founder of theINmag",
+        "intro": "Take a peek inside the latest issue with Tam - favourite spreads, brilliant kid creations, and what to expect.",
+        "cta_label": "Grab the latest issue",
+        "cta_link": "/products/mag10"
       }
     },
     "rich_text": {
@@ -220,7 +392,11 @@
   },
   "order": [
     "theinmag_hero",
+    "theinmag_mission",
+    "theinmag_press_band",
     "theinmag_audience_tiles",
+    "theinmag_philosophy",
+    "theinmag_meet_tam",
     "rich_text",
     "featured_collection",
     "collage",
