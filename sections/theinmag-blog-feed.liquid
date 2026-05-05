@@ -1,0 +1,522 @@
+{%- comment -%}
+  theinmag-blog-feed
+  Three-up post card row anchoring the homepage to the theINside blog.
+  Cards prefer a chosen Shopify article; fall back to manual overrides
+  (title/excerpt/image/link) so the row renders before the blog exists
+  in admin. Cream cards on cream, matching the mission row above.
+  Cover slot is 4:5 portrait to match the 1500x1875 source images.
+
+  Spec: homepage-build-spec.md Section 8 + theinside-blog-build-spec.md
+  visual anchor (Post Regular sentence-case lowercase titles, outlined
+  purple "See all posts" secondary button).
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign cta_label = section.settings.cta_label
+  assign cta_link = section.settings.cta_link
+  assign show_cta = section.settings.show_cta
+-%}
+
+<section
+  class="theinmag-blog-feed"
+  aria-labelledby="theinmag-blog-feed-heading"
+  style="--blog-feed-pt: {{ section.settings.padding_top }}px; --blog-feed-pb: {{ section.settings.padding_bottom }}px;"
+>
+  <div class="theinmag-blog-feed__inner">
+    <header class="theinmag-blog-feed__header">
+      <h2 id="theinmag-blog-feed-heading" class="theinmag-blog-feed__heading">{{ heading }}</h2>
+      {%- if subhead != blank -%}
+        <p class="theinmag-blog-feed__subhead">{{ subhead }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- if section.blocks.size > 0 -%}
+      <ul class="theinmag-blog-feed__cards" role="list">
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign article = block.settings.article
+
+            assign title = block.settings.title_override
+            if title == blank and article != blank
+              assign title = article.title
+            endif
+
+            assign excerpt = block.settings.excerpt_override
+            if excerpt == blank and article != blank
+              assign excerpt = article.excerpt | strip_html
+              if excerpt == blank
+                assign excerpt = article.content | strip_html | truncatewords: 24
+              endif
+            endif
+
+            assign topic = block.settings.topic
+            if topic == blank and article != blank
+              assign topic = article.tags.first
+            endif
+
+            assign card_link = block.settings.link_override
+            if card_link == blank and article != blank
+              assign card_link = article.url
+            endif
+
+            assign card_date = block.settings.date_override
+            if card_date == blank and article != blank
+              assign card_date = article.published_at | date: '%B %-d, %Y'
+            endif
+
+            assign image_src = ''
+            if block.settings.image != blank
+              assign image_src = block.settings.image | image_url: width: 1200
+            elsif block.settings.fallback_filename != blank
+              assign image_src = block.settings.fallback_filename | asset_url
+            elsif article != blank and article.image != blank
+              assign image_src = article.image | image_url: width: 1200
+            endif
+
+            assign image_alt = block.settings.image_alt
+            if image_alt == blank and article != blank and article.image != blank
+              assign image_alt = article.image.alt | default: article.title
+            endif
+            if image_alt == blank
+              assign image_alt = title
+            endif
+          -%}
+          <li class="theinmag-blog-feed__card-wrap" {{ block.shopify_attributes }}>
+            {%- if card_link != blank -%}
+              <a class="theinmag-blog-feed__card" href="{{ card_link }}">
+            {%- else -%}
+              <div class="theinmag-blog-feed__card">
+            {%- endif -%}
+              <span class="theinmag-blog-feed__cover">
+                {%- if image_src != blank -%}
+                  <img
+                    class="theinmag-blog-feed__image"
+                    src="{{ image_src }}"
+                    alt="{{ image_alt | escape }}"
+                    loading="lazy"
+                    width="1200"
+                    height="1500"
+                  >
+                {%- else -%}
+                  <span class="theinmag-blog-feed__cover-placeholder" aria-hidden="true"></span>
+                {%- endif -%}
+              </span>
+              <span class="theinmag-blog-feed__body">
+                {%- if topic != blank -%}
+                  <span class="theinmag-blog-feed__topic">{{ topic }}</span>
+                {%- endif -%}
+                {%- if title != blank -%}
+                  <span class="theinmag-blog-feed__title">{{ title }}</span>
+                {%- endif -%}
+                {%- if excerpt != blank -%}
+                  <span class="theinmag-blog-feed__excerpt">{{ excerpt }}</span>
+                {%- endif -%}
+                <span class="theinmag-blog-feed__meta">
+                  {%- if card_date != blank -%}
+                    <span class="theinmag-blog-feed__date">{{ card_date }}</span>
+                  {%- else -%}
+                    <span class="theinmag-blog-feed__date-spacer" aria-hidden="true"></span>
+                  {%- endif -%}
+                  <span class="theinmag-blog-feed__readmore">Read more <span aria-hidden="true">&rarr;</span></span>
+                </span>
+              </span>
+            {%- if card_link != blank -%}
+              </a>
+            {%- else -%}
+              </div>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    {%- if show_cta and cta_label != blank and cta_link != blank -%}
+      <div class="theinmag-blog-feed__cta">
+        <a class="theinmag-blog-feed__button" href="{{ cta_link }}">{{ cta_label }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-blog-feed {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--blog-feed-pt, 64px) clamp(16px, 3vw, 32px) var(--blog-feed-pb, 64px);
+  }
+
+  .theinmag-blog-feed__inner {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  .theinmag-blog-feed__header {
+    text-align: center;
+    margin-bottom: clamp(28px, 4vw, 48px);
+  }
+
+  .theinmag-blog-feed__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-blog-feed__subhead {
+    margin: var(--space-sm, 8px) auto 0;
+    max-width: 56ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 18px);
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.8;
+  }
+
+  .theinmag-blog-feed__cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg, 24px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-blog-feed__cards {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-xl, 32px);
+    }
+  }
+
+  .theinmag-blog-feed__card-wrap {
+    display: flex;
+  }
+
+  .theinmag-blog-feed__card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+    background-color: var(--color-cream, #FBF6EA);
+    box-shadow: 0 1px 6px rgba(123, 79, 158, 0.06);
+    transition: transform var(--transition-hover, 0.2s ease), box-shadow var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-blog-feed__card:hover,
+  .theinmag-blog-feed__card:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 20px rgba(123, 79, 158, 0.15);
+    outline: none;
+  }
+
+  .theinmag-blog-feed__card:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-purple-dark, #5D3A7A), 0 4px 20px rgba(123, 79, 158, 0.15);
+  }
+
+  /* 4:5 portrait cover, matches the 1500x1875 source artworks */
+  .theinmag-blog-feed__cover {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background-color: #E8DEEF;
+  }
+
+  .theinmag-blog-feed__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .theinmag-blog-feed__card:hover .theinmag-blog-feed__image,
+  .theinmag-blog-feed__card:focus-visible .theinmag-blog-feed__image {
+    transform: scale(1.02);
+  }
+
+  .theinmag-blog-feed__cover-placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #E8DEEF 0%, #FCDDB8 100%);
+  }
+
+  .theinmag-blog-feed__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm, 10px);
+    padding: clamp(18px, 2vw, 24px);
+    flex: 1;
+  }
+
+  .theinmag-blog-feed__topic {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-blog-feed__title {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(22px, 2.4vw, 28px);
+    line-height: 1.15;
+    letter-spacing: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-blog-feed__excerpt {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.85;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .theinmag-blog-feed__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm, 8px);
+    margin-top: auto;
+    padding-top: var(--space-md, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .theinmag-blog-feed__date {
+    font-weight: 500;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.6;
+    letter-spacing: 0.02em;
+  }
+
+  .theinmag-blog-feed__date-spacer { display: inline-block; }
+
+  .theinmag-blog-feed__readmore {
+    font-weight: 600;
+    color: var(--color-teal-dark, #2D6878);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: text-decoration-thickness 0.15s ease;
+  }
+
+  .theinmag-blog-feed__card:hover .theinmag-blog-feed__readmore,
+  .theinmag-blog-feed__card:focus-visible .theinmag-blog-feed__readmore {
+    text-decoration-thickness: 2px;
+  }
+
+  .theinmag-blog-feed__cta {
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(36px, 5vw, 56px);
+  }
+
+  .theinmag-blog-feed__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    border: 2px solid var(--color-purple-dark, #5D3A7A);
+    border-radius: 32px;
+    padding: 12px 24px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    min-height: 44px;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-blog-feed__button {
+      padding: 14px 28px;
+      font-size: 15px;
+    }
+  }
+
+  .theinmag-blog-feed__button:hover,
+  .theinmag-blog-feed__button:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-blog-feed__card,
+    .theinmag-blog-feed__image,
+    .theinmag-blog-feed__readmore,
+    .theinmag-blog-feed__button {
+      transition: none;
+    }
+    .theinmag-blog-feed__card:hover,
+    .theinmag-blog-feed__card:focus-visible {
+      transform: none;
+    }
+    .theinmag-blog-feed__card:hover .theinmag-blog-feed__image,
+    .theinmag-blog-feed__card:focus-visible .theinmag-blog-feed__image {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINside feed",
+  "tag": "section",
+  "class": "theinmag-blog-feed-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "theINside."
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead (optional)",
+      "info": "Maude doesn't run one. Leave blank for the most editorial feel."
+    },
+    {
+      "type": "header",
+      "content": "See all posts CTA"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show 'See all posts' button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "See all posts"
+    },
+    {
+      "type": "text",
+      "id": "cta_link",
+      "label": "Button link (path)",
+      "default": "/blogs/theinside",
+      "info": "Internal path, e.g. /blogs/theinside."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "featured_post",
+      "name": "Post card",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "article",
+          "id": "article",
+          "label": "Article",
+          "info": "Pick a Shopify article. Title, excerpt, image and date auto-fill from it. Override below if needed."
+        },
+        {
+          "type": "text",
+          "id": "topic",
+          "label": "Topic label (optional)",
+          "info": "Small uppercase label above the title (e.g. Creativity, Numeracy). Falls back to the article's first tag."
+        },
+        {
+          "type": "text",
+          "id": "title_override",
+          "label": "Title override (optional)"
+        },
+        {
+          "type": "textarea",
+          "id": "excerpt_override",
+          "label": "Excerpt override (optional)",
+          "info": "Two to three lines max. Falls back to article excerpt or the first ~24 words of the body."
+        },
+        {
+          "type": "text",
+          "id": "date_override",
+          "label": "Date override (optional)",
+          "info": "Free text. Use when no article is picked, e.g. May 5, 2026."
+        },
+        {
+          "type": "text",
+          "id": "link_override",
+          "label": "Link override (optional)",
+          "info": "Internal path used when no article is picked."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Cover image"
+        },
+        {
+          "type": "text",
+          "id": "fallback_filename",
+          "label": "Cover image fallback filename",
+          "info": "Used when the image picker is empty. Filename of an image in /assets/."
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Cover image alt text",
+          "info": "Describe the kid creation. Falls back to the article's image alt or the title."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINside feed",
+      "blocks": [
+        { "type": "featured_post" },
+        { "type": "featured_post" },
+        { "type": "featured_post" }
+      ]
+    }
+  ]
+}
+{% endschema %}
