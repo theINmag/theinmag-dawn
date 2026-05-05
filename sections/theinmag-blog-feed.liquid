@@ -54,6 +54,7 @@
 
 <section
   class="{{ section_class }}"
+  data-theinmag-blog-feed
   aria-labelledby="theinmag-blog-feed-heading"
   style="{{ section_style }}"
 >
@@ -76,14 +77,17 @@
           <nav class="theinmag-blog-feed__filters" aria-label="Filter posts by audience">
             <a
               class="theinmag-blog-feed__chip{% if active_chip == 'all' %} is-active{% endif %}"
+              data-filter="all"
               href="{{ section.settings.chip_all_link }}"
             >all</a>
             <a
               class="theinmag-blog-feed__chip{% if active_chip == 'kids' %} is-active{% endif %}"
+              data-filter="kids"
               href="{{ section.settings.chip_kids_link }}"
             >kids</a>
             <a
               class="theinmag-blog-feed__chip{% if active_chip == 'adults' %} is-active{% endif %}"
+              data-filter="adults"
               href="{{ section.settings.chip_adults_link }}"
             >adults</a>
           </nav>
@@ -141,7 +145,7 @@
               assign image_alt = title
             endif
           -%}
-          <li class="theinmag-blog-feed__card-wrap" {{ block.shopify_attributes }}>
+          <li class="theinmag-blog-feed__card-wrap" data-audience="{{ block.settings.audience | default: 'both' }}" {{ block.shopify_attributes }}>
             {%- if card_link != blank -%}
               <a class="theinmag-blog-feed__card" href="{{ card_link }}">
             {%- else -%}
@@ -181,9 +185,41 @@
           </li>
         {%- endfor -%}
       </ul>
+      <p class="theinmag-blog-feed__empty" data-empty hidden>Nothing here yet for that view. Try another filter.</p>
     {%- endif -%}
   </div>
 </section>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-theinmag-blog-feed]');
+  if (!root) return;
+  var chips = root.querySelectorAll('[data-filter]');
+  var cards = root.querySelectorAll('[data-audience]');
+  var empty = root.querySelector('[data-empty]');
+
+  function applyFilter(filter) {
+    var visible = 0;
+    chips.forEach(function (chip) {
+      chip.classList.toggle('is-active', chip.dataset.filter === filter);
+    });
+    cards.forEach(function (card) {
+      var audience = card.dataset.audience || 'both';
+      var show = filter === 'all' || audience === 'both' || audience === filter;
+      card.hidden = !show;
+      if (show) visible++;
+    });
+    if (empty) empty.hidden = visible > 0;
+  }
+
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function (e) {
+      e.preventDefault();
+      applyFilter(chip.dataset.filter);
+    });
+  });
+})();
+</script>
 
 {%- stylesheet -%}
   .theinmag-blog-feed {
@@ -392,6 +428,20 @@
 
   .theinmag-blog-feed__card-wrap {
     display: flex;
+  }
+
+  .theinmag-blog-feed__card-wrap[hidden] {
+    display: none;
+  }
+
+  .theinmag-blog-feed__empty {
+    margin: 0;
+    padding: var(--space-xl, 32px);
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 15px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
   }
 
   /* Tiles get their own cream background + shadow back so they read
@@ -695,6 +745,18 @@
           "id": "article",
           "label": "Article",
           "info": "Pick a Shopify article. Title, excerpt, image and topic auto-fill from it. Override below if needed."
+        },
+        {
+          "type": "select",
+          "id": "audience",
+          "label": "Audience",
+          "info": "Used by the filter chips. 'Both' shows in both kids and adults views.",
+          "options": [
+            { "value": "both", "label": "Both kids and adults" },
+            { "value": "kids", "label": "Kids only" },
+            { "value": "adults", "label": "Adults only" }
+          ],
+          "default": "both"
         },
         {
           "type": "text",
