@@ -294,6 +294,9 @@
     align-items: center;
     gap: clamp(20px, 3vw, 36px);
     flex-wrap: wrap;
+    /* Mirror the heading's left indent so both sides sit evenly off
+       the panel edges. */
+    margin-right: clamp(8px, 3vw, 64px);
   }
 
   /* Filter chips: muted text links, active one in full ink + bolder. */
