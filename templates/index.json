@@ -249,8 +249,8 @@
             "title_override": "why your kid stops creating around age 8.",
             "excerpt_override": "Around age 7 or 8 most kids start to self-edit harder. The fix is small, specific, and starts with the adult in the room.",
             "link_override": "/blogs/theinside/why-kids-stop-creating-around-age-8",
-            "fallback_filename": "blog-image-universal-02.jpg",
-            "image_alt": "Bold portrait painting with blue hair and yellow earrings on an orange background, sent IN by Ruby T., age 8, Biloela QLD."
+            "fallback_filename": "blog-image-universal-05.jpg",
+            "image_alt": "Cubist-style portrait with split colour fields on a hot pink background, sent IN by Maida S., age 9, Bendigo VIC."
           }
         },
         "post-2": {
@@ -274,14 +274,24 @@
             "fallback_filename": "blog-image-universal-03.jpg",
             "image_alt": "Half-realistic, half-imagined portrait with everyday objects inside the head, sent IN by Felipe R., age 10, Bendigo VIC."
           }
+        },
+        "post-4": {
+          "type": "featured_post",
+          "settings": {
+            "topic": "Wellbeing",
+            "title_override": "the case for boredom.",
+            "excerpt_override": "Almost every kid creation we love most started with the sentence the parent didn't want to hear: 'I'm bored.' Lean into it.",
+            "link_override": "/blogs/theinside/case-for-boredom",
+            "fallback_filename": "blog-image-universal-04.jpg",
+            "image_alt": "Reinterpretation of Vermeer's Girl with a Pearl Earring in muted greens and blue, sent IN by Charlie G., age 12, Bendigo VIC."
+          }
         }
       },
-      "block_order": ["post-1", "post-2", "post-3"],
+      "block_order": ["post-1", "post-2", "post-3", "post-4"],
       "settings": {
         "heading": "theINside.",
-        "subhead": "",
         "show_cta": true,
-        "cta_label": "See all posts",
+        "cta_label": "see all posts",
         "cta_link": "/blogs/theinside",
         "padding_top": 80,
         "padding_bottom": 80

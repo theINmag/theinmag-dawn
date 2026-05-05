@@ -1,19 +1,20 @@
 {%- comment -%}
   theinmag-blog-feed
-  Three-up post card row anchoring the homepage to the theINside blog.
+  Four-up post card row anchoring the homepage to the theINside blog.
+  Maude-faithful editorial layout: heading left + "see all" link right
+  in the header row, cards below.
+
+  Each card is a 4:5 portrait cover with title + topic overlaid in
+  white-on-scrim (per the design tokens premium-photo-text rule),
+  followed only by a short excerpt below the image.
+
   Cards prefer a chosen Shopify article; fall back to manual overrides
   (title/excerpt/image/link) so the row renders before the blog exists
-  in admin. Cream cards on cream, matching the mission row above.
-  Cover slot is 4:5 portrait to match the 1500x1875 source images.
-
-  Spec: homepage-build-spec.md Section 8 + theinside-blog-build-spec.md
-  visual anchor (Post Regular sentence-case lowercase titles, outlined
-  purple "See all posts" secondary button).
+  in admin.
 {%- endcomment -%}
 
 {%- liquid
   assign heading = section.settings.heading
-  assign subhead = section.settings.subhead
   assign cta_label = section.settings.cta_label
   assign cta_link = section.settings.cta_link
   assign show_cta = section.settings.show_cta
@@ -27,8 +28,10 @@
   <div class="theinmag-blog-feed__inner">
     <header class="theinmag-blog-feed__header">
       <h2 id="theinmag-blog-feed-heading" class="theinmag-blog-feed__heading">{{ heading }}</h2>
-      {%- if subhead != blank -%}
-        <p class="theinmag-blog-feed__subhead">{{ subhead }}</p>
+      {%- if show_cta and cta_label != blank and cta_link != blank -%}
+        <a class="theinmag-blog-feed__seeall" href="{{ cta_link }}">
+          {{ cta_label }} <span aria-hidden="true">&rarr;</span>
+        </a>
       {%- endif -%}
     </header>
 
@@ -59,11 +62,6 @@
             assign card_link = block.settings.link_override
             if card_link == blank and article != blank
               assign card_link = article.url
-            endif
-
-            assign card_date = block.settings.date_override
-            if card_date == blank and article != blank
-              assign card_date = article.published_at | date: '%B %-d, %Y'
             endif
 
             assign image_src = ''
@@ -102,26 +100,17 @@
                 {%- else -%}
                   <span class="theinmag-blog-feed__cover-placeholder" aria-hidden="true"></span>
                 {%- endif -%}
-              </span>
-              <span class="theinmag-blog-feed__body">
-                {%- if topic != blank -%}
-                  <span class="theinmag-blog-feed__topic">{{ topic }}</span>
-                {%- endif -%}
+                <span class="theinmag-blog-feed__scrim" aria-hidden="true"></span>
                 {%- if title != blank -%}
                   <span class="theinmag-blog-feed__title">{{ title }}</span>
                 {%- endif -%}
-                {%- if excerpt != blank -%}
-                  <span class="theinmag-blog-feed__excerpt">{{ excerpt }}</span>
+                {%- if topic != blank -%}
+                  <span class="theinmag-blog-feed__topic">{{ topic }}</span>
                 {%- endif -%}
-                <span class="theinmag-blog-feed__meta">
-                  {%- if card_date != blank -%}
-                    <span class="theinmag-blog-feed__date">{{ card_date }}</span>
-                  {%- else -%}
-                    <span class="theinmag-blog-feed__date-spacer" aria-hidden="true"></span>
-                  {%- endif -%}
-                  <span class="theinmag-blog-feed__readmore">Read more <span aria-hidden="true">&rarr;</span></span>
-                </span>
               </span>
+              {%- if excerpt != blank -%}
+                <span class="theinmag-blog-feed__excerpt">{{ excerpt }}</span>
+              {%- endif -%}
             {%- if card_link != blank -%}
               </a>
             {%- else -%}
@@ -130,12 +119,6 @@
           </li>
         {%- endfor -%}
       </ul>
-    {%- endif -%}
-
-    {%- if show_cta and cta_label != blank and cta_link != blank -%}
-      <div class="theinmag-blog-feed__cta">
-        <a class="theinmag-blog-feed__button" href="{{ cta_link }}">{{ cta_label }}</a>
-      </div>
     {%- endif -%}
   </div>
 </section>
@@ -152,32 +135,61 @@
     margin: 0 auto;
   }
 
+  /* Header row: heading left, see-all right, baseline-aligned. Tight
+     bottom margin so cards sit close to the heading per the Maude
+     reference. */
   .theinmag-blog-feed__header {
-    text-align: center;
-    margin-bottom: clamp(28px, 4vw, 48px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-md, 16px);
+    margin-bottom: clamp(20px, 2.4vw, 32px);
   }
 
   .theinmag-blog-feed__heading {
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
-    font-size: clamp(40px, 6vw, 64px);
-    line-height: 1.1;
+    font-size: clamp(40px, 6vw, 72px);
+    line-height: 1;
     letter-spacing: 0;
     margin: 0;
     color: var(--color-inky-purple-navy, #2A1F3D);
+    white-space: nowrap;
   }
 
-  .theinmag-blog-feed__subhead {
-    margin: var(--space-sm, 8px) auto 0;
-    max-width: 56ch;
+  .theinmag-blog-feed__seeall {
+    flex: 0 0 auto;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 400;
-    font-size: clamp(15px, 1.6vw, 18px);
-    line-height: 1.55;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.8;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-teal-dark, #2D6878);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: color 0.15s ease, text-decoration-thickness 0.15s ease;
+    /* Lift slightly off the baseline so it sits visually centred against
+       the very large heading rather than dragging to the heading's
+       descender line. */
+    padding-bottom: clamp(6px, 0.8vw, 14px);
   }
 
+  @media (min-width: 750px) {
+    .theinmag-blog-feed__seeall {
+      font-size: 14px;
+    }
+  }
+
+  .theinmag-blog-feed__seeall:hover,
+  .theinmag-blog-feed__seeall:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration-thickness: 2px;
+    outline: none;
+  }
+
+  /* Card grid: 1 col mobile, 2 col tablet, 4 col desktop. */
   .theinmag-blog-feed__cards {
     list-style: none;
     margin: 0;
@@ -187,10 +199,16 @@
     gap: var(--space-lg, 24px);
   }
 
-  @media (min-width: 750px) {
+  @media (min-width: 600px) {
     .theinmag-blog-feed__cards {
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-xl, 32px);
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-blog-feed__cards {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-xl, 28px);
     }
   }
 
@@ -198,34 +216,24 @@
     display: flex;
   }
 
+  /* No card background or shadow - the rounded image is the card.
+     Excerpt sits as plain text on the cream section below. */
   .theinmag-blog-feed__card {
     display: flex;
     flex-direction: column;
     flex: 1;
     text-decoration: none;
     color: inherit;
-    background-color: var(--color-cream, #FBF6EA);
-    box-shadow: 0 1px 6px rgba(123, 79, 158, 0.06);
-    transition: transform var(--transition-hover, 0.2s ease), box-shadow var(--transition-hover, 0.2s ease);
+    gap: var(--space-md, 14px);
   }
 
-  .theinmag-blog-feed__card:hover,
-  .theinmag-blog-feed__card:focus-visible {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 20px rgba(123, 79, 158, 0.15);
-    outline: none;
-  }
-
-  .theinmag-blog-feed__card:focus-visible {
-    box-shadow: 0 0 0 3px var(--color-purple-dark, #5D3A7A), 0 4px 20px rgba(123, 79, 158, 0.15);
-  }
-
-  /* 4:5 portrait cover, matches the 1500x1875 source artworks */
+  /* 4:5 portrait cover, rounded edges, scrim + overlay text. */
   .theinmag-blog-feed__cover {
     position: relative;
     display: block;
     aspect-ratio: 4 / 5;
     overflow: hidden;
+    border-radius: 20px;
     background-color: #E8DEEF;
   }
 
@@ -235,144 +243,108 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease;
+    transition: transform 0.5s ease;
   }
 
   .theinmag-blog-feed__card:hover .theinmag-blog-feed__image,
   .theinmag-blog-feed__card:focus-visible .theinmag-blog-feed__image {
-    transform: scale(1.02);
+    transform: scale(1.03);
   }
 
   .theinmag-blog-feed__cover-placeholder {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, #E8DEEF 0%, #FCDDB8 100%);
+    background: linear-gradient(135deg, #5D3A7A 0%, #C9543E 100%);
   }
 
-  .theinmag-blog-feed__body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm, 10px);
-    padding: clamp(18px, 2vw, 24px);
-    flex: 1;
+  /* Scrim: dark fade at top + bottom, transparent middle. Strong enough
+     to anchor white text on busy/light kid art (orange/pink backgrounds
+     are common). */
+  .theinmag-blog-feed__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0.18) 28%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 0.18) 72%,
+      rgba(0, 0, 0, 0.55) 100%
+    );
+    pointer-events: none;
   }
 
-  .theinmag-blog-feed__topic {
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 1;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-purple-dark, #5D3A7A);
-  }
-
+  /* Title overlay: top-left, white, Inter bold. text-shadow adds the
+     "lift" Ryan referenced - a subtle 1-2px drop softens the edge so
+     the type detaches from the image. */
   .theinmag-blog-feed__title {
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(22px, 2.4vw, 28px);
-    line-height: 1.15;
-    letter-spacing: 0;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-  }
-
-  .theinmag-blog-feed__excerpt {
+    position: absolute;
+    top: clamp(14px, 1.6vw, 20px);
+    left: clamp(14px, 1.6vw, 20px);
+    right: clamp(14px, 1.6vw, 20px);
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 400;
-    font-size: 15px;
-    line-height: 1.55;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.85;
+    font-weight: 700;
+    font-size: clamp(17px, 1.6vw, 21px);
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    color: #FFFFFF;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    /* Two-line clamp keeps the overlay from running into the topic
+       label at the bottom. */
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .theinmag-blog-feed__meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-sm, 8px);
-    margin-top: auto;
-    padding-top: var(--space-md, 16px);
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-size: 13px;
-    line-height: 1.4;
-  }
-
-  .theinmag-blog-feed__date {
-    font-weight: 500;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.6;
-    letter-spacing: 0.02em;
-  }
-
-  .theinmag-blog-feed__date-spacer { display: inline-block; }
-
-  .theinmag-blog-feed__readmore {
-    font-weight: 600;
-    color: var(--color-teal-dark, #2D6878);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
-    transition: text-decoration-thickness 0.15s ease;
-  }
-
-  .theinmag-blog-feed__card:hover .theinmag-blog-feed__readmore,
-  .theinmag-blog-feed__card:focus-visible .theinmag-blog-feed__readmore {
-    text-decoration-thickness: 2px;
-  }
-
-  .theinmag-blog-feed__cta {
-    display: flex;
-    justify-content: center;
-    margin-top: clamp(36px, 5vw, 56px);
-  }
-
-  .theinmag-blog-feed__button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: transparent;
-    color: var(--color-purple-dark, #5D3A7A);
-    border: 2px solid var(--color-purple-dark, #5D3A7A);
-    border-radius: 32px;
-    padding: 12px 24px;
+  /* Topic overlay: bottom-left, white, Inter 600 uppercase. */
+  .theinmag-blog-feed__topic {
+    position: absolute;
+    bottom: clamp(14px, 1.6vw, 20px);
+    left: clamp(14px, 1.6vw, 20px);
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    min-height: 44px;
+    color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   }
 
   @media (min-width: 750px) {
-    .theinmag-blog-feed__button {
-      padding: 14px 28px;
-      font-size: 15px;
+    .theinmag-blog-feed__topic {
+      font-size: 12px;
     }
   }
 
-  .theinmag-blog-feed__button:hover,
-  .theinmag-blog-feed__button:focus-visible {
-    background-color: var(--color-purple-dark, #5D3A7A);
-    color: #FFFFFF;
-    outline: none;
+  /* Excerpt: short tease below the rounded image. No body background,
+     no shadow - sits as plain text on the cream section. */
+  .theinmag-blog-feed__excerpt {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    padding: 0 4px;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-blog-feed__excerpt {
+      font-size: 13.5px;
+      -webkit-line-clamp: 2;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .theinmag-blog-feed__card,
     .theinmag-blog-feed__image,
-    .theinmag-blog-feed__readmore,
-    .theinmag-blog-feed__button {
+    .theinmag-blog-feed__seeall {
       transition: none;
-    }
-    .theinmag-blog-feed__card:hover,
-    .theinmag-blog-feed__card:focus-visible {
-      transform: none;
     }
     .theinmag-blog-feed__card:hover .theinmag-blog-feed__image,
     .theinmag-blog-feed__card:focus-visible .theinmag-blog-feed__image {
@@ -394,31 +366,25 @@
       "default": "theINside."
     },
     {
-      "type": "textarea",
-      "id": "subhead",
-      "label": "Subhead (optional)",
-      "info": "Maude doesn't run one. Leave blank for the most editorial feel."
-    },
-    {
       "type": "header",
-      "content": "See all posts CTA"
+      "content": "See all posts link"
     },
     {
       "type": "checkbox",
       "id": "show_cta",
-      "label": "Show 'See all posts' button",
+      "label": "Show 'see all posts' link",
       "default": true
     },
     {
       "type": "text",
       "id": "cta_label",
-      "label": "Button label",
-      "default": "See all posts"
+      "label": "Link label",
+      "default": "see all posts"
     },
     {
       "type": "text",
       "id": "cta_link",
-      "label": "Button link (path)",
+      "label": "Link path",
       "default": "/blogs/theinside",
       "info": "Internal path, e.g. /blogs/theinside."
     },
@@ -451,36 +417,31 @@
     {
       "type": "featured_post",
       "name": "Post card",
-      "limit": 3,
+      "limit": 4,
       "settings": [
         {
           "type": "article",
           "id": "article",
           "label": "Article",
-          "info": "Pick a Shopify article. Title, excerpt, image and date auto-fill from it. Override below if needed."
+          "info": "Pick a Shopify article. Title, excerpt, image and topic auto-fill from it. Override below if needed."
         },
         {
           "type": "text",
           "id": "topic",
           "label": "Topic label (optional)",
-          "info": "Small uppercase label above the title (e.g. Creativity, Numeracy). Falls back to the article's first tag."
+          "info": "Small uppercase label overlaid bottom-left of the cover (e.g. Creativity, Numeracy). Falls back to the article's first tag."
         },
         {
           "type": "text",
           "id": "title_override",
-          "label": "Title override (optional)"
+          "label": "Title override (optional)",
+          "info": "Sentence-case lowercase with a full stop matches the editorial register."
         },
         {
           "type": "textarea",
           "id": "excerpt_override",
           "label": "Excerpt override (optional)",
-          "info": "Two to three lines max. Falls back to article excerpt or the first ~24 words of the body."
-        },
-        {
-          "type": "text",
-          "id": "date_override",
-          "label": "Date override (optional)",
-          "info": "Free text. Use when no article is picked, e.g. May 5, 2026."
+          "info": "Two to three lines max - sits below the image. Falls back to article excerpt or first ~24 words of body."
         },
         {
           "type": "text",
@@ -512,6 +473,7 @@
     {
       "name": "theINside feed",
       "blocks": [
+        { "type": "featured_post" },
         { "type": "featured_post" },
         { "type": "featured_post" },
         { "type": "featured_post" }
