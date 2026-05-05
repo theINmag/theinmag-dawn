@@ -1,0 +1,1285 @@
+{%- comment -%}
+  theinmag-footer
+  Site-wide footer. Replaces Dawn's stock footer inside footer-group.json.
+
+  Visual stack (desktop, top to bottom):
+    1. Optional torn-paper top edge (decorative)
+    2. Five-column grid:
+         [Newsletter] [Shop] [About] [Resources] [Follow]
+       Newsletter is the heart and lives as a column on the left, Maude-
+       style: small heading, sub-paragraph, first name + email rows with
+       underline-only inputs and a "sign up" text link.
+    3. Acknowledgement of Country - full-width row, dignified, with the
+       kid artist illustration as the visual anchor.
+    4. Bottom row: white logo (left) | copyright + ABN (centre) | legal
+       links (right).
+
+  Mobile stack (top to bottom):
+    1. Newsletter
+    2. Three nav columns as native <details> accordions, collapsed
+    3. Follow row (small, three social icons centred)
+    4. Acknowledgement of Country with kid art
+    5. White logo (centred)
+    6. Copyright + ABN
+    7. Legal links wrapping
+
+  Background: inky purple-navy (#2A1F3D) with cream text. The dark zone
+  closes the page deliberately and bookends the inky purple-navy
+  announcement bar above the page.
+
+  Newsletter form posts to Klaviyo's public client/subscriptions
+  endpoint. Public company_id is safe to expose. List_id selects which
+  list the signup lands in.
+
+  Acknowledgement of Country: short version visible site-wide, links to
+  /pages/acknowledgement for the full statement. Static, no animation.
+  The kid artist illustration is the visual anchor - this is theINmag's
+  brand moment of acknowledgement, not a generic compliance footer.
+
+  Spec: theinmag-design-tokens.md, homepage-build-spec.md "Footer".
+{%- endcomment -%}
+
+{%- liquid
+  assign newsletter_heading = section.settings.newsletter_heading | default: 'Get your FREE e-mag!'
+  assign newsletter_subtext = section.settings.newsletter_subtext
+  assign newsletter_button = section.settings.newsletter_button_label | default: 'sign up'
+  assign newsletter_consent = section.settings.newsletter_consent_label
+  assign klaviyo_company_id = section.settings.klaviyo_company_id
+  assign klaviyo_list_id = section.settings.klaviyo_list_id
+
+  assign follow_heading = section.settings.follow_heading | default: 'Follow'
+
+  assign aoc_heading = section.settings.aoc_heading | default: 'Acknowledgement of Country'
+  assign aoc_text = section.settings.aoc_text
+  assign aoc_link = section.settings.aoc_link | default: '/pages/acknowledgement'
+  assign aoc_link_label = section.settings.aoc_link_label | default: 'Read the full acknowledgement'
+  assign aoc_artist_image = section.settings.aoc_artist_image
+  assign aoc_artist_credit = section.settings.aoc_artist_credit
+
+  assign white_logo = section.settings.white_logo
+  assign copyright_text = section.settings.copyright_text | default: 'giving kids a place to be seen, heard and celebrated.'
+  assign abn = section.settings.abn
+
+  assign privacy_url = section.settings.privacy_url | default: '/policies/privacy-policy'
+  assign terms_url = section.settings.terms_url | default: '/policies/terms-of-service'
+  assign refund_url = section.settings.refund_url | default: '/policies/refund-policy'
+  assign shipping_url = section.settings.shipping_url | default: '/policies/shipping-policy'
+
+  assign instagram_url = section.settings.instagram_url
+  assign facebook_url = section.settings.facebook_url
+  assign youtube_url = section.settings.youtube_url
+
+  assign current_year = 'now' | date: '%Y'
+-%}
+
+<footer
+  class="theinmag-footer"
+  role="contentinfo"
+  aria-labelledby="theinmag-footer-newsletter-heading"
+>
+  <div class="theinmag-footer__inner">
+
+    {%- comment -%} ============== Main grid: Newsletter + nav columns + Follow ============== {%- endcomment -%}
+    <div class="theinmag-footer__grid">
+
+      {%- comment -%} ----- Newsletter column ----- {%- endcomment -%}
+      <section class="theinmag-footer__newsletter" aria-labelledby="theinmag-footer-newsletter-heading">
+        <h2 class="theinmag-footer__newsletter-heading" id="theinmag-footer-newsletter-heading">
+          {{ newsletter_heading | replace: 'FREE', '<span class="theinmag-footer__newsletter-emphasis">FREE</span>' }}
+        </h2>
+
+        {%- if newsletter_subtext != blank -%}
+          <p class="theinmag-footer__newsletter-subtext">{{ newsletter_subtext }}</p>
+        {%- endif -%}
+
+        <form
+          class="theinmag-footer__form"
+          data-newsletter-form
+          data-klaviyo-company-id="{{ klaviyo_company_id }}"
+          data-klaviyo-list-id="{{ klaviyo_list_id }}"
+          novalidate
+        >
+          <div class="theinmag-footer__field theinmag-footer__field--solo">
+            <label class="theinmag-footer__label visually-hidden" for="theinmag-footer-firstname">First name</label>
+            <input
+              type="text"
+              id="theinmag-footer-firstname"
+              name="first_name"
+              class="theinmag-footer__input"
+              placeholder="your first name"
+              autocomplete="given-name"
+            >
+          </div>
+
+          <div class="theinmag-footer__field theinmag-footer__field--with-submit">
+            <label class="theinmag-footer__label visually-hidden" for="theinmag-footer-email">Email address</label>
+            <input
+              type="email"
+              id="theinmag-footer-email"
+              name="email"
+              class="theinmag-footer__input"
+              placeholder="your email address"
+              autocomplete="email"
+              required
+            >
+            <button
+              type="submit"
+              class="theinmag-footer__submit"
+              data-newsletter-submit
+            >
+              {{ newsletter_button }}
+            </button>
+          </div>
+
+          {%- if newsletter_consent != blank -%}
+            <label class="theinmag-footer__consent">
+              <input type="checkbox" name="consent" value="yes" class="theinmag-footer__consent-input" required>
+              <span class="theinmag-footer__consent-text">{{ newsletter_consent }}</span>
+            </label>
+          {%- endif -%}
+
+          <p class="theinmag-footer__form-status" data-newsletter-status role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      {%- comment -%} ----- Nav columns (blocks) ----- {%- endcomment -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'nav_column' -%}
+          <details class="theinmag-footer__column" {{ block.shopify_attributes }}>
+            <summary class="theinmag-footer__column-heading">
+              {{ block.settings.heading }}
+              <svg class="theinmag-footer__column-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                <path d="M7 10l5 5 5-5z"></path>
+              </svg>
+            </summary>
+            <ul class="theinmag-footer__column-list" role="list">
+              {%- if block.settings.link_1_label != blank -%}
+                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_1_url | default: '#' }}">{{ block.settings.link_1_label }}</a></li>
+              {%- endif -%}
+              {%- if block.settings.link_2_label != blank -%}
+                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_2_url | default: '#' }}">{{ block.settings.link_2_label }}</a></li>
+              {%- endif -%}
+              {%- if block.settings.link_3_label != blank -%}
+                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_3_url | default: '#' }}">{{ block.settings.link_3_label }}</a></li>
+              {%- endif -%}
+              {%- if block.settings.link_4_label != blank -%}
+                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_4_url | default: '#' }}">{{ block.settings.link_4_label }}</a></li>
+              {%- endif -%}
+              {%- if block.settings.link_5_label != blank -%}
+                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_5_url | default: '#' }}">{{ block.settings.link_5_label }}</a></li>
+              {%- endif -%}
+              {%- if block.settings.link_6_label != blank -%}
+                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_6_url | default: '#' }}">{{ block.settings.link_6_label }}</a></li>
+              {%- endif -%}
+            </ul>
+          </details>
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- comment -%} ----- Follow column - socials as a stacked icon list ----- {%- endcomment -%}
+      {%- if instagram_url != blank or facebook_url != blank or youtube_url != blank -%}
+        <div class="theinmag-footer__follow">
+          <h2 class="theinmag-footer__follow-heading">{{ follow_heading }}</h2>
+          <ul class="theinmag-footer__follow-list" role="list" aria-label="Follow theINmag">
+            {%- if instagram_url != blank -%}
+              <li>
+                <a class="theinmag-footer__social-link" href="{{ instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="theINmag on Instagram">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false">
+                    <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor"></circle>
+                  </svg>
+                </a>
+              </li>
+            {%- endif -%}
+            {%- if facebook_url != blank -%}
+              <li>
+                <a class="theinmag-footer__social-link" href="{{ facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="theINmag on Facebook">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                    <path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.7c0-.9.3-1.5 1.6-1.5h1.7V4.3a23 23 0 0 0-2.5-.1c-2.5 0-4.2 1.5-4.2 4.3v2.4H7.4V14h2.7v8h3.4Z"></path>
+                  </svg>
+                </a>
+              </li>
+            {%- endif -%}
+            {%- if youtube_url != blank -%}
+              <li>
+                <a class="theinmag-footer__social-link" href="{{ youtube_url }}" target="_blank" rel="noopener noreferrer" aria-label="theINmag on YouTube">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                    <path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15V9l5.2 3-5.2 3Z"></path>
+                  </svg>
+                </a>
+              </li>
+            {%- endif -%}
+          </ul>
+        </div>
+      {%- endif -%}
+
+    </div>
+
+    {%- comment -%} ============== Closing row - AOC on left, brand stack on right ============== {%- endcomment -%}
+    <div class="theinmag-footer__close-row">
+
+      <section class="theinmag-footer__aoc" aria-labelledby="theinmag-footer-aoc-heading">
+        <div class="theinmag-footer__aoc-figure-col">
+          {%- if aoc_artist_image != blank -%}
+            <figure class="theinmag-footer__aoc-figure">
+              <img
+                class="theinmag-footer__aoc-image"
+                src="{{ aoc_artist_image | image_url: width: 600 }}"
+                alt="Acknowledgement of Country illustration by a First Nations kid artist"
+                loading="lazy"
+                width="{{ aoc_artist_image.width }}"
+                height="{{ aoc_artist_image.height }}"
+              >
+              {%- if aoc_artist_credit != blank -%}
+                <figcaption class="theinmag-footer__aoc-credit">{{ aoc_artist_credit }}</figcaption>
+              {%- endif -%}
+            </figure>
+          {%- endif -%}
+        </div>
+
+        <div class="theinmag-footer__aoc-body">
+          <h2 class="theinmag-footer__aoc-heading" id="theinmag-footer-aoc-heading">
+            {{ aoc_heading }}
+          </h2>
+
+          {%- if aoc_text != blank -%}
+            <div class="theinmag-footer__aoc-text">{{ aoc_text }}</div>
+          {%- endif -%}
+
+          {%- if aoc_link != blank -%}
+            <a class="theinmag-footer__aoc-link" href="{{ aoc_link }}">
+              {{ aoc_link_label }}
+              <span class="theinmag-footer__aoc-link-arrow" aria-hidden="true">&rsaquo;</span>
+            </a>
+          {%- endif -%}
+        </div>
+      </section>
+
+      <div class="theinmag-footer__brand-stack">
+        <a class="theinmag-footer__white-logo-link" href="{{ routes.root_url }}" aria-label="theINmag home">
+          {%- if white_logo != blank -%}
+            <img class="theinmag-footer__white-logo" src="{{ white_logo | image_url: width: 600 }}" alt="theINmag" loading="lazy">
+          {%- else -%}
+            <img class="theinmag-footer__white-logo" src="{{ 'whitelogo.svg' | asset_url }}" alt="theINmag" loading="lazy">
+          {%- endif -%}
+        </a>
+
+        <p class="theinmag-footer__copyright">
+          &copy; {{ current_year }} theINmag &middot; {{ copyright_text }}
+          {%- if abn != blank -%}
+            &middot; ABN {{ abn }}
+          {%- endif -%}
+        </p>
+
+        <ul class="theinmag-footer__legal" role="list" aria-label="Legal">
+          <li><a class="theinmag-footer__legal-link" href="{{ privacy_url }}">Privacy</a></li>
+          <li><a class="theinmag-footer__legal-link" href="{{ terms_url }}">Terms</a></li>
+          <li><a class="theinmag-footer__legal-link" href="{{ refund_url }}">Refunds</a></li>
+          <li><a class="theinmag-footer__legal-link" href="{{ shipping_url }}">Shipping</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "theINmag",
+      "alternateName": "theINmag - made by Aussie kids, for Aussie kids",
+      "url": "{{ shop.url }}",
+      "logo": "{{ 'header_logo.svg' | asset_url }}",
+      "sameAs": [
+        {%- if instagram_url != blank -%}"{{ instagram_url }}"{%- if facebook_url != blank or youtube_url != blank -%},{%- endif -%}{%- endif -%}
+        {%- if facebook_url != blank -%}"{{ facebook_url }}"{%- if youtube_url != blank -%},{%- endif -%}{%- endif -%}
+        {%- if youtube_url != blank -%}"{{ youtube_url }}"{%- endif -%}
+      ]
+    }
+  </script>
+</footer>
+
+{% stylesheet %}
+  /* ================================================================
+     theinmag-footer
+     Inky purple-navy dark zone closing every page. Cream text.
+
+     Layout:
+       - Mobile: vertical stack. Newsletter on top, AOC after the nav
+         accordions, white logo + copyright + legal at the bottom.
+       - Desktop: 5-column grid (Newsletter | 3 nav | Follow), then a
+         full-width AOC row, then a 3-zone bottom row.
+     ================================================================ */
+
+  .theinmag-footer-section {
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+  }
+
+  .theinmag-footer {
+    background-color: var(--color-inky-purple-navy);
+    color: var(--color-cream);
+    line-height: 1.5;
+    padding: var(--space-2xl) var(--space-md);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-footer { padding: var(--space-3xl) var(--space-xl); }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer { padding: var(--space-4xl) var(--space-xl); }
+  }
+
+  .theinmag-footer__inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__inner { gap: var(--space-3xl); }
+  }
+
+  /* ================================================================
+     Main grid - Newsletter | 3 nav columns | Follow
+     Mobile: stacked. Newsletter first, columns as accordions, Follow
+     row at the end of the column stack.
+     Desktop: 5-track grid.
+     ================================================================ */
+
+  .theinmag-footer__grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1fr 1fr 0.7fr;
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+  }
+
+  /* ================================================================
+     Newsletter column - the Maude-chic heart of the footer.
+     Heading is Post Regular (brand voice), inputs are underline-only
+     (clean, premium), submit is a small text-link "sign up" rather
+     than a yellow stamp. Stamp would shout against the chic register.
+     ================================================================ */
+
+  .theinmag-footer__newsletter {
+    /* Mobile: full-width on top of the column stack. */
+    padding-bottom: var(--space-md);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__newsletter {
+      padding-bottom: 0;
+      /* Pad-right gives the email input space to breathe before the
+         next column's content. */
+      padding-right: var(--space-md);
+    }
+  }
+
+  .theinmag-footer__newsletter-heading {
+    font-family: var(--font-heading);
+    color: var(--color-cream);
+    font-size: clamp(24px, 2.6vw, 30px);
+    line-height: 1.15;
+    margin: 0 0 var(--space-sm);
+    font-weight: 400;
+  }
+
+  .theinmag-footer__newsletter-emphasis {
+    font-size: 1.4em;
+    color: var(--color-yellow);
+    line-height: 0.9;
+  }
+
+  .theinmag-footer__newsletter-subtext {
+    font-family: var(--font-body);
+    color: var(--color-cream);
+    opacity: 0.8;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0 0 var(--space-lg);
+  }
+
+  .theinmag-footer__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .theinmag-footer__field {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(251, 246, 234, 0.35);
+    padding-bottom: 6px;
+    transition: border-color var(--transition-standard);
+  }
+
+  .theinmag-footer__field:focus-within {
+    border-color: var(--color-yellow);
+  }
+
+  .theinmag-footer__field--solo {
+    /* First-name row sits on its own. */
+  }
+
+  .theinmag-footer__field--with-submit {
+    /* Email input + sign up text-link share a row. */
+    gap: var(--space-sm);
+  }
+
+  .theinmag-footer__input {
+    font-family: var(--font-body);
+    font-size: 15px;
+    background-color: transparent;
+    color: var(--color-cream);
+    border: none;
+    padding: 8px 0;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .theinmag-footer__input:focus {
+    outline: none;
+  }
+
+  .theinmag-footer__input::placeholder {
+    color: var(--color-cream);
+    opacity: 0.55;
+  }
+
+  /* Auto-fill override - some browsers paint a coloured rectangle
+     behind autofilled fields that ignores the transparent background.
+     The inset shadow trick paints over it with the dark footer bg. */
+  .theinmag-footer__input:-webkit-autofill,
+  .theinmag-footer__input:-webkit-autofill:hover,
+  .theinmag-footer__input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-inky-purple-navy) inset;
+    -webkit-text-fill-color: var(--color-cream);
+    caret-color: var(--color-cream);
+  }
+
+  /* "sign up" text-link button. Sits on the right of the email row,
+     behaves as a button. */
+  .theinmag-footer__submit {
+    flex-shrink: 0;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-cream);
+    background: transparent;
+    border: none;
+    padding: 4px 0 4px var(--space-sm);
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: color var(--transition-standard);
+  }
+
+  .theinmag-footer__submit:hover,
+  .theinmag-footer__submit:focus-visible {
+    color: var(--color-yellow);
+    outline: none;
+  }
+
+  .theinmag-footer__submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .theinmag-footer__consent {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    font-size: 12px;
+    color: var(--color-cream);
+    opacity: 0.65;
+    text-align: left;
+    cursor: pointer;
+    line-height: 1.5;
+  }
+
+  .theinmag-footer__consent-input {
+    margin-top: 3px;
+    accent-color: var(--color-yellow);
+    flex-shrink: 0;
+  }
+
+  .theinmag-footer__form-status {
+    font-size: 13px;
+    margin: 0;
+    min-height: 18px;
+    color: var(--color-cream);
+  }
+
+  .theinmag-footer__form-status[data-state="success"] { color: var(--color-yellow); }
+  .theinmag-footer__form-status[data-state="error"] { color: #FFB4A0; }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ================================================================
+     Nav columns
+     Mobile: native <details> accordions.
+     Desktop: always-open columns, caret hidden.
+     ================================================================ */
+
+  .theinmag-footer__column {
+    border-top: 1px solid rgba(251, 246, 234, 0.12);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__column { border-top: none; }
+  }
+
+  .theinmag-footer__column-heading {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-cream);
+    padding: var(--space-md) 0;
+    user-select: none;
+  }
+
+  .theinmag-footer__column-heading::-webkit-details-marker { display: none; }
+
+  .theinmag-footer__column-caret {
+    width: 16px;
+    height: 16px;
+    transition: transform var(--transition-standard);
+    color: var(--color-cream);
+    opacity: 0.7;
+  }
+
+  .theinmag-footer__column[open] .theinmag-footer__column-caret {
+    transform: rotate(180deg);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__column-caret { display: none; }
+    .theinmag-footer__column-heading {
+      cursor: default;
+      padding: 0 0 var(--space-md);
+      pointer-events: none;
+    }
+  }
+
+  .theinmag-footer__column-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__column-list {
+      padding: 0;
+      gap: var(--space-md);
+    }
+  }
+
+  .theinmag-footer__column-link {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--color-cream);
+    text-decoration: none;
+    line-height: 1.4;
+    opacity: 0.85;
+    transition: opacity var(--transition-standard), color var(--transition-standard);
+    display: inline-block;
+    padding: 4px 0;
+  }
+
+  .theinmag-footer__column-link:hover,
+  .theinmag-footer__column-link:focus-visible {
+    opacity: 1;
+    color: var(--color-yellow);
+    outline: none;
+  }
+
+  /* ================================================================
+     Follow column - socials as a stacked icon list on desktop, inline
+     row on mobile.
+     ================================================================ */
+
+  .theinmag-footer__follow {
+    border-top: 1px solid rgba(251, 246, 234, 0.12);
+    padding: var(--space-md) 0;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__follow {
+      border-top: none;
+      padding: 0;
+    }
+  }
+
+  .theinmag-footer__follow-heading {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-cream);
+    margin: 0 0 var(--space-md);
+  }
+
+  .theinmag-footer__follow-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__follow-list {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-sm);
+    }
+  }
+
+  .theinmag-footer__social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-cream);
+    border-radius: var(--radius-pill);
+    transition: color var(--transition-standard), background-color var(--transition-standard);
+  }
+
+  .theinmag-footer__social-link:hover,
+  .theinmag-footer__social-link:focus-visible {
+    color: var(--color-inky-purple-navy);
+    background-color: var(--color-yellow);
+    outline: none;
+  }
+
+  .theinmag-footer__social-link svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* ================================================================
+     Closing row - AOC on the left, brand stack on the right.
+     Mobile: stacks vertically (AOC, then brand stack centred).
+     Desktop: side-by-side, brand stack right-aligned.
+     ================================================================ */
+
+  .theinmag-footer__close-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+    padding-top: var(--space-2xl);
+    border-top: 1px solid rgba(251, 246, 234, 0.12);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__close-row {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-3xl);
+    }
+  }
+
+  /* ================================================================
+     Acknowledgement of Country
+     Mobile: kid art on top, body underneath.
+     Desktop: kid art left, body to its right; whole AOC sits as the
+     left zone of the close-row.
+     ================================================================ */
+
+  .theinmag-footer__aoc {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-footer__aoc {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: var(--space-2xl);
+    }
+  }
+
+  .theinmag-footer__aoc-figure-col {
+    flex-shrink: 0;
+  }
+
+  .theinmag-footer__aoc-figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .theinmag-footer__aoc-image {
+    display: block;
+    max-width: 140px;
+    width: 100%;
+    height: auto;
+    margin-bottom: var(--space-xs);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__aoc-image { max-width: 180px; }
+  }
+
+  .theinmag-footer__aoc-credit {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-style: italic;
+    color: var(--color-cream);
+    opacity: 0.7;
+    line-height: 1.4;
+  }
+
+  .theinmag-footer__aoc-body {
+    flex: 1;
+    max-width: 540px;
+  }
+
+  .theinmag-footer__aoc-heading {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-cream);
+    margin: 0 0 var(--space-sm);
+  }
+
+  .theinmag-footer__aoc-text {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--color-cream);
+    opacity: 0.9;
+  }
+
+  .theinmag-footer__aoc-text p {
+    margin: 0 0 var(--space-sm);
+  }
+
+  .theinmag-footer__aoc-text p:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-footer__aoc-link {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-cream);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color var(--transition-standard);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: var(--space-md);
+  }
+
+  .theinmag-footer__aoc-link:hover,
+  .theinmag-footer__aoc-link:focus-visible {
+    color: var(--color-yellow);
+    outline: none;
+  }
+
+  .theinmag-footer__aoc-link-arrow {
+    font-size: 16px;
+    line-height: 1;
+    transition: transform var(--transition-standard);
+  }
+
+  .theinmag-footer__aoc-link:hover .theinmag-footer__aoc-link-arrow {
+    transform: translateX(2px);
+  }
+
+  /* ================================================================
+     Brand stack - sits to the right of the AOC on desktop.
+     White logo (top) | copyright + tagline (middle) | legal links (bottom).
+     Mobile: centred. Desktop: right-aligned.
+     ================================================================ */
+
+  .theinmag-footer__brand-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    align-items: center;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__brand-stack {
+      align-items: flex-end;
+      text-align: right;
+      width: 240px;
+    }
+  }
+
+  .theinmag-footer__white-logo-link {
+    display: inline-flex;
+    line-height: 0;
+    flex-shrink: 0;
+    transition: opacity var(--transition-standard);
+  }
+
+  .theinmag-footer__white-logo {
+    display: block;
+    width: 140px;
+    height: auto;
+  }
+
+  .theinmag-footer__white-logo-link:hover {
+    opacity: 0.85;
+  }
+
+  .theinmag-footer__copyright {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-cream);
+    opacity: 0.7;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .theinmag-footer__legal {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-footer__legal {
+      justify-content: flex-end;
+    }
+  }
+
+  .theinmag-footer__legal-link {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-cream);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity var(--transition-standard), color var(--transition-standard);
+  }
+
+  .theinmag-footer__legal-link:hover,
+  .theinmag-footer__legal-link:focus-visible {
+    opacity: 1;
+    color: var(--color-yellow);
+    outline: none;
+  }
+
+  /* Reduced motion - kill any hover transforms but keep state changes. */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-footer__column-caret,
+    .theinmag-footer__aoc-link-arrow,
+    .theinmag-footer__white-logo-link {
+      transition-duration: 0.01ms;
+    }
+  }
+
+{% endstylesheet %}
+
+<script>
+  (function () {
+    var form = document.querySelector('[data-newsletter-form]');
+    if (!form) return;
+
+    var status = form.querySelector('[data-newsletter-status]');
+    var submit = form.querySelector('[data-newsletter-submit]');
+
+    var setStatus = function (message, state) {
+      if (!status) return;
+      status.textContent = message;
+      if (state) {
+        status.setAttribute('data-state', state);
+      } else {
+        status.removeAttribute('data-state');
+      }
+    };
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      var emailField = form.querySelector('input[name="email"]');
+      var firstNameField = form.querySelector('input[name="first_name"]');
+      var consentField = form.querySelector('input[name="consent"]');
+
+      var email = emailField ? emailField.value.trim() : '';
+      var firstName = firstNameField ? firstNameField.value.trim() : '';
+      var consent = consentField ? consentField.checked : true;
+
+      if (!email) {
+        setStatus('Pop your email in first.', 'error');
+        if (emailField) emailField.focus();
+        return;
+      }
+
+      if (consentField && !consent) {
+        setStatus('Tick the consent box to subscribe.', 'error');
+        return;
+      }
+
+      var companyId = form.getAttribute('data-klaviyo-company-id');
+      var listId = form.getAttribute('data-klaviyo-list-id');
+
+      if (!companyId || !listId) {
+        setStatus('Newsletter signup is being wired up. Try again soon.', 'error');
+        return;
+      }
+
+      submit.disabled = true;
+      setStatus('Signing you up...');
+
+      var profile = {
+        type: 'profile',
+        attributes: { email: email }
+      };
+      if (firstName) {
+        profile.attributes.first_name = firstName;
+      }
+
+      var body = {
+        data: {
+          type: 'subscription',
+          attributes: {
+            custom_source: 'Footer signup',
+            profile: { data: profile }
+          },
+          relationships: {
+            list: { data: { type: 'list', id: listId } }
+          }
+        }
+      };
+
+      fetch('https://a.klaviyo.com/client/subscriptions/?company_id=' + encodeURIComponent(companyId), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'revision': '2024-10-15'
+        },
+        body: JSON.stringify(body)
+      })
+        .then(function (response) {
+          if (response.ok || response.status === 202) {
+            setStatus('You are IN. Free e-mag heading to your inbox.', 'success');
+            form.reset();
+          } else {
+            return response.text().then(function (text) {
+              throw new Error(text || 'Signup failed');
+            });
+          }
+        })
+        .catch(function () {
+          setStatus('Hit a snag. Try again in a sec.', 'error');
+        })
+        .finally(function () {
+          submit.disabled = false;
+        });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag footer",
+  "tag": "section",
+  "class": "theinmag-footer-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Site-wide footer. Replaces Dawn's stock footer via footer-group.json. Newsletter is the heart, three nav columns reorder via blocks below, Follow column auto-renders from the social URLs."
+    },
+    {
+      "type": "header",
+      "content": "Newsletter"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_heading",
+      "label": "Heading",
+      "default": "Get your FREE e-mag!"
+    },
+    {
+      "type": "textarea",
+      "id": "newsletter_subtext",
+      "label": "Sub-line",
+      "default": "PLUS: real kid-creations and fresh teaching ideas, each and every month."
+    },
+    {
+      "type": "text",
+      "id": "newsletter_button_label",
+      "label": "Button label",
+      "default": "sign up"
+    },
+    {
+      "type": "textarea",
+      "id": "newsletter_consent_label",
+      "label": "Consent checkbox label",
+      "default": "I'd like to hear from theINmag. We never share your details, and you can unsubscribe anytime."
+    },
+    {
+      "type": "text",
+      "id": "klaviyo_company_id",
+      "label": "Klaviyo public company ID",
+      "info": "From Klaviyo Account > Settings > API Keys."
+    },
+    {
+      "type": "text",
+      "id": "klaviyo_list_id",
+      "label": "Klaviyo list ID",
+      "info": "List new subscribers land in (welcome flow + free e-mag)."
+    },
+    {
+      "type": "header",
+      "content": "Follow column"
+    },
+    {
+      "type": "text",
+      "id": "follow_heading",
+      "label": "Heading",
+      "default": "Follow"
+    },
+    {
+      "type": "header",
+      "content": "Acknowledgement of Country"
+    },
+    {
+      "type": "text",
+      "id": "aoc_heading",
+      "label": "Heading",
+      "default": "Acknowledgement of Country"
+    },
+    {
+      "type": "richtext",
+      "id": "aoc_text",
+      "label": "Statement",
+      "default": "<p>theINmag is created on the lands of many First Nations across Australia, the Traditional Custodians of the Country where we live, learn, and grow. We pay our respects to First Nations Elders past, present, and emerging, and to the kid creators on Country whose stories shape this magazine.</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "aoc_artist_image",
+      "label": "Kid artist illustration",
+      "info": "Drawing by a First Nations kid artist."
+    },
+    {
+      "type": "text",
+      "id": "aoc_artist_credit",
+      "label": "Artist credit",
+      "default": "Jiena O., age 11 - Perth WA"
+    },
+    {
+      "type": "text",
+      "id": "aoc_link_label",
+      "label": "Full statement link label",
+      "default": "Read the full acknowledgement"
+    },
+    {
+      "type": "text",
+      "id": "aoc_link",
+      "label": "Full statement link URL",
+      "default": "/pages/acknowledgement"
+    },
+    {
+      "type": "header",
+      "content": "Bottom row"
+    },
+    {
+      "type": "image_picker",
+      "id": "white_logo",
+      "label": "White logo",
+      "info": "Falls back to /assets/whitelogo.svg."
+    },
+    {
+      "type": "text",
+      "id": "copyright_text",
+      "label": "Copyright tagline",
+      "default": "giving kids a place to be seen, heard and celebrated."
+    },
+    {
+      "type": "text",
+      "id": "abn",
+      "label": "ABN",
+      "info": "Displayed after the tagline. Leave blank to hide."
+    },
+    {
+      "type": "header",
+      "content": "Legal links"
+    },
+    {
+      "type": "text",
+      "id": "privacy_url",
+      "label": "Privacy Policy URL",
+      "default": "/policies/privacy-policy"
+    },
+    {
+      "type": "text",
+      "id": "terms_url",
+      "label": "Terms of Service URL",
+      "default": "/policies/terms-of-service"
+    },
+    {
+      "type": "text",
+      "id": "refund_url",
+      "label": "Refund Policy URL",
+      "default": "/policies/refund-policy"
+    },
+    {
+      "type": "text",
+      "id": "shipping_url",
+      "label": "Shipping Policy URL",
+      "default": "/policies/shipping-policy"
+    },
+    {
+      "type": "header",
+      "content": "Social links"
+    },
+    {
+      "type": "text",
+      "id": "instagram_url",
+      "label": "Instagram URL",
+      "default": "https://www.instagram.com/the.inmag/"
+    },
+    {
+      "type": "text",
+      "id": "facebook_url",
+      "label": "Facebook URL",
+      "default": "https://www.facebook.com/theINmagazine/"
+    },
+    {
+      "type": "text",
+      "id": "youtube_url",
+      "label": "YouTube URL",
+      "default": "https://www.youtube.com/@theINmag/videos"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "nav_column",
+      "name": "Nav column",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Column heading",
+          "default": "Shop"
+        },
+        {
+          "type": "header",
+          "content": "Links (up to 6)"
+        },
+        { "type": "text", "id": "link_1_label", "label": "Link 1 label" },
+        { "type": "text", "id": "link_1_url", "label": "Link 1 URL" },
+        { "type": "text", "id": "link_2_label", "label": "Link 2 label" },
+        { "type": "text", "id": "link_2_url", "label": "Link 2 URL" },
+        { "type": "text", "id": "link_3_label", "label": "Link 3 label" },
+        { "type": "text", "id": "link_3_url", "label": "Link 3 URL" },
+        { "type": "text", "id": "link_4_label", "label": "Link 4 label" },
+        { "type": "text", "id": "link_4_url", "label": "Link 4 URL" },
+        { "type": "text", "id": "link_5_label", "label": "Link 5 label" },
+        { "type": "text", "id": "link_5_url", "label": "Link 5 URL" },
+        { "type": "text", "id": "link_6_label", "label": "Link 6 label" },
+        { "type": "text", "id": "link_6_url", "label": "Link 6 URL" }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      {
+        "type": "nav_column",
+        "settings": {
+          "heading": "Shop",
+          "link_1_label": "All products",
+          "link_1_url": "/collections/all",
+          "link_2_label": "Memberships",
+          "link_2_url": "/collections/memberships",
+          "link_3_label": "Latest issue",
+          "link_3_url": "/collections/latest",
+          "link_4_label": "Bundles",
+          "link_4_url": "/collections/bundles",
+          "link_5_label": "Snack Packs",
+          "link_5_url": "/collections/snack-packs"
+        }
+      },
+      {
+        "type": "nav_column",
+        "settings": {
+          "heading": "About",
+          "link_1_label": "Our Story",
+          "link_1_url": "/pages/our-story",
+          "link_2_label": "Where we'll be next",
+          "link_2_url": "/pages/where-we-will-be-next",
+          "link_3_label": "Stockists",
+          "link_3_url": "/pages/stockists",
+          "link_4_label": "Schools",
+          "link_4_url": "/pages/schools",
+          "link_5_label": "Contact",
+          "link_5_url": "/pages/contact"
+        }
+      },
+      {
+        "type": "nav_column",
+        "settings": {
+          "heading": "Resources",
+          "link_1_label": "Send IN content",
+          "link_1_url": "/pages/send-in-content",
+          "link_2_label": "Gallery",
+          "link_2_url": "/pages/gallery",
+          "link_3_label": "Blog",
+          "link_3_url": "/blogs/news",
+          "link_4_label": "Freebies",
+          "link_4_url": "/pages/freebies"
+        }
+      }
+    ]
+  }
+}
+{% endschema %}
