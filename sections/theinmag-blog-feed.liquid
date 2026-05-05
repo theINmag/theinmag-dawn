@@ -192,20 +192,27 @@
     padding: var(--blog-feed-pt, 64px) clamp(16px, 3vw, 32px) var(--blog-feed-pb, 64px);
   }
 
-  /* When a background image is set: layer a soft dark scrim over the
-     image so white text reads against the painterly coral pattern.
-     Cards keep their cream backgrounds so they pop off the image. */
+  /* When a background image is set: the coral painterly art sits as
+     a decorative frame around the cream panel below. No scrim now -
+     the panel insulates the content so the bg can stay rich. */
   .theinmag-blog-feed--has-bg {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--blog-feed-bg);
+    background-image: var(--blog-feed-bg);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    color: #FFFFFF;
   }
 
+  /* The cream panel that holds heading, filter row, and the four
+     tiles. When a bg is set the panel pops off the coral; without a
+     bg it sits flush on the section's cream background, just slightly
+     lifted by its shadow. Mission-row sibling treatment. */
   .theinmag-blog-feed__inner {
     max-width: 1320px;
     margin: 0 auto;
+    background-color: var(--color-cream, #FBF6EA);
+    border-radius: 28px;
+    padding: clamp(28px, 4vw, 56px) clamp(20px, 4vw, 56px);
+    box-shadow: 0 8px 32px rgba(123, 79, 158, 0.12);
   }
 
   /* Header row: title-stack on the left, nav cluster (filters + see-all
@@ -301,19 +308,13 @@
   .theinmag-blog-feed__chip {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 500;
-    font-size: 14px;
+    font-size: clamp(20px, 2.4vw, 28px);
     line-height: 1;
-    letter-spacing: 0;
+    letter-spacing: -0.005em;
     color: var(--color-inky-purple-navy, #2A1F3D);
     text-decoration: none;
     opacity: 0.42;
     transition: opacity 0.15s ease;
-  }
-
-  @media (min-width: 750px) {
-    .theinmag-blog-feed__chip {
-      font-size: 15px;
-    }
   }
 
   .theinmag-blog-feed__chip:hover,
@@ -392,35 +393,32 @@
     display: flex;
   }
 
+  /* Tiles drop their own backgrounds and shadows now that they sit on
+     the cream panel - the rounded image IS the visual unit, body text
+     sits naturally on the panel underneath. Avoids cream-on-cream
+     merging and matches the Maude editorial tile pattern. */
   .theinmag-blog-feed__card {
     display: flex;
     flex-direction: column;
     flex: 1;
     text-decoration: none;
     color: inherit;
-    background-color: var(--color-cream, #FBF6EA);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 1px 6px rgba(123, 79, 158, 0.08);
-    transition: transform var(--transition-hover, 0.2s ease), box-shadow var(--transition-hover, 0.2s ease);
-  }
-
-  .theinmag-blog-feed__card:hover,
-  .theinmag-blog-feed__card:focus-visible {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 20px rgba(123, 79, 158, 0.16);
-    outline: none;
+    gap: clamp(12px, 1.4vw, 16px);
   }
 
   .theinmag-blog-feed__card:focus-visible {
-    box-shadow: 0 0 0 3px var(--color-purple-dark, #5D3A7A), 0 4px 20px rgba(123, 79, 158, 0.16);
+    outline: 2px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 4px;
+    border-radius: 22px;
   }
 
+  /* Cover gets the rounded edges directly now (no parent card to clip). */
   .theinmag-blog-feed__cover {
     position: relative;
     display: block;
     aspect-ratio: 4 / 5;
     overflow: hidden;
+    border-radius: 20px;
     background-color: #E8DEEF;
   }
 
@@ -479,7 +477,7 @@
     display: flex;
     flex-direction: column;
     gap: clamp(8px, 1vw, 12px);
-    padding: clamp(16px, 1.8vw, 22px);
+    padding: 0 clamp(2px, 0.4vw, 6px);
     flex: 1;
   }
 
@@ -520,42 +518,6 @@
       font-size: 13.5px;
       -webkit-line-clamp: 2;
     }
-  }
-
-  /* ---- Background-image variant: white text + scrim ----
-     All header text (heading, subhead, chips, button) flips to white.
-     Subtle text-shadow softens the type against the busy painterly bg
-     even with the dark gradient scrim. */
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__heading,
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__subhead,
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip {
-    color: #FFFFFF;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-  }
-
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip {
-    opacity: 0.62;
-  }
-
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip:hover,
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip:focus-visible {
-    opacity: 0.95;
-  }
-
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip.is-active {
-    opacity: 1;
-  }
-
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__seeall {
-    color: #FFFFFF;
-    border-color: #FFFFFF;
-    text-shadow: none;
-  }
-
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__seeall:hover,
-  .theinmag-blog-feed--has-bg .theinmag-blog-feed__seeall:focus-visible {
-    background-color: #FFFFFF;
-    color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
   @media (prefers-reduced-motion: reduce) {
