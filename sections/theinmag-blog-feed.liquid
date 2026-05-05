@@ -1,12 +1,17 @@
 {%- comment -%}
   theinmag-blog-feed
   Four-up post card row anchoring the homepage to the theINside blog.
-  Maude-faithful editorial layout: heading left + "see all" link right
-  in the header row, cards below.
+  Maude-faithful editorial layout: heading left, audience filter chips
+  + "see all blogs" pill button right.
 
   Heading is rendered as four spans so the brand pun (capitalised IN)
   shows typographically: "the" small + "IN" big + "side" small + "."
   big. Editor can change any of the four parts in admin.
+
+  Audience chips are nav links - tapping one navigates to the blog
+  index filtered by that audience (logic lives on the blog page, not
+  here). The active chip is just a visual indicator of "this is the
+  current view"; on the homepage card row "all" is always active.
 
   Each card is a unified cream tile (image + body in one rounded
   container). Topic label sits as a white overlay on the cover image
@@ -26,6 +31,8 @@
   assign cta_label = section.settings.cta_label
   assign cta_link = section.settings.cta_link
   assign show_cta = section.settings.show_cta
+  assign show_filters = section.settings.show_filters
+  assign active_chip = section.settings.active_chip
 -%}
 
 <section
@@ -46,11 +53,29 @@
           <p class="theinmag-blog-feed__subhead">{{ subhead }}</p>
         {%- endif -%}
       </div>
-      {%- if show_cta and cta_label != blank and cta_link != blank -%}
-        <a class="theinmag-blog-feed__seeall" href="{{ cta_link }}">
-          {{ cta_label }} <span aria-hidden="true">&rarr;</span>
-        </a>
-      {%- endif -%}
+
+      <div class="theinmag-blog-feed__nav">
+        {%- if show_filters -%}
+          <nav class="theinmag-blog-feed__filters" aria-label="Filter posts by audience">
+            <a
+              class="theinmag-blog-feed__chip{% if active_chip == 'all' %} is-active{% endif %}"
+              href="{{ section.settings.chip_all_link }}"
+            >all</a>
+            <a
+              class="theinmag-blog-feed__chip{% if active_chip == 'kids' %} is-active{% endif %}"
+              href="{{ section.settings.chip_kids_link }}"
+            >kids</a>
+            <a
+              class="theinmag-blog-feed__chip{% if active_chip == 'adults' %} is-active{% endif %}"
+              href="{{ section.settings.chip_adults_link }}"
+            >adults</a>
+          </nav>
+        {%- endif -%}
+
+        {%- if show_cta and cta_label != blank and cta_link != blank -%}
+          <a class="theinmag-blog-feed__seeall" href="{{ cta_link }}">{{ cta_label }}</a>
+        {%- endif -%}
+      </div>
     </header>
 
     {%- if section.blocks.size > 0 -%}
@@ -155,16 +180,23 @@
     margin: 0 auto;
   }
 
-  /* Header row: heading + subhead stack on the left, see-all on the
-     right baseline-aligned. Tight bottom margin so cards sit close
-     to the heading per the Maude reference. */
+  /* Header row: title-stack on the left, nav cluster (filters + see-all
+     pill) on the right. Stacks vertically on narrow viewports. */
   .theinmag-blog-feed__header {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--space-md, 16px);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(16px, 2vw, 24px);
     margin-bottom: clamp(20px, 2.4vw, 32px);
-    flex-wrap: wrap;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-blog-feed__header {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-md, 16px);
+    }
   }
 
   .theinmag-blog-feed__title-stack {
@@ -186,7 +218,6 @@
     margin: 0;
     color: var(--color-inky-purple-navy, #2A1F3D);
     white-space: nowrap;
-    /* Vertically centre the small aux glyphs against the big IN/period. */
     display: inline-flex;
     align-items: center;
   }
@@ -194,10 +225,7 @@
   .theinmag-blog-feed__heading-aux {
     font-size: 0.42em;
     line-height: 1;
-    /* Slight optical lift so the small caps sit visually centred
-       against the big IN glyphs rather than dropping to the baseline. */
     transform: translateY(-0.04em);
-    /* Hairline horizontal breathing room around the IN. */
     margin: 0 0.04em;
   }
 
@@ -222,33 +250,90 @@
     max-width: 60ch;
   }
 
+  /* Nav cluster: filter chips + see-all pill, grouped on the right of
+     the header on desktop. */
+  .theinmag-blog-feed__nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(20px, 3vw, 36px);
+    flex-wrap: wrap;
+    /* Lift the cluster slightly off the heading's descender line so it
+       sits visually centred against the big IN/period rather than
+       sagging to the very bottom. */
+    padding-bottom: clamp(4px, 0.6vw, 12px);
+  }
+
+  /* Filter chips: muted text links, active one in full ink + bolder. */
+  .theinmag-blog-feed__filters {
+    display: flex;
+    align-items: center;
+    gap: clamp(14px, 2vw, 22px);
+  }
+
+  .theinmag-blog-feed__chip {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-decoration: none;
+    opacity: 0.42;
+    transition: opacity 0.15s ease;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-blog-feed__chip {
+      font-size: 15px;
+    }
+  }
+
+  .theinmag-blog-feed__chip:hover,
+  .theinmag-blog-feed__chip:focus-visible {
+    opacity: 0.85;
+    outline: none;
+  }
+
+  .theinmag-blog-feed__chip.is-active {
+    opacity: 1;
+    font-weight: 600;
+  }
+
+  /* See-all pill: outlined dark teal (the section's accent), 32px pill
+     to match the brand's button shape language. Lowercase + Inter 600
+     for the editorial register. */
   .theinmag-blog-feed__seeall {
-    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: var(--color-teal-dark, #2D6878);
+    border: 2px solid var(--color-teal-dark, #2D6878);
+    border-radius: 32px;
+    padding: 10px 22px;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 600;
     font-size: 13px;
     line-height: 1;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--color-teal-dark, #2D6878);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-    transition: color 0.15s ease, text-decoration-thickness 0.15s ease;
-    padding-bottom: clamp(6px, 0.8vw, 14px);
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    min-height: 40px;
     white-space: nowrap;
   }
 
   @media (min-width: 750px) {
     .theinmag-blog-feed__seeall {
+      padding: 12px 26px;
       font-size: 14px;
+      min-height: 44px;
     }
   }
 
   .theinmag-blog-feed__seeall:hover,
   .theinmag-blog-feed__seeall:focus-visible {
-    color: var(--color-purple-dark, #5D3A7A);
-    text-decoration-thickness: 2px;
+    background-color: var(--color-teal-dark, #2D6878);
+    color: #FFFFFF;
     outline: none;
   }
 
@@ -279,9 +364,6 @@
     display: flex;
   }
 
-  /* Unified cream tile: image flush to top, body below, all clipped
-     to a 20px rounded container. Subtle shadow lifts the tile off the
-     cream section. */
   .theinmag-blog-feed__card {
     display: flex;
     flex-direction: column;
@@ -334,8 +416,6 @@
     background: linear-gradient(135deg, #5D3A7A 0%, #C9543E 100%);
   }
 
-  /* Bottom-only scrim now that the title's left the overlay - just
-     enough darkness for the topic label to read against bright art. */
   .theinmag-blog-feed__scrim {
     position: absolute;
     inset: 0;
@@ -367,7 +447,6 @@
     }
   }
 
-  /* Body: title + excerpt stacked under the cover. */
   .theinmag-blog-feed__body {
     display: flex;
     flex-direction: column;
@@ -383,7 +462,6 @@
     line-height: 1.22;
     letter-spacing: -0.005em;
     color: var(--color-inky-purple-navy, #2A1F3D);
-    /* Two-line clamp keeps card heights even across the row. */
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -419,7 +497,8 @@
   @media (prefers-reduced-motion: reduce) {
     .theinmag-blog-feed__card,
     .theinmag-blog-feed__image,
-    .theinmag-blog-feed__seeall {
+    .theinmag-blog-feed__seeall,
+    .theinmag-blog-feed__chip {
       transition: none;
     }
     .theinmag-blog-feed__card:hover,
@@ -465,36 +544,74 @@
       "type": "text",
       "id": "heading_period",
       "label": "Punctuation (large)",
-      "default": "."
+      "default": ""
     },
     {
       "type": "text",
       "id": "subhead",
       "label": "Subhead (optional)",
-      "default": "Field notes from the road, the classroom, and the kitchen table."
+      "default": ""
     },
     {
       "type": "header",
-      "content": "See all blogs link"
+      "content": "Audience filter chips"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filters",
+      "label": "Show filter chips",
+      "default": true
+    },
+    {
+      "type": "radio",
+      "id": "active_chip",
+      "label": "Active chip",
+      "options": [
+        { "value": "all", "label": "all" },
+        { "value": "kids", "label": "kids" },
+        { "value": "adults", "label": "adults" }
+      ],
+      "default": "all"
+    },
+    {
+      "type": "text",
+      "id": "chip_all_link",
+      "label": "'all' link",
+      "default": "/blogs/theinside"
+    },
+    {
+      "type": "text",
+      "id": "chip_kids_link",
+      "label": "'kids' link",
+      "default": "/blogs/theinside?audience=kids"
+    },
+    {
+      "type": "text",
+      "id": "chip_adults_link",
+      "label": "'adults' link",
+      "default": "/blogs/theinside?audience=adults"
+    },
+    {
+      "type": "header",
+      "content": "See all blogs button"
     },
     {
       "type": "checkbox",
       "id": "show_cta",
-      "label": "Show 'see all blogs' link",
+      "label": "Show 'see all blogs' button",
       "default": true
     },
     {
       "type": "text",
       "id": "cta_label",
-      "label": "Link label",
+      "label": "Button label",
       "default": "see all blogs"
     },
     {
       "type": "text",
       "id": "cta_link",
-      "label": "Link path",
-      "default": "/blogs/theinside",
-      "info": "Internal path, e.g. /blogs/theinside."
+      "label": "Button link",
+      "default": "/blogs/theinside"
     },
     {
       "type": "header",
