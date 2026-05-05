@@ -238,6 +238,9 @@
     flex-direction: column;
     gap: clamp(4px, 0.6vw, 8px);
     min-width: 0;
+    /* Indent the wordmark off the panel's left edge so it doesn't
+       sit flush against the corner. */
+    margin-left: clamp(8px, 3vw, 64px);
   }
 
   /* Heading composes four spans so the brand pun (capitalised IN) reads
@@ -388,32 +391,38 @@
     display: flex;
   }
 
-  /* Tiles drop their own backgrounds and shadows now that they sit on
-     the cream panel - the rounded image IS the visual unit, body text
-     sits naturally on the panel underneath. Avoids cream-on-cream
-     merging and matches the Maude editorial tile pattern. */
+  /* Tiles get their own cream background + shadow back so they read
+     as discrete tiles against the cream panel. Stronger shadow than
+     before since both are cream - the shadow defines the tile edge. */
   .theinmag-blog-feed__card {
     display: flex;
     flex-direction: column;
     flex: 1;
     text-decoration: none;
     color: inherit;
-    gap: clamp(12px, 1.4vw, 16px);
+    background-color: var(--color-cream, #FBF6EA);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.14);
+    transition: transform var(--transition-hover, 0.2s ease), box-shadow var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-blog-feed__card:hover,
+  .theinmag-blog-feed__card:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 24px rgba(123, 79, 158, 0.22);
+    outline: none;
   }
 
   .theinmag-blog-feed__card:focus-visible {
-    outline: 2px solid var(--color-purple-dark, #5D3A7A);
-    outline-offset: 4px;
-    border-radius: 22px;
+    box-shadow: 0 0 0 3px var(--color-purple-dark, #5D3A7A), 0 6px 24px rgba(123, 79, 158, 0.22);
   }
 
-  /* Cover gets the rounded edges directly now (no parent card to clip). */
   .theinmag-blog-feed__cover {
     position: relative;
     display: block;
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    border-radius: 20px;
     background-color: #E8DEEF;
   }
 
@@ -472,7 +481,7 @@
     display: flex;
     flex-direction: column;
     gap: clamp(8px, 1vw, 12px);
-    padding: 0 clamp(2px, 0.4vw, 6px);
+    padding: clamp(16px, 1.8vw, 22px);
     flex: 1;
   }
 
