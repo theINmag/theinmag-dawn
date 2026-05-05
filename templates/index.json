@@ -239,6 +239,58 @@
         "cta_link": "/products/mag10"
       }
     },
+    "theinmag_reviews": {
+      "type": "theinmag-reviews",
+      "blocks": {
+        "review-1": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "[PLACEHOLDER - hospital story] We took theINmag into the kids' ward when our daughter was admitted. She picked out the 'Send IN your creation' page and we drew at her bedside for hours. By the time we left she'd filled half a notebook.",
+            "name": "Anna [TBD]",
+            "location": "mum of 2, Brisbane QLD [TBD]"
+          }
+        },
+        "review-2": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "[PLACEHOLDER - Trent the teacher] I run an after-school art club for grades 3-6. theINmag is the only resource I've found that genuinely shows kids what's possible without being preachy. The kids fight over who gets to flip through it next.",
+            "name": "Trent [TBD]",
+            "location": "primary teacher, Bendigo VIC [TBD]"
+          }
+        },
+        "review-3": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "[PLACEHOLDER - mum whose son found his picture] He flipped to page 47, saw his drawing, and just went 'Mum. MUM. That's mine.' I've never seen him so proud.",
+            "name": "Jess [TBD]",
+            "location": "mum of 1, Adelaide SA [TBD]",
+            "video_url": "https://cdn.shopify.com/videos/c/o/v/87f2283c54944d23b6ff36107703d380.mp4"
+          }
+        }
+      },
+      "block_order": ["review-1", "review-2", "review-3"],
+      "settings": {
+        "heading": "",
+        "use_judgeme_widget": false,
+        "aggregate_rating": 5,
+        "review_count": 0,
+        "show_count_threshold": 100,
+        "show_cta": true,
+        "cta_label": "Read all reviews",
+        "cta_link": "/pages/reviews",
+        "character_1_filename": "character-reviews-1.png",
+        "character_1_alt": "A theINmag reader's drawing.",
+        "character_2_filename": "character-reviews-2.png",
+        "character_2_alt": "A theINmag reader's drawing.",
+        "character_3_filename": "character-reviews-3.png",
+        "character_3_alt": "A theINmag reader's drawing.",
+        "padding_top": 0,
+        "padding_bottom": 32
+      }
+    },
     "theinmag_blog_feed": {
       "type": "theinmag-blog-feed",
       "blocks": {
@@ -471,6 +523,7 @@
     "theinmag_audience_tiles",
     "theinmag_philosophy",
     "theinmag_meet_tam",
+    "theinmag_reviews",
     "theinmag_blog_feed",
     "rich_text",
     "featured_collection",

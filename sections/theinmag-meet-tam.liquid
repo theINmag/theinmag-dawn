@@ -62,6 +62,19 @@
   class="theinmag-meet-tam"
   aria-labelledby="theinmag-meet-tam-heading"
 >
+  {%- comment -%}
+    Decorative dots layer on the section's lavender bg, matching the
+    reviews section below. Same image, same rotation, same opacity -
+    the two sections read as one continuous patterned field.
+  {%- endcomment -%}
+  <img
+    class="theinmag-meet-tam__dots"
+    src="{{ 'dotsforbehindtam.png' | asset_url }}"
+    alt=""
+    aria-hidden="true"
+    loading="lazy"
+  >
+
   <div class="theinmag-meet-tam__card">
     <div class="theinmag-meet-tam__bg theinmag-meet-tam__bg--leaves" style="background-image: url('{{ leaves_src }}');" aria-hidden="true"></div>
     <div class="theinmag-meet-tam__bg theinmag-meet-tam__bg--leaves-top" style="background-image: url('{{ leaves_src }}');" aria-hidden="true"></div>
@@ -142,7 +155,13 @@
         </div>
       </div>
 
-      <div class="theinmag-meet-tam__copy">
+      {%- comment -%}
+        Copy is split into __copy-top (heading + role) and __copy-bottom
+        (intro + CTA) so on mobile the headings can sit ABOVE the video
+        while the write-up and button stay below. On desktop both halves
+        sit in the right column via grid placement.
+      {%- endcomment -%}
+      <div class="theinmag-meet-tam__copy theinmag-meet-tam__copy--top">
         <div class="theinmag-meet-tam__heading-wrap">
           {%- if shape_src != blank -%}
             <img
@@ -158,6 +177,9 @@
         {%- if role != blank -%}
           <p class="theinmag-meet-tam__role">{{ role_html }}</p>
         {%- endif -%}
+      </div>
+
+      <div class="theinmag-meet-tam__copy theinmag-meet-tam__copy--bottom">
         {%- if intro != blank -%}
           <p class="theinmag-meet-tam__intro">{{ intro_html }}</p>
         {%- endif -%}
@@ -186,11 +208,50 @@
        is what creates the visual break, not a colour change. */
     background-color: #C9B5DB;
     color: var(--color-inky-purple-navy, #2A1F3D);
+    overflow: hidden;
     /* Tight top padding so the card sits close to the philosophy
        content above; generous bottom padding so the lavender below
        the card breathes. */
     padding: clamp(16px, 1.6vw, 24px) clamp(16px, 3vw, 32px) clamp(48px, 6vw, 80px);
   }
+
+  /* ================================================================
+     Decorative dots layer - anchored so the IMAGE'S CENTER sits at
+     this section's BOTTOM edge. Half the image is visible inside
+     meet-tam (extending up from the boundary), half hangs below the
+     boundary into reviews' space (clipped by overflow:hidden).
+
+     The matching reviews dots layer mirrors this: its image center
+     sits at reviews' TOP edge, with half visible below the boundary.
+     Both halves come from the same image at the same horizontal
+     position, so the pattern flows continuously across the section
+     boundary - no visible seam.
+     ================================================================ */
+  .theinmag-meet-tam__dots {
+    /* Hidden on mobile - the trail image stretches awkwardly at narrow
+       widths. Desktop only. */
+    display: none;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__dots {
+      display: block;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: auto;
+      height: auto;
+      min-width: 220vw;
+      min-height: 500vh;
+      max-width: none;
+      transform: translate(-50%, 50%) rotate(90deg);
+      opacity: 0.32;
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+    }
+  }
+
 
   @media (min-width: 990px) {
     .theinmag-meet-tam {
@@ -206,6 +267,7 @@
      ================================================================ */
   .theinmag-meet-tam__card {
     position: relative;
+    z-index: 1;
     max-width: 1200px;
     margin: 0 auto;
     background-color: #E8D1E6;
@@ -309,21 +371,45 @@
     z-index: 1;
     display: grid;
     grid-template-columns: 1fr;
-    gap: clamp(24px, 4vw, 40px);
+    gap: clamp(20px, 3vw, 32px);
     align-items: center;
     text-align: center;
   }
 
-  /* Desktop: split layout. Video left, copy right.
-     The 0.9fr / 1.1fr ratio gives the copy column slightly more room so
-     the heading + paragraph + CTA don't feel cramped beside the
-     portrait video. */
+  /* Mobile order: copy-top (heading + role) → media → copy-bottom
+     (intro + CTA). Headings sit above the video; write-up sits below. */
+  .theinmag-meet-tam__copy--top { order: 1; }
+  .theinmag-meet-tam__media { order: 2; }
+  .theinmag-meet-tam__copy--bottom { order: 3; }
+
+  /* Desktop: split layout. Video left (spans both rows), copy halves
+     stacked in the right column. The 0.9fr / 1.1fr ratio gives the
+     copy column slightly more room. */
   @media (min-width: 990px) {
     .theinmag-meet-tam__inner {
       grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-      gap: clamp(40px, 6vw, 80px);
+      grid-template-rows: auto auto;
+      gap: clamp(28px, 4vw, 48px) clamp(40px, 6vw, 80px);
       text-align: left;
       align-items: center;
+    }
+
+    .theinmag-meet-tam__media {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      order: unset;
+    }
+    .theinmag-meet-tam__copy--top {
+      grid-column: 2;
+      grid-row: 1;
+      order: unset;
+      align-self: end;
+    }
+    .theinmag-meet-tam__copy--bottom {
+      grid-column: 2;
+      grid-row: 2;
+      order: unset;
+      align-self: start;
     }
   }
 

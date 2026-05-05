@@ -1,0 +1,1069 @@
+{%- comment -%}
+  theinmag-reviews
+  Section 7 - cream cards on a peach section background showing three
+  featured reviews. Aggregate rating row in the heading bar, locked
+  decisions:
+    - count == 0: aggregate hidden (pre-launch state)
+    - 0 < count < threshold: stars only, no number (honest > inflated)
+    - count >= threshold: full "X.X - N reviews"
+  Manual settings drive the aggregate by default; the use_judgeme_widget
+  toggle swaps in Judge.me's JS-hydrated all-reviews widget once the
+  number flow is worth automating.
+
+  One kid character (random-of-three) anchored to the top-right of the
+  middle card with the same scroll-pop pattern as theinmag-mission and
+  theinmag-philosophy. Hidden below 750px - phones are too tight.
+
+  Photo OR video per review (video wins when both are set). Cards
+  without media still render, just quieter. Video uses native controls,
+  muted by default - visitor presses play.
+
+  Cream cards are uniform per the locked palette decision (B). Variation
+  shows through media presence and per-card content, not background
+  colour.
+
+  No aggregateRating / Review JSON-LD on this section by design - Google
+  reserves both for single-item pages and Search Console flags them on
+  homepage/category pages. Judge.me handles review schema correctly on
+  the product pages where it earns rich results.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign cta_label = section.settings.cta_label
+  assign cta_link = section.settings.cta_link
+  assign show_cta = section.settings.show_cta
+
+  assign use_judgeme = section.settings.use_judgeme_widget
+  assign aggregate_rating = section.settings.aggregate_rating | default: 5
+  assign review_count = section.settings.review_count | default: 0
+  assign threshold = section.settings.show_count_threshold | default: 100
+
+  assign bg_src = ''
+  if section.settings.background_image != blank
+    assign bg_src = section.settings.background_image | image_url: width: 2400
+  elsif section.settings.background_filename != blank
+    assign bg_src = section.settings.background_filename | asset_url
+  endif
+
+  assign section_class = 'theinmag-reviews'
+  if bg_src != blank
+    assign section_class = 'theinmag-reviews theinmag-reviews--has-bg'
+  endif
+
+  assign section_style = '--reviews-pt: ' | append: section.settings.padding_top | append: 'px; --reviews-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  if bg_src != blank
+    assign section_style = section_style | append: " --reviews-bg: url('" | append: bg_src | append: "');"
+  endif
+
+  assign character_count = 0
+  for i in (1..3)
+    assign img_key = 'character_' | append: i
+    assign filename_key = 'character_' | append: i | append: '_filename'
+    if section.settings[img_key] != blank or section.settings[filename_key] != blank
+      assign character_count = character_count | plus: 1
+    endif
+  endfor
+
+  comment
+    Anchor the character to the middle card. Falls back gracefully when
+    the section ships with fewer than three blocks.
+  endcomment
+  assign middle_index = 2
+  if section.blocks.size < 3
+    assign middle_index = 1
+  endif
+
+  assign rating_x10 = aggregate_rating | times: 10 | round
+-%}
+
+<section
+  class="{{ section_class }}"
+  data-theinmag-reviews
+  aria-labelledby="theinmag-reviews-heading"
+  style="{{ section_style }}"
+>
+  {%- comment -%}
+    Decorative dots pattern behind everything. Rotated 90° and
+    oversized so the dot trail spans edge-to-edge across the desktop
+    viewport, breaking up the flat lavender. Sits at the lowest
+    stacking layer; pointer-events:none so it doesn't intercept
+    clicks. aria-hidden because it's purely decorative.
+  {%- endcomment -%}
+  <img
+    class="theinmag-reviews__dots"
+    src="{{ 'dotsforbehindtam.png' | asset_url }}"
+    alt=""
+    aria-hidden="true"
+    loading="lazy"
+  >
+
+  {%- if character_count > 0 -%}
+    {%- liquid
+      assign char_attrs_section = ''
+      for i in (1..3)
+        assign img_key = 'character_' | append: i
+        assign filename_key = 'character_' | append: i | append: '_filename'
+        assign alt_key = 'character_' | append: i | append: '_alt'
+        assign char_img = section.settings[img_key]
+        assign char_filename = section.settings[filename_key]
+        assign src = ''
+        if char_img != blank
+          assign src = char_img | image_url: width: 600
+        elsif char_filename != blank
+          assign src = char_filename | asset_url
+        endif
+        if src != blank
+          assign alt_val = section.settings[alt_key] | default: '' | escape
+          assign char_attrs_section = char_attrs_section | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
+          assign char_attrs_section = char_attrs_section | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
+        endif
+      endfor
+    -%}
+    <div class="theinmag-reviews__character" data-theinmag-character{{ char_attrs_section }}></div>
+  {%- endif -%}
+
+  <div class="theinmag-reviews__inner">
+    <header class="theinmag-reviews__header">
+      <div class="theinmag-reviews__title-stack">
+        {%- if heading != blank -%}
+          <h2 id="theinmag-reviews-heading" class="theinmag-reviews__heading">{{ heading }}</h2>
+        {%- endif -%}
+        {%- if subhead != blank -%}
+          <p class="theinmag-reviews__subhead">{{ subhead }}</p>
+        {%- endif -%}
+      </div>
+
+      {%- if review_count > 0 or use_judgeme -%}
+        <div class="theinmag-reviews__aggregate">
+          {%- if use_judgeme -%}
+            {%- comment -%}
+              Judge.me's App Embed JS hydrates these placeholder elements
+              after page load. The wrapper class hides them visually
+              until JS injects the rating + count, preventing flash.
+            {%- endcomment -%}
+            <div class="theinmag-reviews__aggregate-jdgm">
+              <div class="jdgm-all-reviews-rating" aria-hidden="true"></div>
+              <span class="jdgm-all-reviews-count" aria-hidden="true"></span>
+            </div>
+          {%- else -%}
+            <span class="theinmag-reviews__stars" role="img" aria-label="{{ aggregate_rating }} out of 5 stars">
+              {%- for i in (1..5) -%}
+                {%- assign full_at = i | times: 10 -%}
+                {%- assign prev_at = i | minus: 1 | times: 10 -%}
+                {%- assign fill_pct = 0 -%}
+                {%- if rating_x10 >= full_at -%}
+                  {%- assign fill_pct = 100 -%}
+                {%- elsif rating_x10 > prev_at -%}
+                  {%- assign fill_pct = rating_x10 | minus: prev_at | times: 10 -%}
+                {%- endif -%}
+                <span class="theinmag-reviews__star" style="--fill: {{ fill_pct }}%"></span>
+              {%- endfor -%}
+            </span>
+            {%- if review_count >= threshold -%}
+              <span class="theinmag-reviews__aggregate-text">
+                <span class="theinmag-reviews__aggregate-value">{{ aggregate_rating }}</span>
+                <span class="theinmag-reviews__aggregate-sep" aria-hidden="true"> - </span>
+                <span class="theinmag-reviews__aggregate-count">{{ review_count }} reviews</span>
+              </span>
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </header>
+
+    {%- if section.blocks.size > 0 -%}
+      {%- comment -%}
+        New layout: two-column on desktop. Left = stack of text-only
+        review cards. Right = single video review card (video frame on
+        top, written review below). Mobile: video card first, then
+        text stack.
+
+        Reviews are split by whether video_url is set. Multiple videos:
+        only the first renders as the "right" card; any extras fall
+        through to the text stack (rare edge case for the homepage).
+
+        Photo display is intentionally dropped from the homepage
+        rendering - the schema field stays for use on /pages/reviews
+        later. Homepage cards are either video (right) or pure text
+        (left stack), no avatar treatment, for visual uniformity.
+      {%- endcomment -%}
+
+      {%- liquid
+        assign video_block_index = 0
+        for block in section.blocks
+          if block.settings.video_url != blank and video_block_index == 0
+            assign video_block_index = forloop.index
+          endif
+        endfor
+
+        assign char_attrs = ''
+        for i in (1..3)
+          assign img_key = 'character_' | append: i
+          assign filename_key = 'character_' | append: i | append: '_filename'
+          assign alt_key = 'character_' | append: i | append: '_alt'
+          assign char_img = section.settings[img_key]
+          assign char_filename = section.settings[filename_key]
+          assign src = ''
+          if char_img != blank
+            assign src = char_img | image_url: width: 400
+          elsif char_filename != blank
+            assign src = char_filename | asset_url
+          endif
+          if src != blank
+            assign alt_val = section.settings[alt_key] | default: '' | escape
+            assign char_attrs = char_attrs | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
+            assign char_attrs = char_attrs | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
+          endif
+        endfor
+      -%}
+
+      <div class="theinmag-reviews__layout">
+
+        {%- comment -%} Left column: stacked text-only review cards. {%- endcomment -%}
+        <div class="theinmag-reviews__text-stack" role="list">
+          {%- for block in section.blocks -%}
+            {%- if block.settings.video_url == blank or forloop.index != video_block_index -%}
+              {%- liquid
+                assign rating = block.settings.rating | default: 5
+                assign body = block.settings.body
+                assign reviewer_name = block.settings.name
+                assign reviewer_location = block.settings.location
+              -%}
+              <article class="theinmag-reviews__card theinmag-reviews__card--text" role="listitem" {{ block.shopify_attributes }}>
+                <div class="theinmag-reviews__card-stars" role="img" aria-label="{{ rating }} out of 5 stars">
+                  {%- for i in (1..5) -%}
+                    {%- assign fill_pct = 0 -%}
+                    {%- if i <= rating -%}{%- assign fill_pct = 100 -%}{%- endif -%}
+                    <span class="theinmag-reviews__star" style="--fill: {{ fill_pct }}%"></span>
+                  {%- endfor -%}
+                </div>
+
+                {%- if body != blank -%}
+                  <p class="theinmag-reviews__card-body">{{ body }}</p>
+                {%- endif -%}
+
+                {%- if reviewer_name != blank or reviewer_location != blank -%}
+                  <p class="theinmag-reviews__card-attribution">
+                    {%- if reviewer_name != blank -%}
+                      <span class="theinmag-reviews__card-name">{{ reviewer_name }}</span>
+                    {%- endif -%}
+                    {%- if reviewer_location != blank -%}
+                      <span class="theinmag-reviews__card-location">{{ reviewer_location }}</span>
+                    {%- endif -%}
+                  </p>
+                {%- endif -%}
+              </article>
+            {%- endif -%}
+          {%- endfor -%}
+
+          {%- if show_cta and cta_label != blank and cta_link != blank -%}
+            <div class="theinmag-reviews__cta-wrap">
+              <a class="theinmag-reviews__cta" href="{{ cta_link }}">{{ cta_label }}</a>
+            </div>
+          {%- endif -%}
+        </div>
+
+        {%- comment -%}
+          Right column: single video review card. Video frame at 1:1,
+          then the written review below.
+        {%- endcomment -%}
+        {%- if video_block_index > 0 -%}
+          {%- assign video_index_zero = video_block_index | minus: 1 -%}
+          {%- assign video_block = section.blocks[video_index_zero] -%}
+          {%- liquid
+            assign v_rating = video_block.settings.rating | default: 5
+            assign v_body = video_block.settings.body
+            assign v_name = video_block.settings.name
+            assign v_location = video_block.settings.location
+            assign v_video = video_block.settings.video_url
+            assign v_poster = ''
+            if video_block.settings.photo != blank
+              assign v_poster = video_block.settings.photo | image_url: width: 1200
+            elsif video_block.settings.photo_filename != blank
+              assign v_poster = video_block.settings.photo_filename | asset_url
+            endif
+          -%}
+          <div class="theinmag-reviews__video-column">
+            <article class="theinmag-reviews__card theinmag-reviews__card--video" {{ video_block.shopify_attributes }}>
+              <div class="theinmag-reviews__card-video">
+                <video
+                  src="{{ v_video }}"
+                  controls
+                  muted
+                  playsinline
+                  preload="metadata"
+                  {%- if v_poster != blank %} poster="{{ v_poster }}"{% endif -%}
+                ></video>
+              </div>
+
+              <div class="theinmag-reviews__card-video-body">
+                <div class="theinmag-reviews__card-stars" role="img" aria-label="{{ v_rating }} out of 5 stars">
+                  {%- for i in (1..5) -%}
+                    {%- assign fill_pct = 0 -%}
+                    {%- if i <= v_rating -%}{%- assign fill_pct = 100 -%}{%- endif -%}
+                    <span class="theinmag-reviews__star" style="--fill: {{ fill_pct }}%"></span>
+                  {%- endfor -%}
+                </div>
+
+                {%- if v_body != blank -%}
+                  <p class="theinmag-reviews__card-body">{{ v_body }}</p>
+                {%- endif -%}
+
+                {%- if v_name != blank or v_location != blank -%}
+                  <p class="theinmag-reviews__card-attribution">
+                    {%- if v_name != blank -%}<span class="theinmag-reviews__card-name">{{ v_name }}</span>{%- endif -%}
+                    {%- if v_location != blank -%}<span class="theinmag-reviews__card-location">{{ v_location }}</span>{%- endif -%}
+                  </p>
+                {%- endif -%}
+              </div>
+            </article>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-reviews
+     Lavender section background extending the philosophy + meet-tam
+     purple field downward - the three sections read as one continuous
+     purple stretch, broken only by the cream cards on top. No cream
+     panel wrapper. Cards float directly on the lavender.
+     ================================================================ */
+
+  .theinmag-reviews {
+    position: relative;
+    overflow: hidden;
+    background-color: #C9B5DB;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--reviews-pt, 64px) clamp(16px, 3vw, 32px) var(--reviews-pb, 64px);
+    /* No negative margin - it was causing meet-tam's card shadow to
+       get visually clipped where reviews' lavender layer started,
+       creating a hard horizontal line. Both sections share the same
+       lavender so the boundary is invisible without it. */
+  }
+
+  /* Optional painterly background swap if Tam paints one later. */
+  .theinmag-reviews--has-bg {
+    background-image: var(--reviews-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  /* Inner is a tighter centered container - cards stay compact and
+     visibly centered within the viewport. position:relative + z-index
+     keeps cards stacked above the dots pattern layer behind. */
+  .theinmag-reviews__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  /* ================================================================
+     Decorative dots layer - anchored so the IMAGE'S CENTER sits at
+     this section's TOP edge. Half the image is visible inside
+     reviews (extending down from the boundary), half is above the
+     boundary in meet-tam's space (clipped by overflow:hidden).
+
+     The matching meet-tam dots layer mirrors this: its image center
+     sits at meet-tam's BOTTOM edge with half visible above the
+     boundary. Both halves come from the same image at the same
+     horizontal position, so the pattern flows continuously across
+     the section boundary - no visible seam.
+     ================================================================ */
+  .theinmag-reviews__dots {
+    /* Hidden on mobile - the trail image stretches awkwardly at narrow
+       widths. Desktop only. */
+    display: none;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-reviews__dots {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: auto;
+      height: auto;
+      min-width: 220vw;
+      min-height: 500vh;
+      max-width: none;
+      transform: translate(-50%, -50%) rotate(90deg);
+      opacity: 0.32;
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+    }
+  }
+
+  /* ================================================================
+     Header row - heading + subhead on the left, aggregate rating on
+     the right. Stacks vertically on narrow viewports.
+     ================================================================ */
+
+  .theinmag-reviews__header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(14px, 2vw, 22px);
+    margin-bottom: clamp(28px, 4vw, 44px);
+    /* Mirror the blog-feed indent so the heading doesn't sit flush
+       against the panel's left/right corners. */
+    padding: 0 clamp(0px, 2vw, 32px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-reviews__header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md, 16px);
+    }
+  }
+
+  .theinmag-reviews__title-stack {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4px, 0.6vw, 8px);
+    min-width: 0;
+  }
+
+  .theinmag-reviews__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.4vw, 48px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-reviews__subhead {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(13px, 1.3vw, 15px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
+    max-width: 60ch;
+  }
+
+  /* ================================================================
+     Aggregate row - five stars, then optional "X.X - N reviews" once
+     the count crosses the threshold. Below threshold (default 100)
+     only the stars show. At zero the whole row is hidden in Liquid.
+     ================================================================ */
+
+  .theinmag-reviews__aggregate {
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 1.2vw, 14px);
+    flex-wrap: wrap;
+  }
+
+  .theinmag-reviews__stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  /* Star primitive - SVG mask draws the shape, the element itself is
+     the empty/grey base, ::after paints yellow over the masked shape
+     and a clip-path controls the per-star fill (lets the aggregate
+     show fractional ratings like 4.7 cleanly). */
+  .theinmag-reviews__star {
+    --star-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2L9.19 8.62 2 9.27l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7L22 9.27l-7.19-.65z'/></svg>");
+    position: relative;
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    background-color: rgba(42, 31, 61, 0.18);
+    -webkit-mask-image: var(--star-mask);
+            mask-image: var(--star-mask);
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+            mask-position: center;
+    -webkit-mask-size: contain;
+            mask-size: contain;
+  }
+
+  .theinmag-reviews__star::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-yellow, #F9C23C);
+    clip-path: inset(0 calc(100% - var(--fill, 100%)) 0 0);
+  }
+
+  /* Card stars - small to keep cards compact. */
+  .theinmag-reviews__card-stars .theinmag-reviews__star {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+  }
+
+  .theinmag-reviews__aggregate-text {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0;
+  }
+
+  .theinmag-reviews__aggregate-value {
+    color: var(--color-cherry, #B8265E);
+  }
+
+  .theinmag-reviews__aggregate-sep {
+    opacity: 0.6;
+  }
+
+  /* Judge.me hydrated mode - the App Embed JS injects content after
+     load. Container styled to match the manual mode so the layout
+     doesn't shift when JS finishes. */
+  .theinmag-reviews__aggregate-jdgm {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(14px, 1.4vw, 16px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(8px, 1.2vw, 14px);
+  }
+
+  /* ================================================================
+     Layout: two-column on desktop. Left = stacked text cards.
+     Right = single video card with body below. Mobile stacks all
+     three cards (video first because it's the headline content).
+     ================================================================ */
+
+  .theinmag-reviews__layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(12px, 1.4vw, 16px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-reviews__layout {
+      /* Text column wider, video column narrower - cuts the video
+         card's overall height (smaller square, smaller card) so the
+         whole section fits in one viewport. */
+      grid-template-columns: 1fr 0.7fr;
+      gap: clamp(16px, 1.6vw, 20px);
+      align-items: start;
+    }
+  }
+
+  /* Left column - stack of text-only review cards. Mobile: appears
+     below the video (order:2). Desktop: left column. */
+  .theinmag-reviews__text-stack {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 1.4vw, 16px);
+    order: 2;
+  }
+
+  /* Right column - the single video card. */
+  .theinmag-reviews__video-column {
+    position: relative;
+    order: 1;
+    display: flex;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-reviews__text-stack {
+      order: unset;
+      grid-column: 1;
+    }
+    .theinmag-reviews__video-column {
+      order: unset;
+      grid-column: 2;
+    }
+  }
+
+  /* Sharp-cornered cream tiles floating on the lavender. Subtle
+     shadow lifts each tile off the purple. */
+  .theinmag-reviews__card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-cream, #FBF6EA);
+    border-radius: 0;
+    box-shadow: 0 4px 18px rgba(42, 31, 61, 0.14);
+    transition: transform var(--transition-hover, 0.2s ease), box-shadow var(--transition-hover, 0.2s ease);
+    overflow: hidden;
+  }
+
+  /* Text-only cards in the left stack: content-sized (no flex:1) so
+     the card snugs to its body length instead of stretching to match
+     the video card. */
+  .theinmag-reviews__card--text {
+    padding: clamp(14px, 1.4vw, 18px);
+    gap: clamp(8px, 0.9vw, 10px);
+  }
+
+  .theinmag-reviews__card--video {
+    flex: 1;
+  }
+
+  .theinmag-reviews__card-video-body {
+    padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.4vw, 18px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 0.8vw, 8px);
+  }
+
+  .theinmag-reviews__card-stars {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  /* Video frame - flush to the card edges. 1:1 square keeps the
+     overall section short enough to fit in a single viewport while
+     still giving the video real presence. */
+  .theinmag-reviews__card-video {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background-color: rgba(42, 31, 61, 0.08);
+  }
+
+  .theinmag-reviews__card-video video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-reviews__card-body {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(12px, 1vw, 13.5px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* Attribution - name + location stacked. mt:auto pushes it to the
+     bottom of the card so the line aligns even when bodies differ
+     in length. Photo avatars are not rendered on the homepage; the
+     schema field stays for use on /pages/reviews later. */
+  .theinmag-reviews__card-attribution {
+    margin: auto 0 0;
+    padding-top: clamp(6px, 0.7vw, 8px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .theinmag-reviews__card-name {
+    font-weight: 600;
+  }
+
+  .theinmag-reviews__card-location {
+    font-weight: 400;
+    opacity: 0.7;
+    letter-spacing: 0.01em;
+  }
+
+  /* ================================================================
+     Read-all CTA - outlined dark teal pill, mirrors the blog feed's
+     see-all button so the two sections share a button language.
+     ================================================================ */
+
+  /* CTA sits inside the text-stack column, centered horizontally
+     within the column width. Small top margin gives breathing room
+     from the card above. */
+  .theinmag-reviews__cta-wrap {
+    margin: clamp(4px, 0.6vw, 8px) 0 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .theinmag-reviews__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    border: 2px solid var(--color-purple-dark, #5D3A7A);
+    border-radius: 32px;
+    padding: 8px 20px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 12.5px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    min-height: 36px;
+    white-space: nowrap;
+  }
+
+  .theinmag-reviews__cta:hover,
+  .theinmag-reviews__cta:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+
+  /* ================================================================
+     Random kid character - slides in horizontally from off-screen
+     LEFT, fills the empty lavender gap between the section's left
+     edge and the inner container. Only shows at >=1200px viewport
+     where there's actually room for it. Hidden on tablet/mobile.
+     ================================================================ */
+
+  .theinmag-reviews__character {
+    display: none;
+  }
+
+  @media (min-width: 1200px) {
+    .theinmag-reviews__character {
+      display: block;
+      position: absolute;
+      left: clamp(0px, 1.5vw, 24px);
+      top: 50%;
+      width: clamp(140px, 14vw, 220px);
+      pointer-events: none;
+      z-index: 0;
+      /* Initial state: fully off-screen to the left. Translate uses
+         vertical -50% to center the character against the section's
+         vertical midpoint. */
+      transform: translate(-130%, -50%);
+      transition: transform 0.85s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    .theinmag-reviews__character.is-popped {
+      transform: translate(0, -50%);
+      animation: theinmag-reviews-bob 4s ease-in-out infinite 0.9s;
+    }
+  }
+
+  .theinmag-reviews__character-img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Bob keyframes preserve the -50% Y translate so the bob layers on
+     top of the slide-in's final position without resetting it. */
+  @keyframes theinmag-reviews-bob {
+    0%, 100% { transform: translate(0, -50%) rotate(-2deg); }
+    50%      { transform: translate(0, calc(-50% - 6px)) rotate(2deg); }
+  }
+
+  /* ================================================================
+     Reduced motion - skip the slide-in and the bob.
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-reviews__card,
+    .theinmag-reviews__cta,
+    .theinmag-reviews__character {
+      transition: none;
+      animation: none;
+    }
+    .theinmag-reviews__card-wrap:hover .theinmag-reviews__card,
+    .theinmag-reviews__card-wrap:focus-within .theinmag-reviews__card {
+      transform: none;
+    }
+    @media (min-width: 1200px) {
+      .theinmag-reviews__character,
+      .theinmag-reviews__character.is-popped {
+        transform: translate(0, -50%);
+        animation: none;
+      }
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-reviews]');
+    if (!root) return;
+
+    var characterContainer = root.querySelector('[data-theinmag-character]');
+    if (!characterContainer) return;
+
+    /* Random character pick - up to three sources via data-src-1/2/3
+       (with paired alt). One is chosen at page load and rendered into
+       the container. Mirrors the mission/philosophy pattern - read
+       dataset['src-' + i] not dataset.src1 (digits don't trigger the
+       camelCase conversion). No loading="lazy" - lazy-loaded images
+       below the fold never resolve dimensions in this layout, which
+       collapses the absolutely-positioned parent. */
+    var sources = [];
+    for (var i = 1; i <= 3; i++) {
+      var src = characterContainer.dataset['src-' + i];
+      if (src) {
+        sources.push({
+          src: src,
+          alt: characterContainer.dataset['alt-' + i] || ''
+        });
+      }
+    }
+
+    if (!sources.length) return;
+
+    var chosen = sources[Math.floor(Math.random() * sources.length)];
+    var img = document.createElement('img');
+    img.className = 'theinmag-reviews__character-img';
+    img.src = chosen.src;
+    img.alt = chosen.alt;
+    characterContainer.appendChild(img);
+
+    /* Scroll-triggered pop. Anchored to the cards list - once the user
+       has scrolled the cards into the upper 80% of the viewport the
+       character lifts above the middle card. One-shot - don't reset
+       on scroll back up. Plain scroll listener (not IntersectionObserver)
+       per the kid-character pattern memory - IO is unreliable in some
+       embedded/automation contexts. */
+    var cardsList = root.querySelector('.theinmag-reviews__layout');
+    if (!cardsList) return;
+
+    var popped = false;
+    var checkPop = function () {
+      if (popped) return;
+      var rect = cardsList.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.8) {
+        popped = true;
+        characterContainer.classList.add('is-popped');
+        window.removeEventListener('scroll', onScroll);
+      }
+    };
+    var onScroll = function () {
+      window.requestAnimationFrame(checkPop);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    checkPop();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag reviews",
+  "tag": "section",
+  "class": "theinmag-reviews-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What are families saying?"
+    },
+    {
+      "type": "text",
+      "id": "subhead",
+      "label": "Subhead (optional)"
+    },
+    {
+      "type": "header",
+      "content": "Aggregate rating"
+    },
+    {
+      "type": "paragraph",
+      "content": "Manual mode below is fine for launch. The threshold keeps the section honest while reviews are being collected - below the threshold only stars show, no inflated number. Flip 'Auto-pull from Judge.me' on once enough reviews are flowing in to trust the live feed."
+    },
+    {
+      "type": "checkbox",
+      "id": "use_judgeme_widget",
+      "label": "Auto-pull from Judge.me",
+      "default": false,
+      "info": "Uses the Judge.me JS-hydrated widget for live count + rating. Leave off for now."
+    },
+    {
+      "type": "range",
+      "id": "aggregate_rating",
+      "label": "Manual rating",
+      "min": 0,
+      "max": 5,
+      "step": 0.1,
+      "default": 5,
+      "unit": "★"
+    },
+    {
+      "type": "number",
+      "id": "review_count",
+      "label": "Manual review count",
+      "default": 0,
+      "info": "Set to zero before launch to hide the aggregate row entirely."
+    },
+    {
+      "type": "number",
+      "id": "show_count_threshold",
+      "label": "Show count from this many reviews",
+      "default": 100,
+      "info": "Below this number only stars show. Once you have this many reviews, the rating value and count appear too."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image (optional)"
+    },
+    {
+      "type": "text",
+      "id": "background_filename",
+      "label": "Background fallback filename",
+      "info": "Used when the image picker is empty. Filename of an image in /assets/. Leave blank to use a flat peach background."
+    },
+    {
+      "type": "header",
+      "content": "Read-all CTA"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show 'read all reviews' button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "Read all reviews"
+    },
+    {
+      "type": "text",
+      "id": "cta_link",
+      "label": "Button link",
+      "default": "/pages/reviews"
+    },
+    {
+      "type": "header",
+      "content": "Character sticker (random)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Up to three kid-creation characters can be uploaded. One is picked at random per page load. Drop transparent PNGs into /assets/ and reference them by filename, or use the image picker."
+    },
+    { "type": "image_picker", "id": "character_1", "label": "Character 1 image" },
+    { "type": "text", "id": "character_1_filename", "label": "Character 1 fallback filename" },
+    { "type": "text", "id": "character_1_alt", "label": "Character 1 alt text" },
+    { "type": "image_picker", "id": "character_2", "label": "Character 2 image" },
+    { "type": "text", "id": "character_2_filename", "label": "Character 2 fallback filename" },
+    { "type": "text", "id": "character_2_alt", "label": "Character 2 alt text" },
+    { "type": "image_picker", "id": "character_3", "label": "Character 3 image" },
+    { "type": "text", "id": "character_3_filename", "label": "Character 3 fallback filename" },
+    { "type": "text", "id": "character_3_alt", "label": "Character 3 alt text" },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Rating",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "default": 5,
+          "unit": "★"
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Review text"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Reviewer name",
+          "info": "e.g. \"Sarah\" or \"Trent\""
+        },
+        {
+          "type": "text",
+          "id": "location",
+          "label": "Reviewer location / role (optional)",
+          "info": "e.g. \"mum of 2, Hobart TAS\" or \"primary teacher, Bendigo VIC\""
+        },
+        {
+          "type": "image_picker",
+          "id": "photo",
+          "label": "Reviewer photo (optional)"
+        },
+        {
+          "type": "text",
+          "id": "photo_filename",
+          "label": "Photo fallback filename"
+        },
+        {
+          "type": "text",
+          "id": "photo_alt",
+          "label": "Photo alt text"
+        },
+        {
+          "type": "text",
+          "id": "video_url",
+          "label": "Video URL (optional)",
+          "info": "Direct link to a Shopify-hosted MP4 (cdn.shopify.com/...). When set, video plays in the card. Photo becomes the poster frame if both are set."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag reviews",
+      "blocks": [
+        { "type": "review" },
+        { "type": "review" },
+        { "type": "review" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -256,7 +256,8 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: clamp(16px, 2vw, 24px);
+    /* Tighter gap on mobile so the chips sit close to the wordmark. */
+    gap: clamp(2px, 0.6vw, 12px);
     margin-bottom: clamp(8px, 1.4vw, 18px);
   }
 
@@ -285,7 +286,9 @@
   .theinmag-blog-feed__heading {
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
-    font-size: clamp(56px, 8vw, 104px);
+    /* Mobile floor bumped from 56 to 72 so the wordmark feels
+       proportionate to the section on phone widths. */
+    font-size: clamp(72px, 9vw, 104px);
     line-height: 0.95;
     letter-spacing: 0;
     margin: 0;
