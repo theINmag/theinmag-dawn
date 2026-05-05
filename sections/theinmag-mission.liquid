@@ -153,6 +153,12 @@
         </li>
       {%- endfor -%}
     </ul>
+
+    {%- if section.settings.social_proof_text != blank -%}
+      <p class="theinmag-mission__social-proof">
+        <span class="theinmag-mission__social-proof-stamp">{{ section.settings.social_proof_text }}</span>
+      </p>
+    {%- endif -%}
     </div>
   {%- endif -%}
   </div>
@@ -437,6 +443,53 @@
   }
 
   /* ================================================================
+     Social proof banner - a tight inline-block cream pill sitting
+     centred BELOW the products row. Same cream surface and subtle
+     card shadow as the product cards above, so it reads as part of
+     the same family. Tam's call: above the products competed with
+     the slogan band; below feels calmer and lets the cards breathe.
+     ================================================================ */
+
+  .theinmag-mission__social-proof {
+    margin: clamp(28px, 4vw, 48px) auto 0;
+    padding: 0 var(--space-md);
+    text-align: center;
+  }
+
+  .theinmag-mission__social-proof-stamp {
+    display: inline-block;
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    /* Match the product tile tagline size so the banner reads as part of
+       the same body-copy family. The Post Regular strong inside scales
+       off this via 1.8em, keeping the slogan-band emphasis proportion. */
+    font-size: 14px;
+    line-height: 1.5;
+    padding: clamp(10px, 1.4vw, 14px) clamp(20px, 2.6vw, 28px);
+    box-shadow: 0 1px 6px rgba(123, 79, 158, 0.06);
+    text-align: center;
+    max-width: 100%;
+  }
+
+  /* Inside the banner, <strong> picks up the same Post Regular emphasis
+     used in the slogan band's hover messages above - 1.8em with matching
+     line-height and vertical-align nudges so the hand-lettered word lifts
+     out of the Inter line without blowing the line-box out. */
+  .theinmag-mission__social-proof-stamp strong {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 1.8em;
+    line-height: 0.9;
+    letter-spacing: 0;
+    vertical-align: -0.12em;
+    display: inline-block;
+    color: inherit;
+  }
+
+
+  /* ================================================================
      Product cards (3-up)
      ================================================================ */
 
@@ -462,9 +515,17 @@
      sitting inside the sand panel - so the orange surrounds it and the
      card pops the same way the panel pops out of the page. The image
      fills the top of the card, label overlays the blank top-left space
-     the photographer left, tagline + price sit below in cream space. */
+     the photographer left, tagline + price sit below in cream space.
+     Flex column + height:100% makes the card fill its grid cell so all
+     three cards in the row land at the same height even when one card's
+     meta footer is shorter (e.g. the bundle card with no price). */
+  .theinmag-mission__product-item {
+    display: flex;
+  }
   .theinmag-mission__product {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     text-decoration: none;
     color: inherit;
     background-color: var(--color-cream, #FBF6EA);
@@ -819,6 +880,17 @@
       "label": "Mission statement (default)",
       "default": "Our mission is <strong>empowering</strong> kids and <strong>supporting</strong> parents and teachers.",
       "info": "Shows by default. Wrap any words you want lifted into Post Regular in <strong>...</strong> tags. Swaps to a feature-specific sentence when a slogan is hovered or focused."
+    },
+    {
+      "type": "header",
+      "content": "Social proof stamp"
+    },
+    {
+      "type": "text",
+      "id": "social_proof_text",
+      "label": "Stamp text",
+      "default": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>",
+      "info": "Cream banner above the products row. Wrap any words you want lifted into Post Regular in <strong>...</strong> tags. Leave blank to hide."
     },
     {
       "type": "header",
