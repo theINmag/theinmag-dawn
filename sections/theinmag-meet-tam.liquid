@@ -28,7 +28,9 @@
 
 {%- liquid
   assign video_src = ''
-  if section.settings.video_filename != blank
+  if section.settings.video_url != blank
+    assign video_src = section.settings.video_url
+  elsif section.settings.video_filename != blank
     assign video_src = section.settings.video_filename | asset_url
   endif
 
@@ -62,6 +64,7 @@
 >
   <div class="theinmag-meet-tam__card">
     <div class="theinmag-meet-tam__bg theinmag-meet-tam__bg--leaves" style="background-image: url('{{ leaves_src }}');" aria-hidden="true"></div>
+    <div class="theinmag-meet-tam__bg theinmag-meet-tam__bg--leaves-top" style="background-image: url('{{ leaves_src }}');" aria-hidden="true"></div>
 
     <div class="theinmag-meet-tam__inner">
       <div class="theinmag-meet-tam__media">
@@ -74,7 +77,6 @@
             muted
             loop
             playsinline
-            controls
             preload="metadata"
             aria-label="{{ poster_alt | escape }}"
           >
@@ -200,7 +202,7 @@
 
   @media (min-width: 990px) {
     .theinmag-meet-tam__card {
-      padding: clamp(56px, 5vw, 80px) clamp(40px, 5vw, 72px);
+      padding: clamp(40px, 4vw, 56px) clamp(40px, 5vw, 72px);
     }
   }
 
@@ -233,10 +235,10 @@
     width: 90%;
     height: 60%;
     background-size: auto 100%;
-    background-position: right bottom;
+    background-position: left bottom;
     background-repeat: no-repeat;
     opacity: 0.7;
-    transform: rotate(-90deg);
+    transform: rotate(-180deg);
     transform-origin: center;
   }
 
@@ -250,7 +252,36 @@
       width: 55%;
       height: 80%;
       background-size: auto 100%;
-      background-position: right bottom;
+      background-position: left bottom;
+    }
+  }
+
+  /* --- Top-left mirror leaves ---
+     Same PNG, anchored to the top-left corner so the base of the
+     leaves runs along the top edge of the card and leaves come DOWN
+     into the card. No transform - original PNG orientation already
+     has the base at the top edge, so anchoring top-left produces the
+     natural mirror of the bottom-right composition without flipping.
+     Behind the video. */
+  .theinmag-meet-tam__bg--leaves-top {
+    top: 0;
+    left: 0;
+    width: 90%;
+    height: 60%;
+    background-size: auto 100%;
+    background-position: left top;
+    background-repeat: no-repeat;
+    opacity: 0.7;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__bg--leaves-top {
+      top: 0;
+      left: 0;
+      width: 55%;
+      height: 80%;
+      background-size: auto 100%;
+      background-position: left top;
     }
   }
 
@@ -319,12 +350,12 @@
 
   @media (min-width: 990px) {
     .theinmag-meet-tam__video {
-      /* Larger on desktop. The portrait aspect is shortened from 9/16
-         to 9/13 so the video doesn't tower over the copy column - the
-         video file is still 1080x1920 internally, but object-fit cover
-         crops the top/bottom to fit the shorter frame on screen. */
-      max-width: 440px;
-      aspect-ratio: 9 / 13;
+      /* Desktop sizing tuned so the whole card fits one ~900px-tall
+         viewport on a standard laptop. Video file is internally 9/16,
+         but object-fit cover crops the top/bottom to a shorter 9/11
+         frame so the card stays compact next to the copy column. */
+      max-width: 360px;
+      aspect-ratio: 9 / 11;
       border-width: 10px;
       border-radius: 22px;
     }
@@ -584,6 +615,25 @@
     // bar to mute/unmute instead of clicking our overlay button.
     video.addEventListener('volumechange', syncUI);
     syncUI();
+
+    // Social-media-style autoplay: muted video plays when the section
+    // enters the viewport, pauses when it scrolls out. Respects
+    // prefers-reduced-motion (skip autoplay entirely when set; the
+    // visitor can still kick playback off via the mute toggle).
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reducedMotion && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            const p = video.play();
+            if (p && typeof p.catch === 'function') p.catch(function () {});
+          } else {
+            video.pause();
+          }
+        });
+      }, { threshold: 0.4 });
+      io.observe(video);
+    }
   })();
 </script>
 
@@ -599,13 +649,19 @@
     },
     {
       "type": "paragraph",
-      "content": "Drop the video MP4 and a poster JPG into /assets/ and reference them by filename. Recommended: 1080x1920 portrait MP4 H.264, target under 20MB. Poster is a still from the video, JPG, under 300KB. Page-load impact is just the poster - the video file only downloads when a visitor clicks play."
+      "content": "Upload the MP4 to Shopify admin > Content > Files (the theme /assets/ folder caps per-file size and rejects most peek-inside videos). Copy the CDN URL from the file detail panel and paste it into Video URL below. The poster JPG stays in /assets/ - it's small enough. Recommended: 1080x1920 portrait MP4 H.264, poster JPG under 300KB. Page-load impact is just the poster - the video file only downloads when a visitor clicks play."
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "Video URL (Shopify CDN)",
+      "info": "Paste the cdn.shopify.com/.../*.mp4 URL from Files. Takes precedence over Video filename if both are set."
     },
     {
       "type": "text",
       "id": "video_filename",
-      "label": "Video filename",
-      "info": "e.g. meet-tam-current.mp4"
+      "label": "Video filename (legacy fallback)",
+      "info": "Only used when Video URL is empty. e.g. meet-tam-current.mp4 - rarely needed now videos live on the CDN."
     },
     {
       "type": "text",
@@ -665,7 +721,8 @@
     {
       "name": "theINmag meet Tam",
       "settings": {
-        "video_filename": "meet-tam-current.mp4",
+        "video_url": "",
+        "video_filename": "",
         "poster_filename": "meet-tam-poster.jpg",
         "poster_alt": "Tam holding the latest theINmag issue.",
         "heading": "Meet Tam",

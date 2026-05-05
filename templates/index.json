@@ -29,7 +29,7 @@
           "type": "feature",
           "settings": {
             "label": "100% kid-created",
-            "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a voice. <strong>Seen, heard and celebrated.</strong>"
+            "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a <strong>voice</strong>."
           }
         },
         "feature-3": {
@@ -93,7 +93,7 @@
         "product-bundle"
       ],
       "settings": {
-        "default_message": "Our mission is <strong>empowering</strong> kids and <strong>supporting</strong> parents and teachers.",
+        "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
         "character_1_filename": "character-mission-1.png",
         "character_1_alt": "A theINmag reader's drawing.",
         "character_2_filename": "character-mission-2.png",
@@ -226,7 +226,8 @@
     "theinmag_meet_tam": {
       "type": "theinmag-meet-tam",
       "settings": {
-        "video_filename": "meet-tam-current.mp4",
+        "video_url": "https://cdn.shopify.com/videos/c/o/v/87f2283c54944d23b6ff36107703d380.mp4",
+        "video_filename": "",
         "poster_filename": "meet-tam-poster.jpg",
         "poster_alt": "Tam holding the latest theINmag issue.",
         "heading": "Meet Tam",

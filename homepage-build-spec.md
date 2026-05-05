@@ -35,8 +35,8 @@ These rules apply across every section on the homepage. Locked.
 
 - **Hero headline:** "The magazine for creative kids"
 - **Hero subhead:** "Where Aussie kids get published - no ads, just creativity"
-- **Primary CTA label:** "Grab a membership" (yellow stamp)
-- **Secondary CTA label:** "Send IN content" (outlined white on photo background; outlined purple is the default everywhere else)
+- **Primary CTA label:** "Send IN content" (yellow stamp on photo background - this is the kid-friendly action and gets the playful primary; locked May 5 2026 - "Send IN should feel a lot more fun than the membership, it's the button kids press")
+- **Secondary CTA label:** "Grab a membership" (outlined white on photo background; outlined purple is the default everywhere else)
 - **Audience tile labels:** Parents / Teachers / Homeschoolers / Kids (drop the "For" on tiles, keep "For" in nav dropdown)
 - **Section 4 heading:** "Designed with you in mind" (umbrella label for the four audience tiles - reads better than "Who's it for?" or "Who reads theINmag?" because the four categories are who the mag is *designed for*, not necessarily who reads it)
 - **Announcement bar message 1:** "Get ready - Mag[X] dropping in [N] days" (auto-calculated, days only - never hours/minutes; Mag and issue number rendered as one word, no space)
@@ -115,9 +115,9 @@ Live-day message ("MagX is here!") is fully wrapped in a single hook span - the 
 - Background: full-bleed real photo of a kid reading the mag (`HERO_kid-reading-mag.jpg` in `/assets/`)
 - Dark gradient scrim from the lower-left corner so white text passes WCAG AA contrast regardless of photo brightness
 - Headline (overlay, white): "The magazine for creative kids" - Post Regular, large, left-aligned
-- Subhead (overlay, white): "where Aussie kids get published - no ads, just creativity" - Inter regular, smaller, left-aligned, lowercase to match the live Wix site's wording exactly
-- Primary CTA: "Grab a membership" (yellow stamp - softer than "Get the Membership", confirmed May 3 2026)
-- Secondary CTA: "Send IN content" (outlined white - documented adaptation of the outlined-purple secondary for dark photo backgrounds)
+- Subhead (overlay, white): "Where Aussie kids get published - no ads, just creativity" - Inter regular, smaller, left-aligned, sentence-case capital W (locked May 5 2026 - "we're a magazine, punctuation needs to be right"; supersedes the earlier "lowercase to match live Wix" call)
+- Primary CTA: "Send IN content" (yellow stamp - kid-friendly action, the button kids press, locked May 5 2026)
+- Secondary CTA: "Grab a membership" (outlined white - adapted from the outlined-purple secondary for dark photo backgrounds)
 
 **Right image - "Kids in it" (image-only, no overlay text):**
 - Background: full-bleed striking kid creation in warm palette (`HERO_kid-creation-art.jpg` in `/assets/`)
@@ -287,8 +287,8 @@ This click-to-reveal pattern is the magic of Maude's version - the messaging is 
 - Runtime: 60-90 seconds, swapped per issue release
 - Auto-loaded via metafield link so new issue = new video, no template edit needed
 - Custom poster frame (a still from the video, NOT a default Shopify gradient placeholder)
-- Plays on click only - no auto-play. Respects prefers-reduced-motion (no auto-play in any case)
-- Subtle play-button overlay in cream/yellow on the poster
+- Autoplay-muted as the section enters the viewport (social-media pattern); pauses when scrolled out via IntersectionObserver. Respects prefers-reduced-motion (skip autoplay; visitor can still tap the mute toggle to start manually). Locked May 5 2026 - "this is what social media does, it's what people expect"
+- No native browser controls - clean presentation, just the video frame and a round mute toggle in the top-right corner
 
 **Right column - Current issue feature:**
 - Section heading (Post Regular, large): "Meet Tam, co-founder of theINmag"
@@ -726,6 +726,10 @@ The QUESTION text uses customer search language (e.g. "Will my child's work actu
 ---
 
 ## Change log
+
+- May 5 2026 (morning review pass tweaks) - **Section 6 + Section 5 polish.** Meet-Tam leaves rotation changed from rotate(-90deg) to rotate(-180deg) - puts the white "stem base" at the bottom of the card instead of running vertically beside the video, gives the "leaves popping in from below" effect Ryan was going for. Video behaviour reversed: autoplay-muted on viewport entry (social-media pattern) with IntersectionObserver-driven pause when scrolled out; the click-to-play overlay + native browser controls both removed. Custom mute toggle in the top-right is now the only chrome - "this is what social media does, it's what people expect". Mission section trust-feature "100% kid-created" hover copy tightened from "120+ pages dedicated to giving kids a voice. Seen, heard and celebrated." to "120+ pages dedicated to giving kids a voice." with "voice" picking up the Post Regular emphasis. Mission default message picked up a comma after "kids" for rhythm. Section 6 spec body updated inline to match the new video behaviour.
+
+- May 5 2026 (morning review session) - **Two hero deviations from spec re-locked as intentional, not regressions.** Hero CTA priority inverted: "Send IN content" is now the yellow-stamp primary (kid-friendly, the button kids press), "Grab a membership" is the outlined-white secondary. Rationale: Send IN should feel more fun and playful than the membership; the membership conversion ask is still on the page but doesn't need to carry the loud yellow. Hero subhead capitalisation locked to "Where" (capital W) - rationale: theINmag is a magazine so punctuation is part of the brand standard, supersedes the earlier "lowercase to match live Wix" decision. Both updates folded into Locked Content list + Section 1 spec body inline.
 
 - May 4 2026 (early hours session 8) - **Header iteration pass with Ryan in browser preview.** Layout flipped from "sticker + logo on left, nav right, CTA + cart far right" to **"sticker + nav (INfo / Gallery / Blog / Freebies) on left, then logo + Shop + cart + Send IN content all bunched together on the right"** - Ryan's call after eyeballing the first build. Made-by-kids sticker scaled up significantly (100/150/180/210px across breakpoints, was 56/72/84). Header CTA now desktop-only (>= 990px) - the phone + tablet row was crowding with the CTA, hamburger, cart, logo, sticker all competing. Drawer carries the same CTA at the bottom for everyone below desktop. Hamburger sized down (44 -> 40), border-radius dropped (12px -> 8px) and shadow tightened (3px -> 2px) - Ryan noted it read "too chunky" and "too rounded". Drawer flattened: INfo accordion replaced with a static uppercase group label + sub-items rendered inline as siblings, matching the live mobile drawer's flat scannable list. CTA on desktop bumped 14px -> 16px -> 18px after Ryan flagged the text felt small. Sticky moved off `.theinmag-header` onto the section wrapper class `.theinmag-header-section` - Dawn's sticky pattern relies on a JS-added class our custom header doesn't inherit. Big debug rabbit hole on a 30-40px gap between header and hero that survived multiple targeted fixes; landed it with `!important` rules in `assets/theinmag-base.css` zeroing margin/padding on `.shopify-section-group-header-group`, `main#MainContent`, and the first section inside main. Schema gotchas hit and fixed inline: `url`-type settings reject external URL defaults (use `text` instead); a schema can't define both `default` and `presets` (use `default` for sections pinned in JSON files). Both saved to memory for future builds.
 
