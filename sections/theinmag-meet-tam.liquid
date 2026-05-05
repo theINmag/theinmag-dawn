@@ -82,29 +82,48 @@
           >
             <source src="{{ video_src }}" type="video/mp4">
           </video>
-          <button
-            type="button"
-            class="theinmag-meet-tam__sound-toggle"
-            data-meet-tam-sound-toggle
-            aria-label="Unmute video"
-            aria-pressed="false"
-          >
+          <div class="theinmag-meet-tam__controls" data-meet-tam-controls>
             {%- comment -%}
-              Two icons stacked, one shown at a time. JS toggles the
-              [hidden] attribute as the muted state flips. Button stays
-              visible after first click so the visitor can re-mute.
+              Pause/play + mute/unmute pair, bottom-right of the video.
+              Each button has stacked icons; JS toggles [hidden] on the
+              inner SVG as state flips. Explicit user pause overrides
+              the IntersectionObserver autoplay - a paused video stays
+              paused even when scrolled back into view.
             {%- endcomment -%}
-            <svg class="theinmag-meet-tam__sound-icon" data-icon="muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <line x1="23" y1="9" x2="17" y2="15"></line>
-              <line x1="17" y1="9" x2="23" y2="15"></line>
-            </svg>
-            <svg class="theinmag-meet-tam__sound-icon" data-icon="unmuted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
-          </button>
+            <button
+              type="button"
+              class="theinmag-meet-tam__control"
+              data-meet-tam-pause-toggle
+              aria-label="Pause video"
+              aria-pressed="false"
+            >
+              <svg class="theinmag-meet-tam__control-icon" data-icon="play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                <polygon points="6 4 20 12 6 20 6 4"></polygon>
+              </svg>
+              <svg class="theinmag-meet-tam__control-icon" data-icon="pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="7" y="4" width="3" height="16" rx="1"></rect>
+                <rect x="14" y="4" width="3" height="16" rx="1"></rect>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="theinmag-meet-tam__control"
+              data-meet-tam-sound-toggle
+              aria-label="Unmute video"
+              aria-pressed="false"
+            >
+              <svg class="theinmag-meet-tam__control-icon" data-icon="muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <line x1="23" y1="9" x2="17" y2="15"></line>
+                <line x1="17" y1="9" x2="23" y2="15"></line>
+              </svg>
+              <svg class="theinmag-meet-tam__control-icon" data-icon="unmuted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+            </button>
+          </div>
         {%- elsif poster_src != blank -%}
           {%- comment -%}
             Fallback when only the poster is available (video file not
@@ -362,17 +381,31 @@
   }
 
   /* ================================================================
-     Sound toggle overlay
-     Round icon-only button in the top-right of the video. Stays put
-     after the first interaction so the visitor can re-mute as well as
-     unmute. Two stacked SVGs (muted, unmuted); JS toggles the [hidden]
-     attribute as the video.muted state flips.
+     Video controls (pause/play + mute/unmute)
+     Pair of round icon-only buttons in the bottom-right of the video.
+     Each button has stacked SVGs (one for each state); JS toggles the
+     [hidden] attribute as state flips. Bottom-right rather than the
+     usual top-right because that's where users instinctively reach
+     for "stop the noise / stop the video" controls.
      ================================================================ */
-  .theinmag-meet-tam__sound-toggle {
+  .theinmag-meet-tam__controls {
     position: absolute;
-    top: 14px;
+    bottom: 14px;
     right: 14px;
     z-index: 5;
+    display: flex;
+    gap: 8px;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__controls {
+      bottom: 18px;
+      right: 18px;
+      gap: 10px;
+    }
+  }
+
+  .theinmag-meet-tam__control {
     width: 40px;
     height: 40px;
     padding: 0;
@@ -388,38 +421,36 @@
   }
 
   @media (min-width: 990px) {
-    .theinmag-meet-tam__sound-toggle {
-      top: 18px;
-      right: 18px;
+    .theinmag-meet-tam__control {
       width: 44px;
       height: 44px;
     }
   }
 
-  .theinmag-meet-tam__sound-toggle:hover,
-  .theinmag-meet-tam__sound-toggle:focus-visible {
+  .theinmag-meet-tam__control:hover,
+  .theinmag-meet-tam__control:focus-visible {
     background-color: rgba(42, 31, 61, 1);
     transform: translateY(-1px);
     outline: 2px solid var(--color-cream, #FBF6EA);
     outline-offset: 2px;
   }
 
-  .theinmag-meet-tam__sound-icon {
+  .theinmag-meet-tam__control-icon {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
   }
 
-  .theinmag-meet-tam__sound-icon[hidden] {
+  .theinmag-meet-tam__control-icon[hidden] {
     display: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .theinmag-meet-tam__sound-toggle {
+    .theinmag-meet-tam__control {
       transition: none;
     }
-    .theinmag-meet-tam__sound-toggle:hover,
-    .theinmag-meet-tam__sound-toggle:focus-visible {
+    .theinmag-meet-tam__control:hover,
+    .theinmag-meet-tam__control:focus-visible {
       transform: none;
     }
   }
@@ -587,47 +618,77 @@
     const wrap = document.querySelector('[data-meet-tam-video-wrap]');
     if (!wrap) return;
     const video = wrap.querySelector('video');
-    const button = wrap.querySelector('[data-meet-tam-sound-toggle]');
-    if (!video || !button) return;
-    const mutedIcon = button.querySelector('[data-icon="muted"]');
-    const unmutedIcon = button.querySelector('[data-icon="unmuted"]');
+    const soundBtn = wrap.querySelector('[data-meet-tam-sound-toggle]');
+    const pauseBtn = wrap.querySelector('[data-meet-tam-pause-toggle]');
+    if (!video || !soundBtn || !pauseBtn) return;
 
-    function syncUI() {
+    const mutedIcon = soundBtn.querySelector('[data-icon="muted"]');
+    const unmutedIcon = soundBtn.querySelector('[data-icon="unmuted"]');
+    const playIcon = pauseBtn.querySelector('[data-icon="play"]');
+    const pauseIcon = pauseBtn.querySelector('[data-icon="pause"]');
+
+    // Track explicit user pause separately from incidental pauses (IO
+    // scrolling the video out of view) so the autoplay-on-scroll-in
+    // doesn't override an intentional pause.
+    let userPaused = false;
+
+    function syncSoundUI() {
       const isMuted = video.muted;
       if (mutedIcon) mutedIcon.hidden = !isMuted;
       if (unmutedIcon) unmutedIcon.hidden = isMuted;
-      button.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
-      button.setAttribute('aria-pressed', isMuted ? 'false' : 'true');
+      soundBtn.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
+      soundBtn.setAttribute('aria-pressed', isMuted ? 'false' : 'true');
     }
 
-    button.addEventListener('click', function () {
+    function syncPauseUI() {
+      const isPaused = video.paused;
+      if (playIcon) playIcon.hidden = !isPaused;
+      if (pauseIcon) pauseIcon.hidden = isPaused;
+      pauseBtn.setAttribute('aria-label', isPaused ? 'Play video' : 'Pause video');
+      pauseBtn.setAttribute('aria-pressed', isPaused ? 'true' : 'false');
+    }
+
+    soundBtn.addEventListener('click', function () {
       video.muted = !video.muted;
-      // Some browsers pause video on first interaction with sound -
-      // restart playback to keep the loop seamless.
-      const playPromise = video.play();
-      if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(function () { /* swallow autoplay errors */ });
+      // Some browsers pause video on first interaction with sound. Only
+      // restart if the visitor hasn't explicitly paused.
+      if (!userPaused) {
+        const p = video.play();
+        if (p && typeof p.catch === 'function') p.catch(function () {});
       }
-      syncUI();
+      syncSoundUI();
     });
 
-    // Keep the icon in sync if the visitor uses the native controls
-    // bar to mute/unmute instead of clicking our overlay button.
-    video.addEventListener('volumechange', syncUI);
-    syncUI();
+    pauseBtn.addEventListener('click', function () {
+      if (video.paused) {
+        userPaused = false;
+        const p = video.play();
+        if (p && typeof p.catch === 'function') p.catch(function () {});
+      } else {
+        userPaused = true;
+        video.pause();
+      }
+    });
+
+    // Keep icons in sync if video state changes outside our buttons
+    // (browser-driven viewport pause, system media keys, etc.).
+    video.addEventListener('volumechange', syncSoundUI);
+    video.addEventListener('play', syncPauseUI);
+    video.addEventListener('pause', syncPauseUI);
+    syncSoundUI();
+    syncPauseUI();
 
     // Social-media-style autoplay: muted video plays when the section
-    // enters the viewport, pauses when it scrolls out. Respects
-    // prefers-reduced-motion (skip autoplay entirely when set; the
-    // visitor can still kick playback off via the mute toggle).
+    // enters the viewport, pauses when it scrolls out. Skipped if the
+    // visitor explicitly paused. Respects prefers-reduced-motion.
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!reducedMotion && 'IntersectionObserver' in window) {
       const io = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
+          if (entry.isIntersecting && !userPaused) {
             const p = video.play();
             if (p && typeof p.catch === 'function') p.catch(function () {});
-          } else {
+          } else if (!entry.isIntersecting) {
             video.pause();
           }
         });
