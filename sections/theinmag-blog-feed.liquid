@@ -33,12 +33,29 @@
   assign show_cta = section.settings.show_cta
   assign show_filters = section.settings.show_filters
   assign active_chip = section.settings.active_chip
+
+  assign bg_src = ''
+  if section.settings.background_image != blank
+    assign bg_src = section.settings.background_image | image_url: width: 2400
+  elsif section.settings.background_filename != blank
+    assign bg_src = section.settings.background_filename | asset_url
+  endif
+
+  assign section_class = 'theinmag-blog-feed'
+  if bg_src != blank
+    assign section_class = 'theinmag-blog-feed theinmag-blog-feed--has-bg'
+  endif
+
+  assign section_style = '--blog-feed-pt: ' | append: section.settings.padding_top | append: 'px; --blog-feed-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  if bg_src != blank
+    assign section_style = section_style | append: " --blog-feed-bg: url('" | append: bg_src | append: "');"
+  endif
 -%}
 
 <section
-  class="theinmag-blog-feed"
+  class="{{ section_class }}"
   aria-labelledby="theinmag-blog-feed-heading"
-  style="--blog-feed-pt: {{ section.settings.padding_top }}px; --blog-feed-pb: {{ section.settings.padding_bottom }}px;"
+  style="{{ section_style }}"
 >
   <div class="theinmag-blog-feed__inner">
     <header class="theinmag-blog-feed__header">
@@ -173,6 +190,17 @@
     background-color: var(--color-cream, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
     padding: var(--blog-feed-pt, 64px) clamp(16px, 3vw, 32px) var(--blog-feed-pb, 64px);
+  }
+
+  /* When a background image is set: layer a soft dark scrim over the
+     image so white text reads against the painterly coral pattern.
+     Cards keep their cream backgrounds so they pop off the image. */
+  .theinmag-blog-feed--has-bg {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--blog-feed-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #FFFFFF;
   }
 
   .theinmag-blog-feed__inner {
@@ -494,6 +522,42 @@
     }
   }
 
+  /* ---- Background-image variant: white text + scrim ----
+     All header text (heading, subhead, chips, button) flips to white.
+     Subtle text-shadow softens the type against the busy painterly bg
+     even with the dark gradient scrim. */
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__heading,
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__subhead,
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip {
+    color: #FFFFFF;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip {
+    opacity: 0.62;
+  }
+
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip:hover,
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip:focus-visible {
+    opacity: 0.95;
+  }
+
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__chip.is-active {
+    opacity: 1;
+  }
+
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__seeall {
+    color: #FFFFFF;
+    border-color: #FFFFFF;
+    text-shadow: none;
+  }
+
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__seeall:hover,
+  .theinmag-blog-feed--has-bg .theinmag-blog-feed__seeall:focus-visible {
+    background-color: #FFFFFF;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .theinmag-blog-feed__card,
     .theinmag-blog-feed__image,
@@ -543,14 +607,27 @@
     {
       "type": "text",
       "id": "heading_period",
-      "label": "Punctuation (large)",
-      "default": ""
+      "label": "Punctuation (large)"
     },
     {
       "type": "text",
       "id": "subhead",
-      "label": "Subhead (optional)",
-      "default": ""
+      "label": "Subhead (optional)"
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image"
+    },
+    {
+      "type": "text",
+      "id": "background_filename",
+      "label": "Background fallback filename",
+      "info": "Used when the image picker is empty. Filename of an image in /assets/."
     },
     {
       "type": "header",
