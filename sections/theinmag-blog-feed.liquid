@@ -210,7 +210,6 @@
     max-width: 1320px;
     margin: 0 auto;
     background-color: var(--color-cream, #FBF6EA);
-    border-radius: 28px;
     padding: clamp(14px, 2vw, 28px) clamp(20px, 4vw, 56px) clamp(28px, 4vw, 56px);
     box-shadow: 0 8px 32px rgba(123, 79, 158, 0.12);
   }
@@ -228,7 +227,7 @@
   @media (min-width: 750px) {
     .theinmag-blog-feed__header {
       flex-direction: row;
-      align-items: flex-end;
+      align-items: center;
       justify-content: space-between;
       gap: var(--space-md, 16px);
     }
@@ -251,7 +250,7 @@
     line-height: 0.95;
     letter-spacing: 0;
     margin: 0;
-    color: var(--color-coral-dark, #C9543E);
+    color: var(--color-inky-purple-navy, #2A1F3D);
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
@@ -292,10 +291,6 @@
     align-items: center;
     gap: clamp(20px, 3vw, 36px);
     flex-wrap: wrap;
-    /* Lift the cluster slightly off the heading's descender line so it
-       sits visually centred against the big IN/period rather than
-       sagging to the very bottom. */
-    padding-bottom: clamp(4px, 0.6vw, 12px);
   }
 
   /* Filter chips: muted text links, active one in full ink + bolder. */
