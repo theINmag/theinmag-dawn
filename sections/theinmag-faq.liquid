@@ -1,0 +1,831 @@
+{%- comment -%}
+  theinmag-faq
+  Section 10 - FAQ accordion. Five locked questions in sales-funnel
+  order: doubt -> trust -> use -> commercial -> frequency. Each item
+  is collapsed by default; visitors can open multiple at once for
+  cross-comparison (Q1 publication odds + Q4 Membership often scan
+  together).
+
+  Each question is a real H3 with a button inside (a11y: screen
+  readers announce "heading 3, [question], button, collapsed"). The
+  answer wrapper animates open via grid-template-rows 0fr -> 1fr -
+  works without max-height guesses, no JS sizing required.
+
+  FAQPage JSON-LD schema renders for AEO rich-results eligibility.
+  Plain-text answers built via strip_html so the schema text stays
+  clean while the rendered body keeps its <p>/<ul> formatting.
+
+  One kid character (random-of-three) anchored to the "More questions"
+  CTA block at the foot of the section. Same scroll-pop pattern as
+  theinmag-mission and theinmag-reviews. Hidden below 750px - phones
+  are too tight to spare the gutter.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign show_cta = section.settings.show_cta
+  assign cta_label = section.settings.cta_label
+  assign cta_link = section.settings.cta_link
+
+  assign faq_blocks = section.blocks | where: 'type', 'faq_item'
+
+  assign character_count = 0
+  for i in (1..3)
+    assign img_key = 'character_' | append: i
+    assign filename_key = 'character_' | append: i | append: '_filename'
+    if section.settings[img_key] != blank or section.settings[filename_key] != blank
+      assign character_count = character_count | plus: 1
+    endif
+  endfor
+
+  assign section_style = '--faq-pt: ' | append: section.settings.padding_top | append: 'px; --faq-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-faq"
+  data-theinmag-faq
+  aria-labelledby="theinmag-faq-heading"
+  style="{{ section_style }}"
+>
+  {%- comment -%}
+    Decorative hollow-circles pattern, anchored to the left gutter
+    behind the inner column. Sits at z-index 0; aria-hidden because
+    it's purely decorative.
+  {%- endcomment -%}
+  <img
+    class="theinmag-faq__circles"
+    src="{{ 'FAQ_HollowCircles.png' | asset_url }}"
+    alt=""
+    aria-hidden="true"
+    loading="lazy"
+    width="600"
+    height="600"
+  >
+
+  <div class="theinmag-faq__inner">
+    {%- if heading != blank or subhead != blank or show_cta -%}
+      <header class="theinmag-faq__header">
+        {%- if heading != blank or subhead != blank -%}
+          <div class="theinmag-faq__title-stack">
+            {%- if heading != blank -%}
+              <h2 id="theinmag-faq-heading" class="theinmag-faq__heading">{{ heading }}</h2>
+            {%- endif -%}
+            {%- if subhead != blank -%}
+              <p class="theinmag-faq__subhead">{{ subhead }}</p>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        {%- if show_cta and cta_label != blank and cta_link != blank -%}
+          <div class="theinmag-faq__cta-wrap">
+            {%- if character_count > 0 -%}
+              {%- liquid
+                assign char_attrs = ''
+                for i in (1..3)
+                  assign img_key = 'character_' | append: i
+                  assign filename_key = 'character_' | append: i | append: '_filename'
+                  assign alt_key = 'character_' | append: i | append: '_alt'
+                  assign char_img = section.settings[img_key]
+                  assign char_filename = section.settings[filename_key]
+                  assign src = ''
+                  if char_img != blank
+                    assign src = char_img | image_url: width: 600
+                  elsif char_filename != blank
+                    assign src = char_filename | asset_url
+                  endif
+                  if src != blank
+                    assign alt_val = section.settings[alt_key] | default: '' | escape
+                    assign char_attrs = char_attrs | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
+                    assign char_attrs = char_attrs | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
+                  endif
+                endfor
+              -%}
+              <div class="theinmag-faq__character" data-theinmag-faq-character{{ char_attrs }}></div>
+            {%- endif -%}
+
+            <a class="theinmag-faq__cta" href="{{ cta_link }}">{{ cta_label }}</a>
+          </div>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if faq_blocks.size > 0 -%}
+      <ul class="theinmag-faq__list" role="list">
+        {%- for block in faq_blocks -%}
+          {%- liquid
+            assign question = block.settings.question
+            assign answer = block.settings.answer
+            assign answer_id = 'theinmag-faq-answer-' | append: section.id | append: '-' | append: forloop.index
+          -%}
+          <li class="theinmag-faq__item" {{ block.shopify_attributes }}>
+            <h3 class="theinmag-faq__question-heading">
+              <button
+                type="button"
+                class="theinmag-faq__trigger"
+                aria-expanded="false"
+                aria-controls="{{ answer_id }}"
+                data-theinmag-faq-trigger
+              >
+                <span class="theinmag-faq__question">{{ question }}</span>
+                <span class="theinmag-faq__caret" aria-hidden="true"></span>
+              </button>
+            </h3>
+            <div
+              id="{{ answer_id }}"
+              class="theinmag-faq__answer-wrap"
+              data-theinmag-faq-answer
+              data-open="false"
+            >
+              <div class="theinmag-faq__answer">
+                {{ answer }}
+              </div>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{%- if faq_blocks.size > 0 -%}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {%- for block in faq_blocks -%}
+          {
+            "@type": "Question",
+            "name": {{ block.settings.question | strip_html | strip | json }},
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": {{ block.settings.answer | strip_html | strip | json }}
+            }
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ]
+    }
+  </script>
+{%- endif -%}
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-faq
+     Cream pair section (universal background) - calm, editorial,
+     lets the questions read clearly. Sits between the blog feed
+     (cream panel on coral painterly bg) and the IG tile (Section 9).
+     ================================================================ */
+
+  .theinmag-faq {
+    position: relative;
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--faq-pt, 64px) clamp(16px, 3vw, 32px) var(--faq-pb, 64px);
+    overflow: hidden;
+  }
+
+  /* ================================================================
+     Decorative hollow-circles layer - sits behind the inner column,
+     anchored to the LEFT edge of the section so it reads as a soft
+     pattern in the gutter rather than competing with the Q+As. Half
+     bleeds off the left edge of the section. Hidden below 750px -
+     not enough horizontal room on phones.
+
+     pointer-events:none so clicks pass through. aria-hidden via the
+     absence of any text content. Lazy-loaded - decorative only.
+     ================================================================ */
+  .theinmag-faq__circles {
+    display: none;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-faq__circles {
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: clamp(-180px, -8vw, -80px);
+      width: clamp(280px, 32vw, 480px);
+      height: auto;
+      transform: translateY(-50%);
+      opacity: 0.55;
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+    }
+  }
+
+  .theinmag-faq__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  /* ================================================================
+     Header - heading on the left, contact CTA on the right. Stacks
+     on mobile with the CTA below the title. Left-aligned overall
+     (was centred earlier; left reads more editorial and matches
+     the rest of the homepage).
+     ================================================================ */
+
+  .theinmag-faq__header {
+    margin-bottom: clamp(20px, 3vw, 32px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(14px, 2vw, 20px);
+    text-align: left;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-faq__header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(20px, 3vw, 40px);
+    }
+  }
+
+  .theinmag-faq__title-stack {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .theinmag-faq__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(20px, 2.6vw, 28px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* Force a single line on desktop+ - the locked wording "Questions
+     we get asked the most" fits at this size in the 760px header
+     row alongside the CTA. On mobile the header stacks (column flex)
+     so wrap is fine. */
+  @media (min-width: 750px) {
+    .theinmag-faq__heading {
+      white-space: nowrap;
+    }
+  }
+
+  /* Emphasis words inside the heading - Post Regular is a single
+     weight so we lean on COLOUR + SIZE, not weight or italic, for
+     emphasis. Dark purple lifts the emphasised words against the
+     inky default; 1.3em scale gives them visual weight without
+     blowing out the line-box (line-height: 0.9 + vertical-align
+     nudge keeps the larger characters seated on the same baseline). */
+  .theinmag-faq__heading em {
+    font-style: normal;
+    font-size: 1.3em;
+    line-height: 0.9;
+    letter-spacing: 0;
+    vertical-align: -0.08em;
+    display: inline-block;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-faq__subhead {
+    margin: clamp(8px, 1vw, 12px) 0 0;
+    max-width: 56ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
+  }
+
+  /* ================================================================
+     Accordion list - thin border between rows so the column reads
+     as a single editorial unit.
+     ================================================================ */
+
+  .theinmag-faq__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-faq__item {
+    border-bottom: 1px solid rgba(42, 31, 61, 0.12);
+  }
+
+  /* H3 wrapper carries semantic weight. Reset margins/font so the
+     <button> child does the visible heavy lifting. */
+  .theinmag-faq__question-heading {
+    margin: 0;
+    font: inherit;
+  }
+
+  /* The clickable trigger - full-row button. Question text on the
+     left, caret on the right. min-height keeps the touch target
+     above 44px on mobile per accessibility tokens. */
+  .theinmag-faq__trigger {
+    appearance: none;
+    background: none;
+    border: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(12px, 1.5vw, 20px);
+    padding: clamp(16px, 2vw, 22px) clamp(8px, 1.5vw, 16px);
+    cursor: pointer;
+    text-align: left;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    min-height: 56px;
+    transition: color var(--transition-standard, 0.15s ease);
+  }
+
+  .theinmag-faq__trigger:hover,
+  .theinmag-faq__trigger:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    outline: none;
+  }
+
+  .theinmag-faq__trigger:focus-visible {
+    outline: 2px dashed var(--color-purple-dark, #5D3A7A);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .theinmag-faq__question {
+    flex: 1;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+
+  /* Caret - hand-drawn-ish with two stroked lines forming a chevron.
+     Rotates 0 -> 180deg when the trigger is expanded. Same SVG mask
+     pattern used elsewhere in the theme (mission slogan dots,
+     reviews stars) so the visual language stays unified. */
+  .theinmag-faq__caret {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    position: relative;
+    transition: transform 0.3s ease;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-faq__caret::before,
+  .theinmag-faq__caret::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 11px;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 2px;
+    transform-origin: 50% 50%;
+  }
+
+  .theinmag-faq__caret::before {
+    left: 1px;
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .theinmag-faq__caret::after {
+    right: 1px;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+
+  .theinmag-faq__trigger[aria-expanded="true"] .theinmag-faq__caret {
+    transform: rotate(180deg);
+  }
+
+  /* ================================================================
+     Answer reveal - max-height 0 -> large value. Tried the
+     grid-template-rows 0fr trick first; turns out 0fr resolves to
+     minmax(auto, 0fr) which sizes the track to min-content (one
+     line of text) even with min-height:0 on the child. max-height
+     is rock solid across engines.
+
+     Max value 1500px is a safe upper bound for any single answer in
+     this section; the visible transition completes in ~0.4s
+     regardless because the actual content height bounds it.
+     ================================================================ */
+
+  .theinmag-faq__answer-wrap {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theinmag-faq__answer-wrap[data-open="true"] {
+    max-height: 1500px;
+  }
+
+  .theinmag-faq__answer {
+    padding: 0 clamp(8px, 1.5vw, 16px) clamp(16px, 2vw, 22px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(13.5px, 1.3vw, 15px);
+    line-height: 1.7;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-faq__answer p {
+    margin: 0 0 clamp(10px, 1.2vw, 14px);
+  }
+
+  .theinmag-faq__answer p:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-faq__answer ul,
+  .theinmag-faq__answer ol {
+    margin: clamp(8px, 1vw, 12px) 0;
+    padding-left: clamp(20px, 2vw, 26px);
+  }
+
+  .theinmag-faq__answer li {
+    margin: 0 0 clamp(4px, 0.6vw, 6px);
+  }
+
+  .theinmag-faq__answer li:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-faq__answer strong {
+    font-weight: 600;
+  }
+
+  .theinmag-faq__answer a {
+    color: var(--color-teal-dark, #2D6878);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease, text-decoration-thickness 0.15s ease;
+  }
+
+  .theinmag-faq__answer a:hover,
+  .theinmag-faq__answer a:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration-thickness: 2px;
+  }
+
+  /* ================================================================
+     CTA block sits in the header's right column on desktop. Position
+     relative so the character can absolute-position relative to it.
+     Flex 0 0 auto = wrap takes only its content width, doesn't grow.
+     ================================================================ */
+
+  .theinmag-faq__cta-wrap {
+    position: relative;
+    flex: 0 0 auto;
+  }
+
+  .theinmag-faq__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    border: 2px solid var(--color-purple-dark, #5D3A7A);
+    border-radius: 32px;
+    padding: 10px 22px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(12px, 1.2vw, 14px);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    min-height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    z-index: 1;
+    position: relative;
+  }
+
+  .theinmag-faq__cta:hover,
+  .theinmag-faq__cta:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+
+  /* ================================================================
+     Random kid character - in the new header layout the CTA sits in
+     the top-right of the section, so we anchor the character to the
+     LEFT edge of the CTA wrap. Slides in from offscreen-left and
+     settles just to the left of the CTA pill, peeking out from the
+     gap between heading and CTA. Hidden below 990px - the heading
+     and CTA crowd close enough at narrower widths that the character
+     would overlap one or the other.
+     ================================================================ */
+
+  .theinmag-faq__character {
+    display: none;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-faq__character {
+      display: block;
+      position: absolute;
+      top: 50%;
+      /* Anchor right edge of character to a point just left of the
+         CTA's left edge. */
+      right: calc(100% + clamp(8px, 1vw, 16px));
+      width: clamp(60px, 6.5vw, 90px);
+      pointer-events: none;
+      z-index: 0;
+      /* Initial state: pushed further left, offscreen. */
+      transform: translate(-80%, -50%);
+      opacity: 0;
+      transition: transform 0.85s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.5s ease;
+    }
+
+    .theinmag-faq__character.is-popped {
+      transform: translate(0, -50%);
+      opacity: 1;
+      animation: theinmag-faq-bob 4s ease-in-out infinite 0.9s;
+    }
+  }
+
+  .theinmag-faq__character-img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Bob keyframes preserve the -50% Y translate so the bob layers on
+     top of the slide-in's final position without resetting it. */
+  @keyframes theinmag-faq-bob {
+    0%, 100% { transform: translate(0, -50%) rotate(-2deg); }
+    50%      { transform: translate(0, calc(-50% - 5px)) rotate(2deg); }
+  }
+
+  /* ================================================================
+     Reduced motion - skip caret rotation animation, accordion slide,
+     character slide-in and bob. State changes still happen, just
+     instantly.
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-faq__caret,
+    .theinmag-faq__answer-wrap,
+    .theinmag-faq__cta,
+    .theinmag-faq__character {
+      transition: none;
+      animation: none;
+    }
+
+    @media (min-width: 750px) {
+      .theinmag-faq__character,
+      .theinmag-faq__character.is-popped {
+        transform: translate(0, -50%);
+        opacity: 1;
+        animation: none;
+      }
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-faq]');
+    if (!root) return;
+
+    /* ----------------------------------------------------------------
+       Accordion behaviour. Each trigger toggles its own answer
+       independently - multi-open by design (Q1 + Q4 often scan
+       together for the publication-odds + Membership cross-check).
+
+       The native `hidden` attribute is removed on first interaction
+       so the grid-template-rows transition can actually run; before
+       that, hidden + display:none would override the animation.
+       ---------------------------------------------------------------- */
+    var triggers = root.querySelectorAll('[data-theinmag-faq-trigger]');
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        var expanded = trigger.getAttribute('aria-expanded') === 'true';
+        var answer = document.getElementById(trigger.getAttribute('aria-controls'));
+        if (!answer) return;
+
+        trigger.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        answer.setAttribute('data-open', expanded ? 'false' : 'true');
+      });
+    });
+
+    /* ----------------------------------------------------------------
+       Random kid character. Up to three options are stored as
+       data-src-1/2/3 (with paired alt). One is chosen at random on
+       load and rendered into the container. Mirrors the mission /
+       reviews pattern. dataset['src-' + i] not dataset.src1 - digits
+       don't trigger camelCase conversion (per memory note).
+       ---------------------------------------------------------------- */
+    var characterContainer = root.querySelector('[data-theinmag-faq-character]');
+    if (!characterContainer) return;
+
+    var sources = [];
+    for (var i = 1; i <= 3; i++) {
+      var src = characterContainer.dataset['src-' + i];
+      if (src) {
+        sources.push({
+          src: src,
+          alt: characterContainer.dataset['alt-' + i] || ''
+        });
+      }
+    }
+
+    if (!sources.length) return;
+
+    var chosen = sources[Math.floor(Math.random() * sources.length)];
+    var img = document.createElement('img');
+    img.className = 'theinmag-faq__character-img';
+    img.src = chosen.src;
+    img.alt = chosen.alt;
+    /* No loading="lazy" - lazy below-the-fold images don't resolve
+       dimensions in this layout, which collapses the absolute-
+       positioned parent (per kid-character pattern memory). */
+    characterContainer.appendChild(img);
+
+    /* Scroll-triggered pop. Anchored to the CTA wrap - the character
+       lifts in once the user has scrolled the bottom of the FAQ
+       section into the upper 80% of the viewport. One-shot - doesn't
+       reset on scroll back up. Plain scroll listener (not Intersection
+       Observer) per the kid-character pattern memory. */
+    var ctaWrap = root.querySelector('.theinmag-faq__cta-wrap');
+    if (!ctaWrap) return;
+
+    var popped = false;
+    var checkPop = function () {
+      if (popped) return;
+      var rect = ctaWrap.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.85) {
+        popped = true;
+        characterContainer.classList.add('is-popped');
+        window.removeEventListener('scroll', onScroll);
+      }
+    };
+    var onScroll = function () {
+      window.requestAnimationFrame(checkPop);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    checkPop();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag FAQ",
+  "tag": "section",
+  "class": "theinmag-faq-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Questions we get <em>asked</em> the <em>most</em>",
+      "info": "Wrap any word in <em>...</em> tags to emphasise it (renders dark purple)."
+    },
+    {
+      "type": "text",
+      "id": "subhead",
+      "label": "Subhead (optional)"
+    },
+    {
+      "type": "header",
+      "content": "Contact CTA"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show contact CTA",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "More questions? Get in touch"
+    },
+    {
+      "type": "text",
+      "id": "cta_link",
+      "label": "Button link",
+      "default": "/pages/contact",
+      "info": "Relative URL works (e.g. /pages/contact)."
+    },
+    {
+      "type": "header",
+      "content": "Character sticker (random)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Up to three kid-creation characters can be uploaded. One is picked at random per page load and lifts in next to the contact CTA on desktop+."
+    },
+    { "type": "image_picker", "id": "character_1", "label": "Character 1 image" },
+    { "type": "text", "id": "character_1_filename", "label": "Character 1 fallback filename" },
+    { "type": "text", "id": "character_1_alt", "label": "Character 1 alt text" },
+    { "type": "image_picker", "id": "character_2", "label": "Character 2 image" },
+    { "type": "text", "id": "character_2_filename", "label": "Character 2 fallback filename" },
+    { "type": "text", "id": "character_2_alt", "label": "Character 2 alt text" },
+    { "type": "image_picker", "id": "character_3", "label": "Character 3 image" },
+    { "type": "text", "id": "character_3_filename", "label": "Character 3 fallback filename" },
+    { "type": "text", "id": "character_3_alt", "label": "Character 3 alt text" },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq_item",
+      "name": "FAQ item",
+      "limit": 10,
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "info": "Phrased in customer search language for AEO discoverability."
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "info": "Written in brand voice. Uses paragraphs, lists, and emphasis."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag FAQ",
+      "blocks": [
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Will my child's work actually get published?",
+            "answer": "<p>Unfortunately, not every kid who submits gets in.</p><p>We receive thousands of submissions each issue, and around 300 make it into the magazine. Every page of theINmag is filled entirely with creations from real Aussie kids - so when your child submits, they're being seriously considered for the next issue.</p><p>The number one thing we look for? Effort. Personality and heart matter more than technical polish.</p><p>Best tip: encourage them to submit something they're truly proud of.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "How does theINmag choose what goes in each issue?",
+            "answer": "<p>Every piece of content in theINmag is submitted by a real Aussie kid. We don't write any of it ourselves.</p><p>Our team of teachers and artists reviews each submission with genuine care - looking for creativity, personality and heart rather than technical perfection. We celebrate all abilities, all ages, all art forms.</p><p>If your child has something they're proud of, or something they're curious about, that's exactly what we want to see.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "How are families actually using it at home?",
+            "answer": "<p>Every family finds their own rhythm.</p><p>Some pull it out after school, flip to a random page, and ask 'what does this make you want to create?' - and the pencils come out.</p><p>Others use it as a screen-free wind-down, a school-holidays ritual, or a bedtime read.</p><p>Plenty of kids just flick through for inspiration, planning what they'll send IN for the next issue.</p><p>However it lands in your home, it tends to spark something.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Is the Membership basically the same as a subscription?",
+            "answer": "<p>Same idea, different feel.</p><p>Members never miss an issue - and they're among the first kids to get the new mag when it drops.</p><p>Three options:</p><ul><li><strong>4-Issue Membership</strong> - paid upfront, shipping included</li><li><strong>8-Issue Membership</strong> - paid upfront, shipping included</li><li><strong>Rolling Membership</strong> - auto-debits before each issue, with a heads-up email beforehand</li></ul><p>The result: a real reason for your kid to get excited about the postie again.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "How often does a new issue come out?",
+            "answer": "<p>Three times a year - February, June and October.</p><p>We wait for kids' creations to come in, and the three-issues-a-year rhythm works beautifully.</p><p>Get the Membership and it arrives automatically. No need to remember to order. Members also save a few dollars per issue.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

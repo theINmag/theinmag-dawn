@@ -363,6 +363,61 @@
         "padding_bottom": 80
       }
     },
+    "theinmag_faq": {
+      "type": "theinmag-faq",
+      "blocks": {
+        "faq-1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Will my child's work actually get published?",
+            "answer": "<p>Unfortunately, not every kid who submits gets in.</p><p>We receive thousands of submissions each issue, and around 300 make it into the magazine. Every page of theINmag is filled entirely with creations from real Aussie kids - so when your child submits, they're being seriously considered for the next issue.</p><p>The number one thing we look for? Effort. Personality and heart matter more than technical polish.</p><p>Best tip: encourage them to submit something they're truly proud of.</p>"
+          }
+        },
+        "faq-2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How does theINmag choose what goes in each issue?",
+            "answer": "<p>Every piece of content in theINmag is submitted by a real Aussie kid. We don't write any of it ourselves.</p><p>Our team of teachers and artists reviews each submission with genuine care - looking for creativity, personality and heart rather than technical perfection. We celebrate all abilities, all ages, all art forms.</p><p>If your child has something they're proud of, or something they're curious about, that's exactly what we want to see.</p>"
+          }
+        },
+        "faq-3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How are families actually using it at home?",
+            "answer": "<p>Every family finds their own rhythm.</p><p>Some pull it out after school, flip to a random page, and ask 'what does this make you want to create?' - and the pencils come out.</p><p>Others use it as a screen-free wind-down, a school-holidays ritual, or a bedtime read.</p><p>Plenty of kids just flick through for inspiration, planning what they'll send IN for the next issue.</p><p>However it lands in your home, it tends to spark something.</p>"
+          }
+        },
+        "faq-4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Is the Membership basically the same as a subscription?",
+            "answer": "<p>Same idea, different feel.</p><p>Members never miss an issue - and they're among the first kids to get the new mag when it drops.</p><p>Three options:</p><ul><li><strong>4-Issue Membership</strong> - paid upfront, shipping included</li><li><strong>8-Issue Membership</strong> - paid upfront, shipping included</li><li><strong>Rolling Membership</strong> - auto-debits before each issue, with a heads-up email beforehand</li></ul><p>The result: a real reason for your kid to get excited about the postie again.</p>"
+          }
+        },
+        "faq-5": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How often does a new issue come out?",
+            "answer": "<p>Three times a year - February, June and October.</p><p>We wait for kids' creations to come in, and the three-issues-a-year rhythm works beautifully.</p><p>Get the Membership and it arrives automatically. No need to remember to order. Members also save a few dollars per issue.</p>"
+          }
+        }
+      },
+      "block_order": ["faq-1", "faq-2", "faq-3", "faq-4", "faq-5"],
+      "settings": {
+        "heading": "Questions we get <em>asked</em> the <em>most</em>",
+        "show_cta": true,
+        "cta_label": "More questions? Get in touch",
+        "cta_link": "/pages/contact",
+        "character_1_filename": "",
+        "character_1_alt": "",
+        "character_2_filename": "",
+        "character_2_alt": "",
+        "character_3_filename": "",
+        "character_3_alt": "",
+        "padding_top": 80,
+        "padding_bottom": 80
+      }
+    },
     "rich_text": {
       "type": "rich-text",
       "blocks": {
@@ -525,6 +580,7 @@
     "theinmag_meet_tam",
     "theinmag_reviews",
     "theinmag_blog_feed",
+    "theinmag_faq",
     "rich_text",
     "featured_collection",
     "collage",
