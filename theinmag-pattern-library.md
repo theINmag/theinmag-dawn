@@ -1,0 +1,802 @@
+# theINmag Pattern Library
+### The how-to-build doc for everything in this theme
+*Created 2026-05-07. Living document — update at the start of every session before any new work begins.*
+
+---
+
+## How to use this doc
+
+This is the fourth foundation doc in `theinmag-dawn/`. Read it cold before any build session. It covers **how to assemble** — what already exists, which patterns to reuse, which gotchas have already cost time. The other three docs cover different ground:
+
+| Doc | What it covers | When to read |
+|---|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Project brain, locked brand rules, session-start checklist | Always loaded — read every session start |
+| [`theinmag-design-tokens.md`](theinmag-design-tokens.md) | Hex codes, font sizes, spacing, button specs | Any visual decision needing exact values |
+| [`theinmag-design-principles.md`](theinmag-design-principles.md) | The WHY behind every decision | Judgment calls, design tradeoffs |
+| **`theinmag-pattern-library.md`** (this doc) | Section catalog, mobile patterns, Liquid/JS recipes, page recipes | Every build session, keep open while working |
+
+**Don't duplicate the other three.** This doc references them but doesn't rehash hex codes (tokens) or philosophy (principles). It maps **the how**.
+
+### Update protocol
+
+Every new session starts with: read this doc, then check `git log --oneline -10` against the **Maintenance log** at the bottom. Anything new since the last entry → integrate it before any new work. Patterns that proved useful, sections that got built, gotchas that cost time, brand decisions that landed — all go in here. After the session's main work is done, log the session in the Maintenance log.
+
+A new entry deserves a slot if it would help a future session. Tweaking copy in an existing section doesn't qualify. Building a new section, discovering a new pattern, or revising a brand-locked rule does.
+
+---
+
+## Table of contents
+
+1. [Section catalog](#1-section-catalog)
+2. [Snippet catalog](#2-snippet-catalog)
+3. [Mobile playbook](#3-mobile-playbook)
+4. [Liquid patterns](#4-liquid-patterns)
+5. [JS patterns](#5-js-patterns)
+6. [AEO / schema patterns](#6-aeo--schema-patterns)
+7. [Editorial voice quick reference](#7-editorial-voice-quick-reference)
+8. [Brand-locked decisions](#8-brand-locked-decisions)
+9. [Kid pattern library (use kid creations as the design system)](#9-kid-pattern-library)
+10. [Page recipes](#10-page-recipes)
+11. [Open systems / WIP](#11-open-systems--wip)
+12. [Code conventions](#12-code-conventions)
+13. [Session-start protocol](#13-session-start-protocol)
+14. [Maintenance log](#14-maintenance-log)
+
+---
+
+## 1. Section catalog
+
+Every section file in `sections/` with a `theinmag-` prefix. Use this as the index when planning a page. Status: ● live, ◐ partial/wip, ○ archived.
+
+### 1.1 Site chrome
+
+| Section | Status | Where used | Notes |
+|---|---|---|---|
+| `theinmag-announcement-bar.liquid` | ● | site-wide (header-group) | Purple band ("GET READY — Mag10 dropping in 34 days · Free shipping over $40"). Not sticky — scrolls away naturally. Class `theinmag-announcement-section`. |
+| `theinmag-header.liquid` | ● | site-wide (header-group) | Cream nav bar with sticker logo, INfo dropdown, Gallery, Field notes, Freebies, wordmark, cart, SEND IN CONTENT button. **Sticky lives on `.theinmag-header-section` (the schema-class wrapper), not on `.theinmag-header` itself** — `.theinmag-header` is `position: relative` inside the wrapper with cream bg. Important when applying transforms (see §3.3). |
+| `theinmag-footer.liquid` | ● | site-wide (footer-group) | Newsletter signup + brand stack. Maude-influenced. |
+
+### 1.2 Homepage sections
+
+| Section | Status | Notes |
+|---|---|---|
+| `theinmag-hero.liquid` | ● | Locked headline "The magazine for creative kids" / sub "Where Aussie kids get published — no ads, just creativity". Split-screen + sticker. Tier 1 conversion surface. |
+| `theinmag-hero-v1-archived.liquid` | ○ | Earlier hero pass. Don't delete (per CLAUDE.md "never delete without instruction"). Don't reference. |
+| `theinmag-mission.liquid` | ● | "Made by kids, for kids" mission band with three product cards (Membership / Single issue / Build a bundle). **Reference for the kid-character random-of-three + scroll-pop pattern** (see `reference_kid_character_pattern` memory). |
+| `theinmag-meet-tam.liquid` | ● | Founder section. Coral pair. |
+| `theinmag-philosophy.liquid` | ● | Brand philosophy band. |
+| `theinmag-audience-tiles.liquid` | ● | Four-up audience pillars (Parents / Teachers / Homeschoolers / Kids). |
+| `theinmag-press-band.liquid` | ● | Press logo strip. |
+| `theinmag-reviews.liquid` | ● | Continuous-dots pattern across into Meet Tam. Coral. |
+| `theinmag-faq.liquid` | ● | Locked Q+As, accordion, FAQPage JSON-LD. |
+| `theinmag-blog-feed.liquid` | ● | Four-up post card row anchoring the homepage to field notes. Audience chips filter cards in-place via JS (no nav). |
+
+### 1.3 Blog space sections (`/blogs/field-notes`)
+
+| Section | Status | Notes |
+|---|---|---|
+| `theinmag-blog-index-editorial.liquid` | ● | Top of blog index. Maude-style asymmetric grid: feature card + 2/3 left col (large + bottom-small) + 1/3 right col (small cards, parallax-translated on desktop ≥990px). Mobile: feature flush to header, intro reorders below feature, right col → horizontal scroll rail (see §3.4). Audience toggle (all/kids/adults) broadcasts via localStorage + `field-notes:audience-changed` event. |
+| `theinmag-blog-index-feature-banner.liquid` | ● | Mid-blog-index Maude-style side-to-side photo with white text card. Audience-aware (responds to toggle). |
+| `theinmag-blog-index-archive.liquid` | ● | Bottom of blog index. Search bar + 2-row scrollable rail of every published article. Live filter on title/topic/tags/excerpt. Falls back to `archive_card` block presets when no real articles exist. Top decorative kid-art (mint flower) anchored top-center. **Mobile: flower scales to 180% width with `top left` position, gradient fade pushed to 75-105vw.** |
+
+### 1.4 Article template
+
+| File | Status | Notes |
+|---|---|---|
+| `theinmag-article.liquid` | ● | Single-post template wired via `templates/article.json`. Two-column sticky hero (image left sticky, body right scrolls). Headroom site-header auto-hide. Quick read card (white tile, narrower than body, pulled from metafield). Top byline meta. About-author card with avatar+identity row + full-width bio. "Here's some more we thought you might enjoy" rec strip with 4-card waterfall (curated metafields → topic-match → recent → 4 placeholder cards). See [§9.4](#94-worked-recipe-single-article). |
+
+### 1.5 Templates
+
+| Template | Type | Notes |
+|---|---|---|
+| `templates/index.json` | Homepage | Stitches all homepage sections together. |
+| `templates/blog.json` | Blog index | Editorial → feature banner → archive. |
+| `templates/article.json` | Article | Single section: `theinmag-article`. No blocks. |
+| `templates/page.json`, `page.contact.json` | Generic pages | Default Dawn templates, not yet customised for theINmag pages. |
+
+---
+
+## 2. Snippet catalog
+
+| Snippet | Used by | Notes |
+|---|---|---|
+| `theinmag-editorial-card.liquid` | `theinmag-blog-index-editorial`, `theinmag-blog-index-feature-banner` | Single card renderer. Variants: `feature` (full-width photo with white-text overlay + scrim), `large_left`, `right_small`, `bottom_small`. Inputs: `block` (Shopify block) + `variant`. |
+| `theinmag-article-rec-card.liquid` | `theinmag-article` | Single rec card for the "more for you" strip. Inputs: `rec` (Article object, required) + `blurb` (string, optional). Strips trailing period from `rec.title` for display (see [§4.1](#41-strip-trailing-period-from-lowercase-headings)). |
+
+---
+
+## 3. Mobile playbook
+
+theINmag is mobile-first. Expect breakpoints at **600px** (small mobile/tablet), **750px** (tablet), and **990px** (desktop). Below are the patterns that have already cost time at least once.
+
+### 3.1 The specificity-prefix pattern (CRITICAL)
+
+When a stylesheet has both desktop default rules AND a mobile media query in the same file, **source order matters when specificity ties**. If your `@media (max-width: 749px)` block sits BEFORE the desktop default rules in source, the desktop rules will silently win at the same specificity.
+
+**Symptom**: Mobile override looks correct in DevTools but the desktop value is showing.
+
+**Fix**: Bump the mobile rule's specificity by adding a parent-class prefix.
+
+```css
+/* WRONG — same specificity as desktop default later in file → desktop wins */
+@media (max-width: 749px) {
+  .theinmag-editorial__card--feature .theinmag-editorial__card-cover {
+    border-radius: 0;
+  }
+}
+
+/* later in file: */
+.theinmag-editorial__card--feature .theinmag-editorial__card-cover {
+  border-radius: 12px;  /* this wins despite being "default" */
+}
+
+/* RIGHT — parent prefix bumps mobile rule from 0,2,0 to 0,3,0 */
+@media (max-width: 749px) {
+  .theinmag-editorial__inner .theinmag-editorial__card--feature .theinmag-editorial__card-cover {
+    border-radius: 0;
+  }
+}
+```
+
+**Rule of thumb**: every mobile-override selector in a section file gets the section's outer wrapper class prefixed. Costs nothing, prevents an entire class of bug. Existing implementation: `theinmag-blog-index-editorial.liquid` uses `.theinmag-editorial__inner` as the prefix on every mobile-override rule.
+
+### 3.2 Full-bleed via negative margins (matching parent padding)
+
+To make a child element extend past its parent's horizontal padding to the viewport edges, use a negative margin matching the parent's padding clamp value.
+
+```css
+.section { padding: ... clamp(16px, 3vw, 32px) ...; }
+.section .full-bleed-child {
+  margin-left: calc(-1 * clamp(16px, 3vw, 32px));
+  margin-right: calc(-1 * clamp(16px, 3vw, 32px));
+}
+```
+
+The clamp values must match exactly between parent padding and child margin. If they drift, the alignment breaks across breakpoints. Used in: feature card on mobile, right-col rail container on mobile.
+
+### 3.3 Headroom (auto-hide header on scroll)
+
+Site header auto-hides on scroll-down past ~80px, restores on scroll-up. **Scoped to article pages only** (the CSS lives in `theinmag-article.liquid`'s stylesheet, which only loads when that section renders).
+
+Two non-obvious things learnt the hard way:
+
+- **Transform target is the section wrapper, not the header element.** `.theinmag-header-section` (the schema-class outer wrapper) carries `position: sticky`. `.theinmag-header` (the inner) is `position: relative` inside, with the cream background. Transforming the inner only slid the contents up while the wrapper's reserved space stayed visible — looks like a "blank cream bar" mid-animation. Always transform the wrapper.
+- **`overflow: clip` on the wrapper** prevents any overflowing children (e.g., the made-by-kids sticker which has `margin-bottom: -6px` to bleed past the header on every page) from looking like they're "lagging" during the transform animation.
+
+Implementation lives in `sections/theinmag-article.liquid` — search for `is-headroom-hidden`. Uses a single rAF-throttled scroll listener that ALSO drives the hero-progress CSS custom property (see [§5.2](#52-scroll-driven-css-custom-properties)). Skip the whole thing under `prefers-reduced-motion`.
+
+### 3.4 Horizontal scroll-snap rails
+
+Used for the right-col cards on mobile in the editorial section. Pattern:
+
+```css
+.rail-container {
+  display: flex;
+  flex-direction: row;
+  gap: clamp(14px, 2vw, 20px);
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  /* Bleed to viewport edges */
+  margin-left: calc(-1 * clamp(16px, 3vw, 32px));
+  margin-right: calc(-1 * clamp(16px, 3vw, 32px));
+  padding: 4px clamp(16px, 3vw, 32px);
+}
+.rail-container::-webkit-scrollbar { display: none; }
+.rail-card {
+  flex-shrink: 0;
+  width: 72vw;
+  max-width: 280px;
+  scroll-snap-align: start;
+}
+```
+
+`width: 72vw` shows roughly one full card with a peek of the next, signalling "swipe right." Cards bleed to viewport edges via the same negative-margin trick as [§3.2](#32-full-bleed-via-negative-margins-matching-parent-padding).
+
+### 3.5 Mobile section reordering with flex `order`
+
+When desktop has a complex grid layout and mobile needs to reorder elements without changing the DOM, switch the parent to flex column on mobile and assign `order` values:
+
+```css
+@media (max-width: 749px) {
+  .theinmag-editorial__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(28px, 4vw, 48px);
+  }
+  .theinmag-editorial__card--feature { order: 1; }
+  .theinmag-editorial__intro { order: 2; }
+  .theinmag-editorial__grid { order: 3; }
+}
+```
+
+Used to put the hero feature card at the top of the blog index on mobile (Maude pattern), with intro + audience tabs sliding below it.
+
+### 3.6 Hero-image-fills-screen height
+
+To make a hero image take a specific viewport-height proportion (e.g., "75% of the phone screen so the next section's heading just peeks below"), use `height: Xvh` not `aspect-ratio`. Aspect ratio ties height to width and varies by phone width. `vh` is consistent.
+
+```css
+.feature-cover-mobile {
+  aspect-ratio: auto;  /* clear the desktop's aspect-ratio */
+  height: 75vh;
+}
+```
+
+---
+
+## 4. Liquid patterns
+
+### 4.1 Strip trailing period from lowercase headings
+
+theINmag rule (revised 2026-05-06): lowercase sentence-case headings end with NO terminal punctuation; question marks and exclamations preserved (see [§7](#7-editorial-voice-quick-reference)). User-typed titles in admin may include trailing periods — strip them in the template before rendering.
+
+```liquid
+{%- liquid
+  assign display_title = article.title
+  assign last_char = display_title | slice: -1
+  if last_char == '.'
+    assign trim_to = display_title | size | minus: 1
+    assign display_title = display_title | slice: 0, trim_to
+  endif
+-%}
+```
+
+Use `display_title` everywhere — visible HTML, JSON-LD `headline`, JSON-LD breadcrumb `name`. Don't strip from `image.alt` (full natural language belongs in alt text).
+
+Implementations: `sections/theinmag-article.liquid` (article hero), `snippets/theinmag-article-rec-card.liquid` (rec card titles).
+
+### 4.2 Metafield resolution with namespace `field_notes`
+
+Article metafields live under namespace `field_notes` (underscore — Shopify metafield namespaces don't allow hyphens, see `project_field_notes_rename` memory). Access pattern:
+
+```liquid
+{%- assign quick_answer = article.metafields.field_notes.quick_answer -%}
+{%- assign primary_topic = article.metafields.field_notes.primary_topic -%}
+```
+
+Always provide a fallback for fields users might not fill in:
+
+```liquid
+{%- assign topic = article.metafields.field_notes.primary_topic -%}
+{%- if topic == blank -%}
+  {%- assign topic = article.tags.first -%}
+{%- endif -%}
+```
+
+The 13 article metafields (defined in admin Settings → Custom data → Articles) are:
+`quick_answer`, `primary_topic`, `author_type`, `author_role_override`, `kid_first_name`, `kid_age`, `kid_region`, `recommendation_1_handle`, `recommendation_1_blurb`, `recommendation_2_handle`, `recommendation_2_blurb`, `recommendation_3_handle`, `recommendation_3_blurb`.
+
+### 4.3 Articles-by-handle indexing (filters not allowed in brackets)
+
+To resolve a post by handle, use `articles['blog-handle/article-handle']`:
+
+```liquid
+{%- assign rec_key = blog.handle | append: '/' | append: rec_handle -%}
+{%- assign rec_article = articles[rec_key] -%}
+```
+
+**Don't pipe filters inside the bracket:**
+
+```liquid
+{# WRONG - throws "Expected close_square but found pipe" #}
+{%- assign rec = articles[blog.handle | append: '/' | append: handle] -%}
+
+{# RIGHT - assign first, index by bare variable #}
+{%- assign key = blog.handle | append: '/' | append: handle -%}
+{%- assign rec = articles[key] -%}
+```
+
+Same rule applies to any array index: `arr[var | filter]` fails, `arr[var]` works. See `feedback_liquid_array_index_no_filters` memory.
+
+### 4.4 Random-pool selection (kid characters)
+
+For a pool of N images where one is picked at page load, store URLs as `data-` attributes and pick in JS:
+
+```liquid
+<span
+  data-theinmag-kid-character
+  data-character-count="{{ count }}"
+  {% for i in (1..3) %}
+    {%- assign img_key = 'kid_character_' | append: i -%}
+    {%- assign url_value = section.settings[img_key] | image_url: width: 220 -%}
+    {%- if url_value != blank -%}data-character-{{ i }}="{{ url_value }}"{%- endif -%}
+  {% endfor %}
+></span>
+```
+
+```js
+var pool = [];
+for (var i = 1; i <= 3; i++) {
+  var url = el.getAttribute('data-character-' + i);
+  if (url) pool.push(url);
+}
+if (pool.length) {
+  el.style.backgroundImage = "url('" + pool[Math.floor(Math.random() * pool.length)] + "')";
+}
+```
+
+Reference implementation: `sections/theinmag-mission.liquid` (with scroll-pop animation). Static variant in `sections/theinmag-article.liquid` for kid contributor avatars. See `reference_kid_character_pattern` memory.
+
+### 4.5 Schema setting gotchas (upload-blocking)
+
+Four Shopify schema rules that have all blocked uploads in the past:
+
+1. **`url`-type defaults must be datasource paths** (`shopify://collections/all` etc.). For `/blogs/...` defaults, use `text` type, not `url`.
+2. **Cannot have both `default` AND `presets` at section level.** If you set a section preset with settings, drop the section-level `default` keys.
+3. **`type: header` content has a 50-char cap.** Splits or trims if longer.
+4. **Text-input `"default": ""` (empty string) is rejected.** Omit the `default` key entirely if you want no default.
+
+First two cascade into a misleading "section file does not exist" error. The other two surface directly. See `feedback_shopify_schema_url_default` memory.
+
+### 4.6 Asset > 1MB → use Files API, not /assets
+
+Large MP4s and PNGs in `/assets/` crash theme sync with a misleading HTTP 413 error. Upload via Shopify admin Files (Settings → Files), then reference the CDN URL in section settings. See `feedback_shopify_files_api_for_large_media` memory.
+
+### 4.7 Dawn's `div:empty { display: none }` gotcha
+
+`assets/base.css` has `div:empty { display: none }` which collapses any decorative background-image-only `<div>` layer. If you write a `<div>` whose only purpose is to hold a background image (no children, no text), bump specificity with a parent class to override:
+
+```css
+.theinmag-section .my-decorative-div { display: block; }
+```
+
+Or use `<span>` (not affected). See `feedback_dawn_empty_div_hide` memory.
+
+---
+
+## 5. JS patterns
+
+### 5.1 Headroom auto-hide header
+
+See [§3.3](#33-headroom-auto-hide-header-on-scroll). Key implementation note: track `lastScrollY` only when an action fires (hide or show), not every rAF cycle. If you update it every cycle, slow scrolls accumulate small deltas that never cross the threshold and the header never hides.
+
+```js
+var lastScrollY = window.pageYOffset;
+function update() {
+  var currentY = window.pageYOffset;
+  if (currentY <= 5) {
+    siteHeader.classList.remove('is-headroom-hidden');
+    lastScrollY = currentY;
+  } else {
+    var delta = currentY - lastScrollY;
+    if (delta > 8) {
+      siteHeader.classList.add('is-headroom-hidden');
+      lastScrollY = currentY;          // anchor only on action
+    } else if (delta < -8) {
+      siteHeader.classList.remove('is-headroom-hidden');
+      lastScrollY = currentY;          // anchor only on action
+    }
+    // else: do nothing, lastScrollY stays anchored at last decision
+  }
+}
+```
+
+Reference: `sections/theinmag-article.liquid` script block.
+
+### 5.2 Scroll-driven CSS custom properties (hero-progress)
+
+Drive multiple CSS effects (image brightness, overlay opacity, transform scale) from a single rAF-throttled scroll listener that writes one custom property:
+
+```js
+function update() {
+  var rect = article.getBoundingClientRect();
+  var travel = window.innerHeight * 0.3;
+  var scrolled = Math.max(0, -rect.top);
+  var progress = Math.min(1, scrolled / travel);
+  article.style.setProperty('--hero-progress', progress.toFixed(3));
+}
+```
+
+Then in CSS, every effect reads from `--hero-progress`:
+
+```css
+.cover-image {
+  filter: brightness(calc(1 - var(--hero-darken) + (var(--hero-progress) * var(--hero-darken))));
+  transform: scale(calc(1.04 - (var(--hero-progress) * 0.04)));
+}
+.overlay {
+  opacity: calc(1 - var(--hero-progress));
+  transform: translateY(calc(var(--hero-progress) * -32px)) scale(calc(1 + (var(--hero-progress) * 0.04)));
+}
+```
+
+**Critical bug to avoid**: track the article element's `getBoundingClientRect().top`, not the sticky cover's. A sticky element's `rect.top` stays at 0 during the entire sticky-stuck phase — using it means progress only fires when sticky releases at the bottom, not as the user scrolls.
+
+Reference: `sections/theinmag-article.liquid`.
+
+### 5.3 React-friendly input setter (Shopify admin automation)
+
+Shopify admin React inputs ignore plain `input.value = ...` writes. Use the native value setter:
+
+```js
+const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+setter.call(target, 'new value');
+target.dispatchEvent(new Event('input', { bubbles: true }));
+target.dispatchEvent(new Event('change', { bubbles: true }));
+```
+
+Used to update metafield values via Chrome MCP `javascript_tool` injection when admin click-driving was unreliable. Note: Shopify metafields are rendered as `_ReadField` divs that swap to inputs only when an `_ActivatorButton` (with aria-label like `Edit Author role override metafield`) is clicked. Click the activator first, then run the setter.
+
+---
+
+## 6. AEO / schema patterns
+
+Every page needs Article + BreadcrumbList JSON-LD per CLAUDE.md. theINmag uses **custom JSON-LD** rather than Dawn's `{{ article | structured_data }}` so we can control the author shape (Person with `sameAs` for Ryan/Tam, bare string for kids per brand-safety rule).
+
+### 6.1 Article schema with author shape
+
+```liquid
+{%- liquid
+  assign schema_description = quick_answer | strip_html | escape
+  if schema_description == blank
+    assign schema_description = article.excerpt | strip_html | escape
+  endif
+-%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": {{ display_title | json }},
+  "description": {{ schema_description | json }},
+  "datePublished": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+  "author":
+    {%- if author_type == 'kid' -%}
+      {{ kid_first_name | json }}
+    {%- else -%}
+      {
+        "@type": "Person",
+        "name": {{ author_name | json }},
+        "jobTitle": {{ author_role | json }},
+        "sameAs": [ {{ author_ig | json }}, {{ author_fb | json }}, {{ author_yt | json }} ]
+      }
+    {%- endif -%}
+}
+</script>
+```
+
+Brand-safety rule: kid contributors are bare-string author, no Person object. See `convention_quick_answer_block` memory.
+
+### 6.2 BreadcrumbList
+
+Three positions: Home → Field notes → [Article title]. Full URLs (use `request.origin | append: ...`).
+
+### 6.3 Quick read content reused as schema description
+
+The Quick read paragraph is the densest answer at the top of the post and is what AI engines quote. Reuse it as `description` in Article schema AND as the `<meta name="description">`. Same dense paragraph in three places (visible, schema, meta) → strong AEO signal. See `convention_quick_answer_block` memory.
+
+### 6.4 Existing schema implementations
+
+| Section | Schema |
+|---|---|
+| `theinmag-faq.liquid` | FAQPage |
+| `theinmag-article.liquid` | Article + BreadcrumbList |
+| (homepage / our-story when built) | Organisation + Person (Ryan/Tam) |
+
+---
+
+## 7. Editorial voice quick reference
+
+The locked-rule cheat sheet. Anything written for the site should pass these.
+
+| Rule | Why | Memory |
+|---|---|---|
+| **No em dashes anywhere.** Hyphens only. | Em dashes are a strong AI-tell in 2026. Applies to all copy, comments, schemas. | CLAUDE.md |
+| **Sentence case headings.** Capital first letter only (except "theINmag" which keeps "IN" capitalised). | Brand voice. | CLAUDE.md |
+| **Lowercase headings end with NO period.** Question marks and exclamations preserved. | Period feels redundant on a heading. Revised 2026-05-06 — supersedes earlier "lowercase end-with-full-stop is fine" rule. | `feedback_inter_for_blog_titles` |
+| **"Creation" not "work"** everywhere. | Brand-defining quote from a kid: "art is not work." | CLAUDE.md |
+| **H2s phrased as questions** where natural. | AEO requirement. "Why do kids stop creating?" passes. "What is creative learning?" technically passes but reads SEO-bait. | CLAUDE.md |
+| **Smart brevity**, Axios/Guy Raz energy, short punchy sentences. | Brand voice. "Write the section, cut it in half, then cut it in half again." | Principles |
+| **Never use "subscription"** in customer-facing product names — it's "Membership." | Locked product naming. | CLAUDE.md |
+| **Never collect contactable details from kids.** Adults only on every form. Kid bottom-of-article cards don't link to "more from this kid" archives. | Locked brand-safety rule. | CLAUDE.md |
+| **Named kid attributions always**: `Maya, age 9 - Fremantle WA`. First name + age + region only, never surnames or specific addresses. | Brand-safety + brand-defining trust signal. | CLAUDE.md |
+| **"Quick read."** opens every blog post (40-60 word AEO snippet). | Locked editorial/AEO convention. Stored in `field_notes.quick_answer` metafield. | `convention_quick_answer_block` |
+| **Author bylines named** (Ryan or Tam, never "theINmag team" as default). | Locked. | May 5 spec |
+| **Author display names: "Ryan G." and "Tam B."** (with full stops as part of the initial). Note: those periods are NAME parts, not heading-end punctuation — don't strip them. | Locked 2026-05-06. | Section schema defaults |
+
+### Heading typography
+
+| Surface | Font | Why |
+|---|---|---|
+| Article hero post title (single-post overlay) | Inter 700 | Editorial professionalism on the single-post hero. Was Post Regular originally — Ryan ruled it too kiddy/casual in review. |
+| Blog post titles in cards (homepage feed, blog index, related-posts) | Inter 700 | Editorial / journalistic surfaces. |
+| Inside-article H2s | Inter 700 | Same reasoning. |
+| Section identity / brand wordmarks (e.g. "field notes", "from the founders", page-level brand moments) | Post Regular | Brand-identity moments. |
+| Recommendation strip heading ("here's some more we thought you might enjoy") | Inter 600 | Friendly editorial subhead, NOT a brand-identity wordmark. |
+
+See `feedback_inter_for_blog_titles` memory for the full nuance.
+
+---
+
+## 8. Brand-locked decisions
+
+Compact reference. Each is a "do not deviate without explicit Ryan instruction."
+
+| Locked decision | Reference |
+|---|---|
+| Hero headline: "The magazine for creative kids" / sub: "Where Aussie kids get published — no ads, just creativity" | `homepage-build-spec.md` |
+| Six colour pairs (purple/coral/peach/mint/cream/sky), pre-validated WCAG AA. Yellow is stamp-only, never bg. Cherry magenta is rare inline emphasis (1-2 spans/page max). | Tokens |
+| Sticker buttons (yellow primary, outlined-purple secondary), generous 32px pill radius, solid offset shadow (not blurred), press-down translate on hover. | Tokens |
+| Inter for body, Post Regular for headings (with the exceptions in §7). Caveat for rare hand-lettered emphasis (1-2 spans per blog post max). | Tokens |
+| Real kid creations as design system. Every page anchored by at least one named kid creation. | Principles 17 |
+| Min font on mobile: 14px. Anything smaller fails accessibility. | Tokens |
+| All animations respect `prefers-reduced-motion`. | CLAUDE.md |
+| Sentence-case lowercase post titles, no trailing period (revised 2026-05-06). | `feedback_inter_for_blog_titles` |
+| Blog handle: `field-notes` (URL hyphen). Metafield namespace: `field_notes` (underscore). Different naming systems — don't mistype. | `project_field_notes_rename` |
+| Kid contributors: kid-character illustration (NOT photo), bare-string author in JSON-LD, no archive link. | `feedback_kid_characters` + brand safety |
+| Image reuse rule: anything in a hero on a page can't also appear as a blog/product card on the same page. | `feedback_no_image_reuse_same_page` |
+| Section bg-color matches kid-art ground (don't re-export artwork to fight bg). | `feedback_match_section_bg_to_artwork_ground` |
+| White-on-scrim over coloured pills on photographic surfaces. | `feedback_premium_photo_text` |
+
+---
+
+## 9. Kid pattern library
+
+theINmag's competitive moat is **real kid creations** woven into the visual layer. Principle 17: "Kid creations are the design system." Principle 7: "Look like theINmag, not like a kids' magazine." Every page or section that calls for a background, decorative surface, or texture should default to a kid creation pulled from the magazine — never synthetic geometric patterns, stock textures, or AI-generated artwork. Ryan has hundreds of these from past mag issues and they're a renewable asset.
+
+### The trigger (READ THIS WHEN PLANNING ANY NEW PAGE OR SECTION)
+
+Anytime a new section or page calls for one of these:
+
+- A section background that isn't a flat colour
+- A decorative surface (banner top, footer texture, hero ground)
+- An empty-state visual (between content blocks, in micro-pauses)
+- A page-level texture, watermark, or wash
+- A divider / break ornament between paragraphs in long copy
+
+**Stop. Ask Ryan**, in this rough form:
+
+> "This [section / page / surface] calls for a kid pattern background. Before I default to a flat colour, do you have a kid creation from the mag in mind? I can grab from the existing `/assets/` library (`blog-image-universal-*`, `section_background_*`, `HERO_*`) or you can upload a new one for this surface specifically."
+
+Don't default to a flat colour bg without asking. Don't generate or fabricate a pattern. Don't repurpose a card cover image as a section bg without checking — the implied curatorial choice deserves a Ryan-yes. The kid creations ARE the design system; if a page can't be anchored by one, the page is probably wrong for theINmag.
+
+### The existing kid-art library (already in `/assets/`)
+
+| Filename pattern | Use |
+|---|---|
+| `blog-image-universal-01.jpg` … `blog-image-universal-19.jpg`+ | General-purpose kid creations for cards, placeholders, archive tiles. Pre-curated by Ryan, safe to grab without asking for card covers. |
+| `section_background_*.jpg` (e.g. `section_background_searchblogs.jpg` — the mint flower at the top of the field-notes archive) | Section-anchored decorative artwork. Top-anchored at full width, gradient-fades into bg-color below. |
+| `HERO_*.jpg` (e.g. `HERO_kid-creation-art.jpg`) | Hero-worthy kid creations. Reserved for top-of-page hero anchors. |
+| `character-[surface]-1/2/3.png` (e.g. `character-mission-1.png` … `character-faq-1/2/3.png` … `character-philosophy-1/2/3.png` … `character-reviews-1/2/3.png`) | Kid-character illustrations for the random-of-three character pools. Per-surface — don't share pools across surfaces. |
+| `meet-tam-poster.jpg`, `dotsforbehindtam.png`, `meet-tam-heading-shape.png` | Section-specific decorative assets, locked to Meet Tam. |
+
+When a new pattern is uploaded, it should land in `/assets/` (or via Shopify Files API for >1MB files — see [§4.6](#46-asset--1mb--use-files-api-not-assets)) and get logged here so future-me can find it by purpose, not just by filename.
+
+### Naming convention going forward
+
+When Ryan uploads a new pattern, name it so future-me can find it by purpose, not by which mag it came from:
+
+```
+theinmag-pattern-[surface-or-purpose]-[descriptor].[ext]
+```
+
+Examples:
+- `theinmag-pattern-watercolour-trees-bg.jpg` — full-width kid watercolour suitable as a section bg
+- `theinmag-pattern-marker-doodle-divider.png` — narrow horizontal pattern between paragraphs
+- `theinmag-pattern-paint-splatter-hero.jpg` — high-density splatter, hero-grade
+
+The `mag-XX` source suffix is optional — only include it if the source is editorially relevant (e.g. you're building a "behind mag10" section anchored on mag10 art). Otherwise leave it out so the asset is reusable.
+
+### Implementation modes
+
+Different ways to deploy a kid pattern in the codebase. Each has its own technique — choose by what the surface needs.
+
+**1. Section background, top-anchored, gradient-blends to bg-color**
+The reference pattern. Kid art at top of section, fades into solid bg below. See `theinmag-blog-index-archive.liquid` for the canonical implementation.
+
+```css
+.section--has-bg {
+  background-image:
+    linear-gradient(to bottom, transparent 0, transparent 22vw,
+                    var(--bg-color) 38vw, var(--bg-color) 100%),
+    var(--bg-image);
+  background-size: 100% 100%, 100% auto;
+  background-position: top center, top center;
+}
+```
+
+The bg-color **must match the artwork's natural ground colour** (per `feedback_match_section_bg_to_artwork_ground` memory). Sample the hex from the artwork's empty area; don't ask Ryan to re-export the artwork to fight a wrong bg.
+
+**2. Full-bleed pattern surface (banners, CTA bands)**
+Pattern fills the entire section, no fade. Use `background-size: cover` (crops to fill, preserves aspect) or `100% 100%` (stretches to fill, may distort). Cover is usually right.
+
+**3. Decorative corner artwork (peek-from-edge)**
+Pattern positioned at a corner with partial visibility — similar logic to the kid-character random-pool. Adds personality without competing for attention. Position with explicit `background-position` percentages, size with explicit pixel/clamp values.
+
+**4. Repeating tile pattern**
+For full-page wash backgrounds, use a tileable PNG with `background-repeat: repeat`. Best for subtle textures (specks, strokes, single-element patterns) — full kid drawings lose meaning when repeated. Tile size: 1200x1200px per design tokens.
+
+**5. Inline mid-content punctuation (long-form blog posts)**
+Small kid pattern between paragraphs in a long-form article. Centered, ~120-200px tall, no background. Functions like a print-mag's section break ornament. Use as an `<img>` inside the rich text body, OR as a Liquid-driven divider in the article template (future enhancement).
+
+**6. Image-on-image overlay**
+Kid pattern overlaid on photography with reduced opacity. Useful for hero bands where a real photo + kid-art layer creates depth (e.g. a Tam photo with kid-doodle overlay at 40% opacity).
+
+### When to ask, when to grab
+
+Quick decision tree to avoid asking unnecessarily AND to avoid grabbing without permission when the choice is curatorial.
+
+- **Card cover image / blog post cover / archive tile** → grab from `blog-image-universal-*` library directly. Pre-curated, safe. No need to ask.
+- **Section background anchor (page-defining decorative surface)** → **ASK Ryan first.** The choice has brand implications and he'll have a specific image in mind.
+- **Hero of a new page** → **ASK Ryan, every time.** The hero kid creation is locked per page, and Principle 17 gives this hero status.
+- **Author/character avatar replacement** → use the per-surface `character-*` pool. Don't repurpose `blog-image-universal-*` for avatars.
+- **Decorative shape (wave, blob, cloud, squiggle, torn banner)** → see the abstract brand-shape library in design tokens (`theinmag-shape-*.svg`). These are NOT kid-art — they're abstract brand shapes. Different category. Don't conflate.
+- **Empty state, success state, micro-illustration** → ASK. There's probably a kid drawing that fits the moment better than a flat icon.
+
+### The reuse rule (LOCKED)
+
+Per `feedback_no_image_reuse_same_page` memory: a kid creation in a hero on Page X cannot also appear as a card cover on Page X. Reads as oversight rather than considered selection. **Track which pattern is anchoring which page** when planning new pages — the [Page Recipe](#10-page-recipes) template has a slot for this.
+
+---
+
+## 10. Page recipes
+
+### 10.1 The recipe template
+
+When briefing a new page (or starting a new build session focused on a new page), fill this in first. The template forces the right questions early.
+
+```markdown
+## Page Recipe: [Page Name]
+
+**URL:** `/path/to/page`
+**Tier:** [1 conversion / 2 brand / 3 personality] (per Principles)
+**Audience:** [parents / teachers / homeschoolers / kids / mixed]
+**Primary action:** [What's the ONE thing this page should drive?]
+
+### Visual
+- **Colour pair:** [purple / coral / peach / mint / cream / sky]
+- **Cream pair as base?** [yes/no — cream is universal]
+- **Anchoring kid creation (hero):** [filename or description — ASK Ryan, see §9]
+- **Anchoring kid pattern (section bg or decorative surface):** [filename or description, OR "ASK Ryan to upload" — see §9, never default to flat colour without asking]
+- **Yellow stamp CTAs:** [count, max 1 above fold]
+
+### Sections (top to bottom)
+1. [section file] — [tunings, settings, blocks]
+2. ...
+
+### Mobile patterns to apply
+- [ ] Specificity prefix (§3.1) on any mobile overrides
+- [ ] Full-bleed via negative margins (§3.2) — yes/no
+- [ ] Section reorder with flex `order` (§3.5) — yes/no
+- [ ] Horizontal scroll-snap rail (§3.4) — yes/no
+- [ ] Headroom header (§3.3) — yes/no (default: only on article pages)
+
+### Metafields needed
+- [namespace.key] — [type] — [what for]
+
+### AEO / schema requirements
+- [ ] Article schema (if blog post)
+- [ ] FAQPage (if FAQ content)
+- [ ] BreadcrumbList (always)
+- [ ] Organisation/Person (if homepage or Our Story)
+- [ ] H2s phrased as questions where natural
+- [ ] llms.txt + robots.txt confirmed (already done at site level)
+
+### Brand voice checklist
+- [ ] No em dashes
+- [ ] "Creation" not "work"
+- [ ] Sentence case lowercase headings, no trailing periods
+- [ ] Smart brevity passes ("can I cut this in half?")
+
+### Locked decisions specific to this page
+- ...
+
+### Out of scope (don't build now)
+- ...
+```
+
+### 10.2 Worked recipe: Homepage
+
+(Already built — see `homepage-build-spec.md` for the full version. Here's the compressed pattern-library form.)
+
+- **URL:** `/`
+- **Tier:** 1 (conversion)
+- **Audience:** mixed (parents primarily)
+- **Primary action:** drive to membership / send-IN
+- **Colour pair:** cream + peach + purple + yellow stamp (per Principles "Colour richness vs cohesion" tension)
+- **Anchoring kid creation:** rotating in mission section (`reference_kid_character_pattern`)
+- **Sections:** announcement-bar → header → hero → mission → audience-tiles → philosophy → meet-tam → reviews → blog-feed → press-band → faq → footer
+- **Schema:** Organisation + Person on this page
+- **Mobile:** standard responsive collapse, no special reorder needed
+- **AEO:** H2s as questions, llms.txt allowed, FAQPage on the FAQ section
+
+### 10.3 Worked recipe: Blog index (`/blogs/field-notes`)
+
+- **URL:** `/blogs/field-notes`
+- **Tier:** 2 (brand) — entry point to editorial
+- **Audience:** mixed; **audience toggle** filters cards in-place (all/kids/adults). State persists in `localStorage` key `field-notes-audience`, broadcast via `field-notes:audience-changed` window event.
+- **Colour pair:** cream + lavender (purple pair, light)
+- **Anchoring kid creation:** mint kid-flower in archive section bg
+- **Sections:** editorial → feature-banner → archive
+- **Mobile reorder** (editorial section): feature card flush to header at 75vh + darker scrim → intro (FIELD NOTES + audience tabs) → grid (left col stacked + right col → horizontal rail). Specificity prefix `.theinmag-editorial__inner` on every mobile rule.
+- **Mobile archive flower:** scaled to 180% width, `top left` position, gradient fade pushed to 75-105vw so flower bleeds behind first tile.
+- **Locked:** "more for you." section heading is sentence-case Inter 600 ("here's some more we thought you might enjoy"), NOT Post Regular. Section identity "FIELD NOTES" wordmark stays Post Regular.
+
+### 10.4 Worked recipe: Single article (`/blogs/field-notes/[handle]`)
+
+- **URL:** `/blogs/field-notes/[handle]`
+- **Tier:** 2 (brand)
+- **Audience:** post-specific (informed by `author_type` metafield)
+- **Primary action:** read the post + click into "more for you" rec strip
+- **Colour pair:** cream + ink (universal)
+- **Anchoring kid creation:** `article.image` (canonical cover, used in hero overlay AND every card preview of this post)
+- **Sections:** announcement-bar → header → article (the whole template) → footer
+- **Layout:** desktop two-column sticky (image left sticky `top: 0; height: 100vh`, body right scrolls). Mobile: stacked.
+- **Mobile patterns:**
+  - [x] Headroom auto-hide header (§3.3) — scoped to article pages
+  - [x] Hero-progress scroll JS (§5.2) drives image scale + brightness + overlay fade
+  - [x] About-author card stacks (avatar+name top row, bio + actions full-width below)
+- **Metafields (per post):** quick_answer, primary_topic, author_type, author_role_override, kid_first_name, kid_age, kid_region, recommendation_1_handle/blurb × 3
+- **Schema:** Article (with Person author for Ryan/Tam, bare string for kids) + BreadcrumbList
+- **Quick read block:** required at top of body (40-60 words). Pulled from `field_notes.quick_answer`. Reused as schema description.
+- **Period strip** ([§4.1](#41-strip-trailing-period-from-lowercase-headings)) on article.title for hero overlay AND JSON-LD.
+- **Recommendation waterfall** (4 cards): curated metafields → topic-match recent → any recent → 4 placeholder cards if blog has no other articles yet.
+
+---
+
+## 11. Open systems / WIP
+
+Things that are referenced but not fully built, or built but not yet deployed.
+
+| Item | Status | Notes |
+|---|---|---|
+| `/pages/ryan` author archive | Not built | About-author card "More from Ryan" link points here. Need a custom page with bio + curated post grid. |
+| `/pages/tam` author archive | Not built | Same as above for Tam. |
+| Kid character images for article author avatar | Schema-ready | Section settings `kid_character_1/2/3` + filenames. Pool of 3 images, JS picks one per post load. Ryan to upload. |
+| Ryan/Tam avatar images | Schema-ready | Section settings `ryan_avatar` / `tam_avatar` + filename fallbacks. Ryan to upload. |
+| Audience tag system | Half-wired | Audience toggle in editorial broadcasts via `field-notes:audience-changed`. Cards filter via `data-audience`. Not all sections respect this yet. |
+| URL redirect `/blogs/theinside/*` → `/blogs/field-notes/*` | Verify in admin | Should be auto-created by Shopify on blog handle rename. Confirm in Online Store → Navigation → URL Redirects. |
+| News blog (Dawn default) | Optional cleanup | Unused, deletable. Currently sits in admin as the silent fallback for any unknown `/blogs/...` handle. |
+
+---
+
+## 12. Code conventions
+
+### File naming
+
+- All custom sections: `theinmag-` prefix.
+- Custom snippets: `theinmag-` prefix.
+- CSS classes inside sections: `theinmag-[section]__[element]--[modifier]` (BEM, prefix-scoped).
+- New sections always include a `theinmag-[name]-section` schema `class` for the wrapper (used for sticky positioning, etc.).
+
+### CSS
+
+- Custom properties only — no hardcoded colour values (use design tokens).
+- Section-level `{%- stylesheet -%}` blocks for section-specific CSS (loads only when section renders — useful for scoping mobile overrides like headroom).
+- Mobile-first: base styles assume mobile, enhance with `@media (min-width: ...)` for tablet/desktop.
+- For mobile-overrides of desktop defaults: ALWAYS use the specificity-prefix pattern (§3.1).
+- All decorative animation respects `prefers-reduced-motion: reduce`.
+
+### Comments
+
+- Default to no comments. Only comment WHY when non-obvious (a hidden constraint, a workaround for a specific bug, behavior that would surprise a reader).
+- Don't comment WHAT — well-named identifiers do that.
+- Don't reference current task or issue numbers (rots over time).
+
+### Liquid
+
+- Use `{%- liquid ... -%}` blocks for dense logic (cleaner than nested tags).
+- Always provide blank-checks before rendering optional content.
+- Strip whitespace-control hyphens (`{%- ... -%}`) on tags that shouldn't add output whitespace.
+
+---
+
+## 13. Session-start protocol
+
+This doc is read every session start. The mechanism:
+
+1. CLAUDE.md's session-start checklist references this doc.
+2. On a new session, after reading CLAUDE.md / tokens / principles, read this doc.
+3. Run `git log --oneline -10` and compare to the last entry in [§14](#14-maintenance-log) below.
+4. If commits exist that aren't logged here yet, integrate them into the relevant catalog/pattern sections BEFORE starting any new work.
+5. After the session's main work is complete, log the session in §14.
+
+---
+
+## 14. Maintenance log
+
+Newest at top. Each entry: date, commit hash (or "uncommitted"), one-line summary of what was added to this doc.
+
+- **2026-05-07** (uncommitted, second pass) — **Added §9 Kid pattern library.** Per Ryan's prompt: every page or section that calls for a background, decorative surface, or texture should default to a kid creation pulled from the magazine — never synthetic geometric patterns or stock textures. Section captures: the trigger ("STOP and ask Ryan" before defaulting to flat colour), the existing `/assets/` library (blog-image-universal, section_background, HERO, character pools), naming convention going forward (`theinmag-pattern-[surface]-[descriptor]`), six implementation modes (top-anchored gradient blend, full-bleed, decorative corner peek, repeating tile, inline mid-content punctuation, image-on-image overlay), and a "when to ask, when to grab" decision tree (card covers safe to grab; section/hero anchors require Ryan-yes). The Page Recipe template now has a separate "Anchoring kid pattern" slot (distinct from the hero kid creation) so it's checked every time a new page is briefed.
+- **2026-05-07** (uncommitted) — **Initial creation.** Captures the system state through commit `26d0a427` (Field notes article template + mobile blog index polish). Section catalog covers all 17 theinmag sections, 2 snippets, the 5 custom templates. Mobile playbook records the specificity-prefix pattern (real bug that cost a session round-trip), full-bleed negative-margin trick, headroom transform-target gotcha, scroll-snap rail recipe, flex-`order` reorder, and `vh` for hero height. Liquid section captures period-strip, namespace `field_notes`, articles[handle] indexing, kid-character random pool, schema gotchas, asset 1MB limit, Dawn `div:empty` rule. JS section captures headroom delta-anchoring, scroll-driven custom property pattern, React-friendly input setter for admin automation. Editorial voice cheat sheet covers all locked rules including the 2026-05-06 lowercase-no-period revision. Page recipes include the template + worked examples for homepage / blog index / single article.

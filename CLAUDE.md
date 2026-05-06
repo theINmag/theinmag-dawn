@@ -119,8 +119,9 @@ Judge.me / Sky Pilot / Klaviyo / Make.com / JotForm / AusPost API / GA4 / Lucky 
 2. Track exchange count, flag at 12 of 15 max - break to fresh chat at the limit.
 3. Confirm one specific task for this conversation.
 4. Confirm prompt specificity before writing any code.
-5. Read both companion files (design tokens + design principles) when judgment is needed. Read `homepage-build-spec.md` when working on any homepage section.
+5. **Read `theinmag-pattern-library.md` before any new work.** It catalogues every section + snippet, captures mobile patterns / Liquid / JS / schema gotchas, and holds page recipes. Run `git log --oneline -10` and compare to its Maintenance log — if commits exist that aren't logged there yet, integrate them into the doc before starting new work, and add a fresh log entry at session end.
+6. Read companion files (design tokens + design principles) when judgment is needed. Read `homepage-build-spec.md` when working on any homepage section, `blog-post-build-spec.md` when working on the article template.
 
 ---
 
-*CLAUDE.md last updated: May 3 2026 - fonts locked (Post Regular + Inter), design audit complete, three project files in place. Hero headline aligned to homepage build spec ("The magazine for creative kids"). Git ownership note: Claude Code commits/pushes from here forward.*
+*CLAUDE.md last updated: May 7 2026 - added pattern-library session-start step (item 5). Fonts locked (Post Regular + Inter), design audit complete, four project files in place. Hero headline aligned to homepage build spec ("The magazine for creative kids"). Git ownership note: Claude Code commits/pushes from here forward.*
