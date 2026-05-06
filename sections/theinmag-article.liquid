@@ -1,0 +1,1513 @@
+{%- comment -%}
+  theinmag-article
+  Single field-notes post template. Maude-style two-column editorial:
+  cover image sticky on the left, article body scrolls on the right.
+
+  Per-post metafields (namespace `field_notes`, defined in Shopify
+  admin under Settings > Custom data > Articles):
+
+    field_notes.quick_answer            (multi-line text, REQUIRED for AEO)
+    field_notes.primary_topic           (single line text, e.g. "Creativity")
+    field_notes.author_type             (single line text: ryan | tam | kid)
+    field_notes.author_role_override    (single line text, optional)
+    field_notes.kid_first_name          (single line text, if author_type=kid)
+    field_notes.kid_age                 (integer, if author_type=kid)
+    field_notes.kid_region              (single line text, e.g. "Fremantle WA")
+    field_notes.recommendation_1_handle (single line text, post handle no slash)
+    field_notes.recommendation_1_blurb  (single line text, italic connective)
+    field_notes.recommendation_2_handle / _blurb
+    field_notes.recommendation_3_handle / _blurb
+{%- endcomment -%}
+
+{%- liquid
+  comment
+  Strip a single trailing period from sentence-case lowercase headings
+  per Ryan's brand decision (2026-05-06). Question marks are kept.
+  endcomment
+  assign display_title = article.title
+  assign last_char = display_title | slice: -1
+  if last_char == '.'
+    assign trim_to = display_title | size | minus: 1
+    assign display_title = display_title | slice: 0, trim_to
+  endif
+
+  assign primary_topic = article.metafields.field_notes.primary_topic
+  if primary_topic == blank
+    assign primary_topic = article.tags.first
+  endif
+
+  assign quick_answer = article.metafields.field_notes.quick_answer
+
+  assign author_type = article.metafields.field_notes.author_type | downcase
+  if author_type == blank
+    assign author_type = 'ryan'
+  endif
+
+  assign words = article.content | strip_html | split: ' ' | size
+  assign read_minutes = words | divided_by: 225 | at_least: 1
+  assign read_time_label = read_minutes | append: ' min read'
+
+  if author_type == 'tam'
+    assign author_name = section.settings.tam_name | default: 'Tam'
+    assign author_role = section.settings.tam_role
+    assign author_bio = section.settings.tam_bio
+    assign author_archive_url = section.settings.tam_archive_url
+    assign author_avatar = section.settings.tam_avatar
+    assign author_avatar_filename = section.settings.tam_avatar_filename
+    assign author_ig = section.settings.tam_instagram_url
+    assign author_fb = section.settings.tam_facebook_url
+    assign author_yt = section.settings.tam_youtube_url
+  elsif author_type == 'kid'
+    assign kid_first_name = article.metafields.field_notes.kid_first_name
+    assign kid_age = article.metafields.field_notes.kid_age
+    assign kid_region = article.metafields.field_notes.kid_region
+    capture author_name
+      echo 'By '
+      echo kid_first_name
+      if kid_age != blank
+        echo ', age '
+        echo kid_age
+      endif
+      if kid_region != blank
+        echo ' - '
+        echo kid_region
+      endif
+    endcapture
+    assign author_role = blank
+    assign author_bio = blank
+    assign author_archive_url = blank
+  else
+    assign author_name = section.settings.ryan_name | default: 'Ryan'
+    assign author_role = section.settings.ryan_role
+    assign author_bio = section.settings.ryan_bio
+    assign author_archive_url = section.settings.ryan_archive_url
+    assign author_avatar = section.settings.ryan_avatar
+    assign author_avatar_filename = section.settings.ryan_avatar_filename
+    assign author_ig = section.settings.ryan_instagram_url
+    assign author_fb = section.settings.ryan_facebook_url
+    assign author_yt = section.settings.ryan_youtube_url
+  endif
+
+  assign author_role_override = article.metafields.field_notes.author_role_override
+  if author_role_override != blank
+    assign author_role = author_role_override
+  endif
+
+  if author_type == 'kid'
+    assign byline_overlay = author_name
+  else
+    assign byline_overlay = 'By ' | append: author_name
+  endif
+
+  assign rec_heading = section.settings.rec_heading | default: "here's some more we thought you might enjoy"
+
+  assign rec_1_handle = article.metafields.field_notes.recommendation_1_handle
+  assign rec_2_handle = article.metafields.field_notes.recommendation_2_handle
+  assign rec_3_handle = article.metafields.field_notes.recommendation_3_handle
+  assign rec_1_blurb  = article.metafields.field_notes.recommendation_1_blurb
+  assign rec_2_blurb  = article.metafields.field_notes.recommendation_2_blurb
+  assign rec_3_blurb  = article.metafields.field_notes.recommendation_3_blurb
+
+  assign rec_1 = blank
+  assign rec_2 = blank
+  assign rec_3 = blank
+  if rec_1_handle != blank
+    assign rec_1_key = blog.handle | append: '/' | append: rec_1_handle
+    assign rec_1 = articles[rec_1_key]
+  endif
+  if rec_2_handle != blank
+    assign rec_2_key = blog.handle | append: '/' | append: rec_2_handle
+    assign rec_2 = articles[rec_2_key]
+  endif
+  if rec_3_handle != blank
+    assign rec_3_key = blog.handle | append: '/' | append: rec_3_handle
+    assign rec_3 = articles[rec_3_key]
+  endif
+
+  assign curated_count = 0
+  if rec_1 != blank
+    assign curated_count = curated_count | plus: 1
+  endif
+  if rec_2 != blank
+    assign curated_count = curated_count | plus: 1
+  endif
+  if rec_3 != blank
+    assign curated_count = curated_count | plus: 1
+  endif
+
+  assign full_url = request.origin | append: article.url
+  assign blog_full_url = request.origin | append: blog.url
+  assign root_url = request.origin
+  assign og_image_url = ''
+  if article.image != blank
+    assign og_image_url = article.image | image_url: width: 1800
+    assign og_image_url = 'https:' | append: og_image_url
+    if og_image_url contains 'https:https:'
+      assign og_image_url = og_image_url | replace: 'https:https:', 'https:'
+    endif
+  endif
+
+  assign hero_darken = section.settings.hero_darken | default: 30
+  assign hero_darken_decimal = hero_darken | times: 1.0 | divided_by: 100.0
+
+  assign kid_character_count = 0
+  for i in (1..3)
+    assign img_key = 'kid_character_' | append: i
+    assign filename_key = 'kid_character_' | append: i | append: '_filename'
+    if section.settings[img_key] != blank or section.settings[filename_key] != blank
+      assign kid_character_count = kid_character_count | plus: 1
+    endif
+  endfor
+-%}
+
+<article
+  class="theinmag-article{% if author_type == 'kid' %} theinmag-article--kid{% endif %}"
+  data-theinmag-article
+  data-author-type="{{ author_type }}"
+  style="--hero-darken: {{ hero_darken_decimal }};"
+>
+  {%- comment -%}
+    Hero + body grid. On desktop the left column is sticky (cover
+    image), the right column scrolls (body). On mobile they stack.
+  {%- endcomment -%}
+  <div class="theinmag-article__grid">
+    <div class="theinmag-article__cover-col">
+      <div class="theinmag-article__cover-sticky" data-cover-sticky>
+        {%- if article.image != blank -%}
+          <img
+            class="theinmag-article__cover-image"
+            srcset="
+              {% if article.image.width >= 600 %}{{ article.image | image_url: width: 600 }} 600w,{% endif %}
+              {% if article.image.width >= 900 %}{{ article.image | image_url: width: 900 }} 900w,{% endif %}
+              {% if article.image.width >= 1200 %}{{ article.image | image_url: width: 1200 }} 1200w,{% endif %}
+              {% if article.image.width >= 1600 %}{{ article.image | image_url: width: 1600 }} 1600w,{% endif %}
+              {{ article.image | image_url: width: 2000 }} 2000w
+            "
+            sizes="(min-width: 990px) 50vw, 100vw"
+            src="{{ article.image | image_url: width: 1200 }}"
+            alt="{{ article.image.alt | default: article.title | escape }}"
+            loading="eager"
+            fetchpriority="high"
+            width="{{ article.image.width }}"
+            height="{{ article.image.height }}"
+          >
+        {%- else -%}
+          <span class="theinmag-article__cover-placeholder" aria-hidden="true"></span>
+        {%- endif -%}
+
+        <div class="theinmag-article__overlay" data-hero-overlay aria-hidden="false">
+          <h1 class="theinmag-article__overlay-title">{{ display_title }}</h1>
+          {%- if primary_topic != blank -%}
+            <span class="theinmag-article__overlay-topic">{{ primary_topic }}</span>
+          {%- endif -%}
+          {%- if byline_overlay != blank -%}
+            <p class="theinmag-article__overlay-byline">{{ byline_overlay }}</p>
+          {%- endif -%}
+          {%- if author_type != 'kid' and author_role != blank -%}
+            <p class="theinmag-article__overlay-role">{{ author_role }}</p>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+
+    <div class="theinmag-article__body-col">
+      <div class="theinmag-article__body-inner">
+        <header class="theinmag-article__byline-row">
+          <span class="theinmag-article__byline-meta">
+            {%- if primary_topic != blank -%}
+              <span class="theinmag-article__byline-topic">{{ primary_topic }}</span>
+            {%- endif -%}
+            {%- if read_time_label != blank -%}
+              <span class="theinmag-article__byline-read">{{ read_time_label }}</span>
+            {%- endif -%}
+            {%- if article.published_at != blank -%}
+              <span class="theinmag-article__byline-date">{{ article.published_at | date: '%b %-d, %Y' }}</span>
+            {%- endif -%}
+          </span>
+        </header>
+
+        {%- if quick_answer != blank -%}
+          <aside class="theinmag-article__quick-read" aria-label="Quick read">
+            <span class="theinmag-article__quick-read-label">Quick read</span>
+            <div class="theinmag-article__quick-read-body rte">{{ quick_answer }}</div>
+          </aside>
+        {%- endif -%}
+
+        <div class="theinmag-article__body rte">
+          {{ article.content }}
+        </div>
+
+        {%- if author_type != 'kid' -%}
+          <aside class="theinmag-article__about" aria-label="About the author">
+            <div class="theinmag-article__about-header">
+              <div class="theinmag-article__about-avatar">
+                {%- liquid
+                  assign about_avatar_url = ''
+                  if author_avatar != blank
+                    assign about_avatar_url = author_avatar | image_url: width: 240
+                  elsif author_avatar_filename != blank
+                    assign about_avatar_url = author_avatar_filename | asset_url
+                  endif
+                -%}
+                {%- if about_avatar_url != blank -%}
+                  <img
+                    src="{{ about_avatar_url }}"
+                    alt="{{ author_name | escape }}"
+                    width="120"
+                    height="120"
+                    loading="lazy"
+                  >
+                {%- else -%}
+                  <span class="theinmag-article__avatar-fallback theinmag-article__avatar-fallback--lg" aria-hidden="true">{{ author_name | slice: 0, 1 }}</span>
+                {%- endif -%}
+              </div>
+              <div class="theinmag-article__about-identity">
+                <h2 class="theinmag-article__about-name">{{ author_name }}</h2>
+                {%- if author_role != blank -%}
+                  <p class="theinmag-article__about-role">{{ author_role }}</p>
+                {%- endif -%}
+              </div>
+            </div>
+
+            {%- if author_bio != blank -%}
+              <p class="theinmag-article__about-bio">{{ author_bio }}</p>
+            {%- endif -%}
+
+            <div class="theinmag-article__about-actions">
+              {%- if author_archive_url != blank -%}
+                <a class="theinmag-article__about-link" href="{{ author_archive_url }}">More from {{ author_name }}</a>
+              {%- endif -%}
+              {%- if author_ig != blank or author_fb != blank or author_yt != blank -%}
+                <div class="theinmag-article__about-socials">
+                  {%- if author_ig != blank -%}
+                    <a class="theinmag-article__about-social" href="{{ author_ig }}" aria-label="{{ author_name | escape }} on Instagram" rel="noopener" target="_blank">IG</a>
+                  {%- endif -%}
+                  {%- if author_fb != blank -%}
+                    <a class="theinmag-article__about-social" href="{{ author_fb }}" aria-label="{{ author_name | escape }} on Facebook" rel="noopener" target="_blank">FB</a>
+                  {%- endif -%}
+                  {%- if author_yt != blank -%}
+                    <a class="theinmag-article__about-social" href="{{ author_yt }}" aria-label="{{ author_name | escape }} on YouTube" rel="noopener" target="_blank">YT</a>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            </div>
+          </aside>
+        {%- else -%}
+          {%- comment -%}
+            Kid attribution: name + age + region only. No "more from"
+            link. Per Ryan's locked brand-safety rule, we don't surface
+            kid history or build per-kid archive pages.
+          {%- endcomment -%}
+          <aside class="theinmag-article__about theinmag-article__about--kid" aria-label="About the contributor">
+            <div class="theinmag-article__about-header">
+              <div class="theinmag-article__about-avatar">
+                <span
+                  class="theinmag-article__kid-character theinmag-article__kid-character--lg"
+                  data-theinmag-kid-character
+                  data-character-count="{{ kid_character_count }}"
+                  {% for i in (1..3) %}
+                    {%- liquid
+                      assign img_key = 'kid_character_' | append: i
+                      assign filename_key = 'kid_character_' | append: i | append: '_filename'
+                      assign data_key = 'data-character-' | append: i
+                      assign url_value = ''
+                      if section.settings[img_key] != blank
+                        assign url_value = section.settings[img_key] | image_url: width: 320
+                      elsif section.settings[filename_key] != blank
+                        assign url_value = section.settings[filename_key] | asset_url
+                      endif
+                    -%}
+                    {%- if url_value != blank -%}
+                      {{ data_key }}="{{ url_value }}"
+                    {%- endif -%}
+                  {% endfor %}
+                  aria-hidden="true"
+                ></span>
+              </div>
+              <div class="theinmag-article__about-identity">
+                <h2 class="theinmag-article__about-name">{{ kid_first_name }}{% if kid_age != blank %}, age {{ kid_age }}{% endif %}</h2>
+                {%- if kid_region != blank -%}
+                  <p class="theinmag-article__about-role">{{ kid_region }}</p>
+                {%- endif -%}
+              </div>
+            </div>
+            <p class="theinmag-article__about-bio">A creation from a kid published in theINmag. We feature contributors by first name, age, and region only.</p>
+          </aside>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  <section class="theinmag-article__recommend" aria-labelledby="theinmag-article-rec-heading">
+    <div class="theinmag-article__recommend-inner">
+      <header class="theinmag-article__recommend-header">
+        <h2 id="theinmag-article-rec-heading" class="theinmag-article__recommend-heading">{{ rec_heading }}</h2>
+        <a class="theinmag-article__recommend-link" href="/blogs/field-notes" aria-label="Browse all field notes">
+          <span>browse all field notes</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>
+        </a>
+      </header>
+      <div class="theinmag-article__recommend-grid">
+        {%- liquid
+          assign target = 4
+          assign filled_count = 0
+        -%}
+
+        {%- comment -%} Step 1: curated picks (up to 3 metafield slots) {%- endcomment -%}
+        {%- if rec_1 != blank and filled_count < target -%}
+          {%- render 'theinmag-article-rec-card', rec: rec_1, blurb: rec_1_blurb -%}
+          {%- assign filled_count = filled_count | plus: 1 -%}
+        {%- endif -%}
+        {%- if rec_2 != blank and filled_count < target -%}
+          {%- render 'theinmag-article-rec-card', rec: rec_2, blurb: rec_2_blurb -%}
+          {%- assign filled_count = filled_count | plus: 1 -%}
+        {%- endif -%}
+        {%- if rec_3 != blank and filled_count < target -%}
+          {%- render 'theinmag-article-rec-card', rec: rec_3, blurb: rec_3_blurb -%}
+          {%- assign filled_count = filled_count | plus: 1 -%}
+        {%- endif -%}
+
+        {%- comment -%} Step 2: algorithmic - same primary_topic, exclude
+          current article and curated handles. {%- endcomment -%}
+        {%- if filled_count < target -%}
+          {%- for related in blog.articles -%}
+            {%- if filled_count >= target -%}{%- break -%}{%- endif -%}
+            {%- if related.id == article.id -%}{%- continue -%}{%- endif -%}
+            {%- liquid
+              assign related_topic = related.metafields.field_notes.primary_topic
+              if related_topic == blank
+                assign related_topic = related.tags.first
+              endif
+              assign topic_match = false
+              if primary_topic != blank and related_topic == primary_topic
+                assign topic_match = true
+              endif
+              assign already_curated = false
+              if rec_1_handle != blank and related.handle == rec_1_handle
+                assign already_curated = true
+              endif
+              if rec_2_handle != blank and related.handle == rec_2_handle
+                assign already_curated = true
+              endif
+              if rec_3_handle != blank and related.handle == rec_3_handle
+                assign already_curated = true
+              endif
+            -%}
+            {%- if topic_match and already_curated == false -%}
+              {%- render 'theinmag-article-rec-card', rec: related, blurb: blank -%}
+              {%- assign filled_count = filled_count | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+
+        {%- comment -%} Step 3: algorithmic - any recent post,
+          exclude current, curated, and topic-matched already shown. {%- endcomment -%}
+        {%- if filled_count < target -%}
+          {%- for related in blog.articles -%}
+            {%- if filled_count >= target -%}{%- break -%}{%- endif -%}
+            {%- if related.id == article.id -%}{%- continue -%}{%- endif -%}
+            {%- liquid
+              assign related_topic = related.metafields.field_notes.primary_topic
+              if related_topic == blank
+                assign related_topic = related.tags.first
+              endif
+              assign already_shown = false
+              if primary_topic != blank and related_topic == primary_topic
+                assign already_shown = true
+              endif
+              if rec_1_handle != blank and related.handle == rec_1_handle
+                assign already_shown = true
+              endif
+              if rec_2_handle != blank and related.handle == rec_2_handle
+                assign already_shown = true
+              endif
+              if rec_3_handle != blank and related.handle == rec_3_handle
+                assign already_shown = true
+              endif
+            -%}
+            {%- unless already_shown -%}
+              {%- render 'theinmag-article-rec-card', rec: related, blurb: blank -%}
+              {%- assign filled_count = filled_count | plus: 1 -%}
+            {%- endunless -%}
+          {%- endfor -%}
+        {%- endif -%}
+
+        {%- comment -%} Step 4: visual placeholder if grid is still
+          empty. Sits as a teaser of what the section will look like
+          once more posts exist. Each card links back to field notes. {%- endcomment -%}
+        {%- if filled_count == 0 -%}
+          {%- assign placeholder_topics = 'Wellbeing|Creativity|Behind the mag|Numeracy' | split: '|' -%}
+          {%- assign placeholder_titles = "the case for boredom|things to draw when you're stuck|behind mag10|the open numeracy task" | split: '|' -%}
+          {%- assign placeholder_blurbs = "Screens-and-YouTube isn't the cause of the dip - it's the symptom.|Five prompts for the kid who just told you they're 'bad at art.'|The messy truth of how an issue actually comes together.|Where to start if you've never run an open task before." | split: '|' -%}
+          {%- assign placeholder_images = 'blog-image-universal-05.jpg|blog-image-universal-04.jpg|blog-image-universal-08.jpg|blog-image-universal-02.jpg' | split: '|' -%}
+          {%- for slot in (0..3) -%}
+            {%- liquid
+              assign p_topic = placeholder_topics[slot]
+              assign p_title = placeholder_titles[slot]
+              assign p_blurb = placeholder_blurbs[slot]
+              assign p_image = placeholder_images[slot]
+            -%}
+            <a class="theinmag-article__rec-card" href="/blogs/field-notes" aria-label="Browse all field notes">
+              <span class="theinmag-article__rec-cover">
+                <img class="theinmag-article__rec-image" src="{{ p_image | asset_url }}" alt="" loading="lazy" width="800" height="500">
+              </span>
+              <span class="theinmag-article__rec-body">
+                <span class="theinmag-article__rec-topic">{{ p_topic }}</span>
+                <span class="theinmag-article__rec-title">{{ p_title }}</span>
+                <span class="theinmag-article__rec-blurb">{{ p_blurb }}</span>
+              </span>
+            </a>
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+    </div>
+  </section>
+</article>
+
+{%- comment -%} Article + BreadcrumbList JSON-LD. We do NOT use Shopify's
+  default `article | structured_data` because we want Person schema with
+  sameAs socials for Ryan/Tam, name string only for kid contributors,
+  and Quick answer wired into the description field. {%- endcomment -%}
+
+{%- liquid
+  assign schema_description = quick_answer | strip_html | strip_newlines | escape
+  if schema_description == blank
+    assign schema_description = article.excerpt | strip_html | escape
+  endif
+  if schema_description == blank
+    assign schema_description = article.content | strip_html | truncatewords: 30 | escape
+  endif
+
+  assign org_name = section.settings.org_name | default: 'theINmag'
+  assign org_url = section.settings.org_url | default: 'https://theinmag.com.au'
+  assign org_logo_url = ''
+  if section.settings.org_logo != blank
+    assign org_logo_url = section.settings.org_logo | image_url: width: 600
+  elsif section.settings.org_logo_filename != blank
+    assign org_logo_url = section.settings.org_logo_filename | asset_url
+  endif
+-%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": {{ full_url | json }}
+  },
+  "headline": {{ display_title | json }},
+  "description": {{ schema_description | json }},
+  {%- if article.image != blank -%}
+  "image": [
+    {{ og_image_url | json }}
+  ],
+  {%- endif -%}
+  "datePublished": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+  "dateModified": {{ article.updated_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+  "author":
+  {%- if author_type == 'kid' -%}
+    {{ kid_first_name | json }}
+  {%- else -%}
+    {
+      "@type": "Person",
+      "name": {{ author_name | json }}
+      {%- if author_role != blank -%}
+        ,"jobTitle": {{ author_role | json }}
+      {%- endif -%}
+      {%- if author_archive_url != blank -%}
+        ,"url": {{ author_archive_url | prepend: root_url | json }}
+      {%- endif -%}
+      {%- assign sameas_count = 0 -%}
+      {%- if author_ig != blank %}{%- assign sameas_count = sameas_count | plus: 1 -%}{% endif -%}
+      {%- if author_fb != blank %}{%- assign sameas_count = sameas_count | plus: 1 -%}{% endif -%}
+      {%- if author_yt != blank %}{%- assign sameas_count = sameas_count | plus: 1 -%}{% endif -%}
+      {%- if sameas_count > 0 -%}
+        ,"sameAs": [
+          {%- assign first = true -%}
+          {%- if author_ig != blank -%}{{ author_ig | json }}{%- assign first = false -%}{%- endif -%}
+          {%- if author_fb != blank -%}{%- unless first -%},{%- endunless -%}{{ author_fb | json }}{%- assign first = false -%}{%- endif -%}
+          {%- if author_yt != blank -%}{%- unless first -%},{%- endunless -%}{{ author_yt | json }}{%- endif -%}
+        ]
+      {%- endif -%}
+    }
+  {%- endif -%},
+  "publisher": {
+    "@type": "Organization",
+    "name": {{ org_name | json }},
+    "url": {{ org_url | json }}
+    {%- if org_logo_url != blank -%}
+      ,"logo": {
+        "@type": "ImageObject",
+        "url": {{ org_logo_url | json }}
+      }
+    {%- endif -%}
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": {{ root_url | json }}
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": {{ blog.title | json }},
+      "item": {{ blog_full_url | json }}
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": {{ display_title | json }},
+      "item": {{ full_url | json }}
+    }
+  ]
+}
+</script>
+
+{%- stylesheet -%}
+  .theinmag-article {
+    --hero-progress: 0;
+    --hero-darken: 0.3;
+    --color-cream: #FBF6EA;
+    --color-ink: #2A1F3D;
+    --color-purple-dark: #5D3A7A;
+    --color-teal: #2D6878;
+    --color-rule: rgba(42, 31, 61, 0.18);
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-article__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+
+  /* ================================================================
+     Cover column - sticky on desktop, natural on mobile
+     ================================================================ */
+  .theinmag-article__cover-col {
+    position: relative;
+    background-color: var(--color-ink);
+  }
+
+  .theinmag-article__cover-sticky {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-article__cover-sticky {
+      aspect-ratio: 3 / 4;
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-article__cover-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      aspect-ratio: auto;
+    }
+  }
+
+  .theinmag-article__cover-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(calc(1 - var(--hero-darken) + (var(--hero-progress) * var(--hero-darken))));
+    transform: scale(calc(1.04 - (var(--hero-progress) * 0.04)));
+    transition: filter 0.05s linear, transform 0.05s linear;
+    transform-origin: center center;
+    will-change: filter, transform;
+  }
+
+  .theinmag-article__cover-placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #5D3A7A 0%, #C9543E 100%);
+  }
+
+  /* ================================================================
+     Hero overlay (title + byline + topic on the image)
+     White text on a soft scrim - per the white-on-scrim memory, never
+     coloured pills on photography surfaces.
+     ================================================================ */
+  .theinmag-article__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: clamp(24px, 4vw, 56px);
+    color: #FFFFFF;
+    background: linear-gradient(
+      to bottom,
+      rgba(20, 14, 30, 0.55) 0%,
+      rgba(20, 14, 30, 0.18) 45%,
+      rgba(20, 14, 30, 0) 80%
+    );
+    opacity: calc(1 - var(--hero-progress));
+    transform: translateY(calc(var(--hero-progress) * -32px)) scale(calc(1 + (var(--hero-progress) * 0.04)));
+    transition: opacity 0.05s linear, transform 0.05s linear;
+    transform-origin: left center;
+    pointer-events: none;
+    text-shadow: 0 1px 12px rgba(20, 14, 30, 0.35);
+    will-change: opacity, transform;
+  }
+
+  .theinmag-article__overlay-title {
+    margin: 0 0 clamp(12px, 1.6vw, 20px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(28px, 4.5vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    color: #FFFFFF;
+    max-width: 20ch;
+  }
+
+  .theinmag-article__overlay-topic {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: clamp(10px, 1.2vw, 14px);
+    opacity: 0.92;
+  }
+
+  .theinmag-article__overlay-byline {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(13px, 1.3vw, 15px);
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    color: #FFFFFF;
+    opacity: 0.92;
+    max-width: 32ch;
+  }
+
+  .theinmag-article__overlay-role {
+    margin: 4px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(12px, 1.15vw, 13px);
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    color: #FFFFFF;
+    opacity: 0.82;
+    max-width: 32ch;
+  }
+
+  /* ================================================================
+     Body column - article content + bylines + Quick answer + about
+     ================================================================ */
+  .theinmag-article__body-col {
+    background-color: var(--color-cream);
+    padding: clamp(40px, 6vw, 96px) clamp(40px, 6vw, 96px) clamp(56px, 7vw, 112px) clamp(20px, 4vw, 56px);
+  }
+
+  .theinmag-article__body-inner {
+    max-width: 64ch;
+    margin: 0 auto;
+  }
+
+  /* ----- Top byline chip (just topic / read time / date) ----- */
+  .theinmag-article__byline-row {
+    margin: 0 0 clamp(28px, 3vw, 40px);
+    padding-bottom: clamp(20px, 2.4vw, 28px);
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  /* Avatar (in About-the-author card) and kid-character avatar
+     fallback styles are kept here for the bottom about card. */
+  .theinmag-article__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-article__avatar-fallback {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--color-purple-dark);
+  }
+
+  .theinmag-article__avatar-fallback--lg {
+    font-size: clamp(28px, 3vw, 36px);
+  }
+
+  .theinmag-article__byline-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--color-ink);
+    opacity: 0.7;
+  }
+
+  .theinmag-article__byline-meta > * + *::before {
+    content: '·';
+    margin-right: 8px;
+    opacity: 0.6;
+  }
+
+  .theinmag-article__byline-topic {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-purple-dark);
+    opacity: 1;
+  }
+
+  /* ----- Quick read card (white tile with shadow, narrower than body
+     for a "feature" feel) ----- */
+  .theinmag-article__quick-read {
+    margin: 0 auto clamp(28px, 3vw, 40px);
+    max-width: 84%;
+    padding: clamp(20px, 2.4vw, 28px) clamp(22px, 2.6vw, 32px);
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 2px 14px rgba(123, 79, 158, 0.10);
+  }
+
+  .theinmag-article__quick-read-label {
+    display: inline-block;
+    margin-bottom: clamp(8px, 1vw, 12px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark);
+  }
+
+  .theinmag-article__quick-read-body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(13px, 1.2vw, 14px);
+    line-height: 1.55;
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__quick-read-body p {
+    margin: 0 0 0.6em;
+  }
+
+  .theinmag-article__quick-read-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ----- Article body (rendered HTML from Shopify RTE) ----- */
+  .theinmag-article__body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.2vw, 15px);
+    line-height: 1.65;
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__body p {
+    margin: 0 0 1.2em;
+  }
+
+  .theinmag-article__body h2 {
+    margin: 1.6em 0 0.6em;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(18px, 1.9vw, 22px);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__body h3 {
+    margin: 1.4em 0 0.5em;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.3;
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__body a {
+    color: var(--color-teal);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease, text-decoration-thickness 0.15s ease;
+  }
+
+  .theinmag-article__body a:hover,
+  .theinmag-article__body a:focus-visible {
+    color: var(--color-purple-dark);
+    text-decoration-thickness: 2px;
+  }
+
+  .theinmag-article__body ul,
+  .theinmag-article__body ol {
+    margin: 0 0 1.2em;
+    padding-left: 1.4em;
+  }
+
+  .theinmag-article__body li {
+    margin-bottom: 0.4em;
+  }
+
+  .theinmag-article__body blockquote {
+    margin: 1.6em 0;
+    padding: 0.4em 0 0.4em 1.2em;
+    border-left: 3px solid var(--color-purple-dark);
+    font-style: italic;
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 1.4em 0;
+  }
+
+  .theinmag-article__body figure {
+    margin: 1.6em 0;
+  }
+
+  .theinmag-article__body figcaption {
+    margin-top: 0.6em;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-ink);
+    opacity: 0.7;
+    letter-spacing: 0.02em;
+  }
+
+  /* ----- About-the-author card (bottom) ----- */
+  /* Top row: small circular avatar + name/role stack. Bio + actions
+     flow underneath at full card width so long bios don't sit indented
+     in a narrow column on mobile. */
+  .theinmag-article__about {
+    margin: clamp(40px, 5vw, 64px) 0 0;
+    padding: clamp(20px, 2.4vw, 28px);
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.08);
+  }
+
+  .theinmag-article__about-header {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 1.6vw, 18px);
+    margin-bottom: clamp(14px, 1.6vw, 18px);
+  }
+
+  .theinmag-article__about-avatar {
+    flex-shrink: 0;
+    width: clamp(56px, 6vw, 72px);
+    height: clamp(56px, 6vw, 72px);
+    border-radius: 9999px;
+    overflow: hidden;
+    background-color: rgba(93, 58, 122, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theinmag-article__about--kid .theinmag-article__about-avatar {
+    background-color: transparent;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .theinmag-article__about-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .theinmag-article__about-identity {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Bio + actions indent slightly so the body content starts inside
+     the avatar's horizontal extent rather than hugging the card edge. */
+  .theinmag-article__about-bio,
+  .theinmag-article__about-actions {
+    padding-left: clamp(14px, 2vw, 24px);
+  }
+
+  .theinmag-article__about-name {
+    margin: 0 0 4px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.25;
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__about-role {
+    margin: 0 0 clamp(8px, 1vw, 12px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--color-purple-dark);
+  }
+
+  .theinmag-article__about-bio {
+    margin: 0 0 clamp(12px, 1.4vw, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(12px, 1.1vw, 13px);
+    line-height: 1.55;
+    color: var(--color-ink);
+    opacity: 0.85;
+  }
+
+  .theinmag-article__about-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(12px, 1.4vw, 18px);
+  }
+
+  .theinmag-article__about-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-teal);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    transition: color 0.15s ease, text-decoration-thickness 0.15s ease;
+  }
+
+  .theinmag-article__about-link:hover,
+  .theinmag-article__about-link:focus-visible {
+    color: var(--color-purple-dark);
+    text-decoration-thickness: 2px;
+  }
+
+  .theinmag-article__about-socials {
+    display: flex;
+    gap: 8px;
+  }
+
+  .theinmag-article__about-social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-rule);
+    border-radius: 9999px;
+    color: var(--color-ink);
+    text-decoration: none;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .theinmag-article__about-social:hover,
+  .theinmag-article__about-social:focus-visible {
+    background-color: var(--color-purple-dark);
+    color: #FFFFFF;
+    border-color: var(--color-purple-dark);
+  }
+
+  /* ----- Kid character (replaces avatar for kid contributions) ----- */
+  .theinmag-article__kid-character {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+
+  .theinmag-article__kid-character--lg {
+    width: clamp(96px, 11vw, 140px);
+    height: clamp(96px, 11vw, 140px);
+  }
+
+  /* ================================================================
+     "more for you." recommendation strip - cream surface (matches the
+     article body for cohesion), white tile cards inside for contrast,
+     "browse all field notes" outlined-purple secondary CTA on the
+     header row for back-to-index navigation.
+     ================================================================ */
+  .theinmag-article__recommend {
+    background-color: var(--color-cream);
+    padding: clamp(48px, 6vw, 96px) clamp(20px, 4vw, 56px) clamp(56px, 7vw, 112px);
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .theinmag-article__recommend-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  .theinmag-article__recommend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: clamp(16px, 2vw, 32px);
+    margin: 0 0 clamp(32px, 3.5vw, 48px);
+    padding: 0 clamp(8px, 2vw, 32px);
+  }
+
+  /* Inter editorial subhead - friendly conversational sentence,
+     not a display wordmark (Post Regular is reserved for brand-
+     identity moments, of which the recommendation strip is not one). */
+  .theinmag-article__recommend-heading {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__recommend-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 22px;
+    background-color: transparent;
+    color: var(--color-purple-dark);
+    border: 2px solid var(--color-purple-dark);
+    border-radius: 32px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(11px, 1.1vw, 13px);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .theinmag-article__recommend-link:hover,
+  .theinmag-article__recommend-link:focus-visible {
+    background-color: var(--color-purple-dark);
+    color: #FFFFFF;
+    outline: none;
+  }
+
+  .theinmag-article__recommend-link svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .theinmag-article__recommend-link:hover svg,
+  .theinmag-article__recommend-link:focus-visible svg {
+    transform: translateX(3px);
+  }
+
+  .theinmag-article__recommend-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(14px, 1.6vw, 20px);
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-article__recommend-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-article__recommend-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* ================================================================
+     Headroom: auto-hide site header on scroll-down, show on scroll-up.
+     Scoped to article pages because this stylesheet only loads with
+     this section. We transform the SECTION WRAPPER (theinmag-header-
+     section) - that's the element with position: sticky in the
+     header file. Transforming the inner .theinmag-header alone would
+     leave the sticky wrapper's empty space visible mid-animation
+     (the "blank white" gap).
+     ================================================================ */
+  .theinmag-header-section {
+    /* overflow: clip ensures the sticker's margin-bottom: -6px overhang
+       is contained within the wrapper bounds during transform, so the
+       whole thing reads as a single rectangle sliding up rather than
+       a bar with bits hanging off it that might appear to desync. */
+    overflow: clip;
+    transition: transform 0.45s ease-out;
+  }
+
+  .theinmag-header-section.is-headroom-hidden {
+    transform: translate3d(0, -100%, 0);
+    pointer-events: none;
+  }
+
+  /* ================================================================
+     Reduced motion: disable sticky parallax + overlay fade. Image at
+     full brightness from the start; overlay text stays visible until
+     naturally scrolled past. Header auto-hide is also skipped (the
+     JS short-circuits under prefers-reduced-motion).
+     ================================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-article__cover-image {
+      filter: none;
+      transform: none;
+      transition: none;
+    }
+
+    .theinmag-article__overlay {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+
+    @media (min-width: 990px) {
+      .theinmag-article__cover-sticky {
+        position: relative;
+        height: auto;
+        aspect-ratio: 3 / 4;
+      }
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var article = document.querySelector('[data-theinmag-article]');
+    if (!article) return;
+
+    var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* Single rAF-throttled scroll listener doing two things on every
+       update: (1) hero overlay fade + cover image brightness via
+       --hero-progress custom property (0 at article top, 1 by 30vh
+       past); (2) headroom-style auto-hide of the site header on
+       scroll-down, show on scroll-up. Tracks the article's rect.top
+       (NOT the sticky child's, whose rect.top is glued to 0 during
+       the sticky phase). */
+    if (!prefersReduced) {
+      /* Target the sticky section wrapper, not the inner .theinmag-header
+         (which is position: relative inside the wrapper - transforming
+         it leaves the wrapper's space empty during the slide). */
+      var siteHeader = document.querySelector('.theinmag-header-section');
+      var lastScrollY = window.pageYOffset;
+      var ticking = false;
+
+      function update() {
+        ticking = false;
+        var currentY = window.pageYOffset;
+
+        var rect = article.getBoundingClientRect();
+        var vh = window.innerHeight || document.documentElement.clientHeight;
+        var travel = vh * 0.3;
+        if (travel > 0) {
+          var scrolled = Math.max(0, -rect.top);
+          var progress = Math.min(1, scrolled / travel);
+          article.style.setProperty('--hero-progress', progress.toFixed(3));
+        }
+
+        if (siteHeader) {
+          if (currentY <= 5) {
+            siteHeader.classList.remove('is-headroom-hidden');
+            lastScrollY = currentY;
+          } else {
+            var delta = currentY - lastScrollY;
+            if (delta > 8) {
+              siteHeader.classList.add('is-headroom-hidden');
+              lastScrollY = currentY;
+            } else if (delta < -8) {
+              siteHeader.classList.remove('is-headroom-hidden');
+              lastScrollY = currentY;
+            }
+          }
+        }
+      }
+
+      function onScroll() {
+        if (!ticking) {
+          window.requestAnimationFrame(update);
+          ticking = true;
+        }
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      update();
+    }
+
+    /* Random kid character. Pool of up to 3 images shipped via section
+       settings; one is picked at page load. Pattern matches
+       sections/theinmag-mission.liquid (reference_kid_character_pattern
+       memory). No scroll-pop here - just static. */
+    var characters = article.querySelectorAll('[data-theinmag-kid-character]');
+    characters.forEach(function (el) {
+      var count = parseInt(el.getAttribute('data-character-count') || '0', 10);
+      if (!count) return;
+      var pool = [];
+      for (var i = 1; i <= 3; i++) {
+        var url = el.getAttribute('data-character-' + i);
+        if (url) pool.push(url);
+      }
+      if (!pool.length) return;
+      var pick = pool[Math.floor(Math.random() * pool.length)];
+      el.style.backgroundImage = "url('" + pick + "')";
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "field notes article",
+  "tag": "section",
+  "class": "theinmag-article-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Hero"
+    },
+    {
+      "type": "range",
+      "id": "hero_darken",
+      "label": "Hero image darkening",
+      "info": "How much the cover image is darkened at hero state. Brightens to natural as the reader scrolls.",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "%",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Recommendations"
+    },
+    {
+      "type": "text",
+      "id": "rec_heading",
+      "label": "Heading",
+      "default": "here's some more we thought you might enjoy"
+    },
+    {
+      "type": "paragraph",
+      "content": "Curated picks come from per-post metafields (recommendation_1_handle / _blurb, _2, _3). When all three are blank we fall back to recent posts in the same primary topic."
+    },
+    {
+      "type": "header",
+      "content": "Ryan"
+    },
+    {
+      "type": "text",
+      "id": "ryan_name",
+      "label": "Display name",
+      "default": "Ryan G."
+    },
+    {
+      "type": "image_picker",
+      "id": "ryan_avatar",
+      "label": "Avatar"
+    },
+    {
+      "type": "text",
+      "id": "ryan_avatar_filename",
+      "label": "Avatar fallback filename",
+      "info": "Used when the picker is empty. Filename of an image in /assets/."
+    },
+    {
+      "type": "text",
+      "id": "ryan_role",
+      "label": "Role",
+      "default": "Learning specialist & classroom teacher"
+    },
+    {
+      "type": "textarea",
+      "id": "ryan_bio",
+      "label": "Bio (one or two sentences)",
+      "default": "After years in the classroom, Ryan saw how differently every kid creates. He cofounded theINmag so those kids could be seen and published, building the magazine he'd have been obsessed with as a kid."
+    },
+    {
+      "type": "text",
+      "id": "ryan_archive_url",
+      "label": "Archive URL",
+      "info": "Where 'More from Ryan' links to. Custom Page recommended (e.g. /pages/ryan)."
+    },
+    {
+      "type": "text",
+      "id": "ryan_instagram_url",
+      "label": "Instagram URL"
+    },
+    {
+      "type": "text",
+      "id": "ryan_facebook_url",
+      "label": "Facebook URL"
+    },
+    {
+      "type": "text",
+      "id": "ryan_youtube_url",
+      "label": "YouTube URL"
+    },
+    {
+      "type": "header",
+      "content": "Tam"
+    },
+    {
+      "type": "text",
+      "id": "tam_name",
+      "label": "Display name",
+      "default": "Tam B."
+    },
+    {
+      "type": "image_picker",
+      "id": "tam_avatar",
+      "label": "Avatar"
+    },
+    {
+      "type": "text",
+      "id": "tam_avatar_filename",
+      "label": "Avatar fallback filename"
+    },
+    {
+      "type": "text",
+      "id": "tam_role",
+      "label": "Role",
+      "default": "Classroom teacher & cofounder"
+    },
+    {
+      "type": "textarea",
+      "id": "tam_bio",
+      "label": "Bio (one or two sentences)",
+      "default": "Tam's the kind of teacher every kid wants. The foundation of her teaching style is building deep relationships with her students. She's also a cofounder of theINmag, and an absolute rockstar of a mum."
+    },
+    {
+      "type": "text",
+      "id": "tam_archive_url",
+      "label": "Archive URL"
+    },
+    {
+      "type": "text",
+      "id": "tam_instagram_url",
+      "label": "Instagram URL"
+    },
+    {
+      "type": "text",
+      "id": "tam_facebook_url",
+      "label": "Facebook URL"
+    },
+    {
+      "type": "text",
+      "id": "tam_youtube_url",
+      "label": "YouTube URL"
+    },
+    {
+      "type": "header",
+      "content": "Kid contributors"
+    },
+    {
+      "type": "paragraph",
+      "content": "Kid posts use a kid-character illustration instead of a photo (locked brand-safety rule). Up to three characters in the pool; one is picked at random per page load."
+    },
+    {
+      "type": "image_picker",
+      "id": "kid_character_1",
+      "label": "Kid character 1"
+    },
+    {
+      "type": "text",
+      "id": "kid_character_1_filename",
+      "label": "Kid character 1 fallback filename"
+    },
+    {
+      "type": "image_picker",
+      "id": "kid_character_2",
+      "label": "Kid character 2"
+    },
+    {
+      "type": "text",
+      "id": "kid_character_2_filename",
+      "label": "Kid character 2 fallback filename"
+    },
+    {
+      "type": "image_picker",
+      "id": "kid_character_3",
+      "label": "Kid character 3"
+    },
+    {
+      "type": "text",
+      "id": "kid_character_3_filename",
+      "label": "Kid character 3 fallback filename"
+    },
+    {
+      "type": "header",
+      "content": "Schema (publisher / Organization)"
+    },
+    {
+      "type": "text",
+      "id": "org_name",
+      "label": "Organisation name",
+      "default": "theINmag"
+    },
+    {
+      "type": "text",
+      "id": "org_url",
+      "label": "Organisation URL",
+      "default": "https://theinmag.com.au"
+    },
+    {
+      "type": "image_picker",
+      "id": "org_logo",
+      "label": "Organisation logo"
+    },
+    {
+      "type": "text",
+      "id": "org_logo_filename",
+      "label": "Organisation logo fallback filename"
+    }
+  ],
+  "presets": [
+    {
+      "name": "field notes article"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,172 @@
+{%- comment -%}
+  theinmag-article-rec-card
+  Single recommendation card for the "more for you." strip on a field
+  notes article. Visual pattern matches the archive section's
+  archive_card so the two surfaces feel like one design system.
+
+  Inputs:
+    rec    (Article object, required)
+    blurb  (string, optional - one-line italic connective sentence)
+{%- endcomment -%}
+
+{%- liquid
+  assign rec_topic = rec.metafields.field_notes.primary_topic
+  if rec_topic == blank
+    assign rec_topic = rec.tags.first
+  endif
+
+  comment
+  Strip a single trailing period from the title for display (brand
+  rule: lowercase headings end without a period). JSON output / alt
+  text / etc. can still use rec.title raw if needed.
+  endcomment
+  assign rec_title = rec.title
+  assign last_char = rec_title | slice: -1
+  if last_char == '.'
+    assign trim_to = rec_title | size | minus: 1
+    assign rec_title = rec_title | slice: 0, trim_to
+  endif
+
+  assign rec_image_url = ''
+  if rec.image != blank
+    assign rec_image_url = rec.image | image_url: width: 800
+  endif
+  assign rec_image_alt = rec.image.alt | default: rec.title
+-%}
+
+<a class="theinmag-article__rec-card" href="{{ rec.url }}">
+  <span class="theinmag-article__rec-cover">
+    {%- if rec_image_url != blank -%}
+      <img
+        class="theinmag-article__rec-image"
+        src="{{ rec_image_url }}"
+        alt="{{ rec_image_alt | escape }}"
+        loading="lazy"
+        width="800"
+        height="500"
+      >
+    {%- else -%}
+      <span class="theinmag-article__rec-placeholder" aria-hidden="true"></span>
+    {%- endif -%}
+  </span>
+  <span class="theinmag-article__rec-body">
+    {%- if rec_topic != blank -%}
+      <span class="theinmag-article__rec-topic">{{ rec_topic }}</span>
+    {%- endif -%}
+    <span class="theinmag-article__rec-title">{{ rec_title }}</span>
+    {%- if blurb != blank -%}
+      <span class="theinmag-article__rec-blurb">{{ blurb }}</span>
+    {%- endif -%}
+  </span>
+</a>
+
+{%- stylesheet -%}
+  .theinmag-article__rec-card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.10);
+    height: 100%;
+  }
+
+  .theinmag-article__rec-card:hover,
+  .theinmag-article__rec-card:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(42, 31, 61, 0.18);
+    outline: none;
+  }
+
+  .theinmag-article__rec-card:focus-visible {
+    outline: 3px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 4px;
+  }
+
+  .theinmag-article__rec-cover {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background-color: rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-article__rec-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .theinmag-article__rec-card:hover .theinmag-article__rec-image,
+  .theinmag-article__rec-card:focus-visible .theinmag-article__rec-image {
+    transform: scale(1.04);
+  }
+
+  .theinmag-article__rec-placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #5D3A7A 0%, #C9543E 100%);
+  }
+
+  .theinmag-article__rec-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: clamp(14px, 1.6vw, 18px) clamp(16px, 1.6vw, 20px) clamp(16px, 1.8vw, 22px);
+    flex: 1;
+  }
+
+  .theinmag-article__rec-topic {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-article__rec-title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .theinmag-article__rec-blurb {
+    margin-top: 6px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-article__rec-card,
+    .theinmag-article__rec-image {
+      transition: none;
+    }
+    .theinmag-article__rec-card:hover,
+    .theinmag-article__rec-card:focus-visible {
+      transform: none;
+    }
+    .theinmag-article__rec-card:hover .theinmag-article__rec-image,
+    .theinmag-article__rec-card:focus-visible .theinmag-article__rec-image {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}

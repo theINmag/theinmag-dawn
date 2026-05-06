@@ -147,6 +147,86 @@
   }
 
   /* ================================================================
+     Mobile reorder: feature card at top (full-bleed against header,
+     no purple gap, taller portrait crop for editorial weight), then
+     intro (heading + tabs), then grid. Inside the grid, the right
+     column converts from a vertical stack of dividers to a horizontal
+     scroll rail of cards - sits between the bigger left-col tiles
+     and the feature banner that follows the editorial section.
+     Desktop layout untouched.
+     ================================================================ */
+  @media (max-width: 749px) {
+    /* Hero hits the header with no purple gap above it. */
+    .theinmag-editorial {
+      padding-top: 0;
+    }
+
+    .theinmag-editorial__inner {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(28px, 4vw, 48px);
+    }
+
+    .theinmag-editorial__card--feature {
+      order: 1;
+      /* Negate section horizontal padding so card hits viewport edges. */
+      margin-left: calc(-1 * clamp(16px, 3vw, 32px));
+      margin-right: calc(-1 * clamp(16px, 3vw, 32px));
+    }
+
+    .theinmag-editorial__card--feature .theinmag-editorial__card-cover {
+      border-radius: 0;
+      box-shadow: none;
+      /* Taller portrait crop on mobile - reads more like an editorial
+         magazine cover than a wide hero strip. */
+      aspect-ratio: 4 / 5;
+    }
+
+    .theinmag-editorial__intro {
+      order: 2;
+      margin-bottom: 0;
+    }
+
+    .theinmag-editorial__grid {
+      order: 3;
+    }
+
+    /* Right column becomes a horizontal scroll rail of small cards. */
+    .theinmag-editorial__col--right .theinmag-editorial__col-inner {
+      display: flex;
+      flex-direction: row;
+      gap: clamp(14px, 2vw, 20px);
+      overflow-x: auto;
+      overflow-y: visible;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      /* Bleed to viewport edges so cards extend past the section's
+         padding for an editorial filmstrip feel. */
+      margin-left: calc(-1 * clamp(16px, 3vw, 32px));
+      margin-right: calc(-1 * clamp(16px, 3vw, 32px));
+      padding: 4px clamp(16px, 3vw, 32px);
+    }
+
+    .theinmag-editorial__col--right .theinmag-editorial__col-inner::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Override the desktop hairline-divider treatment - cards are
+     now self-contained tiles in the rail. */
+    .theinmag-editorial__card--right_small {
+      flex-shrink: 0;
+      width: 72vw;
+      max-width: 280px;
+      padding: 0;
+      scroll-snap-align: start;
+    }
+
+    .theinmag-editorial__card--right_small + .theinmag-editorial__card--right_small {
+      border-top: none;
+    }
+  }
+
+  /* ================================================================
      Intro row: wordmark left, audience toggle right
      Indented IN from the feature image edges below so the heading
      reads softer rather than ruler-flush against the photo.

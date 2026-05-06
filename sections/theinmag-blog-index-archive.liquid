@@ -94,7 +94,7 @@
       {%- if use_real_articles -%}
         {%- for article in blog.articles -%}
           {%- liquid
-            assign card_topic = article.metafields.theinside.primary_topic
+            assign card_topic = article.metafields.field_notes.primary_topic
             if card_topic == blank
               assign card_topic = article.tags.first
             endif
@@ -308,6 +308,29 @@
     background-position: top center, top center;
     background-size: 100% 100%, 100% auto;
     background-repeat: no-repeat, no-repeat;
+  }
+
+  /* Mobile: scale the kid-flower artwork up so it bleeds further down
+     the section, visibly trailing behind the first card. Also shift
+     the artwork's horizontal position so the flower body lands inside
+     the viewport (without the shift, the centred crop hides too much
+     of the flower past the left edge). The gradient fade window is
+     pushed later so the artwork is visible across the full extension
+     before fading into the bg colour. */
+  @media (max-width: 749px) {
+    .theinmag-archive--has-bg {
+      background-image:
+        linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 75vw,
+          var(--archive-bg-color, #A8D6B8) 105vw,
+          var(--archive-bg-color, #A8D6B8) 100%
+        ),
+        var(--archive-bg-image);
+      background-position: top center, top right;
+      background-size: 100% 100%, 180% auto;
+    }
   }
 
   .theinmag-archive__inner {
