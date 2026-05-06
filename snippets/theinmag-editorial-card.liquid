@@ -1,0 +1,111 @@
+{%- comment -%}
+  theinmag-editorial-card
+  Renders one card for theinmag-blog-index-editorial. Variant decides
+  the markup shape:
+    feature       - full-width photo with white text overlay
+    large_left    - image-on-top, dark text below on lavender bg
+    right_small   - same as large_left, smaller, divider above
+    bottom_small  - same as large_left, smaller, two-up row
+  Block settings live in the section schema; this file is the renderer.
+{%- endcomment -%}
+
+{%- liquid
+  assign variant = variant | default: 'large_left'
+
+  assign article = block.settings.article
+  assign title = block.settings.title_override
+  if title == blank and article != blank
+    assign title = article.title
+  endif
+
+  assign excerpt = block.settings.excerpt_override
+  if excerpt == blank and article != blank
+    assign excerpt = article.excerpt | strip_html
+    if excerpt == blank
+      assign excerpt = article.content | strip_html | truncatewords: 20
+    endif
+  endif
+
+  assign topic = block.settings.topic
+  if topic == blank and article != blank
+    assign topic = article.tags.first
+  endif
+
+  assign card_link = block.settings.link_override
+  if card_link == blank and article != blank
+    assign card_link = article.url
+  endif
+
+  assign image_src = ''
+  if block.settings.image != blank
+    assign image_src = block.settings.image | image_url: width: 1600
+  elsif block.settings.fallback_filename != blank
+    assign image_src = block.settings.fallback_filename | asset_url
+  elsif article != blank and article.image != blank
+    assign image_src = article.image | image_url: width: 1600
+  endif
+
+  assign image_alt = block.settings.image_alt
+  if image_alt == blank and article != blank and article.image != blank
+    assign image_alt = article.image.alt | default: article.title
+  endif
+  if image_alt == blank
+    assign image_alt = title
+  endif
+
+  assign audience = block.settings.audience | default: 'all'
+
+  assign card_class = 'theinmag-editorial__card theinmag-editorial__card--' | append: variant
+-%}
+
+{%- capture card_inner -%}
+  <span class="theinmag-editorial__card-cover">
+    {%- if image_src != blank -%}
+      <img
+        class="theinmag-editorial__card-image"
+        src="{{ image_src }}"
+        alt="{{ image_alt | escape }}"
+        loading="lazy"
+        width="1600"
+        height="1000"
+      >
+    {%- else -%}
+      <span class="theinmag-editorial__card-placeholder" aria-hidden="true"></span>
+    {%- endif -%}
+
+    {%- if variant == 'feature' -%}
+      <span class="theinmag-editorial__card-scrim" aria-hidden="true"></span>
+      <span class="theinmag-editorial__card-overlay">
+        {%- if topic != blank -%}
+          <span class="theinmag-editorial__card-topic theinmag-editorial__card-topic--on-photo">{{ topic }}</span>
+        {%- endif -%}
+        {%- if title != blank -%}
+          <span class="theinmag-editorial__card-title theinmag-editorial__card-title--on-photo">{{ title }}</span>
+        {%- endif -%}
+        {%- if excerpt != blank -%}
+          <span class="theinmag-editorial__card-excerpt theinmag-editorial__card-excerpt--on-photo">{{ excerpt }}</span>
+        {%- endif -%}
+      </span>
+    {%- endif -%}
+  </span>
+
+  {%- if variant != 'feature' -%}
+    <span class="theinmag-editorial__card-body">
+      {%- if topic != blank -%}
+        <span class="theinmag-editorial__card-topic">{{ topic }}</span>
+      {%- endif -%}
+      {%- if title != blank -%}
+        <span class="theinmag-editorial__card-title">{{ title }}</span>
+      {%- endif -%}
+      {%- if excerpt != blank -%}
+        <span class="theinmag-editorial__card-excerpt">{{ excerpt }}</span>
+      {%- endif -%}
+    </span>
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- if card_link != blank -%}
+  <a class="{{ card_class }}" href="{{ card_link }}" data-audience="{{ audience }}" {{ block.shopify_attributes }}>{{ card_inner }}</a>
+{%- else -%}
+  <div class="{{ card_class }}" data-audience="{{ audience }}" {{ block.shopify_attributes }}>{{ card_inner }}</div>
+{%- endif -%}

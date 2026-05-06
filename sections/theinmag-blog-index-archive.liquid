@@ -1,0 +1,1004 @@
+{%- comment -%}
+  theinmag-blog-index-archive
+  Last section on /blogs/field-notes. Search bar (footer-input style)
+  on top, two-row horizontal-scroll rail of every published article
+  below. Type to filter cards live across title + topic + tags +
+  excerpt. Empty-state copy shows when no card matches.
+
+  Data source priority:
+    1. Real Shopify articles in this blog (blog.articles).
+    2. Fallback: section blocks of type 'archive_card' so the rail
+       still renders before any post exists.
+
+  Scope note: this is the universal "search anything" surface, so it
+  intentionally ignores the all/kids/adults audience toggle that the
+  editorial + feature banner sections respond to. The search box is
+  the primary filter here.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign search_placeholder = section.settings.search_placeholder | default: 'search by title, tag, or topic…'
+  assign empty_state_text = section.settings.empty_state_text | default: 'Nothing matches that search yet. Try a different word.'
+
+  assign bg_color = section.settings.background_color | default: '#A8D6B8'
+
+  assign bg_src = ''
+  if section.settings.background_image != blank
+    assign bg_src = section.settings.background_image | image_url: width: 2400
+  elsif section.settings.background_filename != blank
+    assign bg_src = section.settings.background_filename | asset_url
+  endif
+
+  assign show_suggest = section.settings.show_suggest_form
+  assign suggest_heading = section.settings.suggest_heading | default: 'tell us what to write about next.'
+  assign suggest_intro = section.settings.suggest_intro | default: "Got an idea? Send it through. We read every one."
+  assign suggest_idea_placeholder = section.settings.suggest_idea_placeholder | default: 'what would you like us to write about?'
+  assign suggest_email_placeholder = section.settings.suggest_email_placeholder | default: 'your email (so we can write back)'
+  assign suggest_submit_label = section.settings.suggest_submit_label | default: 'send it through'
+  assign suggest_success = section.settings.suggest_success_message | default: "Thanks - we'll read every word. Promise."
+
+  assign use_real_articles = false
+  if blog != blank and blog.articles_count > 0
+    assign use_real_articles = true
+  endif
+
+  capture archive_style
+    echo '--archive-bg-color: '
+    echo bg_color
+    echo ';'
+    if bg_src != blank
+      echo " --archive-bg-image: url('"
+      echo bg_src
+      echo "');"
+    endif
+  endcapture
+-%}
+
+<section
+  class="theinmag-archive{% if bg_src != blank %} theinmag-archive--has-bg{% endif %}"
+  data-theinmag-archive
+  aria-labelledby="theinmag-archive-heading"
+  style="{{ archive_style }}"
+>
+  <div class="theinmag-archive__inner">
+    <header class="theinmag-archive__header">
+      {%- if heading != blank -%}
+        <h2 id="theinmag-archive-heading" class="theinmag-archive__heading">{{ heading }}</h2>
+      {%- endif -%}
+      {%- if subhead != blank -%}
+        <p class="theinmag-archive__subhead">{{ subhead }}</p>
+      {%- endif -%}
+
+      <form class="theinmag-archive__search" role="search" data-archive-search onsubmit="return false;">
+        <label class="theinmag-archive__search-label visually-hidden" for="theinmag-archive-input">Search field notes</label>
+        <span class="theinmag-archive__search-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+        <input
+          id="theinmag-archive-input"
+          type="search"
+          class="theinmag-archive__input"
+          placeholder="{{ search_placeholder | escape }}"
+          autocomplete="off"
+          data-archive-input
+        >
+      </form>
+    </header>
+
+    <div class="theinmag-archive__rail" data-archive-rail>
+      {%- if use_real_articles -%}
+        {%- for article in blog.articles -%}
+          {%- liquid
+            assign card_topic = article.metafields.theinside.primary_topic
+            if card_topic == blank
+              assign card_topic = article.tags.first
+            endif
+
+            assign card_title = article.title
+            assign card_excerpt = article.excerpt | strip_html
+            if card_excerpt == blank
+              assign card_excerpt = article.content | strip_html | truncatewords: 18
+            endif
+
+            assign tag_str = article.tags | join: ' '
+
+            assign card_image = ''
+            if article.image != blank
+              assign card_image = article.image | image_url: width: 800
+            endif
+            assign card_alt = article.image.alt | default: card_title
+
+            assign full_body = article.content | strip_html
+
+            capture search_hay
+              echo card_title
+              echo ' '
+              echo card_topic
+              echo ' '
+              echo tag_str
+              echo ' '
+              echo card_excerpt
+              echo ' '
+              echo full_body
+            endcapture
+          -%}
+
+          <a
+            class="theinmag-archive__card"
+            data-archive-card
+            data-search-hay="{{ search_hay | escape | downcase }}"
+            href="{{ article.url }}"
+          >
+            <span class="theinmag-archive__cover">
+              {%- if card_image != blank -%}
+                <img
+                  class="theinmag-archive__image"
+                  src="{{ card_image }}"
+                  alt="{{ card_alt | escape }}"
+                  loading="lazy"
+                  width="800"
+                  height="500"
+                >
+              {%- else -%}
+                <span class="theinmag-archive__placeholder" aria-hidden="true"></span>
+              {%- endif -%}
+            </span>
+            <span class="theinmag-archive__body">
+              {%- if card_topic != blank -%}
+                <span class="theinmag-archive__topic">{{ card_topic }}</span>
+              {%- endif -%}
+              <span class="theinmag-archive__title">{{ card_title }}</span>
+            </span>
+          </a>
+        {%- endfor -%}
+      {%- else -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'archive_card' -%}
+            {%- liquid
+              assign card_topic = block.settings.topic
+              assign card_title = block.settings.title_override
+              assign card_excerpt = block.settings.excerpt_override
+              assign card_link = block.settings.link_override | default: '/blogs/field-notes'
+              assign card_tags = block.settings.tags
+              assign card_body = block.settings.body_content
+
+              assign card_image = ''
+              if block.settings.image != blank
+                assign card_image = block.settings.image | image_url: width: 800
+              elsif block.settings.fallback_filename != blank
+                assign card_image = block.settings.fallback_filename | asset_url
+              endif
+              assign card_alt = block.settings.image_alt | default: card_title
+
+              capture search_hay
+                echo card_title
+                echo ' '
+                echo card_topic
+                echo ' '
+                echo card_tags
+                echo ' '
+                echo card_excerpt
+                echo ' '
+                echo card_body
+              endcapture
+            -%}
+
+            <a
+              class="theinmag-archive__card"
+              data-archive-card
+              data-search-hay="{{ search_hay | escape | downcase }}"
+              href="{{ card_link }}"
+              {{ block.shopify_attributes }}
+            >
+              <span class="theinmag-archive__cover">
+                {%- if card_image != blank -%}
+                  <img
+                    class="theinmag-archive__image"
+                    src="{{ card_image }}"
+                    alt="{{ card_alt | escape }}"
+                    loading="lazy"
+                    width="800"
+                    height="500"
+                  >
+                {%- else -%}
+                  <span class="theinmag-archive__placeholder" aria-hidden="true"></span>
+                {%- endif -%}
+              </span>
+              <span class="theinmag-archive__body">
+                {%- if card_topic != blank -%}
+                  <span class="theinmag-archive__topic">{{ card_topic }}</span>
+                {%- endif -%}
+                {%- if card_title != blank -%}
+                  <span class="theinmag-archive__title">{{ card_title }}</span>
+                {%- endif -%}
+              </span>
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+
+    <p class="theinmag-archive__empty" data-archive-empty hidden>{{ empty_state_text }}</p>
+
+    {%- if show_suggest -%}
+      <aside class="theinmag-archive__suggest" id="suggest-a-blog">
+        <h3 class="theinmag-archive__suggest-heading">{{ suggest_heading }}</h3>
+        {%- if suggest_intro != blank -%}
+          <p class="theinmag-archive__suggest-intro">{{ suggest_intro }}</p>
+        {%- endif -%}
+
+        {%- form 'contact', class: 'theinmag-archive__suggest-form', id: 'theinmag-suggest-form' -%}
+          {%- if form.posted_successfully? -%}
+            <p class="theinmag-archive__suggest-success" role="status">{{ suggest_success }}</p>
+          {%- else -%}
+            {%- if form.errors -%}
+              <ul class="theinmag-archive__suggest-errors" role="alert">
+                {%- for error in form.errors -%}
+                  <li>{{ form.errors.translated_fields[error] | capitalize }} {{ form.errors.messages[error] }}</li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+
+            <input type="hidden" name="contact[subject]" value="field notes - blog suggestion">
+
+            <label class="visually-hidden" for="theinmag-suggest-idea">Your idea</label>
+            <textarea
+              id="theinmag-suggest-idea"
+              name="contact[body]"
+              class="theinmag-archive__suggest-textarea"
+              rows="3"
+              placeholder="{{ suggest_idea_placeholder | escape }}"
+              required
+            ></textarea>
+
+            <div class="theinmag-archive__suggest-row">
+              <label class="visually-hidden" for="theinmag-suggest-email">Your email</label>
+              <input
+                id="theinmag-suggest-email"
+                type="email"
+                name="contact[email]"
+                class="theinmag-archive__suggest-email"
+                placeholder="{{ suggest_email_placeholder | escape }}"
+                autocomplete="email"
+                required
+              >
+              <button type="submit" class="theinmag-archive__suggest-submit">{{ suggest_submit_label }}</button>
+            </div>
+          {%- endif -%}
+        {%- endform -%}
+      </aside>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-archive {
+    position: relative;
+    background-color: var(--archive-bg-color, #A8D6B8);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(48px, 7vw, 96px) clamp(16px, 3vw, 32px) clamp(56px, 8vw, 112px);
+    overflow: hidden;
+  }
+
+  /* Kid-drawing artwork is the section's actual background, anchored
+     to the top, full-width, auto height. The bg-color below fills
+     the rest of the section.
+
+     A soft fade gradient layers ON TOP of the artwork between 22-38vw
+     down (where a typical 3:1 to 4:1 wide kid-drawing artwork hits
+     its natural bottom edge), masking any colour-mismatch seam where
+     the artwork's internal mint meets the section bg_color. The
+     gradient end stop reads from --archive-bg-color so the fade
+     always matches whatever value Ryan tunes in the editor. */
+  .theinmag-archive--has-bg {
+    background-image:
+      linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 22vw,
+        var(--archive-bg-color, #A8D6B8) 38vw,
+        var(--archive-bg-color, #A8D6B8) 100%
+      ),
+      var(--archive-bg-image);
+    background-position: top center, top center;
+    background-size: 100% 100%, 100% auto;
+    background-repeat: no-repeat, no-repeat;
+  }
+
+  .theinmag-archive__inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .theinmag-archive__inner {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  /* Header + search rise UP into the kid-drawing artwork so the cards
+     below overlap the lower stems of the flower (Ryan's call: "the
+     brows and tiles should actually go in front of that little flower
+     thing"). The bg-image is anchored top with auto height; this
+     padding gives just enough breathing room from the section edge,
+     then the cream cards layer over the rest of the artwork. */
+  .theinmag-archive--has-bg .theinmag-archive__header {
+    padding-top: clamp(72px, 9vw, 140px);
+  }
+
+  /* ================================================================
+     Header: heading on the left, search bar on the right.
+     Indent matches the editorial section's intro so the heading
+     softens off the section edge instead of sitting hard-left.
+     ================================================================ */
+  .theinmag-archive__header {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(20px, 2.4vw, 32px);
+    margin-bottom: clamp(28px, 3vw, 44px);
+    padding-left: clamp(8px, 3vw, 56px);
+    padding-right: clamp(8px, 3vw, 56px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-archive__header {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: clamp(24px, 3vw, 48px);
+    }
+  }
+
+  /* White heading on the mint field - matches the cream/white tile
+     bodies below so the section reads as one tonal family rather than
+     a navy heading shouting "different" against the mint. */
+  .theinmag-archive__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 3.6vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -0.005em;
+    color: #FFFFFF;
+  }
+
+  .theinmag-archive__subhead {
+    margin: clamp(8px, 1vw, 14px) 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+    max-width: 52ch;
+  }
+
+  /* ================================================================
+     Search bar - footer-style underline-only input. Inky-purple-navy
+     ink so it reads on the mint field; opacity drops the rule so it
+     stays subordinate to the heading.
+     ================================================================ */
+  .theinmag-archive__search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1.5px solid rgba(42, 31, 61, 0.45);
+    padding: 6px 0;
+    transition: border-color 0.18s ease;
+    min-width: 0;
+    width: 100%;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-archive__search {
+      width: clamp(280px, 36vw, 420px);
+      flex-shrink: 0;
+    }
+  }
+
+  .theinmag-archive__search:focus-within {
+    border-color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-archive__search-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+  }
+
+  .theinmag-archive__search-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .theinmag-archive__input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    padding: 4px 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 15px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-archive__input::placeholder {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.55;
+  }
+
+  /* Hide native search clear button across browsers - we keep the
+     UI clean and the input clears with backspace. */
+  .theinmag-archive__input::-webkit-search-cancel-button { -webkit-appearance: none; }
+  .theinmag-archive__input::-webkit-search-decoration { -webkit-appearance: none; }
+
+  /* ================================================================
+     Two-row horizontal-scroll rail
+     CSS Grid with two rows + grid-auto-flow: column means cards lay
+     out top-to-bottom in the first column, then start a new column,
+     etc. Container scrolls horizontally; scroll-snap aligns each
+     column under the cursor.
+     ================================================================ */
+  .theinmag-archive__rail {
+    display: grid;
+    grid-template-rows: repeat(2, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: 72vw;
+    gap: clamp(16px, 2vw, 24px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px clamp(16px, 3vw, 32px) 16px 0;
+    margin: 0 calc(-1 * clamp(16px, 3vw, 32px));
+    padding-left: clamp(16px, 3vw, 32px);
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: clamp(16px, 3vw, 32px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(42, 31, 61, 0.45) transparent;
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-archive__rail {
+      grid-auto-columns: clamp(280px, 30vw, 360px);
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-archive__rail {
+      grid-auto-columns: clamp(260px, 22vw, 320px);
+    }
+  }
+
+  .theinmag-archive__rail::-webkit-scrollbar {
+    height: 8px;
+  }
+  .theinmag-archive__rail::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .theinmag-archive__rail::-webkit-scrollbar-thumb {
+    background: rgba(42, 31, 61, 0.45);
+    border-radius: 4px;
+  }
+
+  /* ================================================================
+     Card
+     ================================================================ */
+  /* Card body matches the white paper that most kid-art covers sit on,
+     so the image edge dissolves into the tile rather than meeting a
+     cream rectangle that reads as a slightly different paper stock. */
+  .theinmag-archive__card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    overflow: hidden;
+    scroll-snap-align: start;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.10);
+  }
+
+  .theinmag-archive__card[hidden] {
+    display: none;
+  }
+
+  .theinmag-archive__card:hover,
+  .theinmag-archive__card:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(42, 31, 61, 0.18);
+    outline: none;
+  }
+
+  .theinmag-archive__card:focus-visible {
+    outline: 3px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 4px;
+  }
+
+  .theinmag-archive__cover {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background-color: rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-archive__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .theinmag-archive__card:hover .theinmag-archive__image,
+  .theinmag-archive__card:focus-visible .theinmag-archive__image {
+    transform: scale(1.04);
+  }
+
+  .theinmag-archive__placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #5D3A7A 0%, #C9543E 100%);
+  }
+
+  .theinmag-archive__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.4vw, 18px) clamp(14px, 1.6vw, 18px);
+  }
+
+  .theinmag-archive__topic {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-archive__title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ================================================================
+     Empty state
+     ================================================================ */
+  .theinmag-archive__empty {
+    margin: clamp(20px, 3vw, 32px) 0 0;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 15px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+  }
+
+  /* ================================================================
+     Suggest-a-blog form - centred sharp-cornered cream rectangle
+     pinned to the green field. Sharp 0px corners + heavy drop
+     shadow read as "posted notice" - more attention-grabbing and
+     editorial than the underline-on-green earlier pass.
+     ================================================================ */
+  .theinmag-archive__suggest {
+    margin: clamp(40px, 5vw, 72px) auto 0;
+    max-width: 520px;
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(20px, 2.6vw, 32px) clamp(20px, 2.6vw, 32px);
+    border-radius: 0;
+    box-shadow: 0 8px 22px rgba(20, 14, 30, 0.16), 0 3px 8px rgba(20, 14, 30, 0.08);
+  }
+
+  .theinmag-archive__suggest-heading {
+    margin: 0 0 clamp(6px, 0.7vw, 10px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(18px, 1.7vw, 22px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-archive__suggest-intro {
+    margin: 0 0 clamp(14px, 1.6vw, 20px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(13px, 1.2vw, 14.5px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.82;
+  }
+
+  .theinmag-archive__suggest-form {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 1.5vw, 20px);
+  }
+
+  .theinmag-archive__suggest-textarea,
+  .theinmag-archive__suggest-email {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-bottom: 1.5px solid rgba(42, 31, 61, 0.45);
+    outline: 0;
+    padding: 6px 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(13.5px, 1.3vw, 15px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    resize: vertical;
+    transition: border-color 0.18s ease;
+  }
+
+  .theinmag-archive__suggest-textarea {
+    min-height: 48px;
+  }
+
+  .theinmag-archive__suggest-textarea::placeholder,
+  .theinmag-archive__suggest-email::placeholder {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.55;
+  }
+
+  .theinmag-archive__suggest-textarea:focus,
+  .theinmag-archive__suggest-email:focus {
+    border-bottom-color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* Paint over Chrome's autofill yellow with the cream box bg so
+     the dark text stays legible. */
+  .theinmag-archive__suggest-email:-webkit-autofill,
+  .theinmag-archive__suggest-email:-webkit-autofill:hover,
+  .theinmag-archive__suggest-email:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-cream, #FBF6EA) inset;
+    -webkit-text-fill-color: var(--color-inky-purple-navy, #2A1F3D);
+    caret-color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-archive__suggest-row {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 2vw, 24px);
+    align-items: stretch;
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-archive__suggest-row {
+      flex-direction: row;
+      align-items: flex-end;
+      gap: clamp(20px, 3vw, 32px);
+    }
+    .theinmag-archive__suggest-email {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  /* Outlined editorial CTA - matches the FAQ section's pattern. The
+     yellow stamp button reads kiddy on a journalistic blog form, so
+     the form uses the brand's "professional" outlined-purple button
+     instead. */
+  .theinmag-archive__suggest-submit {
+    flex-shrink: 0;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    border: 2px solid var(--color-purple-dark, #5D3A7A);
+    border-radius: 32px;
+    padding: 10px 22px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(12px, 1.2vw, 14px);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    cursor: pointer;
+    min-height: 40px;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-archive__suggest-submit {
+      align-self: flex-end;
+    }
+  }
+
+  .theinmag-archive__suggest-submit:hover,
+  .theinmag-archive__suggest-submit:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+
+  .theinmag-archive__suggest-success {
+    margin: 0;
+    padding: clamp(16px, 2vw, 24px);
+    background-color: rgba(123, 79, 158, 0.08);
+    border-left: 3px solid var(--color-purple-dark, #5D3A7A);
+    border-radius: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-archive__suggest-errors {
+    margin: 0 0 clamp(16px, 1.8vw, 22px);
+    padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 20px);
+    background-color: rgba(201, 84, 62, 0.08);
+    border-left: 3px solid #C9543E;
+    border-radius: 0;
+    list-style: none;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+  }
+
+  .theinmag-archive__suggest-errors li + li {
+    margin-top: 4px;
+  }
+
+  /* ================================================================
+     Visually-hidden helper for the search label (a11y)
+     ================================================================ */
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0);
+    white-space: nowrap; border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-archive__card,
+    .theinmag-archive__image,
+    .theinmag-archive__search {
+      transition: none;
+    }
+    .theinmag-archive__card:hover,
+    .theinmag-archive__card:focus-visible {
+      transform: none;
+    }
+    .theinmag-archive__card:hover .theinmag-archive__image,
+    .theinmag-archive__card:focus-visible .theinmag-archive__image {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var section = document.querySelector('[data-theinmag-archive]');
+    if (!section) return;
+
+    var input = section.querySelector('[data-archive-input]');
+    var rail = section.querySelector('[data-archive-rail]');
+    var empty = section.querySelector('[data-archive-empty]');
+    if (!input || !rail) return;
+
+    var cards = Array.prototype.slice.call(rail.querySelectorAll('[data-archive-card]'));
+
+    function applyFilter(query) {
+      query = (query || '').trim().toLowerCase();
+      var visible = 0;
+      cards.forEach(function (card) {
+        var hay = card.getAttribute('data-search-hay') || '';
+        var match = query === '' || hay.indexOf(query) !== -1;
+        card.hidden = !match;
+        if (match) visible++;
+      });
+      if (empty) empty.hidden = visible > 0;
+      /* When a filter narrows the rail, snap back to the start so the
+         visitor isn't stranded in the middle of the swipe range. */
+      if (query !== '') {
+        rail.scrollTo({ left: 0, behavior: 'auto' });
+      }
+    }
+
+    var inputTimer = null;
+    input.addEventListener('input', function () {
+      window.clearTimeout(inputTimer);
+      inputTimer = window.setTimeout(function () {
+        applyFilter(input.value);
+      }, 80);
+    });
+
+    /* Submitting the form (Enter) does the same filter without
+       reloading the page. */
+    var form = section.querySelector('[data-archive-search]');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        applyFilter(input.value);
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "field notes archive",
+  "tag": "section",
+  "class": "theinmag-archive-section",
+  "max_blocks": 30,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "browse all"
+    },
+    {
+      "type": "text",
+      "id": "subhead",
+      "label": "Subhead (optional)",
+      "info": "Sits under the heading. Leave blank for clean."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background colour",
+      "default": "#A8D6B8",
+      "info": "Sits underneath and around the kid drawing. Tune to match the green in the artwork so the join is invisible."
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Top decorative image",
+      "info": "Anchored to the top of the section. Kid drawing or other decorative artwork. Wide aspect (3:1+) works best."
+    },
+    {
+      "type": "text",
+      "id": "background_filename",
+      "label": "Top decorative image fallback filename",
+      "info": "Used when the picker is empty. Filename of an image in /assets/."
+    },
+    {
+      "type": "header",
+      "content": "Search"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "search by title, tag, or topic..."
+    },
+    {
+      "type": "text",
+      "id": "empty_state_text",
+      "label": "Empty state copy",
+      "default": "Nothing matches that search yet. Try a different word."
+    },
+    {
+      "type": "header",
+      "content": "Suggest a blog form"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_suggest_form",
+      "label": "Show 'suggest a blog' form",
+      "default": true,
+      "info": "Posts to Shopify's contact form, sends the suggestion to the store contact email (Settings > General). No third-party integration needed."
+    },
+    {
+      "type": "text",
+      "id": "suggest_heading",
+      "label": "Form heading",
+      "default": "tell us what to write about next."
+    },
+    {
+      "type": "textarea",
+      "id": "suggest_intro",
+      "label": "Form intro sentence",
+      "default": "Got an idea? Send it through. We read every one."
+    },
+    {
+      "type": "text",
+      "id": "suggest_idea_placeholder",
+      "label": "Idea field placeholder",
+      "default": "what would you like us to write about?"
+    },
+    {
+      "type": "text",
+      "id": "suggest_email_placeholder",
+      "label": "Email field placeholder",
+      "default": "your email (so we can write back)"
+    },
+    {
+      "type": "text",
+      "id": "suggest_submit_label",
+      "label": "Submit button label",
+      "default": "send it through"
+    },
+    {
+      "type": "text",
+      "id": "suggest_success_message",
+      "label": "Success message",
+      "default": "Thanks - we'll read every word. Promise."
+    },
+    {
+      "type": "header",
+      "content": "Source"
+    },
+    {
+      "type": "paragraph",
+      "content": "When the blog has published articles, the rail pulls from those automatically (title, topic, tags, excerpt feed the live search). The archive_card blocks below render only as a fallback before any post exists. Search matches against title, topic, tags, and excerpt - so add useful tags to every post."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "archive_card",
+      "name": "Placeholder card",
+      "limit": 30,
+      "settings": [
+        { "type": "text", "id": "topic", "label": "Topic label" },
+        { "type": "text", "id": "title_override", "label": "Title" },
+        { "type": "textarea", "id": "excerpt_override", "label": "Excerpt", "info": "Used by the search filter, not displayed on the card." },
+        { "type": "text", "id": "tags", "label": "Tags (comma or space separated)", "info": "Feed the search index. Match the topic words a visitor might type." },
+        { "type": "textarea", "id": "body_content", "label": "Body keywords", "info": "Paste body draft text or a long list of words the search should look inside. Real published articles auto-include their full body." },
+        { "type": "text", "id": "link_override", "label": "Link" },
+        { "type": "image_picker", "id": "image", "label": "Cover image" },
+        { "type": "text", "id": "fallback_filename", "label": "Cover image fallback filename" },
+        { "type": "text", "id": "image_alt", "label": "Cover image alt text" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "field notes archive",
+      "settings": {
+        "background_filename": "section_background_searchblogs.jpg",
+        "background_color": "#4A7C5C",
+        "show_suggest_form": true
+      },
+      "blocks": [
+        { "type": "archive_card", "settings": { "topic": "Creativity", "title_override": "why your kid stops creating around age 8.", "tags": "creativity, parents, ages 7-9, art", "fallback_filename": "blog-image-universal-01.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Numeracy", "title_override": "the open numeracy task: a great place to start.", "tags": "numeracy, teachers, maths, open task", "fallback_filename": "blog-image-universal-02.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Wellbeing", "title_override": "homeschool without burnout.", "tags": "homeschool, parents, wellbeing", "fallback_filename": "blog-image-universal-03.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Creativity", "title_override": "things to draw when you're stuck.", "tags": "creativity, kids, drawing, prompts", "fallback_filename": "blog-image-universal-04.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Wellbeing", "title_override": "the case for boredom.", "tags": "boredom, wellbeing, parents", "fallback_filename": "blog-image-universal-05.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Photography", "title_override": "noticing things.", "tags": "photography, kids, observation", "fallback_filename": "blog-image-universal-06.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Open tasks", "title_override": "what is a rich open task?", "tags": "open task, teachers, pedagogy", "fallback_filename": "blog-image-universal-07.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Behind the mag", "title_override": "behind mag10.", "tags": "behind the mag, magazine, process", "fallback_filename": "blog-image-universal-08.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Creativity", "title_override": "kid jokes are learning in disguise.", "tags": "humour, kids, creativity, language", "fallback_filename": "blog-image-universal-09.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Inquiry", "title_override": "inquiry learning, the Australian way.", "tags": "inquiry, teachers, curriculum, australia", "fallback_filename": "blog-image-universal-10.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Outdoors", "title_override": "100 things to spot on a walk.", "tags": "outdoors, kids, observation, nature", "fallback_filename": "blog-image-universal-11.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Read aloud", "title_override": "what changes when you read aloud at night.", "tags": "read aloud, parents, language, ritual", "fallback_filename": "blog-image-universal-14.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Make your own", "title_override": "the fold-and-snip zine, in 60 seconds.", "tags": "make, kids, craft, zine", "fallback_filename": "blog-image-universal-13.jpg", "link_override": "/blogs/field-notes" } },
+        { "type": "archive_card", "settings": { "topic": "Behind the mag", "title_override": "what mag10 looks like in the wild.", "tags": "behind the mag, mag10, photo essay", "fallback_filename": "blog-image-universal-12.jpg", "link_override": "/blogs/field-notes" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

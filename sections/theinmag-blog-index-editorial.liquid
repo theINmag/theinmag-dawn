@@ -1,0 +1,1150 @@
+{%- comment -%}
+  theinmag-blog-index-editorial
+  Top of /blogs/field-notes. Maude-style asymmetric editorial composition
+  on the meet-tam lavender (#C9B5DB) so the blog reads as an editorial
+  extension of the homepage rather than a foreign template.
+
+  Layout (desktop):
+    - Wordmark heading (the/IN/side, IN-emphasised) with subhead tucked
+      under "side"; audience toggle (all/kids/adults) on the right
+    - Big feature: full-width photo, white text overlaid bottom-left
+    - 2/3 + 1/3 grid:
+        LEFT  - 2 equal-height large cards stacked + 2 small bottom 2-up
+        RIGHT - 6 small cards stacked with hairline dividers between
+    - Right column scroll-translates faster than the page so the denser
+      side resolves around the same beat as the left
+
+  Audience toggle is wired live: clicking a chip filters the cards in
+  this section AND broadcasts a custom event other audience-aware
+  sections (the feature banner below) listen to. State persists in
+  localStorage so the choice survives across pages.
+
+  Mobile: single-column stack.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading_pre = section.settings.heading_pre
+  assign heading_emphasis = section.settings.heading_emphasis
+  assign heading_post = section.settings.heading_post
+  assign heading_period = section.settings.heading_period
+  assign subhead = section.settings.subhead
+  assign show_toggle = section.settings.show_toggle
+
+  assign bg_color = section.settings.background_color | default: '#C9B5DB'
+
+  assign bg_src = ''
+  if section.settings.background_image != blank
+    assign bg_src = section.settings.background_image | image_url: width: 2400
+  elsif section.settings.background_filename != blank
+    assign bg_src = section.settings.background_filename | asset_url
+  endif
+
+  assign feature_block = blank
+  for block in section.blocks
+    if block.type == 'feature' and feature_block == blank
+      assign feature_block = block
+    endif
+  endfor
+
+  capture editorial_style
+    echo '--editorial-bg-color: '
+    echo bg_color
+    echo ';'
+    if bg_src != blank
+      echo " --editorial-bg-image: url('"
+      echo bg_src
+      echo "');"
+    endif
+  endcapture
+-%}
+
+<section
+  class="theinmag-editorial{% if bg_src != blank %} theinmag-editorial--has-bg{% endif %}"
+  data-theinmag-editorial
+  aria-labelledby="theinmag-editorial-heading"
+  style="{{ editorial_style }}"
+>
+  <div class="theinmag-editorial__inner">
+
+    <header class="theinmag-editorial__intro">
+      <div class="theinmag-editorial__wordmark">
+        <h1 id="theinmag-editorial-heading" class="theinmag-editorial__heading">
+          {%- if heading_pre != blank -%}<span class="theinmag-editorial__heading-aux">{{ heading_pre }}</span>{%- endif -%}
+          {%- if heading_emphasis != blank -%}<span class="theinmag-editorial__heading-main">{{ heading_emphasis }}</span>{%- endif -%}
+          {%- if heading_post != blank -%}<span class="theinmag-editorial__heading-aux">{{ heading_post }}</span>{%- endif -%}
+          {%- if heading_period != blank -%}<span class="theinmag-editorial__heading-period">{{ heading_period }}</span>{%- endif -%}
+        </h1>
+        {%- if subhead != blank -%}
+          <p class="theinmag-editorial__subhead">{{ subhead }}</p>
+        {%- endif -%}
+      </div>
+
+      {%- if show_toggle -%}
+        <nav class="theinmag-editorial__toggle" aria-label="Filter posts by audience" data-field-notes-toggle>
+          <button type="button" class="theinmag-editorial__chip is-active" data-audience="all">all</button>
+          <button type="button" class="theinmag-editorial__chip" data-audience="kids">kids</button>
+          <button type="button" class="theinmag-editorial__chip" data-audience="adults">adults</button>
+        </nav>
+      {%- endif -%}
+    </header>
+
+    {%- if feature_block != blank -%}
+      {%- render 'theinmag-editorial-card', block: feature_block, variant: 'feature' -%}
+    {%- endif -%}
+
+    <div class="theinmag-editorial__grid">
+      <div class="theinmag-editorial__col theinmag-editorial__col--left">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'large_left' -%}
+            {%- render 'theinmag-editorial-card', block: block, variant: 'large_left' -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        <div class="theinmag-editorial__bottom-row">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'bottom_small' -%}
+              {%- render 'theinmag-editorial-card', block: block, variant: 'bottom_small' -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+
+      <div class="theinmag-editorial__col theinmag-editorial__col--right" data-parallax-window>
+        <div class="theinmag-editorial__col-inner" data-parallax-target>
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'right_small' -%}
+              {%- render 'theinmag-editorial-card', block: block, variant: 'right_small' -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-editorial {
+    background-color: var(--editorial-bg-color, #C9B5DB);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(40px, 6vw, 88px) clamp(16px, 3vw, 32px) clamp(56px, 8vw, 120px);
+    overflow: hidden;
+  }
+
+  /* Optional decorative bg image - kid patterns/textures behind the
+     editorial composition. cover keeps the image filling the section
+     no matter how tall the content gets; bg-color sits underneath. */
+  .theinmag-editorial--has-bg {
+    background-image: var(--editorial-bg-image);
+    background-position: top center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+
+  .theinmag-editorial__inner {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  /* ================================================================
+     Intro row: wordmark left, audience toggle right
+     Indented IN from the feature image edges below so the heading
+     reads softer rather than ruler-flush against the photo.
+     ================================================================ */
+  .theinmag-editorial__intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(20px, 2vw, 28px);
+    margin-bottom: clamp(28px, 4vw, 56px);
+    padding-left: clamp(8px, 3vw, 56px);
+    padding-right: clamp(8px, 3vw, 56px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-editorial__intro {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: clamp(24px, 3vw, 40px);
+    }
+  }
+
+  /* Wordmark wrap is shrink-fit so flex-end on subhead aligns to the
+     RIGHT edge of the heading itself - i.e. under "side" - not to the
+     full intro row width. */
+  .theinmag-editorial__wordmark {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: max-content;
+    max-width: 100%;
+  }
+
+  /* Heading composes four spans so the brand pun (capitalised IN) reads
+     typographically: small "the" + big "IN" + small "side". Period span
+     is supported but defaults blank for this surface. */
+  .theinmag-editorial__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(80px, 11vw, 132px);
+    line-height: 0.95;
+    letter-spacing: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .theinmag-editorial__heading-aux {
+    font-size: 0.42em;
+    line-height: 1;
+    transform: translateY(-0.04em);
+    margin: 0 0.04em;
+  }
+
+  .theinmag-editorial__heading-main,
+  .theinmag-editorial__heading-period {
+    font-size: 1em;
+    line-height: 1;
+  }
+
+  .theinmag-editorial__heading-period {
+    margin-left: -0.02em;
+  }
+
+  /* Subhead tucks UP under the emphasis word (rightmost in the
+     wordmark) - negative margin pulls it close to the baseline,
+     flex-end on the parent right-aligns it. */
+  .theinmag-editorial__subhead {
+    margin: -0.6em 0.1em 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 17px);
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+    text-align: right;
+    max-width: 28ch;
+  }
+
+  /* ================================================================
+     Audience toggle - text chips matching homepage feed pattern
+     Inactive: opacity 0.42, regular weight. Active: full opacity, bold.
+     ================================================================ */
+  .theinmag-editorial__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(14px, 2vw, 22px);
+    flex-shrink: 0;
+  }
+
+  .theinmag-editorial__chip {
+    background: none;
+    border: 0;
+    padding: 4px 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(20px, 2.4vw, 28px);
+    line-height: 1;
+    letter-spacing: -0.005em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.42;
+    cursor: pointer;
+    transition: opacity 0.15s ease, font-weight 0.15s ease;
+  }
+
+  .theinmag-editorial__chip:hover,
+  .theinmag-editorial__chip:focus-visible {
+    opacity: 0.85;
+    outline: none;
+  }
+
+  .theinmag-editorial__chip:focus-visible {
+    outline: 2px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  .theinmag-editorial__chip.is-active {
+    opacity: 1;
+    font-weight: 700;
+  }
+
+  /* ================================================================
+     Card base
+     ================================================================ */
+  .theinmag-editorial__card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.25s ease, opacity 0.22s ease;
+  }
+
+  .theinmag-editorial__card:hover,
+  .theinmag-editorial__card:focus-visible {
+    transform: translateY(-4px);
+    outline: none;
+  }
+
+  .theinmag-editorial__card[hidden] {
+    display: none;
+  }
+
+  /* Slight drop shadow lifts each cover off the painterly bg so the
+     images don't read as flat cutouts on the new top background. */
+  .theinmag-editorial__card-cover {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: rgba(42, 31, 61, 0.18);
+    box-shadow: 0 6px 18px rgba(20, 14, 30, 0.22), 0 2px 6px rgba(20, 14, 30, 0.12);
+    transition: box-shadow 0.25s ease;
+  }
+
+  .theinmag-editorial__card:hover .theinmag-editorial__card-cover,
+  .theinmag-editorial__card:focus-visible .theinmag-editorial__card-cover {
+    box-shadow: 0 12px 28px rgba(20, 14, 30, 0.30), 0 3px 10px rgba(20, 14, 30, 0.16);
+  }
+
+  .theinmag-editorial__card-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .theinmag-editorial__card:hover .theinmag-editorial__card-image,
+  .theinmag-editorial__card:focus-visible .theinmag-editorial__card-image {
+    transform: scale(1.04);
+  }
+
+  .theinmag-editorial__card-placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #5D3A7A 0%, #C9543E 100%);
+  }
+
+  .theinmag-editorial__card-body {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 0.7vw, 10px);
+    padding-top: clamp(14px, 1.6vw, 20px);
+  }
+
+  .theinmag-editorial__card-topic {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-editorial__card-title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(19px, 1.8vw, 24px);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .theinmag-editorial__card-excerpt {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.8;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ================================================================
+     Feature card - full-width photo, white text overlay
+     Padding-bottom on the title gives descenders (g, y, p) room before
+     overflow:hidden clips them.
+     ================================================================ */
+  .theinmag-editorial__card--feature {
+    margin-bottom: clamp(28px, 4vw, 56px);
+  }
+
+  .theinmag-editorial__card--feature .theinmag-editorial__card-cover {
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-editorial__card--feature .theinmag-editorial__card-cover {
+      aspect-ratio: 21 / 9;
+    }
+  }
+
+  .theinmag-editorial__card-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(20, 14, 30, 0.72) 0%,
+      rgba(20, 14, 30, 0.32) 38%,
+      rgba(20, 14, 30, 0) 65%
+    );
+    pointer-events: none;
+  }
+
+  .theinmag-editorial__card-overlay {
+    position: absolute;
+    left: clamp(20px, 3vw, 48px);
+    right: clamp(20px, 3vw, 48px);
+    bottom: clamp(24px, 3vw, 40px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1vw, 14px);
+    color: #FFFFFF;
+    max-width: 56ch;
+  }
+
+  .theinmag-editorial__card-topic--on-photo {
+    color: #FFFFFF;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  .theinmag-editorial__card-title--on-photo {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(28px, 4.8vw, 56px);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    color: #FFFFFF;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+    padding-bottom: 0.08em;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+  }
+
+  .theinmag-editorial__card-excerpt--on-photo {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 18px);
+    line-height: 1.5;
+    color: #FFFFFF;
+    opacity: 0.95;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    padding-bottom: 0.1em;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+  }
+
+  /* ================================================================
+     Grid: mobile single column, desktop 2/3 + 1/3
+     ================================================================ */
+  .theinmag-editorial__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(28px, 3vw, 40px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-editorial__grid {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      gap: clamp(40px, 5vw, 72px);
+      align-items: start;
+    }
+  }
+
+  .theinmag-editorial__col {
+    min-width: 0;
+  }
+
+  .theinmag-editorial__col--left {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(28px, 3vw, 44px);
+  }
+
+  /* Mobile: right col is a normal stack. Desktop overrides further
+     down turn it into a clipping window for the parallax filmstrip. */
+  .theinmag-editorial__col--right {
+    display: block;
+    position: relative;
+  }
+
+  .theinmag-editorial__col-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ================================================================
+     Large left cards
+     ================================================================ */
+  .theinmag-editorial__card--large_left .theinmag-editorial__card-cover {
+    aspect-ratio: 4 / 3;
+  }
+
+  .theinmag-editorial__card--large_left .theinmag-editorial__card-title {
+    font-size: clamp(22px, 2.2vw, 30px);
+  }
+
+  /* ================================================================
+     Bottom row - 2-up under the left column's large cards
+     ================================================================ */
+  .theinmag-editorial__bottom-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 3vw, 36px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-editorial__bottom-row {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .theinmag-editorial__card--bottom_small .theinmag-editorial__card-cover {
+    aspect-ratio: 4 / 3;
+  }
+
+  .theinmag-editorial__card--bottom_small .theinmag-editorial__card-title {
+    font-size: clamp(17px, 1.6vw, 20px);
+    -webkit-line-clamp: 2;
+  }
+
+  .theinmag-editorial__card--bottom_small .theinmag-editorial__card-excerpt {
+    -webkit-line-clamp: 2;
+    font-size: 13.5px;
+  }
+
+  /* ================================================================
+     Right column - up to 8 stacked small cards with hairline dividers.
+     At desktop the column becomes a clipping window (overflow:hidden,
+     fixed height = left column height) and the inner filmstrip
+     translates upward as the section scrolls so denser content
+     resolves through the same vertical band. Anything that escapes
+     the window's top or bottom edge is clipped, never overlaps the
+     hero above or leaves blank space below.
+     ================================================================ */
+  .theinmag-editorial__card--right_small {
+    padding: clamp(18px, 1.8vw, 24px) 0;
+  }
+
+  .theinmag-editorial__card--right_small + .theinmag-editorial__card--right_small {
+    border-top: 1px solid rgba(42, 31, 61, 0.18);
+  }
+
+  .theinmag-editorial__card--right_small:first-child {
+    padding-top: 0;
+  }
+
+  .theinmag-editorial__card--right_small:last-child {
+    padding-bottom: 0;
+  }
+
+  .theinmag-editorial__card--right_small .theinmag-editorial__card-cover {
+    aspect-ratio: 16 / 10;
+  }
+
+  .theinmag-editorial__card--right_small .theinmag-editorial__card-title {
+    font-size: clamp(16px, 1.4vw, 19px);
+    -webkit-line-clamp: 2;
+  }
+
+  .theinmag-editorial__card--right_small .theinmag-editorial__card-excerpt {
+    -webkit-line-clamp: 2;
+    font-size: 13.5px;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-editorial__col--right {
+      overflow: hidden;
+    }
+    .theinmag-editorial__col-inner {
+      will-change: transform;
+    }
+  }
+
+  /* ================================================================
+     Whoosh transition - audience toggle leaving state
+     Cards fade out + slide a touch left on the way out, swap, then
+     fade back in. Layout reflows naturally because we toggle [hidden].
+     ================================================================ */
+  .theinmag-editorial.is-audience-leaving .theinmag-editorial__card {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+
+  /* ================================================================
+     Reduced motion
+     ================================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-editorial__card,
+    .theinmag-editorial__card-image,
+    .theinmag-editorial__col-inner {
+      transition: none;
+    }
+    .theinmag-editorial__card:hover,
+    .theinmag-editorial__card:focus-visible {
+      transform: none;
+    }
+    .theinmag-editorial__card:hover .theinmag-editorial__card-image,
+    .theinmag-editorial__card:focus-visible .theinmag-editorial__card-image {
+      transform: none;
+    }
+    .theinmag-editorial__col-inner {
+      transform: none !important;
+    }
+    .theinmag-editorial__col--right {
+      overflow: visible !important;
+      height: auto !important;
+    }
+    .theinmag-editorial.is-audience-leaving .theinmag-editorial__card {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ================================================================
+     Focus ring
+     ================================================================ */
+  .theinmag-editorial__card:focus-visible {
+    outline: 3px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var section = document.querySelector('[data-theinmag-editorial]');
+    if (!section) return;
+
+    /* ---------- Right-column parallax ----------------------------
+       Pattern: the right column wrapper is a clipping window pinned
+       to the LEFT column's height. Inside it sits a longer filmstrip
+       of cards that translates upward as the section scrolls. At
+       progress 0 the filmstrip top aligns with the window top; at
+       progress 1 the filmstrip bottom aligns with the window bottom.
+       Because the window has overflow:hidden, content can never
+       escape upward into the hero or downward past the window.
+       --------------------------------------------------------- */
+    var rightWrap = section.querySelector('[data-parallax-window]');
+    var rightInner = section.querySelector('[data-parallax-target]');
+    var leftCol = section.querySelector('.theinmag-editorial__col--left');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (rightWrap && rightInner && leftCol && !reduced) {
+      var mql = window.matchMedia('(min-width: 990px)');
+      var ticking = false;
+
+      function syncHeights() {
+        if (!mql.matches) {
+          rightWrap.style.height = '';
+          rightInner.style.transform = '';
+          return;
+        }
+        var leftH = leftCol.offsetHeight;
+        if (leftH > 0) {
+          rightWrap.style.height = leftH + 'px';
+        }
+      }
+
+      function updateParallax() {
+        ticking = false;
+        if (!mql.matches) {
+          rightInner.style.transform = '';
+          return;
+        }
+        /* Hard start: progress = 0 while wrapper top is still below
+           the viewport top (first card sits cleanly at wrapper top).
+           Hard finish: progress = 1 once the wrapper BOTTOM reaches
+           the viewport bottom - meaning the last card is in view
+           while the visitor is still inside the section, not just
+           as it exits. Compressing the range from wrapperH down to
+           (wrapperH - viewportH) is what gives the right column
+           its extra speed differential vs. the page. */
+        var wRect = rightWrap.getBoundingClientRect();
+        var wH = wRect.height;
+        if (wH <= 0) return;
+        var viewportH = window.innerHeight || document.documentElement.clientHeight;
+        var range = wH - viewportH;
+        if (range <= 0) {
+          rightInner.style.transform = '';
+          return;
+        }
+        var raw = -wRect.top / range;
+        var progress = Math.max(0, Math.min(1, raw));
+        var innerH = rightInner.offsetHeight;
+        var maxOffset = Math.max(0, innerH - wH);
+        var offset = progress * maxOffset;
+        rightInner.style.transform = 'translate3d(0, ' + (-offset).toFixed(2) + 'px, 0)';
+      }
+
+      function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(updateParallax);
+      }
+
+      function onResize() {
+        syncHeights();
+        onScroll();
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onResize);
+      if (mql.addEventListener) mql.addEventListener('change', onResize);
+      else if (mql.addListener) mql.addListener(onResize);
+
+      /* Watch BOTH columns: leftCol height drives the window size,
+         rightInner height drives the translation range. Either
+         changing (image load, audience filter, viewport reflow)
+         requires recomputing both. */
+      if ('ResizeObserver' in window) {
+        var ro = new ResizeObserver(function () {
+          syncHeights();
+          onScroll();
+        });
+        ro.observe(leftCol);
+        ro.observe(rightInner);
+      }
+
+      if (document.readyState === 'complete') {
+        syncHeights();
+        updateParallax();
+      } else {
+        window.addEventListener('load', function () {
+          syncHeights();
+          updateParallax();
+        });
+      }
+
+      syncHeights();
+      updateParallax();
+    }
+
+    /* ---------- Audience toggle ---------------------------------- */
+    var STORAGE_KEY = 'field-notes-audience';
+    var EVENT_NAME = 'field-notes:audience-changed';
+    var TRANSITION_MS = 240;
+
+    var toggle = section.querySelector('[data-field-notes-toggle]');
+    var chips = toggle ? toggle.querySelectorAll('[data-audience]') : [];
+    var cards = section.querySelectorAll('[data-audience]:not([data-field-notes-toggle] *)');
+    // The selector above is overly clever for IE-shim; explicitly
+    // filter chips out of the cards collection in case of overlap.
+    cards = Array.prototype.filter.call(cards, function (el) {
+      return !el.matches('.theinmag-editorial__chip');
+    });
+
+    function applyVisibility(audience) {
+      cards.forEach(function (card) {
+        var ca = card.dataset.audience || 'all';
+        var show = audience === 'all' || ca === 'all' || ca === audience;
+        card.hidden = !show;
+      });
+    }
+
+    function syncChips(audience) {
+      chips.forEach(function (chip) {
+        chip.classList.toggle('is-active', chip.dataset.audience === audience);
+      });
+    }
+
+    function setAudience(audience, opts) {
+      opts = opts || {};
+      syncChips(audience);
+      try { localStorage.setItem(STORAGE_KEY, audience); } catch (e) {}
+      document.documentElement.setAttribute('data-field-notes-audience', audience);
+
+      if (opts.animate && !reduced) {
+        section.classList.add('is-audience-leaving');
+        setTimeout(function () {
+          applyVisibility(audience);
+          window.requestAnimationFrame(function () {
+            section.classList.remove('is-audience-leaving');
+          });
+        }, TRANSITION_MS);
+      } else {
+        applyVisibility(audience);
+      }
+
+      if (opts.broadcast !== false) {
+        window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: { audience: audience, animate: !!opts.animate } }));
+      }
+    }
+
+    /* Init from localStorage if present */
+    var initial = 'all';
+    try { initial = localStorage.getItem(STORAGE_KEY) || 'all'; } catch (e) {}
+    if (initial !== 'all' && initial !== 'kids' && initial !== 'adults') initial = 'all';
+    setAudience(initial, { animate: false, broadcast: false });
+
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var audience = chip.dataset.audience;
+        if (!audience) return;
+        if (chip.classList.contains('is-active')) return;
+        setAudience(audience, { animate: true });
+      });
+    });
+
+    /* Listen for changes coming from other sections (e.g. a future
+       sticky filter bar) so this toggle stays in sync. */
+    window.addEventListener(EVENT_NAME, function (e) {
+      if (!e || !e.detail) return;
+      var audience = e.detail.audience;
+      if (!audience) return;
+      // Avoid loop: only re-apply if it differs from current
+      var current = chips.length ? Array.prototype.find.call(chips, function (c) { return c.classList.contains('is-active'); }) : null;
+      if (current && current.dataset.audience === audience) return;
+      setAudience(audience, { animate: !!e.detail.animate, broadcast: false });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "field notes editorial",
+  "tag": "section",
+  "class": "theinmag-editorial-section",
+  "max_blocks": 14,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Wordmark heading"
+    },
+    {
+      "type": "text",
+      "id": "heading_pre",
+      "label": "Pre (small)",
+      "default": "field"
+    },
+    {
+      "type": "text",
+      "id": "heading_emphasis",
+      "label": "Emphasis (large)",
+      "default": "notes"
+    },
+    {
+      "type": "text",
+      "id": "heading_post",
+      "label": "Post (small, optional)"
+    },
+    {
+      "type": "text",
+      "id": "heading_period",
+      "label": "Punctuation (large, optional)"
+    },
+    {
+      "type": "text",
+      "id": "subhead",
+      "label": "Subhead (optional)",
+      "info": "Sits tucked under the emphasis word. Leave blank for a clean wordmark."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background colour",
+      "default": "#C9B5DB",
+      "info": "Sits underneath the optional background image and shows through anywhere the image doesn't cover."
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image",
+      "info": "Optional full-section decorative image (kid patterns, textures). Set to cover the whole section."
+    },
+    {
+      "type": "text",
+      "id": "background_filename",
+      "label": "Background image fallback filename",
+      "info": "Used when the picker is empty. Filename of an image in /assets/."
+    },
+    {
+      "type": "header",
+      "content": "Audience toggle"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_toggle",
+      "label": "Show all/kids/adults toggle",
+      "default": true,
+      "info": "Click filters cards in this section AND broadcasts to other audience-aware sections (the feature banner). Choice persists in the visitor's browser."
+    },
+    {
+      "type": "header",
+      "content": "Right column parallax"
+    },
+    {
+      "type": "paragraph",
+      "content": "The right column is a clipping window pinned to the left column's height; the cards inside it scroll faster than the page during the section's scroll-through. The speed differential is set by HOW MANY right column cards you add (more cards = taller filmstrip = faster scroll). Both columns always finish together at the section bottom."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Big feature",
+      "limit": 1,
+      "settings": [
+        { "type": "article", "id": "article", "label": "Article" },
+        {
+          "type": "select",
+          "id": "audience",
+          "label": "Audience",
+          "options": [
+            { "value": "all", "label": "All" },
+            { "value": "kids", "label": "Kids" },
+            { "value": "adults", "label": "Adults" }
+          ],
+          "default": "all"
+        },
+        { "type": "text", "id": "topic", "label": "Topic label" },
+        { "type": "text", "id": "title_override", "label": "Title override" },
+        { "type": "textarea", "id": "excerpt_override", "label": "Excerpt override" },
+        { "type": "text", "id": "link_override", "label": "Link override" },
+        { "type": "image_picker", "id": "image", "label": "Cover image" },
+        { "type": "text", "id": "fallback_filename", "label": "Cover image fallback filename", "info": "Real attributed kid art OR kid photography both work." },
+        { "type": "text", "id": "image_alt", "label": "Cover image alt text" }
+      ]
+    },
+    {
+      "type": "large_left",
+      "name": "Large left card",
+      "limit": 2,
+      "settings": [
+        { "type": "article", "id": "article", "label": "Article" },
+        {
+          "type": "select",
+          "id": "audience",
+          "label": "Audience",
+          "options": [
+            { "value": "all", "label": "All" },
+            { "value": "kids", "label": "Kids" },
+            { "value": "adults", "label": "Adults" }
+          ],
+          "default": "all"
+        },
+        { "type": "text", "id": "topic", "label": "Topic label" },
+        { "type": "text", "id": "title_override", "label": "Title override" },
+        { "type": "textarea", "id": "excerpt_override", "label": "Excerpt override" },
+        { "type": "text", "id": "link_override", "label": "Link override" },
+        { "type": "image_picker", "id": "image", "label": "Cover image" },
+        { "type": "text", "id": "fallback_filename", "label": "Cover image fallback filename" },
+        { "type": "text", "id": "image_alt", "label": "Cover image alt text" }
+      ]
+    },
+    {
+      "type": "right_small",
+      "name": "Right column card",
+      "limit": 6,
+      "settings": [
+        { "type": "article", "id": "article", "label": "Article" },
+        {
+          "type": "select",
+          "id": "audience",
+          "label": "Audience",
+          "options": [
+            { "value": "all", "label": "All" },
+            { "value": "kids", "label": "Kids" },
+            { "value": "adults", "label": "Adults" }
+          ],
+          "default": "all"
+        },
+        { "type": "text", "id": "topic", "label": "Topic label" },
+        { "type": "text", "id": "title_override", "label": "Title override" },
+        { "type": "textarea", "id": "excerpt_override", "label": "Excerpt override" },
+        { "type": "text", "id": "link_override", "label": "Link override" },
+        { "type": "image_picker", "id": "image", "label": "Cover image" },
+        { "type": "text", "id": "fallback_filename", "label": "Cover image fallback filename" },
+        { "type": "text", "id": "image_alt", "label": "Cover image alt text" }
+      ]
+    },
+    {
+      "type": "bottom_small",
+      "name": "Bottom row card",
+      "limit": 2,
+      "settings": [
+        { "type": "article", "id": "article", "label": "Article" },
+        {
+          "type": "select",
+          "id": "audience",
+          "label": "Audience",
+          "options": [
+            { "value": "all", "label": "All" },
+            { "value": "kids", "label": "Kids" },
+            { "value": "adults", "label": "Adults" }
+          ],
+          "default": "all"
+        },
+        { "type": "text", "id": "topic", "label": "Topic label" },
+        { "type": "text", "id": "title_override", "label": "Title override" },
+        { "type": "textarea", "id": "excerpt_override", "label": "Excerpt override" },
+        { "type": "text", "id": "link_override", "label": "Link override" },
+        { "type": "image_picker", "id": "image", "label": "Cover image" },
+        { "type": "text", "id": "fallback_filename", "label": "Cover image fallback filename" },
+        { "type": "text", "id": "image_alt", "label": "Cover image alt text" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "field notes editorial",
+      "blocks": [
+        {
+          "type": "feature",
+          "settings": {
+            "topic": "Creativity",
+            "title_override": "why your kid stops creating around age 8.",
+            "excerpt_override": "A confidence dip, not a ceiling. Here's what shifts when the adult in the room knows what to look for.",
+            "fallback_filename": "blog-image-universal-01.jpg",
+            "image_alt": "Kid creation cover image - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "all"
+          }
+        },
+        {
+          "type": "large_left",
+          "settings": {
+            "topic": "Numeracy",
+            "title_override": "the open numeracy task: a great place to start.",
+            "excerpt_override": "Not Plan B. The mindset reset that makes maths feel alive again.",
+            "fallback_filename": "blog-image-universal-02.jpg",
+            "image_alt": "Open numeracy task cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "adults"
+          }
+        },
+        {
+          "type": "large_left",
+          "settings": {
+            "topic": "Wellbeing",
+            "title_override": "homeschool without burnout.",
+            "excerpt_override": "What to drop, what to keep, and the one rhythm Tam swears by.",
+            "fallback_filename": "blog-image-universal-03.jpg",
+            "image_alt": "Homeschool without burnout cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "adults"
+          }
+        },
+        {
+          "type": "right_small",
+          "settings": {
+            "topic": "Creativity",
+            "title_override": "things to draw when you're stuck.",
+            "excerpt_override": "Twelve quick prompts for when the page is staring back.",
+            "fallback_filename": "blog-image-universal-04.jpg",
+            "image_alt": "Things to draw cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "kids"
+          }
+        },
+        {
+          "type": "right_small",
+          "settings": {
+            "topic": "Wellbeing",
+            "title_override": "the case for boredom.",
+            "excerpt_override": "The most underrated ingredient for a creative kid.",
+            "fallback_filename": "blog-image-universal-05.jpg",
+            "image_alt": "Case for boredom cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "all"
+          }
+        },
+        {
+          "type": "right_small",
+          "settings": {
+            "topic": "Photography",
+            "title_override": "noticing things.",
+            "excerpt_override": "How a kid with a camera teaches the rest of us to slow down.",
+            "fallback_filename": "blog-image-universal-06.jpg",
+            "image_alt": "Noticing things cover - placeholder. Kid photography fits beautifully here.",
+            "link_override": "/blogs/field-notes",
+            "audience": "all"
+          }
+        },
+        {
+          "type": "right_small",
+          "settings": {
+            "topic": "Open tasks",
+            "title_override": "what is a rich open task?",
+            "excerpt_override": "And how to spot one in the wild before you set it.",
+            "fallback_filename": "blog-image-universal-07.jpg",
+            "image_alt": "Rich open task cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "adults"
+          }
+        },
+        {
+          "type": "right_small",
+          "settings": {
+            "topic": "Behind the mag",
+            "title_override": "behind mag10.",
+            "excerpt_override": "What changed, what stayed, and what almost didn't make it in.",
+            "fallback_filename": "blog-image-universal-08.jpg",
+            "image_alt": "Behind mag10 cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "all"
+          }
+        },
+        {
+          "type": "right_small",
+          "settings": {
+            "topic": "Outdoors",
+            "title_override": "100 things to spot on a walk.",
+            "excerpt_override": "An invitation to look up, look down, and slow down.",
+            "fallback_filename": "blog-image-universal-11.jpg",
+            "image_alt": "100 things to spot cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "kids"
+          }
+        },
+        {
+          "type": "bottom_small",
+          "settings": {
+            "topic": "Creativity",
+            "title_override": "kid jokes are learning in disguise.",
+            "excerpt_override": "Why the worst pun your kid told you this week is a brain at work.",
+            "fallback_filename": "blog-image-universal-09.jpg",
+            "image_alt": "Kid jokes cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "kids"
+          }
+        },
+        {
+          "type": "bottom_small",
+          "settings": {
+            "topic": "Inquiry",
+            "title_override": "inquiry learning, the Australian way.",
+            "excerpt_override": "What it actually looks like in a primary classroom that isn't trying too hard.",
+            "fallback_filename": "blog-image-universal-10.jpg",
+            "image_alt": "Inquiry learning cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "adults"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

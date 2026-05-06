@@ -1,19 +1,229 @@
 {
   "sections": {
-    "main": {
-      "type": "main-blog",
+    "editorial": {
+      "type": "theinmag-blog-index-editorial",
       "settings": {
-        "layout": "collage",
-        "show_image": true,
-        "image_height": "medium",
-        "show_date": true,
-        "show_author": false,
-        "padding_top": 36,
-        "padding_bottom": 36
-      }
+        "background_filename": "section_background_topblogs.jpg",
+        "background_color": "#C9B5DB"
+      },
+      "blocks": {
+        "feature": {
+          "type": "feature",
+          "settings": {
+            "topic": "Creativity",
+            "title_override": "why your kid stops creating around age 8.",
+            "excerpt_override": "A confidence dip, not a ceiling. Here's what shifts when the adult in the room knows what to look for.",
+            "fallback_filename": "blog-image-universal-01.jpg",
+            "image_alt": "Kid creation cover image - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "all"
+          }
+        },
+        "left-1": {
+          "type": "large_left",
+          "settings": {
+            "topic": "Numeracy",
+            "title_override": "the open numeracy task: a great place to start.",
+            "excerpt_override": "Not Plan B. The mindset reset that makes maths feel alive again.",
+            "fallback_filename": "blog-image-universal-02.jpg",
+            "image_alt": "Open numeracy task cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "adults"
+          }
+        },
+        "left-2": {
+          "type": "large_left",
+          "settings": {
+            "topic": "Wellbeing",
+            "title_override": "homeschool without burnout.",
+            "excerpt_override": "What to drop, what to keep, and the one rhythm Tam swears by.",
+            "fallback_filename": "blog-image-universal-03.jpg",
+            "image_alt": "Homeschool without burnout cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "adults"
+          }
+        },
+        "right-1": {
+          "type": "right_small",
+          "settings": {
+            "topic": "Creativity",
+            "title_override": "things to draw when you're stuck.",
+            "excerpt_override": "Twelve quick prompts for when the page is staring back.",
+            "fallback_filename": "blog-image-universal-04.jpg",
+            "image_alt": "Things to draw cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "kids"
+          }
+        },
+        "right-2": {
+          "type": "right_small",
+          "settings": {
+            "topic": "Wellbeing",
+            "title_override": "the case for boredom.",
+            "excerpt_override": "The most underrated ingredient for a creative kid.",
+            "fallback_filename": "blog-image-universal-05.jpg",
+            "image_alt": "Case for boredom cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "all"
+          }
+        },
+        "right-3": {
+          "type": "right_small",
+          "settings": {
+            "topic": "Photography",
+            "title_override": "noticing things.",
+            "excerpt_override": "How a kid with a camera teaches the rest of us to slow down.",
+            "fallback_filename": "blog-image-universal-06.jpg",
+            "image_alt": "Noticing things cover - placeholder. Kid photography fits beautifully here.",
+            "link_override": "/blogs/field-notes",
+            "audience": "all"
+          }
+        },
+        "right-4": {
+          "type": "right_small",
+          "settings": {
+            "topic": "Open tasks",
+            "title_override": "what is a rich open task?",
+            "excerpt_override": "And how to spot one in the wild before you set it.",
+            "fallback_filename": "blog-image-universal-07.jpg",
+            "image_alt": "Rich open task cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "adults"
+          }
+        },
+        "right-5": {
+          "type": "right_small",
+          "settings": {
+            "topic": "Behind the mag",
+            "title_override": "behind mag10.",
+            "excerpt_override": "What changed, what stayed, and what almost didn't make it in.",
+            "fallback_filename": "blog-image-universal-08.jpg",
+            "image_alt": "Behind mag10 cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "all"
+          }
+        },
+        "right-6": {
+          "type": "right_small",
+          "settings": {
+            "topic": "Outdoors",
+            "title_override": "100 things to spot on a walk.",
+            "excerpt_override": "An invitation to look up, look down, and slow down.",
+            "fallback_filename": "blog-image-universal-11.jpg",
+            "image_alt": "100 things to spot cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "kids"
+          }
+        },
+        "bottom-1": {
+          "type": "bottom_small",
+          "settings": {
+            "topic": "Creativity",
+            "title_override": "kid jokes are learning in disguise.",
+            "excerpt_override": "Why the worst pun your kid told you this week is a brain at work.",
+            "fallback_filename": "blog-image-universal-09.jpg",
+            "image_alt": "Kid jokes cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "kids"
+          }
+        },
+        "bottom-2": {
+          "type": "bottom_small",
+          "settings": {
+            "topic": "Inquiry",
+            "title_override": "inquiry learning, the Australian way.",
+            "excerpt_override": "What it actually looks like in a primary classroom that isn't trying too hard.",
+            "fallback_filename": "blog-image-universal-10.jpg",
+            "image_alt": "Inquiry learning cover - placeholder.",
+            "link_override": "/blogs/field-notes",
+            "audience": "adults"
+          }
+        }
+      },
+      "block_order": [
+        "feature",
+        "left-1",
+        "left-2",
+        "right-1",
+        "right-2",
+        "right-3",
+        "right-4",
+        "right-5",
+        "right-6",
+        "bottom-1",
+        "bottom-2"
+      ]
+    },
+    "feature-banner": {
+      "type": "theinmag-blog-index-feature-banner",
+      "blocks": {
+        "banner-all": {
+          "type": "audience_banner",
+          "settings": {
+            "audience": "all",
+            "topic": "Behind the mag",
+            "title_override": "what mag10 looks like in the wild.",
+            "excerpt_override": "From the kitchen table to the school library, here's where this issue is landing.",
+            "fallback_filename": "blog-image-universal-12.jpg",
+            "image_alt": "Mag10 in the wild - placeholder banner.",
+            "link_override": "/blogs/field-notes",
+            "cta_label": "Read this one"
+          }
+        },
+        "banner-kids": {
+          "type": "audience_banner",
+          "settings": {
+            "audience": "kids",
+            "topic": "Make your own",
+            "title_override": "the fold-and-snip zine, in 60 seconds.",
+            "excerpt_override": "One sheet of paper. One scissor. One tiny eight-page magazine of your own.",
+            "fallback_filename": "blog-image-universal-13.jpg",
+            "image_alt": "Fold-and-snip zine - placeholder banner.",
+            "link_override": "/blogs/field-notes",
+            "cta_label": "Show me how"
+          }
+        },
+        "banner-adults": {
+          "type": "audience_banner",
+          "settings": {
+            "audience": "adults",
+            "topic": "Read aloud",
+            "title_override": "what changes when you read aloud at night.",
+            "excerpt_override": "More than vocabulary. More than bonding. The quiet rewiring no one mentions.",
+            "fallback_filename": "blog-image-universal-14.jpg",
+            "image_alt": "Read aloud at night - placeholder banner.",
+            "link_override": "/blogs/field-notes",
+            "cta_label": "Read this one"
+          }
+        }
+      },
+      "block_order": ["banner-all", "banner-kids", "banner-adults"]
+    },
+    "archive": {
+      "type": "theinmag-blog-index-archive",
+      "settings": {
+        "background_filename": "section_background_searchblogs.jpg",
+        "background_color": "#A8D6B8",
+        "show_suggest_form": true
+      },
+      "blocks": {
+        "card-1": { "type": "archive_card", "settings": { "topic": "Creativity", "title_override": "why your kid stops creating around age 8.", "tags": "creativity, parents, ages 7-9, art", "fallback_filename": "blog-image-universal-01.jpg", "link_override": "/blogs/field-notes" } },
+        "card-2": { "type": "archive_card", "settings": { "topic": "Numeracy", "title_override": "the open numeracy task: a great place to start.", "tags": "numeracy, teachers, maths, open task", "fallback_filename": "blog-image-universal-02.jpg", "link_override": "/blogs/field-notes" } },
+        "card-3": { "type": "archive_card", "settings": { "topic": "Wellbeing", "title_override": "homeschool without burnout.", "tags": "homeschool, parents, wellbeing", "fallback_filename": "blog-image-universal-03.jpg", "link_override": "/blogs/field-notes" } },
+        "card-4": { "type": "archive_card", "settings": { "topic": "Creativity", "title_override": "things to draw when you're stuck.", "tags": "creativity, kids, drawing, prompts", "body_content": "Twelve quick prompts for when the page is staring back. Draw your shoe upside down. Draw your dog if you have one, or someone else's dog. Draw what you ate for breakfast as if it were a face. Draw the same tree four times - in summer, autumn, winter, spring. Draw a self portrait but only your hands. Draw your favourite room from above, like a bird looking down. Draw a cloud that looks like an animal. Draw the inside of your pencil case. Draw a map of the walk to school. Draw the last dream you remember. Draw a vegetable that doesn't exist. Draw your hand drawing your hand.", "fallback_filename": "blog-image-universal-04.jpg", "link_override": "/blogs/field-notes" } },
+        "card-5": { "type": "archive_card", "settings": { "topic": "Wellbeing", "title_override": "the case for boredom.", "tags": "boredom, wellbeing, parents", "fallback_filename": "blog-image-universal-05.jpg", "link_override": "/blogs/field-notes" } },
+        "card-6": { "type": "archive_card", "settings": { "topic": "Photography", "title_override": "noticing things.", "tags": "photography, kids, observation", "fallback_filename": "blog-image-universal-06.jpg", "link_override": "/blogs/field-notes" } },
+        "card-7": { "type": "archive_card", "settings": { "topic": "Open tasks", "title_override": "what is a rich open task?", "tags": "open task, teachers, pedagogy", "fallback_filename": "blog-image-universal-07.jpg", "link_override": "/blogs/field-notes" } },
+        "card-8": { "type": "archive_card", "settings": { "topic": "Behind the mag", "title_override": "behind mag10.", "tags": "behind the mag, magazine, process", "fallback_filename": "blog-image-universal-08.jpg", "link_override": "/blogs/field-notes" } },
+        "card-9": { "type": "archive_card", "settings": { "topic": "Creativity", "title_override": "kid jokes are learning in disguise.", "tags": "humour, kids, creativity, language", "fallback_filename": "blog-image-universal-09.jpg", "link_override": "/blogs/field-notes" } },
+        "card-10": { "type": "archive_card", "settings": { "topic": "Inquiry", "title_override": "inquiry learning, the Australian way.", "tags": "inquiry, teachers, curriculum, australia", "fallback_filename": "blog-image-universal-10.jpg", "link_override": "/blogs/field-notes" } },
+        "card-11": { "type": "archive_card", "settings": { "topic": "Outdoors", "title_override": "100 things to spot on a walk.", "tags": "outdoors, kids, observation, nature", "body_content": "An invitation to look up, look down, and slow down. A magpie chip. A bottle cap. A snail in slow motion. Someone walking a small dog. A dog with a big bark. The shape of a cloud. A crack in the footpath that looks like a country. A leaf with a hole. A bird's nest. A footprint that isn't yours. A squirrel if you're lucky. A possum if you're luckier. A seed with wings. A puddle reflecting the sky. The smell of rain coming. A flower growing through concrete. A spider's web in the morning sun.", "fallback_filename": "blog-image-universal-11.jpg", "link_override": "/blogs/field-notes" } },
+        "card-12": { "type": "archive_card", "settings": { "topic": "Read aloud", "title_override": "what changes when you read aloud at night.", "tags": "read aloud, parents, language, ritual", "fallback_filename": "blog-image-universal-14.jpg", "link_override": "/blogs/field-notes" } },
+        "card-13": { "type": "archive_card", "settings": { "topic": "Make your own", "title_override": "the fold-and-snip zine, in 60 seconds.", "tags": "make, kids, craft, zine", "fallback_filename": "blog-image-universal-13.jpg", "link_override": "/blogs/field-notes" } },
+        "card-14": { "type": "archive_card", "settings": { "topic": "Behind the mag", "title_override": "what mag10 looks like in the wild.", "tags": "behind the mag, mag10, photo essay", "fallback_filename": "blog-image-universal-12.jpg", "link_override": "/blogs/field-notes" } }
+      },
+      "block_order": ["card-1", "card-2", "card-3", "card-4", "card-5", "card-6", "card-7", "card-8", "card-9", "card-10", "card-11", "card-12", "card-13", "card-14"]
     }
   },
-  "order": [
-    "main"
-  ]
+  "order": ["editorial", "feature-banner", "archive"]
 }

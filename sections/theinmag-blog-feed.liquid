@@ -1,6 +1,6 @@
 {%- comment -%}
   theinmag-blog-feed
-  Four-up post card row anchoring the homepage to the theINside blog.
+  Four-up post card row anchoring the homepage to the field notes blog.
   Maude-faithful editorial layout: heading left, audience filter chips
   + "see all blogs" pill button right.
 
@@ -600,7 +600,7 @@
 
 {% schema %}
 {
-  "name": "theINside feed",
+  "name": "field notes feed",
   "tag": "section",
   "class": "theinmag-blog-feed-section",
   "settings": [
@@ -612,19 +612,18 @@
       "type": "text",
       "id": "heading_pre",
       "label": "Pre (small)",
-      "default": "the"
+      "default": "field"
     },
     {
       "type": "text",
       "id": "heading_emphasis",
       "label": "Emphasis (large)",
-      "default": "IN"
+      "default": "notes"
     },
     {
       "type": "text",
       "id": "heading_post",
-      "label": "Post (small)",
-      "default": "side"
+      "label": "Post (small, optional)"
     },
     {
       "type": "text",
@@ -676,19 +675,19 @@
       "type": "text",
       "id": "chip_all_link",
       "label": "'all' link",
-      "default": "/blogs/theinside"
+      "default": "/blogs/field-notes"
     },
     {
       "type": "text",
       "id": "chip_kids_link",
       "label": "'kids' link",
-      "default": "/blogs/theinside?audience=kids"
+      "default": "/blogs/field-notes?audience=kids"
     },
     {
       "type": "text",
       "id": "chip_adults_link",
       "label": "'adults' link",
-      "default": "/blogs/theinside?audience=adults"
+      "default": "/blogs/field-notes?audience=adults"
     },
     {
       "type": "header",
@@ -710,7 +709,7 @@
       "type": "text",
       "id": "cta_link",
       "label": "Button link",
-      "default": "/blogs/theinside"
+      "default": "/blogs/field-notes"
     },
     {
       "type": "header",
@@ -807,7 +806,7 @@
   ],
   "presets": [
     {
-      "name": "theINside feed",
+      "name": "field notes feed",
       "blocks": [
         { "type": "featured_post" },
         { "type": "featured_post" },

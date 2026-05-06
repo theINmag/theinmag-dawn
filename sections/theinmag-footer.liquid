@@ -145,7 +145,7 @@
       {%- comment -%} ----- Nav columns (blocks) ----- {%- endcomment -%}
       {%- for block in section.blocks -%}
         {%- if block.type == 'nav_column' -%}
-          <details class="theinmag-footer__column" {{ block.shopify_attributes }}>
+          <details class="theinmag-footer__column" open {{ block.shopify_attributes }}>
             <summary class="theinmag-footer__column-heading">
               {{ block.settings.heading }}
               <svg class="theinmag-footer__column-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">

@@ -1,0 +1,455 @@
+{%- comment -%}
+  theinmag-blog-index-feature-banner
+  Full-bleed editorial banner that sits below the editorial section on
+  /blogs/field-notes. Maude pattern: side-to-side photo with a white
+  text overlay (topic + title + excerpt + optional link).
+
+  Audience-aware: each block carries an audience tag (all/kids/adults).
+  Only the block matching the current audience shows. The audience
+  itself comes from the editorial section's toggle via:
+    - localStorage key 'field-notes-audience' (read on init)
+    - 'field-notes:audience-changed' window event (live updates)
+  Falls back to the 'all' block when no exact match exists.
+
+  Mobile: same overlay treatment, slightly less padding so the title
+  doesn't clip on narrow viewports.
+{%- endcomment -%}
+
+{%- liquid
+  assign min_height = section.settings.min_height_desktop | default: 80
+  assign min_height_mobile = section.settings.min_height_mobile | default: 70
+-%}
+
+<section
+  class="theinmag-feature-banner"
+  data-theinmag-feature-banner
+  style="--banner-min-h-desktop: {{ min_height }}vh; --banner-min-h-mobile: {{ min_height_mobile }}vh;"
+>
+  {%- for block in section.blocks -%}
+    {%- liquid
+      assign article = block.settings.article
+
+      assign title = block.settings.title_override
+      if title == blank and article != blank
+        assign title = article.title
+      endif
+
+      assign excerpt = block.settings.excerpt_override
+      if excerpt == blank and article != blank
+        assign excerpt = article.excerpt | strip_html
+      endif
+
+      assign topic = block.settings.topic
+      if topic == blank and article != blank
+        assign topic = article.tags.first
+      endif
+
+      assign banner_link = block.settings.link_override
+      if banner_link == blank and article != blank
+        assign banner_link = article.url
+      endif
+
+      assign image_src = ''
+      if block.settings.image != blank
+        assign image_src = block.settings.image | image_url: width: 2400
+      elsif block.settings.fallback_filename != blank
+        assign image_src = block.settings.fallback_filename | asset_url
+      elsif article != blank and article.image != blank
+        assign image_src = article.image | image_url: width: 2400
+      endif
+
+      assign image_alt = block.settings.image_alt
+      if image_alt == blank and article != blank and article.image != blank
+        assign image_alt = article.image.alt | default: article.title
+      endif
+      if image_alt == blank
+        assign image_alt = title
+      endif
+
+      assign audience = block.settings.audience | default: 'all'
+      assign cta_label = block.settings.cta_label
+    -%}
+
+    {%- comment -%}
+      Whole panel is the click target - cleaner than a tucked-away CTA
+      button inside the copy block. When a link exists we wrap in <a>;
+      otherwise the panel renders as a plain <article>.
+    {%- endcomment -%}
+    {%- capture banner_inner -%}
+      {%- if image_src != blank -%}
+        <img
+          class="theinmag-feature-banner__image"
+          src="{{ image_src }}"
+          alt="{{ image_alt | escape }}"
+          loading="lazy"
+          width="2400"
+          height="1350"
+        >
+      {%- else -%}
+        <span class="theinmag-feature-banner__placeholder" aria-hidden="true"></span>
+      {%- endif -%}
+
+      <span class="theinmag-feature-banner__scrim" aria-hidden="true"></span>
+
+      <div class="theinmag-feature-banner__copy">
+        {%- if topic != blank -%}
+          <span class="theinmag-feature-banner__topic">{{ topic }}</span>
+        {%- endif -%}
+        {%- if title != blank -%}
+          <h2 class="theinmag-feature-banner__title">{{ title }}</h2>
+        {%- endif -%}
+        {%- if excerpt != blank -%}
+          <p class="theinmag-feature-banner__excerpt">{{ excerpt }}</p>
+        {%- endif -%}
+      </div>
+    {%- endcapture -%}
+
+    {%- if banner_link != blank -%}
+      <a
+        class="theinmag-feature-banner__panel theinmag-feature-banner__panel--link"
+        href="{{ banner_link }}"
+        data-banner-panel
+        data-audience="{{ audience }}"
+        hidden
+        {{ block.shopify_attributes }}
+      >{{ banner_inner }}</a>
+    {%- else -%}
+      <article
+        class="theinmag-feature-banner__panel"
+        data-banner-panel
+        data-audience="{{ audience }}"
+        hidden
+        {{ block.shopify_attributes }}
+      >{{ banner_inner }}</article>
+    {%- endif -%}
+  {%- endfor -%}
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     Full-bleed banner - breaks out of the lavender section's max
+     width to span the full viewport. Negative margins handle the
+     break-out without needing to restructure the parent template.
+     ================================================================ */
+  .theinmag-feature-banner {
+    position: relative;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    background-color: #2A1F3D;
+    overflow: hidden;
+  }
+
+  .theinmag-feature-banner__panel {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: var(--banner-min-h-mobile, 70vh);
+    overflow: hidden;
+    transition: opacity 0.32s ease, transform 0.32s ease;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-feature-banner__panel {
+      min-height: var(--banner-min-h-desktop, 80vh);
+    }
+  }
+
+  .theinmag-feature-banner__panel[hidden] {
+    display: none;
+  }
+
+  .theinmag-feature-banner.is-leaving .theinmag-feature-banner__panel {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+
+  .theinmag-feature-banner__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .theinmag-feature-banner__placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #5D3A7A 0%, #C9543E 100%);
+  }
+
+  .theinmag-feature-banner__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(20, 14, 30, 0.78) 0%,
+      rgba(20, 14, 30, 0.42) 35%,
+      rgba(20, 14, 30, 0.10) 60%,
+      rgba(20, 14, 30, 0) 80%
+    );
+    pointer-events: none;
+  }
+
+  .theinmag-feature-banner__copy {
+    position: absolute;
+    left: clamp(20px, 5vw, 80px);
+    right: clamp(20px, 5vw, 80px);
+    bottom: clamp(40px, 6vw, 88px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.4vw, 18px);
+    color: #FFFFFF;
+    max-width: 60ch;
+  }
+
+  /* Type sizes match the editorial feature card's on-photo treatment
+     so the two photo-overlay surfaces on the page read as siblings
+     rather than the banner shouting over the editorial header. */
+  .theinmag-feature-banner__topic {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  }
+
+  .theinmag-feature-banner__title {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(28px, 4.8vw, 56px);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    color: #FFFFFF;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+    padding-bottom: 0.08em;
+  }
+
+  .theinmag-feature-banner__excerpt {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 18px);
+    line-height: 1.5;
+    color: #FFFFFF;
+    opacity: 0.95;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    max-width: 52ch;
+  }
+
+  /* Whole-panel link variant - subtle hover lift on the image so the
+     visitor feels the click target without needing a CTA button. */
+  .theinmag-feature-banner__panel--link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .theinmag-feature-banner__panel--link .theinmag-feature-banner__image {
+    transition: transform 0.5s ease;
+  }
+
+  .theinmag-feature-banner__panel--link:hover .theinmag-feature-banner__image,
+  .theinmag-feature-banner__panel--link:focus-visible .theinmag-feature-banner__image {
+    transform: scale(1.02);
+  }
+
+  .theinmag-feature-banner__panel--link:focus-visible {
+    outline: 3px solid #FFFFFF;
+    outline-offset: -6px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-feature-banner__panel,
+    .theinmag-feature-banner__panel--link .theinmag-feature-banner__image {
+      transition: none;
+    }
+    .theinmag-feature-banner__panel--link:hover .theinmag-feature-banner__image,
+    .theinmag-feature-banner__panel--link:focus-visible .theinmag-feature-banner__image {
+      transform: none;
+    }
+    .theinmag-feature-banner.is-leaving .theinmag-feature-banner__panel {
+      opacity: 1;
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var section = document.querySelector('[data-theinmag-feature-banner]');
+    if (!section) return;
+
+    var STORAGE_KEY = 'field-notes-audience';
+    var EVENT_NAME = 'field-notes:audience-changed';
+    var TRANSITION_MS = 320;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var panels = Array.prototype.slice.call(section.querySelectorAll('[data-banner-panel]'));
+    if (!panels.length) return;
+
+    function audienceKey(p) { return p.dataset.audience || 'all'; }
+
+    function pickPanel(audience) {
+      // Prefer exact match. Fall back to 'all'. Fall back to first panel.
+      var exact = panels.find(function (p) { return audienceKey(p) === audience; });
+      if (exact) return exact;
+      var any = panels.find(function (p) { return audienceKey(p) === 'all'; });
+      if (any) return any;
+      return panels[0];
+    }
+
+    function showOnly(panel) {
+      panels.forEach(function (p) {
+        p.hidden = (p !== panel);
+      });
+    }
+
+    function applyAudience(audience, animate) {
+      var target = pickPanel(audience);
+      if (!target) return;
+
+      if (animate && !reduced) {
+        section.classList.add('is-leaving');
+        setTimeout(function () {
+          showOnly(target);
+          window.requestAnimationFrame(function () {
+            section.classList.remove('is-leaving');
+          });
+        }, TRANSITION_MS);
+      } else {
+        showOnly(target);
+      }
+    }
+
+    /* Init from localStorage so the banner matches whatever the visitor
+       last selected, even on a fresh page load. */
+    var initial = 'all';
+    try { initial = localStorage.getItem(STORAGE_KEY) || 'all'; } catch (e) {}
+    if (initial !== 'all' && initial !== 'kids' && initial !== 'adults') initial = 'all';
+    applyAudience(initial, false);
+
+    window.addEventListener(EVENT_NAME, function (e) {
+      if (!e || !e.detail) return;
+      applyAudience(e.detail.audience, !!e.detail.animate);
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "field notes banner",
+  "tag": "section",
+  "class": "theinmag-feature-banner-section",
+  "max_blocks": 3,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Banner sizing"
+    },
+    {
+      "type": "range",
+      "id": "min_height_desktop",
+      "label": "Desktop min height",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "min_height_mobile",
+      "label": "Mobile min height",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "default": 70
+    },
+    {
+      "type": "paragraph",
+      "content": "Add up to three banner blocks - one per audience (all / kids / adults). The block matching the visitor's current toggle is shown; the others stay hidden in the DOM ready to swap in. The 'all' block is the fallback when no exact match exists."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "audience_banner",
+      "name": "Audience banner",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "select",
+          "id": "audience",
+          "label": "Audience",
+          "options": [
+            { "value": "all", "label": "All" },
+            { "value": "kids", "label": "Kids" },
+            { "value": "adults", "label": "Adults" }
+          ],
+          "default": "all"
+        },
+        { "type": "article", "id": "article", "label": "Article" },
+        { "type": "text", "id": "topic", "label": "Topic label" },
+        { "type": "text", "id": "title_override", "label": "Title override" },
+        { "type": "textarea", "id": "excerpt_override", "label": "Excerpt override" },
+        { "type": "text", "id": "link_override", "label": "Link override" },
+        { "type": "text", "id": "cta_label", "label": "CTA label", "info": "Defaults to 'read this one' if blank." },
+        { "type": "image_picker", "id": "image", "label": "Banner image" },
+        { "type": "text", "id": "fallback_filename", "label": "Banner image fallback filename" },
+        { "type": "text", "id": "image_alt", "label": "Banner image alt text" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "field notes banner",
+      "blocks": [
+        {
+          "type": "audience_banner",
+          "settings": {
+            "audience": "all",
+            "topic": "Behind the mag",
+            "title_override": "what mag10 looks like in the wild.",
+            "excerpt_override": "From the kitchen table to the school library, here's where this issue is landing.",
+            "fallback_filename": "blog-image-universal-12.jpg",
+            "image_alt": "Mag10 in the wild - placeholder banner.",
+            "link_override": "/blogs/field-notes",
+            "cta_label": "Read this one"
+          }
+        },
+        {
+          "type": "audience_banner",
+          "settings": {
+            "audience": "kids",
+            "topic": "Make your own",
+            "title_override": "the fold-and-snip zine, in 60 seconds.",
+            "excerpt_override": "One sheet of paper. One scissor. One tiny eight-page magazine of your own.",
+            "fallback_filename": "blog-image-universal-13.jpg",
+            "image_alt": "Fold-and-snip zine - placeholder banner.",
+            "link_override": "/blogs/field-notes",
+            "cta_label": "Show me how"
+          }
+        },
+        {
+          "type": "audience_banner",
+          "settings": {
+            "audience": "adults",
+            "topic": "Read aloud",
+            "title_override": "what changes when you read aloud at night.",
+            "excerpt_override": "More than vocabulary. More than bonding. The quiet rewiring no one mentions.",
+            "fallback_filename": "blog-image-universal-14.jpg",
+            "image_alt": "Read aloud at night - placeholder banner.",
+            "link_override": "/blogs/field-notes",
+            "cta_label": "Read this one"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
