@@ -167,32 +167,54 @@
       gap: clamp(28px, 4vw, 48px);
     }
 
-    .theinmag-editorial__card--feature {
+    /* Note on selectors below: every rule that needs to override a
+       desktop default uses the .theinmag-editorial__inner ancestor
+       prefix. That bumps specificity from 0,2,0 to 0,3,0 so these
+       rules win regardless of source order against the desktop
+       defaults later in this stylesheet. Without the prefix, the
+       desktop rules (border-radius: 12px on feature cover, padding
+       on right_small siblings, etc.) clobber these mobile values
+       because they appear later in source. */
+
+    .theinmag-editorial__inner .theinmag-editorial__card--feature {
       order: 1;
       /* Negate section horizontal padding so card hits viewport edges. */
       margin-left: calc(-1 * clamp(16px, 3vw, 32px));
       margin-right: calc(-1 * clamp(16px, 3vw, 32px));
     }
 
-    .theinmag-editorial__card--feature .theinmag-editorial__card-cover {
+    .theinmag-editorial__inner .theinmag-editorial__card--feature .theinmag-editorial__card-cover {
       border-radius: 0;
       box-shadow: none;
-      /* Taller portrait crop on mobile - reads more like an editorial
-         magazine cover than a wide hero strip. */
-      aspect-ratio: 4 / 5;
+      /* Hero takes 75vh so the FIELD NOTES wordmark just peeks below
+         the fold - reader scrolls a touch and sees the section
+         identity. aspect-ratio cleared so height is viewport-driven. */
+      aspect-ratio: auto;
+      height: 75vh;
     }
 
-    .theinmag-editorial__intro {
+    /* Darker bottom-of-image scrim on mobile for white-text overlay
+       readability. Stronger lower stop, dark band climbs higher. */
+    .theinmag-editorial__inner .theinmag-editorial__card--feature .theinmag-editorial__card-scrim {
+      background: linear-gradient(
+        to top,
+        rgba(20, 14, 30, 0.86) 0%,
+        rgba(20, 14, 30, 0.50) 45%,
+        rgba(20, 14, 30, 0) 78%
+      );
+    }
+
+    .theinmag-editorial__inner .theinmag-editorial__intro {
       order: 2;
       margin-bottom: 0;
     }
 
-    .theinmag-editorial__grid {
+    .theinmag-editorial__inner .theinmag-editorial__grid {
       order: 3;
     }
 
     /* Right column becomes a horizontal scroll rail of small cards. */
-    .theinmag-editorial__col--right .theinmag-editorial__col-inner {
+    .theinmag-editorial__inner .theinmag-editorial__col--right .theinmag-editorial__col-inner {
       display: flex;
       flex-direction: row;
       gap: clamp(14px, 2vw, 20px);
@@ -207,22 +229,40 @@
       padding: 4px clamp(16px, 3vw, 32px);
     }
 
-    .theinmag-editorial__col--right .theinmag-editorial__col-inner::-webkit-scrollbar {
+    .theinmag-editorial__inner .theinmag-editorial__col--right .theinmag-editorial__col-inner::-webkit-scrollbar {
       display: none;
     }
 
-    /* Override the desktop hairline-divider treatment - cards are
-     now self-contained tiles in the rail. */
-    .theinmag-editorial__card--right_small {
+    /* Each rail card is a self-contained white tile. Padding zeroed
+       (overrides the desktop hairline-divider vertical padding that
+       was leaving a white sliver above cards 2+) and first-child
+       padding-top clobbered too so all cards align identically. */
+    .theinmag-editorial__inner .theinmag-editorial__col--right .theinmag-editorial__card--right_small {
       flex-shrink: 0;
       width: 72vw;
       max-width: 280px;
       padding: 0;
       scroll-snap-align: start;
+      background-color: #FFFFFF;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(42, 31, 61, 0.10);
     }
 
-    .theinmag-editorial__card--right_small + .theinmag-editorial__card--right_small {
+    .theinmag-editorial__inner .theinmag-editorial__col--right .theinmag-editorial__card--right_small + .theinmag-editorial__card--right_small {
       border-top: none;
+    }
+
+    .theinmag-editorial__inner .theinmag-editorial__col--right .theinmag-editorial__card--right_small .theinmag-editorial__card-cover {
+      border-radius: 0;
+      box-shadow: none;
+      display: block;
+      margin: 0;
+      vertical-align: top;
+    }
+
+    .theinmag-editorial__inner .theinmag-editorial__col--right .theinmag-editorial__card--right_small .theinmag-editorial__card-body {
+      padding: clamp(12px, 1.6vw, 16px) clamp(14px, 1.6vw, 18px) clamp(14px, 1.8vw, 20px);
     }
   }
 
