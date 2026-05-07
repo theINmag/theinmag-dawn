@@ -13,12 +13,21 @@
 {%- liquid
   assign heading = section.settings.heading
   assign subhead = section.settings.subhead
+  assign bg_filename = section.settings.bg_filename
+  assign bg_url = ''
+  if bg_filename != blank
+    assign bg_filename = bg_filename | strip
+    assign bg_url = bg_filename | asset_url
+  endif
 
   assign section_style = '--cth-pt: ' | append: section.settings.padding_top | append: 'px; --cth-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  if bg_url != blank
+    assign section_style = section_style | append: ' --cth-bg: url(' | append: bg_url | append: ');'
+  endif
 -%}
 
 <section
-  class="theinmag-contact-hero"
+  class="theinmag-contact-hero{% if bg_url != blank %} theinmag-contact-hero--has-bg{% endif %}"
   data-theinmag-contact-hero
   aria-labelledby="theinmag-contact-hero-heading"
   style="{{ section_style }}"
@@ -92,6 +101,15 @@
     justify-content: center;
   }
 
+  /* Kid-art watercolour bg sits on top of the lavender fallback. Cover
+     keeps the wave shape filling the band at every aspect ratio. */
+  .theinmag-contact-hero--has-bg {
+    background-image: var(--cth-bg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+  }
+
   @media (min-width: 750px) {
     .theinmag-contact-hero {
       min-height: clamp(220px, 30vh, 320px);
@@ -126,11 +144,15 @@
   .theinmag-contact-hero__subhead {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(16px, 1.6vw, 18px);
+    font-size: clamp(15px, 1.5vw, 17px);
     line-height: 1.5;
     color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.85;
-    max-width: 48ch;
+    opacity: 0.9;
+    /* Wide enough that "We read every message. Usually reply within 2
+       business days." stays on one line at desktop AND on the Pixel 6
+       (412px) viewport - tested both. No max-width clamp because the
+       parent .theinmag-contact-hero__inner already caps at 720px. */
+    max-width: none;
     margin: 0;
   }
 {%- endstylesheet -%}
@@ -155,7 +177,19 @@
       "type": "textarea",
       "id": "subhead",
       "label": "Subhead",
-      "default": "We read every message. Usually reply within 2 business days."
+      "default": "We read every message. Reply within 2 days.",
+      "info": "Keep short - this needs to stay on one line down to Pixel 6 (412px) widths."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "text",
+      "id": "bg_filename",
+      "label": "Background image filename",
+      "default": "contact_header.jpg",
+      "info": "File inside theme assets/. Lavender shows as fallback if blank or missing."
     },
     {
       "type": "header",

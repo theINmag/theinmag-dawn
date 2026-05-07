@@ -4,7 +4,8 @@
       "type": "theinmag-contact-hero",
       "settings": {
         "heading": "Get IN touch",
-        "subhead": "We read every message. Usually reply within 2 business days.",
+        "subhead": "We read every message. Reply within 2 days.",
+        "bg_filename": "contact_header.jpg",
         "padding_top": 48,
         "padding_bottom": 40
       }
@@ -17,7 +18,18 @@
         "submit_label": "Send it",
         "image_filename": "theinmag-van-contact.jpg",
         "image_alt": "Ryan and Tam's self-converted van - theINmag HQ on the road.",
-        "image_caption": "That's us. theINmag HQ is wherever the van's parked this week.",
+        "router_heading": "Looking for something specific?",
+        "t1_label": "Ordering for your school?",
+        "t1_url": "/pages/schools",
+        "t2_label": "Want to stock theINmag?",
+        "t2_url": "/pages/stockists",
+        "t3_label": "Brand or organisation partnership?",
+        "t3_url": "/pages/partnerships",
+        "social_heading": "Come hang with us!",
+        "instagram_url": "https://www.instagram.com/the.inmag/",
+        "instagram_handle": "@the.inmag",
+        "facebook_url": "https://www.facebook.com/theINmagazine",
+        "facebook_handle": "@theINmagazine",
         "success_heading": "Got it!",
         "success_body": "Thanks for reaching out. We read every message and we'll get back to you within 2 business days. In the meantime, have a flick through the latest from field notes.",
         "success_cta_label": "Read field notes",
@@ -26,38 +38,10 @@
         "padding_top": 56,
         "padding_bottom": 56
       }
-    },
-    "router": {
-      "type": "theinmag-contact-router",
-      "settings": {
-        "heading": "Looking for something specific?",
-        "t1_label": "Ordering for your school?",
-        "t1_url": "/pages/schools",
-        "t2_label": "Want to stock theINmag?",
-        "t2_url": "/pages/stockists",
-        "t3_label": "Brand or organisation partnership?",
-        "t3_url": "/pages/partnerships",
-        "padding_top": 48,
-        "padding_bottom": 48
-      }
-    },
-    "social": {
-      "type": "theinmag-contact-social",
-      "settings": {
-        "heading": "Come hang with us!",
-        "instagram_url": "https://www.instagram.com/the.inmag/",
-        "instagram_handle": "@the.inmag",
-        "facebook_url": "https://www.facebook.com/theINmagazine",
-        "facebook_handle": "@theINmagazine",
-        "padding_top": 56,
-        "padding_bottom": 64
-      }
     }
   },
   "order": [
     "hero",
-    "form",
-    "router",
-    "social"
+    "form"
   ]
 }
