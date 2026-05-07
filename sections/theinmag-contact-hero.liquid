@@ -147,17 +147,14 @@
     text-wrap: balance;
   }
 
-  /* Brand-pun "IN" emphasis - slightly larger + yellow with a soft
-     ink shadow for legibility on the lavender / watercolour bg. Same
-     shape of treatment the homepage hero uses for its emphasis word. */
+  /* Brand-pun "IN" emphasis - same colour as the rest of the heading,
+     just a touch larger so the brand pun lands without colour-clashing
+     against the watercolour. */
   .theinmag-contact-hero__heading-emphasis {
     display: inline-block;
     font-size: 1.18em;
     line-height: 1;
     vertical-align: -0.04em;
-    color: var(--color-yellow, #F9C23C);
-    text-shadow: 0 1px 0 rgba(42, 31, 61, 0.35),
-                 0 0 1px rgba(42, 31, 61, 0.45);
   }
 
   .theinmag-contact-hero__subhead {
@@ -196,8 +193,8 @@
       "type": "textarea",
       "id": "subhead",
       "label": "Subhead",
-      "default": "We do our best to reply within two days.",
-      "info": "Keep short - this needs to stay on one line down to Pixel 6 (412px) widths."
+      "default": "We read every message. We do our best to reply within two days.",
+      "info": "Sits on one line at desktop. Wraps to two balanced lines on mobile."
     },
     {
       "type": "header",
