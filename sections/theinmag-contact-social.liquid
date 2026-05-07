@@ -10,6 +10,12 @@
   down for a marginal trust gain.
 {%- endcomment -%}
 
+{%- comment -%}
+  YouTube intentionally omitted on this page. The channel is sparse and
+  is reserved for the eventual story / about page when content is fuller.
+  Don't reintroduce it on contact / nav / footer without Ryan's call.
+{%- endcomment -%}
+
 {%- liquid
   assign heading = section.settings.heading
 
@@ -17,8 +23,6 @@
   assign instagram_handle = section.settings.instagram_handle
   assign facebook_url = section.settings.facebook_url
   assign facebook_handle = section.settings.facebook_handle
-  assign youtube_url = section.settings.youtube_url
-  assign youtube_handle = section.settings.youtube_handle
 
   assign section_style = '--cts-pt: ' | append: section.settings.padding_top | append: 'px; --cts-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
@@ -76,28 +80,6 @@
               <span class="theinmag-contact-social__btn-platform">Facebook</span>
               {%- if facebook_handle != blank -%}
                 <span class="theinmag-contact-social__btn-handle">{{ facebook_handle }}</span>
-              {%- endif -%}
-            </span>
-          </a>
-        </li>
-      {%- endif -%}
-      {%- if youtube_url != blank -%}
-        <li>
-          <a
-            class="theinmag-contact-social__btn theinmag-contact-social__btn--youtube"
-            href="{{ youtube_url }}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span class="theinmag-contact-social__btn-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor" focusable="false">
-                <path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15V9l5.2 3-5.2 3Z"></path>
-            </svg>
-            </span>
-            <span class="theinmag-contact-social__btn-text">
-              <span class="theinmag-contact-social__btn-platform">YouTube</span>
-              {%- if youtube_handle != blank -%}
-                <span class="theinmag-contact-social__btn-handle">{{ youtube_handle }}</span>
               {%- endif -%}
             </span>
           </a>
@@ -263,7 +245,6 @@
      saturated dark companions hit WCAG AA white-on-colour contrast. */
   .theinmag-contact-social__btn--instagram { background-color: var(--color-purple-dark, #5D3A7A); }
   .theinmag-contact-social__btn--facebook  { background-color: var(--color-teal-dark, #2D6878); }
-  .theinmag-contact-social__btn--youtube   { background-color: var(--color-sage-dark, #4A7C5C); }
 {%- endstylesheet -%}
 
 {% schema %}
@@ -313,22 +294,6 @@
       "id": "facebook_handle",
       "label": "Display handle",
       "default": "@theINmagazine"
-    },
-    {
-      "type": "header",
-      "content": "YouTube"
-    },
-    {
-      "type": "text",
-      "id": "youtube_url",
-      "label": "URL",
-      "default": "https://www.youtube.com/@Branchingout-tnr"
-    },
-    {
-      "type": "text",
-      "id": "youtube_handle",
-      "label": "Display handle",
-      "default": "@Branchingout-tnr"
     },
     {
       "type": "header",
