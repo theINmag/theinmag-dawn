@@ -67,16 +67,29 @@
 
   assign last_updated = section.settings.last_updated | default: 'May 2026'
 
-  assign character_count = 0
-  for i in (1..3)
-    assign filename_key = 'character_' | append: i | append: '_filename'
-    assign img_key = 'character_' | append: i
-    if section.settings[filename_key] != blank or section.settings[img_key] != blank
-      assign character_count = character_count | plus: 1
-    endif
-  endfor
+  comment
+    Character pool: 13 characters live in /assets/ as character-comp-1.png ..
+    character-comp-13.png. We emit all 13 URLs as data attributes on the
+    section root; JS picks 4 random ones at runtime (one per choice tile +
+    one when the suggest-comp modal opens). Pure JS-driven random per
+    visit per Ryan's spec - not daily-stable.
+  endcomment
+  assign character_count = section.settings.character_count | default: 13
+  assign character_prefix = section.settings.character_prefix | default: 'character-comp-'
+  assign character_ext = section.settings.character_ext | default: '.png'
+  capture character_attrs
+    for i in (1..character_count)
+      assign char_filename = character_prefix | append: i | append: character_ext
+      assign char_url = char_filename | asset_url
+      echo ' data-character-'
+      echo i
+      echo '="'
+      echo char_url
+      echo '"'
+    endfor
+  endcapture
 
-  assign h1_text = section.settings.choice_heading | default: 'find your next aussie kids comp'
+  assign tagline_text = section.settings.tagline_text | default: 'real competitions. for real aussie kids. dive in.'
   assign list_question = section.settings.list_question | default: 'what competitions are open right now?'
 
   assign canonical_url = request.origin | append: page.url
@@ -88,35 +101,48 @@
 <section
   class="theinmag-comps"
   data-theinmag-comps
+  data-choice-state="choosing"
   data-comp-count="{{ comp_size }}"
   aria-labelledby="theinmag-comps-h1"
   style="--comps-bg: url('{{ bg_url }}');"
+  {{ character_attrs }}
 >
 
   {%- comment -%} ============================================================
-       Section 1 - Three big buttons
-       Sits on top of a tinted kid-pattern panel. Desktop: 3-up row,
-       fat ~140px sticker buttons with subtle rotation per item.
-       Mobile: stacks vertically, ~80px tall.
+       Choice gate - the quiz screen. Three portrait tiles fill the
+       viewport. Visible only while data-choice-state="choosing".
+       After a choice is made, this section animates out and the stage
+       reveals. Each tile gets a random kid character (top on desktop,
+       alternating L/R on mobile horizontal layout).
   ============================================================ {%- endcomment -%}
   <header class="theinmag-comps__choice">
-    <h1 id="theinmag-comps-h1" class="theinmag-comps__choice-heading">{{ h1_text }}</h1>
-    {%- if section.settings.choice_subhead != blank -%}
-      <p class="theinmag-comps__choice-subhead">{{ section.settings.choice_subhead }}</p>
-    {%- endif -%}
-    <div class="theinmag-comps__choice-grid" role="group" aria-label="Pick a competition category">
-      <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--art" data-choice="art">
-        <span class="theinmag-comps__choice-btn-label">art</span>
-        <span class="theinmag-comps__choice-btn-sub">art · photo · film · dance · music</span>
-      </button>
-      <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--writing" data-choice="writing">
-        <span class="theinmag-comps__choice-btn-label">writing</span>
-        <span class="theinmag-comps__choice-btn-sub">writing · poetry · reading · spelling</span>
-      </button>
-      <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--all" data-choice="all">
-        <span class="theinmag-comps__choice-btn-label">everything</span>
-        <span class="theinmag-comps__choice-btn-sub">show me all {{ comp_size }}</span>
-      </button>
+    <div class="theinmag-comps__choice-inner">
+      <h1 id="theinmag-comps-h1" class="visually-hidden">Aussie kids' competitions to enter in 2026</h1>
+      <p class="theinmag-comps__tagline">{{ tagline_text }}</p>
+
+      <div class="theinmag-comps__choice-grid" role="group" aria-label="Pick a competition category">
+        <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--art" data-choice="art">
+          <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
+          <span class="theinmag-comps__choice-btn-stack">
+            <span class="theinmag-comps__choice-btn-label">art</span>
+            <span class="theinmag-comps__choice-btn-sub">art · photo · film · dance · music</span>
+          </span>
+        </button>
+        <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--writing" data-choice="writing">
+          <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
+          <span class="theinmag-comps__choice-btn-stack">
+            <span class="theinmag-comps__choice-btn-label">writing</span>
+            <span class="theinmag-comps__choice-btn-sub">writing · poetry · reading · spelling</span>
+          </span>
+        </button>
+        <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--all" data-choice="all">
+          <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
+          <span class="theinmag-comps__choice-btn-stack">
+            <span class="theinmag-comps__choice-btn-label">everything</span>
+            <span class="theinmag-comps__choice-btn-sub">show me all</span>
+          </span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -303,64 +329,61 @@
         </div>
       </div>
 
-      {%- comment -%} ----- Right column: rotating spotlight ----- {%- endcomment -%}
-      <aside class="theinmag-comps__featured" data-featured aria-label="Spotlight comp">
-        <span class="theinmag-comps__featured-label">spotlight</span>
-        <div class="theinmag-comps__featured-stack" data-featured-stack>
-          {%- for spot_id in spotlight_ids -%}
-            {%- liquid
-              assign spot_idx = -1
-              for cid in comp_ids
-                if cid == spot_id
-                  assign spot_idx = forloop.index0
-                  break
-                endif
-              endfor
-            -%}
-            {%- if spot_idx >= 0 -%}
-              {%- assign s_cat = comp_category_slugs[spot_idx] -%}
-              {%- assign s_url = comp_websites[spot_idx] -%}
-              {%- if s_url == blank -%}{%- assign s_url = '#' -%}{%- endif -%}
-              <a
-                class="theinmag-comps__featured-card theinmag-comps__featured-card--{{ s_cat }}{% if forloop.first %} is-active{% endif %}"
-                href="{{ s_url }}"
-                target="_blank"
-                rel="noopener noreferrer"
-                data-spot-index="{{ forloop.index0 }}"
-              >
-                <span class="theinmag-comps__featured-cover">
-                  <span class="theinmag-comps__featured-letter">{{ comp_letters[spot_idx] }}</span>
-                </span>
-                <span class="theinmag-comps__featured-body">
-                  <span class="theinmag-comps__featured-chip">{{ comp_categories[spot_idx] | downcase }}</span>
-                  <span class="theinmag-comps__featured-title">{{ comp_names[spot_idx] }}</span>
-                  <span class="theinmag-comps__featured-pitch">{{ comp_pitches[spot_idx] }}</span>
-                  <span class="theinmag-comps__featured-cta">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
-                </span>
-              </a>
-            {%- endif -%}
-          {%- endfor -%}
+      {%- comment -%} ----- Right column: spotlight + missed-card stack ----- {%- endcomment -%}
+      <div class="theinmag-comps__right-col">
+        <aside class="theinmag-comps__featured" data-featured aria-label="Spotlight comp">
+          <span class="theinmag-comps__featured-label">spotlight</span>
+          <div class="theinmag-comps__featured-stack" data-featured-stack>
+            {%- for spot_id in spotlight_ids -%}
+              {%- liquid
+                assign spot_idx = -1
+                for cid in comp_ids
+                  if cid == spot_id
+                    assign spot_idx = forloop.index0
+                    break
+                  endif
+                endfor
+              -%}
+              {%- if spot_idx >= 0 -%}
+                {%- assign s_cat = comp_category_slugs[spot_idx] -%}
+                {%- assign s_url = comp_websites[spot_idx] -%}
+                {%- if s_url == blank -%}{%- assign s_url = '#' -%}{%- endif -%}
+                <a
+                  class="theinmag-comps__featured-card theinmag-comps__featured-card--{{ s_cat }}{% if forloop.first %} is-active{% endif %}"
+                  href="{{ s_url }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-spot-index="{{ forloop.index0 }}"
+                >
+                  <span class="theinmag-comps__featured-cover">
+                    <span class="theinmag-comps__featured-letter">{{ comp_letters[spot_idx] }}</span>
+                  </span>
+                  <span class="theinmag-comps__featured-body">
+                    <span class="theinmag-comps__featured-chip">{{ comp_categories[spot_idx] | downcase }}</span>
+                    <span class="theinmag-comps__featured-title">{{ comp_names[spot_idx] }}</span>
+                    <span class="theinmag-comps__featured-pitch">{{ comp_pitches[spot_idx] }}</span>
+                    <span class="theinmag-comps__featured-cta">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
+                  </span>
+                </a>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </aside>
+
+        {%- comment -%} ----- Compact missed-a-comp card under spotlight ----- {%- endcomment -%}
+        <div class="theinmag-comps__missed">
+          <p class="theinmag-comps__missed-copy">missed a comp?</p>
+          <button type="button" class="theinmag-comps__missed-btn" data-open-suggest>
+            suggest one
+          </button>
         </div>
-      </aside>
+      </div>
 
     </div>
   </div>
 
   {%- comment -%} ============================================================
-       Section 4 - Missed-a-comp suggest card
-  ============================================================ {%- endcomment -%}
-  <div class="theinmag-comps__missed">
-    <div class="theinmag-comps__missed-inner">
-      <h2 class="theinmag-comps__missed-heading">have we missed a competition?</h2>
-      <p class="theinmag-comps__missed-copy">tell us about it. we'll add it next sweep.</p>
-      <button type="button" class="theinmag-comps__missed-btn" data-open-suggest>
-        suggest a comp
-      </button>
-    </div>
-  </div>
-
-  {%- comment -%} ============================================================
-       Section 5 - Footer transition
+       Footer transition line - tiny meta below the stage
   ============================================================ {%- endcomment -%}
   <p class="theinmag-comps__updated">
     fresh comps added every fortnight. last updated {{ last_updated }}.
@@ -378,33 +401,8 @@
         <span aria-hidden="true">&times;</span>
       </button>
 
-      {%- if character_count > 0 -%}
-        {%- liquid
-          assign char_attrs = ''
-          for i in (1..3)
-            assign filename_key = 'character_' | append: i | append: '_filename'
-            assign img_key = 'character_' | append: i
-            assign alt_key = 'character_' | append: i | append: '_alt'
-            assign attr_key = 'character_' | append: i | append: '_attribution'
-            assign char_filename = section.settings[filename_key]
-            assign char_img = section.settings[img_key]
-            assign src = ''
-            if char_img != blank
-              assign src = char_img | image_url: width: 320
-            elsif char_filename != blank
-              assign src = char_filename | asset_url
-            endif
-            if src != blank
-              assign alt_val = section.settings[alt_key] | default: '' | escape
-              assign attr_val = section.settings[attr_key] | default: '' | escape
-              assign char_attrs = char_attrs | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
-              assign char_attrs = char_attrs | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
-              assign char_attrs = char_attrs | append: ' data-attribution-' | append: i | append: '="' | append: attr_val | append: '"'
-            endif
-          endfor
-        -%}
-        <div class="theinmag-comps__modal-character" data-comps-character{{ char_attrs }} aria-hidden="true"></div>
-      {%- endif -%}
+      {%- comment -%} Modal character: JS picks one random from the unified 13-pool on the section root when modal opens. {%- endcomment -%}
+      <div class="theinmag-comps__modal-character" data-comps-character aria-hidden="true"></div>
 
       <h3 id="comps-suggest-title" class="theinmag-comps__modal-heading">suggest a comp</h3>
       <p class="theinmag-comps__modal-copy">{{ section.settings.modal_copy | default: 'Adults only. Send the details and we will verify and add it next sweep.' }}</p>
@@ -469,7 +467,7 @@
   "@context": "https://schema.org",
   "@type": "ItemList",
   "name": "Australian kids' competitions 2026",
-  "description": "{{ section.settings.choice_subhead | default: 'A directory of real Aussie competitions for kids - filterable by age, state, field, cost and format.' | escape }}",
+  "description": "{{ section.settings.tagline_text | default: 'real competitions. for real aussie kids. dive in.' | escape }}",
   "numberOfItems": {{ comp_size }},
   "itemListElement": [
     {%- for id in comp_ids -%}
@@ -584,7 +582,16 @@
   }
 
   /* ================================================================
-     Section 1 - Three-button choice header
+     Choice gate - the quiz screen.
+     Fills the viewport on desktop (3 portrait tiles, character at top).
+     Mobile collapses to 3 stacked landscape tiles with the kid character
+     alternating left / right / left down the page.
+
+     State machine (driven by data-choice-state on the section root):
+       choosing -> choice gate visible, stage hidden
+       chosen   -> choice gate hidden (display: none), stage visible
+     The .is-leaving class on the gate animates the fade-out before
+     state flips to chosen.
   ================================================================ */
   .theinmag-comps__choice {
     position: relative;
@@ -593,102 +600,180 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    padding: clamp(40px, 6vw, 88px) clamp(16px, 3vw, 32px);
+    /* Fill the viewport below the header. The header is roughly 80px tall
+       site-wide; stage also sits at 100vh, so this matches and the page
+       feels intentionally one-screen. */
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(20px, 3vw, 40px) clamp(14px, 3vw, 32px);
     text-align: center;
+    transition: opacity 0.4s ease, transform 0.4s ease;
   }
-  /* Cream wash so the kid pattern reads at ~18% strength per spec */
+  /* Cream wash - softer than before so the kid pattern shows through more.
+     Ryan asked: "take away some of the transparency... we just want the
+     background to come in a little bit further." 0.82 -> 0.55. */
   .theinmag-comps__choice::before {
     content: '';
     position: absolute;
     inset: 0;
-    background-color: rgba(251, 246, 234, 0.82);
+    background-color: rgba(251, 246, 234, 0.55);
     pointer-events: none;
   }
   .theinmag-comps__choice > * { position: relative; z-index: 1; }
 
-  .theinmag-comps__choice-heading {
-    margin: 0 auto;
-    max-width: 18ch;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(34px, 5.5vw, 64px);
-    line-height: 1.05;
-    color: var(--comps-cream-dark);
+  /* Animate the gate out when a choice is made. After 350ms JS flips the
+     state attribute to "chosen" and the section sets display:none. */
+  .theinmag-comps[data-choice-state="chosen"] .theinmag-comps__choice {
+    display: none;
   }
-  .theinmag-comps__choice-subhead {
-    margin: clamp(10px, 1vw, 16px) auto 0;
-    max-width: 56ch;
-    font-size: clamp(15px, 1.4vw, 17px);
-    line-height: 1.5;
+  .theinmag-comps__choice.is-leaving {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.98);
+    pointer-events: none;
+  }
+
+  .theinmag-comps__choice-inner {
+    width: 100%;
+    max-width: 1320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(20px, 2.4vw, 36px);
+  }
+
+  /* Tagline replaces the old H1. Inter 700 (matches blog title register
+     per feedback_inter_for_blog_titles), sentence-case lowercase, periods
+     preserved as deliberate beats. */
+  .theinmag-comps__tagline {
+    margin: 0;
+    max-width: 36ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(20px, 2.4vw, 30px);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
     color: var(--comps-cream-dark);
-    opacity: 0.78;
   }
 
   .theinmag-comps__choice-grid {
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr;
     gap: clamp(14px, 1.6vw, 22px);
-    margin: clamp(28px, 3vw, 44px) auto 0;
-    max-width: 1100px;
   }
   @media (min-width: 750px) {
     .theinmag-comps__choice-grid {
       grid-template-columns: repeat(3, 1fr);
+      gap: clamp(16px, 2vw, 28px);
     }
   }
 
+  /* Tile - portrait shape on desktop, landscape on mobile.
+     Mobile: row layout, character on the side, text on the other.
+     Desktop: column layout, character on top, text below. */
   .theinmag-comps__choice-btn {
     appearance: none;
     border: 0;
     cursor: pointer;
-    padding: clamp(20px, 2.4vw, 36px) clamp(20px, 2vw, 32px);
-    border-radius: 28px;
+    border-radius: clamp(20px, 2vw, 28px);
     text-align: center;
-    min-height: 84px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
     color: var(--comps-cream-dark);
-    box-shadow: 0 4px 0 rgba(123, 79, 158, 0.28);
-    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+    box-shadow: 0 6px 0 rgba(123, 79, 158, 0.22);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease, opacity 0.4s ease;
+    /* Mobile (default): landscape row */
+    display: grid;
+    grid-template-columns: minmax(110px, 38%) 1fr;
+    align-items: center;
+    gap: clamp(8px, 2vw, 16px);
+    padding: clamp(14px, 2.4vw, 20px);
+    min-height: clamp(120px, 22vw, 160px);
   }
-  @media (min-width: 990px) {
+  @media (min-width: 750px) {
+    /* Desktop: portrait tile, character on top, stack below.
+       Calc keeps the tile generous but never crushes the tagline above
+       or the screen frame. */
     .theinmag-comps__choice-btn {
-      min-height: 140px;
-      padding: 28px 32px;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr auto;
+      gap: clamp(12px, 1.4vw, 22px);
+      padding: clamp(20px, 2.6vw, 36px) clamp(16px, 1.8vw, 28px);
+      min-height: clamp(360px, 56vh, 520px);
     }
   }
 
-  /* Sticker tilts - one per button */
+  /* Mobile L/R alternation - art on left, writing on right, everything on left */
+  @media (max-width: 749px) {
+    .theinmag-comps .theinmag-comps__choice-btn--writing {
+      grid-template-columns: 1fr minmax(110px, 38%);
+    }
+    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-character {
+      order: 2;
+    }
+    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-stack {
+      order: 1;
+    }
+  }
+
+  /* Sticker tilts - subtle, restored on hover */
   .theinmag-comps__choice-btn--art {
     background-color: var(--comps-coral-light);
-    transform: rotate(-2deg);
+    transform: rotate(-1.5deg);
   }
   .theinmag-comps__choice-btn--writing {
     background-color: var(--comps-mint-light);
-    transform: rotate(0deg);
+    transform: rotate(0.5deg);
   }
   .theinmag-comps__choice-btn--all {
     background-color: var(--comps-peach-light);
-    transform: rotate(1.5deg);
+    transform: rotate(1.2deg);
   }
 
   .theinmag-comps__choice-btn:hover,
   .theinmag-comps__choice-btn:focus-visible {
     outline: none;
-    transform: scale(1.04) rotate(0deg);
-    box-shadow: 0 6px 0 rgba(123, 79, 158, 0.32);
+    transform: scale(1.03) rotate(0deg);
+    box-shadow: 0 8px 0 rgba(123, 79, 158, 0.28);
   }
   .theinmag-comps__choice-btn:focus-visible {
-    box-shadow: 0 0 0 3px var(--comps-purple-dark), 0 6px 0 rgba(123, 79, 158, 0.32);
+    box-shadow: 0 0 0 3px var(--comps-purple-dark), 0 8px 0 rgba(123, 79, 158, 0.28);
+  }
+
+  /* The character - large, fills most of the tile.
+     Random pick from /assets/character-comp-1.png .. character-comp-13.png
+     happens in JS on page load. */
+  .theinmag-comps__choice-btn-character {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: clamp(100px, 18vw, 130px);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  @media (min-width: 750px) {
+    .theinmag-comps__choice-btn-character {
+      /* Desktop: character takes the top region of the tile, sits
+         comfortably above the heading + sub. */
+      min-height: clamp(220px, 36vh, 360px);
+      background-position: center bottom;
+    }
+  }
+
+  .theinmag-comps__choice-btn-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 clamp(4px, 1vw, 12px);
   }
 
   .theinmag-comps__choice-btn-label {
-    font-size: clamp(28px, 3.4vw, 44px);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 3.4vw, 48px);
     line-height: 1;
     letter-spacing: 0;
   }
@@ -698,14 +783,14 @@
     font-size: clamp(11px, 1vw, 13px);
     letter-spacing: 0.04em;
     text-transform: lowercase;
-    opacity: 0.68;
+    opacity: 0.7;
   }
 
   /* "Bounce off" - pressed state when a choice is made */
   .theinmag-comps__choice-btn.is-leaving {
-    transform: scale(1.18) translateY(-40px);
+    transform: scale(1.12) translateY(-36px);
     opacity: 0;
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
   }
 
   /* ================================================================
@@ -722,15 +807,23 @@
     background-repeat: no-repeat;
     padding: clamp(20px, 3vw, 32px) clamp(12px, 2vw, 24px) clamp(40px, 5vw, 64px);
   }
-  /* Cream wash on top of bg so content reads cleanly */
+  /* Cream wash on top of bg so content reads cleanly. Slightly less
+     opaque than before so the kid pattern shows through more, per Ryan's
+     "background should come in a little bit further" direction. */
   .theinmag-comps__stage::before {
     content: '';
     position: absolute;
     inset: 0;
-    background-color: rgba(251, 246, 234, 0.78);
+    background-color: rgba(251, 246, 234, 0.55);
     pointer-events: none;
   }
   .theinmag-comps__stage > * { position: relative; z-index: 1; }
+
+  /* Stage hidden until a choice is made */
+  .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__stage,
+  .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__updated {
+    display: none;
+  }
 
   @media (min-width: 990px) {
     /* Desktop: lock the stage to one screen and run the list with
@@ -886,12 +979,22 @@
     }
   }
 
-  /* Mobile order: featured first (between buttons and list), then list */
-  .theinmag-comps__featured { order: 1; }
+  /* Mobile order: right-col first (featured + missed), then list */
+  .theinmag-comps__right-col { order: 1; }
   .theinmag-comps__list-wrap { order: 2; }
   @media (min-width: 990px) {
     .theinmag-comps__list-wrap { order: 1; }
-    .theinmag-comps__featured { order: 2; }
+    .theinmag-comps__right-col { order: 2; }
+  }
+
+  /* Right column wraps the rotating spotlight + the compact
+     missed-a-comp card stacked underneath. On desktop both fit in
+     the 1/3 column inside the 100vh stage. */
+  .theinmag-comps__right-col {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 1.4vw, 18px);
+    min-height: 0;
   }
 
   /* ----- List wrapper + heading ----- */
@@ -1159,6 +1262,7 @@
     flex-direction: column;
     gap: 8px;
     min-height: 0;
+    flex: 1 1 auto;
   }
   .theinmag-comps__featured-label {
     padding-left: 4px;
@@ -1279,36 +1383,30 @@
   }
 
   /* ================================================================
-     Section 4 - Missed-a-comp card
+     Missed-a-comp card - now compact, sits inside the right column
+     under the spotlight. Total surface should fit comfortably alongside
+     the spotlight tile inside the 100vh stage on desktop.
   ================================================================ */
   .theinmag-comps__missed {
+    flex: 0 0 auto;
     background-color: var(--comps-cream);
-    padding: clamp(40px, 5vw, 72px) clamp(16px, 3vw, 32px);
+    border-radius: 16px;
+    padding: clamp(12px, 1.4vw, 18px) clamp(14px, 1.6vw, 20px);
     text-align: center;
-  }
-  .theinmag-comps__missed-inner {
-    max-width: 640px;
-    margin: 0 auto;
-    background-color: var(--comps-purple-light);
-    border-radius: 28px;
-    padding: clamp(28px, 3.6vw, 48px) clamp(20px, 3vw, 36px);
-    box-shadow: 0 8px 32px rgba(123, 79, 158, 0.18);
-  }
-  .theinmag-comps__missed-heading {
-    margin: 0 0 8px;
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: clamp(20px, 2.2vw, 26px);
-    line-height: 1.2;
-    color: var(--comps-cream-dark);
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 1.4vw, 14px);
+    flex-wrap: wrap;
   }
   .theinmag-comps__missed-copy {
-    margin: 0 auto 20px;
-    max-width: 36ch;
-    font-size: 15px;
-    line-height: 1.5;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
     color: var(--comps-cream-dark);
-    opacity: 0.78;
+    opacity: 0.85;
   }
   .theinmag-comps__missed-btn {
     appearance: none;
@@ -1316,15 +1414,16 @@
     cursor: pointer;
     background-color: var(--comps-yellow);
     color: var(--comps-cream-dark);
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-size: 16px;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    padding: 14px 32px;
-    border-radius: 32px;
-    box-shadow: 0 4px 0 #D4A02E;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    padding: 8px 18px;
+    border-radius: 24px;
+    box-shadow: 0 3px 0 #D4A02E;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
-    min-height: 48px;
+    min-height: 36px;
   }
   .theinmag-comps__missed-btn:hover,
   .theinmag-comps__missed-btn:focus-visible {
@@ -1332,7 +1431,7 @@
     background-color: var(--comps-purple-dark);
     color: #FFF;
     transform: translateY(2px);
-    box-shadow: 0 2px 0 #4A2D62;
+    box-shadow: 0 1px 0 #4A2D62;
   }
 
   /* ================================================================
@@ -1525,17 +1624,16 @@
      Mobile-specific tweaks (specificity-prefix pattern - s3.1)
   ================================================================ */
   @media (max-width: 749px) {
+    /* Choice gate - mobile uses landscape tiles stacked vertically. */
     .theinmag-comps .theinmag-comps__choice {
+      min-height: auto;
       padding: clamp(28px, 6vw, 48px) clamp(14px, 4vw, 24px);
     }
     .theinmag-comps .theinmag-comps__choice-btn {
       transform: rotate(0deg);
     }
-    .theinmag-comps .theinmag-comps__featured {
+    .theinmag-comps .theinmag-comps__featured-stack {
       min-height: 320px;
-    }
-    .theinmag-comps .theinmag-comps__missed-inner {
-      padding: clamp(24px, 5vw, 36px) clamp(16px, 4vw, 24px);
     }
     .theinmag-comps .theinmag-comps__modal-row {
       grid-template-columns: 1fr;
@@ -1614,29 +1712,70 @@
       if (el) el.addEventListener('change', applyFilters);
     });
 
-    /* Choice buttons - set the category dropdown then bounce off */
-    var choiceBtns = root.querySelectorAll('[data-choice]');
     var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ------------------------------------------------------------------
+       Character pool - reads data-character-1..N off the section root.
+       Liquid emits these from the /assets/character-comp-N.png filename
+       convention. Per Ryan's spec: totally random per visit, not
+       daily-stable, used in 3 choice tiles + the suggest-comp modal.
+       ------------------------------------------------------------------ */
+    function getCharacterPool() {
+      var pool = [];
+      // Up to 30 supported - cap protects against accidental bigger settings
+      for (var i = 1; i <= 30; i++) {
+        var url = root.dataset['character-' + i];
+        if (url) pool.push(url);
+      }
+      return pool;
+    }
+    function pickCharacter(pool) {
+      if (!pool || !pool.length) return null;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    /* Populate each choice tile with a random character on page load.
+       Each tile gets its own independent pick - characters can repeat
+       across the three tiles (Ryan said totally random). */
+    var characterPool = getCharacterPool();
+    var choiceCharacters = root.querySelectorAll('[data-choice-character]');
+    choiceCharacters.forEach(function (el) {
+      var url = pickCharacter(characterPool);
+      if (url) el.style.backgroundImage = "url('" + url + "')";
+    });
+
+    /* ------------------------------------------------------------------
+       Choice gate transition - on click:
+         1. Set the category dropdown to match the choice
+         2. Run the bounce-off animation on the picked button
+         3. After 350ms, flip data-choice-state="chosen" so the gate
+            section disappears and the stage reveals
+         4. Scroll to top of stage
+       ------------------------------------------------------------------ */
+    var choiceBtns = root.querySelectorAll('[data-choice]');
+    var choiceSection = root.querySelector('.theinmag-comps__choice');
+
+    function commitChoice(category) {
+      if (selectCategory) {
+        selectCategory.value = (category === 'art' || category === 'writing') ? category : 'all';
+        applyFilters();
+      }
+      root.dataset.choiceState = 'chosen';
+      // Scroll the page to the section top so the user lands at the
+      // tagline/filter area rather than mid-stage.
+      var top = root.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({ top: top, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    }
+
     choiceBtns.forEach(function (btn) {
       btn.addEventListener('click', function () {
         var c = btn.getAttribute('data-choice');
-        if (c === 'art') selectCategory.value = 'art';
-        else if (c === 'writing') selectCategory.value = 'writing';
-        else selectCategory.value = 'all';
-        applyFilters();
-
-        var stage = root.querySelector('.theinmag-comps__stage');
-        var doScroll = function () {
-          if (stage) stage.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
-        };
         if (prefersReducedMotion) {
-          doScroll();
+          commitChoice(c);
         } else {
           btn.classList.add('is-leaving');
-          setTimeout(function () {
-            doScroll();
-            setTimeout(function () { btn.classList.remove('is-leaving'); }, 800);
-          }, 220);
+          if (choiceSection) choiceSection.classList.add('is-leaving');
+          setTimeout(function () { commitChoice(c); }, 350);
         }
       });
     });
@@ -1700,21 +1839,9 @@
 
     function chooseCharacter() {
       if (!characterEl || characterLoaded) return;
-      var pool = [];
-      for (var i = 1; i <= 3; i++) {
-        var s = characterEl.dataset['src-' + i];
-        if (s) {
-          pool.push({
-            src: s,
-            alt: characterEl.dataset['alt-' + i] || '',
-            attribution: characterEl.dataset['attribution-' + i] || ''
-          });
-        }
-      }
-      if (!pool.length) return;
-      var chosen = pool[Math.floor(Math.random() * pool.length)];
-      characterEl.style.backgroundImage = "url('" + chosen.src + "')";
-      if (chosen.alt) characterEl.setAttribute('aria-label', chosen.alt);
+      var url = pickCharacter(characterPool);
+      if (!url) return;
+      characterEl.style.backgroundImage = "url('" + url + "')";
       characterEl.classList.add('is-ready');
       characterLoaded = true;
     }
@@ -1763,19 +1890,14 @@
   "settings": [
     {
       "type": "header",
-      "content": "Choice header"
+      "content": "Choice gate (quiz screen)"
     },
     {
       "type": "text",
-      "id": "choice_heading",
-      "label": "Heading",
-      "default": "find your next aussie kids comp"
-    },
-    {
-      "type": "text",
-      "id": "choice_subhead",
-      "label": "Subhead (optional)",
-      "default": "real comps. all aussie. filter by age, state, field. pick one and dive in."
+      "id": "tagline_text",
+      "label": "Tagline",
+      "default": "real competitions. for real aussie kids. dive in.",
+      "info": "Inter 700 lowercase tagline above the three choice tiles. Periods preserved as deliberate beats."
     },
     {
       "type": "header",
@@ -1831,24 +1953,33 @@
     },
     {
       "type": "header",
-      "content": "Modal kid characters (random of three)"
+      "content": "Kid characters (random per visit)"
     },
     {
       "type": "paragraph",
-      "content": "One of three characters is picked at random when the modal opens. Slight wobble animation. Filenames are read from /assets/."
+      "content": "Characters live in /assets/ as character-comp-1.png .. character-comp-N.png. JS picks 4 at runtime per page load (one per choice tile + one when the suggest-comp modal opens). Drop new PNGs in /assets/ and bump the count below."
     },
-    { "type": "image_picker", "id": "character_1", "label": "Character 1 image" },
-    { "type": "text", "id": "character_1_filename", "label": "Character 1 fallback filename", "default": "character-comp-1.png" },
-    { "type": "text", "id": "character_1_alt", "label": "Character 1 alt text" },
-    { "type": "text", "id": "character_1_attribution", "label": "Character 1 attribution" },
-    { "type": "image_picker", "id": "character_2", "label": "Character 2 image" },
-    { "type": "text", "id": "character_2_filename", "label": "Character 2 fallback filename", "default": "character-comp-2.png" },
-    { "type": "text", "id": "character_2_alt", "label": "Character 2 alt text" },
-    { "type": "text", "id": "character_2_attribution", "label": "Character 2 attribution" },
-    { "type": "image_picker", "id": "character_3", "label": "Character 3 image" },
-    { "type": "text", "id": "character_3_filename", "label": "Character 3 fallback filename", "default": "character-comp-3.png" },
-    { "type": "text", "id": "character_3_alt", "label": "Character 3 alt text" },
-    { "type": "text", "id": "character_3_attribution", "label": "Character 3 attribution" },
+    {
+      "type": "range",
+      "id": "character_count",
+      "label": "Character count",
+      "min": 3,
+      "max": 30,
+      "step": 1,
+      "default": 13
+    },
+    {
+      "type": "text",
+      "id": "character_prefix",
+      "label": "Filename prefix",
+      "default": "character-comp-"
+    },
+    {
+      "type": "text",
+      "id": "character_ext",
+      "label": "Filename extension",
+      "default": ".png"
+    },
     {
       "type": "header",
       "content": "Footer line"
