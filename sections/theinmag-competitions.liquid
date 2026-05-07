@@ -228,7 +228,8 @@
 
       {%- comment -%} ----- Left column: chronological list ----- {%- endcomment -%}
       <div class="theinmag-comps__list-wrap">
-        <h2 class="theinmag-comps__list-heading" id="theinmag-comps-question">{{ list_question }}</h2>
+        {%- comment -%} H2 is visually-hidden but kept for AEO ("H2 as question" rule per CLAUDE.md). {%- endcomment -%}
+        <h2 class="visually-hidden" id="theinmag-comps-question">{{ list_question }}</h2>
         <div class="theinmag-comps__list" data-comps-list tabindex="0" aria-labelledby="theinmag-comps-question">
 
           {%- comment -%} ---------- Open + soon tiles, top stack ---------- {%- endcomment -%}
@@ -329,10 +330,9 @@
         </div>
       </div>
 
-      {%- comment -%} ----- Right column: spotlight + missed-card stack ----- {%- endcomment -%}
+      {%- comment -%} ----- Right column: top-pick rotation + missed-card stack ----- {%- endcomment -%}
       <div class="theinmag-comps__right-col">
-        <aside class="theinmag-comps__featured" data-featured aria-label="Spotlight comp">
-          <span class="theinmag-comps__featured-label">spotlight</span>
+        <aside class="theinmag-comps__featured" data-featured aria-label="Top pick comp">
           <div class="theinmag-comps__featured-stack" data-featured-stack>
             {%- for spot_id in spotlight_ids -%}
               {%- liquid
@@ -356,6 +356,7 @@
                   data-spot-index="{{ forloop.index0 }}"
                 >
                   <span class="theinmag-comps__featured-cover">
+                    <span class="theinmag-comps__featured-badge">top pick</span>
                     <span class="theinmag-comps__featured-letter">{{ comp_letters[spot_idx] }}</span>
                   </span>
                   <span class="theinmag-comps__featured-body">
@@ -386,7 +387,7 @@
        Footer transition line - tiny meta below the stage
   ============================================================ {%- endcomment -%}
   <p class="theinmag-comps__updated">
-    fresh comps added every fortnight. last updated {{ last_updated }}.
+    updated monthly. last refreshed {{ last_updated }}.
   </p>
 
   {%- comment -%} ============================================================
@@ -1264,13 +1265,6 @@
     min-height: 0;
     flex: 1 1 auto;
   }
-  .theinmag-comps__featured-label {
-    padding-left: 4px;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-size: clamp(20px, 2vw, 28px);
-    line-height: 1;
-    color: var(--comps-purple-dark);
-  }
   .theinmag-comps__featured-stack {
     position: relative;
     flex: 1 1 auto;
@@ -1329,6 +1323,32 @@
     line-height: 1;
     color: var(--comps-purple-dark);
   }
+
+  /* "top pick" badge - small editorial sticker top-left of the cover.
+     Cream pill with dark border, slight tilt. Deliberately understated:
+     Ryan + Tam want to highlight the spotlight without it reading as
+     sponsored / endorsed / paid placement. */
+  .theinmag-comps__featured-badge {
+    position: absolute;
+    top: clamp(10px, 1.4vw, 14px);
+    left: clamp(10px, 1.4vw, 14px);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    background-color: var(--comps-cream);
+    color: var(--comps-cream-dark);
+    border: 1.5px solid var(--comps-cream-dark);
+    border-radius: 20px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    transform: rotate(-2deg);
+    box-shadow: 0 2px 0 rgba(42, 31, 61, 0.85);
+  }
   .theinmag-comps__featured-card--art .theinmag-comps__featured-letter { color: var(--comps-coral-dark); }
   .theinmag-comps__featured-card--writing .theinmag-comps__featured-letter { color: var(--comps-mint-dark); }
   .theinmag-comps__featured-card--photofilm .theinmag-comps__featured-letter { color: var(--comps-sky-dark); }
@@ -1383,17 +1403,19 @@
   }
 
   /* ================================================================
-     Missed-a-comp card - now compact, sits inside the right column
-     under the spotlight. Total surface should fit comfortably alongside
-     the spotlight tile inside the 100vh stage on desktop.
+     Missed-a-comp card - sits inside the right column under the
+     top-pick rotation. Sharp corners + offset purple shadow give it a
+     stamp / sticky-note feel that distinguishes it from the rounded
+     tile language elsewhere on the page.
   ================================================================ */
   .theinmag-comps__missed {
     flex: 0 0 auto;
     background-color: var(--comps-cream);
-    border-radius: 16px;
+    border-radius: 0;
     padding: clamp(12px, 1.4vw, 18px) clamp(14px, 1.6vw, 20px);
     text-align: center;
-    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.10);
+    box-shadow: 5px 5px 0 var(--comps-purple-dark);
+    border: 1.5px solid var(--comps-cream-dark);
     display: flex;
     align-items: center;
     justify-content: center;
