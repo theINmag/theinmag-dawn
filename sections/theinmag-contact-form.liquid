@@ -1,0 +1,664 @@
+{%- comment -%}
+  theinmag-contact-form
+  Section 2 of /pages/contact. Two-column on desktop:
+    Left  (~55%) - H2 + paragraph + Shopify-native contact form
+    Right (~45%) - van photo + caption
+  Mobile stacks form first, image below.
+
+  Form uses Shopify {% form 'contact' %} so submissions route to the
+  store's notification email (heyhey@theinmag.com.au, set in admin
+  Settings -> Notifications).
+
+  Three fields only: name, email, message. No phone. No surname.
+  Honeypot bot trap is a hidden field; JS blocks submission if filled.
+
+  States:
+    - Default:                        form visible
+    - form.posted_successfully?:      form REPLACED with thank-you block
+    - form.errors:                    error messages above the form,
+                                      form values preserved (Shopify
+                                      auto-preserves form.name,
+                                      form.email, form.body)
+
+  Van image: section setting takes precedence; if blank, fall back to
+  filename theinmag-van-contact.jpg (Ryan drops the file in /assets/).
+  If neither resolves to a real asset the <img> onerror swaps in a
+  styled placeholder so the page never shows a broken image.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign intro = section.settings.intro_html
+  assign submit_label = section.settings.submit_label
+  assign image = section.settings.image
+  assign image_filename = section.settings.image_filename | strip
+  assign image_alt = section.settings.image_alt
+  assign image_caption = section.settings.image_caption
+
+  assign success_heading = section.settings.success_heading
+  assign success_body = section.settings.success_body
+  assign success_cta_label = section.settings.success_cta_label
+  assign success_cta_url = section.settings.success_cta_url
+  assign success_secondary_label = section.settings.success_secondary_label
+
+  assign section_style = '--ctf-pt: ' | append: section.settings.padding_top | append: 'px; --ctf-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-contact-form"
+  data-theinmag-contact-form
+  aria-labelledby="theinmag-contact-form-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-contact-form__inner">
+
+    <div class="theinmag-contact-form__col theinmag-contact-form__col--form">
+      {%- form 'contact', id: 'theinmag-contact-form-element', class: 'theinmag-contact-form__form' -%}
+        {%- if form.posted_successfully? -%}
+          {%- comment -%} Thank-you block - replaces the form in the same column {%- endcomment -%}
+          <div class="theinmag-contact-form__thanks" tabindex="-1" autofocus>
+            <div class="theinmag-contact-form__thanks-icon" aria-hidden="true">
+              <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                <circle cx="32" cy="32" r="32" fill="#F9C23C"/>
+                <path d="M19 33.5 L28 42 L46 23" fill="none" stroke="#2A1F3D" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            {%- if success_heading != blank -%}
+              <h2 class="theinmag-contact-form__thanks-heading">{{ success_heading }}</h2>
+            {%- endif -%}
+            {%- if success_body != blank -%}
+              <p class="theinmag-contact-form__thanks-body">{{ success_body }}</p>
+            {%- endif -%}
+            {%- if success_cta_label != blank and success_cta_url != blank -%}
+              <a class="theinmag-btn theinmag-btn--primary theinmag-contact-form__thanks-cta" href="{{ success_cta_url }}">{{ success_cta_label }}</a>
+            {%- endif -%}
+            {%- if success_secondary_label != blank -%}
+              <a class="theinmag-contact-form__thanks-back" href="{{ page.url | default: '/pages/contact' }}">{{ success_secondary_label }}</a>
+            {%- endif -%}
+          </div>
+        {%- else -%}
+          <header class="theinmag-contact-form__header">
+            {%- if heading != blank -%}
+              <h2 id="theinmag-contact-form-heading" class="theinmag-contact-form__heading">{{ heading }}</h2>
+            {%- endif -%}
+            {%- if intro != blank -%}
+              <div class="theinmag-contact-form__intro">{{ intro }}</div>
+            {%- endif -%}
+          </header>
+
+          {%- if form.errors -%}
+            <div class="theinmag-contact-form__errors" role="alert" tabindex="-1" autofocus>
+              <p class="theinmag-contact-form__errors-heading">We couldn't send your message just yet:</p>
+              <ul class="theinmag-contact-form__errors-list">
+                {%- for field in form.errors -%}
+                  <li>
+                    {%- assign translated = form.errors.translated_fields[field] | default: field -%}
+                    {{ translated | capitalize }} {{ form.errors.messages[field] }}
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+
+          <div class="theinmag-contact-form__field">
+            <label class="theinmag-contact-form__label" for="theinmag-contact-form-name">First name <span class="theinmag-contact-form__required" aria-hidden="true">*</span></label>
+            <input
+              class="theinmag-contact-form__input"
+              type="text"
+              id="theinmag-contact-form-name"
+              name="contact[name]"
+              autocomplete="given-name"
+              required
+              value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.first_name }}{% endif %}"
+            >
+          </div>
+
+          <div class="theinmag-contact-form__field">
+            <label class="theinmag-contact-form__label" for="theinmag-contact-form-email">Email <span class="theinmag-contact-form__required" aria-hidden="true">*</span></label>
+            <input
+              class="theinmag-contact-form__input"
+              type="email"
+              id="theinmag-contact-form-email"
+              name="contact[email]"
+              autocomplete="email"
+              spellcheck="false"
+              autocapitalize="off"
+              required
+              aria-required="true"
+              {% if form.errors contains 'email' %}aria-invalid="true"{% endif %}
+              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+            >
+          </div>
+
+          <div class="theinmag-contact-form__field">
+            <label class="theinmag-contact-form__label" for="theinmag-contact-form-body">Message <span class="theinmag-contact-form__required" aria-hidden="true">*</span></label>
+            <textarea
+              class="theinmag-contact-form__input theinmag-contact-form__textarea"
+              id="theinmag-contact-form-body"
+              name="contact[body]"
+              rows="5"
+              required
+            >{{ form.body }}</textarea>
+          </div>
+
+          {%- comment -%}
+            Honeypot. Visually-hidden + autocomplete="off" + tabindex=-1
+            so humans never reach it; bots auto-fill, JS blocks submit.
+            Field name is generic so the email line reads naturally if
+            anything ever does sneak through.
+          {%- endcomment -%}
+          <div class="theinmag-contact-form__honeypot" aria-hidden="true">
+            <label for="theinmag-contact-form-website">Leave this field empty</label>
+            <input type="text" id="theinmag-contact-form-website" name="contact[website]" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="theinmag-contact-form__submit-row">
+            <button type="submit" class="theinmag-btn theinmag-btn--primary theinmag-contact-form__submit">{{ submit_label | default: 'Send it' }}</button>
+          </div>
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+
+    <div class="theinmag-contact-form__col theinmag-contact-form__col--image">
+      <figure class="theinmag-contact-form__figure">
+        {%- if image != blank -%}
+          {{ image | image_url: width: 1200 | image_tag:
+            loading: 'lazy',
+            widths: '400, 600, 800, 1000, 1200',
+            sizes: '(min-width: 990px) 45vw, 90vw',
+            class: 'theinmag-contact-form__image',
+            alt: image_alt
+          }}
+        {%- elsif image_filename != blank -%}
+          <img
+            class="theinmag-contact-form__image"
+            src="{{ image_filename | asset_url }}"
+            alt="{{ image_alt | escape }}"
+            loading="lazy"
+            onerror="this.style.display='none';var p=this.parentElement.querySelector('.theinmag-contact-form__image-placeholder');if(p)p.style.display='flex';"
+          >
+          <div class="theinmag-contact-form__image-placeholder" role="img" aria-label="{{ image_alt | escape }}">
+            <span class="theinmag-contact-form__image-placeholder-eyebrow">theINmag HQ</span>
+            <span class="theinmag-contact-form__image-placeholder-body">Van photo coming soon.</span>
+          </div>
+        {%- else -%}
+          <div class="theinmag-contact-form__image-placeholder theinmag-contact-form__image-placeholder--shown" role="img" aria-label="theINmag van placeholder">
+            <span class="theinmag-contact-form__image-placeholder-eyebrow">theINmag HQ</span>
+            <span class="theinmag-contact-form__image-placeholder-body">Van photo coming soon.</span>
+          </div>
+        {%- endif -%}
+        {%- if image_caption != blank -%}
+          <figcaption class="theinmag-contact-form__caption">{{ image_caption }}</figcaption>
+        {%- endif -%}
+      </figure>
+    </div>
+
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-contact-form
+     Cream pair surface (workhorse). Two-column from 990px, single
+     column on mobile with form first, image below.
+     ================================================================ */
+
+  .theinmag-contact-form {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--ctf-pt, 56px) clamp(16px, 4vw, 32px) var(--ctf-pb, 56px);
+    position: relative;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-contact-form {
+      padding-top: calc(var(--ctf-pt, 56px) * 1.2);
+      padding-bottom: calc(var(--ctf-pb, 56px) * 1.2);
+    }
+  }
+
+  .theinmag-contact-form__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(28px, 4vw, 40px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-contact-form__inner {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: clamp(32px, 4vw, 56px);
+    }
+
+    .theinmag-contact-form .theinmag-contact-form__col--form { flex: 0 0 55%; min-width: 0; }
+    .theinmag-contact-form .theinmag-contact-form__col--image { flex: 0 0 45%; min-width: 0; }
+  }
+
+  /* ----- Form column ---------------------------------------------- */
+
+  .theinmag-contact-form__form {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+
+  .theinmag-contact-form__header {
+    margin-bottom: clamp(4px, 0.6vw, 8px);
+  }
+
+  .theinmag-contact-form__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0 0 clamp(10px, 1.2vw, 14px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-contact-form__intro {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(16px, 1.4vw, 17px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.92;
+  }
+
+  .theinmag-contact-form__intro p { margin: 0; }
+
+  .theinmag-contact-form__intro a {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color var(--transition-standard, 0.15s ease), text-decoration-thickness var(--transition-standard, 0.15s ease);
+  }
+
+  .theinmag-contact-form__intro a:hover,
+  .theinmag-contact-form__intro a:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration-thickness: 2px;
+    outline: none;
+  }
+
+  /* Errors panel */
+  .theinmag-contact-form__errors {
+    background-color: #FBE0D6;
+    color: #8B2D1A;
+    border-radius: var(--radius-md, 12px);
+    padding: clamp(12px, 1.6vw, 16px) clamp(14px, 1.8vw, 18px);
+    border-left: 4px solid var(--color-coral-dark, #C9543E);
+  }
+
+  .theinmag-contact-form__errors-heading {
+    margin: 0 0 6px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .theinmag-contact-form__errors-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Field row */
+  .theinmag-contact-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .theinmag-contact-form__label {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-contact-form__required {
+    color: var(--color-coral-dark, #C9543E);
+    margin-left: 2px;
+  }
+
+  .theinmag-contact-form__input {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    background-color: #FFFFFF;
+    border: 1.5px solid rgba(42, 31, 61, 0.15);
+    border-radius: var(--radius-md, 12px);
+    padding: 12px 14px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color var(--transition-standard, 0.15s ease), box-shadow var(--transition-standard, 0.15s ease);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .theinmag-contact-form__input:focus,
+  .theinmag-contact-form__input:focus-visible {
+    border-color: var(--color-purple-dark, #5D3A7A);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(93, 58, 122, 0.15);
+  }
+
+  .theinmag-contact-form__input[aria-invalid="true"] {
+    border-color: var(--color-coral-dark, #C9543E);
+  }
+
+  .theinmag-contact-form__textarea {
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.55;
+  }
+
+  /* Honeypot - off-screen, untabbable, screen-reader-skippable */
+  .theinmag-contact-form__honeypot {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .theinmag-contact-form__submit-row {
+    margin-top: clamp(6px, 0.8vw, 10px);
+  }
+
+  /* Specificity prefix on the submit so it overrides the base button's
+     min-height/padding only inside this form context. (Pattern library
+     §3.1 - prefix mobile/special rules with the section root class.) */
+  .theinmag-contact-form .theinmag-contact-form__submit {
+    min-width: 160px;
+  }
+
+  /* Thank-you block - same column position, same width as the form */
+  .theinmag-contact-form__thanks {
+    background-color: #FFFFFF;
+    border-radius: var(--radius-xl, 28px);
+    padding: clamp(28px, 4vw, 40px) clamp(20px, 3vw, 32px);
+    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+
+  .theinmag-contact-form__thanks-icon {
+    width: clamp(72px, 9vw, 88px);
+    height: clamp(72px, 9vw, 88px);
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .theinmag-contact-form__thanks-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* Sticker drop shadow matches the yellow primary CTA - keeps the
+       success moment in the same visual family. */
+    filter: drop-shadow(0 4px 0 var(--color-yellow-shadow, #D4A02E));
+  }
+
+  .theinmag-contact-form__thanks-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.2vw, 40px);
+    line-height: 1.1;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-contact-form__thanks-body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(16px, 1.4vw, 17px);
+    line-height: 1.6;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    max-width: 44ch;
+  }
+
+  .theinmag-contact-form__thanks-cta {
+    margin-top: clamp(2px, 0.4vw, 6px);
+  }
+
+  .theinmag-contact-form__thanks-back {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: var(--color-link, #2D6878);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color var(--transition-standard, 0.15s ease), text-decoration-thickness var(--transition-standard, 0.15s ease);
+  }
+
+  .theinmag-contact-form__thanks-back:hover,
+  .theinmag-contact-form__thanks-back:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration-thickness: 2px;
+    outline: none;
+  }
+
+  /* ----- Image column --------------------------------------------- */
+
+  .theinmag-contact-form__figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.2vw, 14px);
+  }
+
+  .theinmag-contact-form__image {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radius-lg, 20px);
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
+  }
+
+  /* Placeholder shown when image_picker empty AND no asset filename
+     resolves. Bumped specificity with the section class to dodge
+     Dawn's div:empty rule (pattern library §4.8). */
+  .theinmag-contact-form .theinmag-contact-form__image-placeholder {
+    display: none;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-lg, 20px);
+    background-color: var(--color-lavender, #E8DEEF);
+    color: var(--color-purple-dark, #5D3A7A);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+    padding: clamp(16px, 2vw, 24px);
+    box-sizing: border-box;
+    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
+  }
+
+  .theinmag-contact-form .theinmag-contact-form__image-placeholder--shown {
+    display: flex;
+  }
+
+  .theinmag-contact-form__image-placeholder-eyebrow {
+    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(20px, 2.4vw, 26px);
+    line-height: 1;
+    color: var(--color-yellow, #F9C23C);
+    text-shadow: 0 1px 0 rgba(42, 31, 61, 0.06);
+  }
+
+  .theinmag-contact-form__image-placeholder-body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.3vw, 17px);
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-contact-form__caption {
+    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.3;
+    color: var(--color-purple-dark, #5D3A7A);
+    text-align: center;
+    margin: 0;
+    max-width: 36ch;
+    align-self: center;
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var form = document.getElementById('theinmag-contact-form-element');
+    if (!form) return;
+
+    form.addEventListener('submit', function (evt) {
+      var honeypot = form.querySelector('input[name="contact[website]"]');
+      if (honeypot && honeypot.value) {
+        /* Bot filled the trap. Block submission, fail silently so the
+           bot's "did this work?" probe gets no useful signal. */
+        evt.preventDefault();
+        return false;
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag Contact form",
+  "tag": "section",
+  "class": "theinmag-contact-form-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Form copy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Send us a message"
+    },
+    {
+      "type": "richtext",
+      "id": "intro_html",
+      "label": "Intro paragraph",
+      "default": "<p>Got a quick question? Drop us a line below. Or email us directly at <a href='mailto:heyhey@theinmag.com.au'>heyhey@theinmag.com.au</a> - that lands straight in our inbox.</p>"
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Submit button label",
+      "default": "Send it"
+    },
+    {
+      "type": "header",
+      "content": "Image (right column)"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "Preferred path - upload via the editor. If left blank, the section falls back to the filename below."
+    },
+    {
+      "type": "text",
+      "id": "image_filename",
+      "label": "Image filename fallback",
+      "default": "theinmag-van-contact.jpg",
+      "info": "Filename inside theme assets/. Used only when the picker above is empty."
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text",
+      "default": "Ryan and Tam's self-converted van - theINmag HQ on the road."
+    },
+    {
+      "type": "text",
+      "id": "image_caption",
+      "label": "Caption below image",
+      "default": "That's us. theINmag HQ is wherever the van's parked this week."
+    },
+    {
+      "type": "header",
+      "content": "Thank-you block (after a successful submission)"
+    },
+    {
+      "type": "text",
+      "id": "success_heading",
+      "label": "Heading",
+      "default": "Got it!"
+    },
+    {
+      "type": "textarea",
+      "id": "success_body",
+      "label": "Body",
+      "default": "Thanks for reaching out. We read every message and we'll get back to you within 2 business days. In the meantime, have a flick through the latest from theINside."
+    },
+    {
+      "type": "text",
+      "id": "success_cta_label",
+      "label": "Primary CTA label",
+      "default": "Read theINside"
+    },
+    {
+      "type": "text",
+      "id": "success_cta_url",
+      "label": "Primary CTA URL",
+      "default": "/blogs/field-notes",
+      "info": "theINside was renamed to field-notes 2026-05-06. The button still says 'Read theINside' per the contact brief, but the URL points at the live blog."
+    },
+    {
+      "type": "text",
+      "id": "success_secondary_label",
+      "label": "Secondary link label",
+      "default": "← Send another message"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Contact form"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,293 @@
+{%- comment -%}
+  theinmag-contact-router
+  Section 3 of /pages/contact. Soft router - three small linked tiles
+  for specialist enquiries (schools / stockists / partnerships). Quiet
+  helper, NOT a hero band - light bg, modest type, chevron arrow on
+  hover.
+
+  TODO: /pages/schools, /pages/stockists, /pages/partnerships do not
+  exist yet (May 2026). Tiles link through anyway - they're on the
+  build list. Update this comment when those pages land.
+
+  Three tiles are exposed as schema settings (label + url) so admin
+  can re-target later without a code change.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+
+  assign t1_label = section.settings.t1_label
+  assign t1_url = section.settings.t1_url
+  assign t2_label = section.settings.t2_label
+  assign t2_url = section.settings.t2_url
+  assign t3_label = section.settings.t3_label
+  assign t3_url = section.settings.t3_url
+
+  assign section_style = '--ctr-pt: ' | append: section.settings.padding_top | append: 'px; --ctr-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-contact-router"
+  data-theinmag-contact-router
+  aria-labelledby="theinmag-contact-router-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-contact-router__inner">
+    {%- if heading != blank -%}
+      <h2 id="theinmag-contact-router-heading" class="theinmag-contact-router__heading">{{ heading }}</h2>
+    {%- endif -%}
+
+    <ul class="theinmag-contact-router__tiles" role="list">
+      {%- if t1_label != blank and t1_url != blank -%}
+        <li>
+          <a class="theinmag-contact-router__tile" href="{{ t1_url }}">
+            <span class="theinmag-contact-router__tile-label">{{ t1_label }}</span>
+            <span class="theinmag-contact-router__tile-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      {%- endif -%}
+      {%- if t2_label != blank and t2_url != blank -%}
+        <li>
+          <a class="theinmag-contact-router__tile" href="{{ t2_url }}">
+            <span class="theinmag-contact-router__tile-label">{{ t2_label }}</span>
+            <span class="theinmag-contact-router__tile-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      {%- endif -%}
+      {%- if t3_label != blank and t3_url != blank -%}
+        <li>
+          <a class="theinmag-contact-router__tile" href="{{ t3_url }}">
+            <span class="theinmag-contact-router__tile-label">{{ t3_label }}</span>
+            <span class="theinmag-contact-router__tile-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      {%- endif -%}
+    </ul>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-contact-router
+     Soft helper band, NOT a hero. Off-white surface so the form above
+     and the social section below have visual separation without yet
+     another colour pair on the page.
+     ================================================================ */
+
+  .theinmag-contact-router {
+    background-color: #FDFAF5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--ctr-pt, 48px) clamp(16px, 4vw, 32px) var(--ctr-pb, 48px);
+    position: relative;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-contact-router {
+      padding-top: calc(var(--ctr-pt, 48px) * 1.2);
+      padding-bottom: calc(var(--ctr-pb, 48px) * 1.2);
+    }
+  }
+
+  .theinmag-contact-router__inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .theinmag-contact-router__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(22px, 3.2vw, 30px);
+    line-height: 1.15;
+    letter-spacing: 0;
+    margin: 0 0 clamp(18px, 2.4vw, 28px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-contact-router__tiles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.4vw, 14px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-contact-router__tiles {
+      flex-direction: row;
+      justify-content: center;
+      align-items: stretch;
+      gap: clamp(14px, 1.8vw, 20px);
+    }
+    .theinmag-contact-router__tiles > li {
+      flex: 1 1 0;
+      max-width: 320px;
+      display: flex;
+    }
+  }
+
+  .theinmag-contact-router__tile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    background-color: #FFFFFF;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    border: 1.5px solid rgba(42, 31, 61, 0.08);
+    border-radius: var(--radius-lg, 20px);
+    padding: clamp(14px, 1.8vw, 18px) clamp(16px, 2.2vw, 22px);
+    text-decoration: none;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.4;
+    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
+    transition: transform var(--transition-hover, 0.2s ease),
+                box-shadow var(--transition-hover, 0.2s ease),
+                border-color var(--transition-hover, 0.2s ease),
+                color var(--transition-hover, 0.2s ease);
+    min-height: 56px;
+    box-sizing: border-box;
+    text-align: left;
+  }
+
+  .theinmag-contact-router__tile-label {
+    flex: 1;
+  }
+
+  .theinmag-contact-router__tile-arrow {
+    flex-shrink: 0;
+    color: var(--color-purple-dark, #5D3A7A);
+    font-size: clamp(18px, 1.6vw, 20px);
+    line-height: 1;
+    transition: transform var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-contact-router__tile:hover,
+  .theinmag-contact-router__tile:focus-visible {
+    border-color: var(--color-purple-dark, #5D3A7A);
+    color: var(--color-purple-dark, #5D3A7A);
+    box-shadow: var(--shadow-card-hover, 0 4px 20px rgba(123, 79, 158, 0.15));
+    outline: none;
+    transform: translateY(-2px);
+  }
+
+  .theinmag-contact-router__tile:hover .theinmag-contact-router__tile-arrow,
+  .theinmag-contact-router__tile:focus-visible .theinmag-contact-router__tile-arrow {
+    transform: translateX(4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-contact-router__tile,
+    .theinmag-contact-router__tile-arrow {
+      transition: none;
+    }
+    .theinmag-contact-router__tile:hover,
+    .theinmag-contact-router__tile:focus-visible {
+      transform: none;
+    }
+    .theinmag-contact-router__tile:hover .theinmag-contact-router__tile-arrow,
+    .theinmag-contact-router__tile:focus-visible .theinmag-contact-router__tile-arrow {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag Contact router",
+  "tag": "section",
+  "class": "theinmag-contact-router-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Looking for something specific?"
+    },
+    {
+      "type": "header",
+      "content": "Tile 1"
+    },
+    {
+      "type": "text",
+      "id": "t1_label",
+      "label": "Label",
+      "default": "Ordering for your school?"
+    },
+    {
+      "type": "text",
+      "id": "t1_url",
+      "label": "URL",
+      "default": "/pages/schools"
+    },
+    {
+      "type": "header",
+      "content": "Tile 2"
+    },
+    {
+      "type": "text",
+      "id": "t2_label",
+      "label": "Label",
+      "default": "Want to stock theINmag?"
+    },
+    {
+      "type": "text",
+      "id": "t2_url",
+      "label": "URL",
+      "default": "/pages/stockists"
+    },
+    {
+      "type": "header",
+      "content": "Tile 3"
+    },
+    {
+      "type": "text",
+      "id": "t3_label",
+      "label": "Label",
+      "default": "Brand or organisation partnership?"
+    },
+    {
+      "type": "text",
+      "id": "t3_url",
+      "label": "URL",
+      "default": "/pages/partnerships"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Contact router"
+    }
+  ]
+}
+{% endschema %}
