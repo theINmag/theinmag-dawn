@@ -1933,10 +1933,14 @@
         applyFilters();
       }
       root.dataset.choiceState = 'chosen';
-      // Scroll the page to the section top so the user lands at the
-      // tagline/filter area rather than mid-stage.
-      var top = root.getBoundingClientRect().top + window.pageYOffset;
-      window.scrollTo({ top: top, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+      // Scroll the page so the stage's filter bar lands JUST BELOW the
+      // sticky site header. Without the headerH subtraction the filter
+      // row sits behind the header and the user can't see it without
+      // scrolling up - Ryan caught this in review.
+      var headerEl = document.querySelector('.theinmag-header-section');
+      var headerH = headerEl ? headerEl.offsetHeight : 0;
+      var top = root.getBoundingClientRect().top + window.pageYOffset - headerH;
+      window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion ? 'auto' : 'smooth' });
     }
 
     choiceBtns.forEach(function (btn) {
