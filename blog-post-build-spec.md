@@ -9,10 +9,29 @@ This is the build brief for theINmag's standard blog-post layout. Every field-no
 - `homepage-build-spec.md` (for sibling pattern reference)
 - Memory files (auto-loaded): `feedback_inter_for_blog_titles`, `reference_kid_character_pattern`, `feedback_kid_characters`, `feedback_premium_photo_text`, `project_field_notes_rename`
 
-**Where it lives:**
-- New section: `sections/theinmag-article.liquid` (replaces use of `main-article.liquid`)
-- Wired up via `templates/article.json` (currently uses Dawn's default)
-- Renders at `/blogs/theinside/<post-slug>` for now (handle becomes `field-notes` later, see memory)
+**Where it lives (as built, May 2026):**
+- Section: `sections/theinmag-article.liquid` (custom; ~1500 lines, two-column sticky hero, byline, schema, recommendations all baked in).
+- Wired via **`templates/article.field-notes.json`** (named template variant). Pick this from the post's Theme template dropdown in admin to render the field notes layout.
+- The stock `templates/article.json` is reverted to Dawn's `main-article` shape and is the generic default for any non-field-notes article.
+- Renders at `/blogs/field-notes/<post-slug>`.
+
+**Per-post metafields (namespace `field_notes`):**
+
+| Key | Type | Purpose |
+|---|---|---|
+| `quick_answer` | multi-line text | REQUIRED. 40-60 word AEO snippet rendered in the white "Quick read" card at the top of the body, also fed to JSON-LD `description`. |
+| `primary_topic` | single line | Topic chip (e.g. "Creativity"). Drives recommendation fallback ordering. |
+| `author_type` | single line: `ryan` \| `tam` \| `kid` | Switches the byline + avatar + bio + schema Person to the matching set of section settings. Defaults to `ryan` when blank. |
+| `author_role_override` | single line | Optional. Overrides the section-setting role for one-off posts. |
+| `kid_first_name` / `kid_age` / `kid_region` | text / int / text | Required when `author_type=kid`. Build the kid byline + the bare-string Article schema author. |
+| `recommendation_1_handle` / `_2_` / `_3_` | single line (post handle, no slash) | Curated picks for the "more for you" rec strip. Falls back to topic-match → recent → 4 placeholder cards. |
+| `recommendation_1_blurb` / `_2_` / `_3_` | single line | Italic connective text under the curated card title. |
+| `faq_items` | JSON | Array of `{ "question": "...", "answer": "..." }`. Renders the in-post FAQ block AND the FAQPage JSON-LD (one of the highest-cited surfaces for AI engines). |
+| `closing_cta_label` | single line | Yellow button label below the closing line. Optional. |
+| `closing_cta_url` | URL | Yellow button destination. Optional. |
+| `cover_image_alt` | single line | Cover image alt text including the kid attribution where applicable. |
+| `cover_image_caption` | single line | Visible caption rendered under the cover image. |
+| `inline_cta_items` | JSON | Defined for future flexibility. **Not rendered.** See "Inline CTA policy" below. |
 
 ---
 
@@ -76,7 +95,7 @@ Why: answers "who's talking?" before the reader commits. Strong E-E-A-T signal (
 **BOTTOM** (richer "About the author" card, sits between article end and recommendations):
 - bigger avatar (~88px)
 - one-sentence bio
-- link to author archive (`/blogs/theinside/tagged/ryan` or similar - decide handle in build)
+- link to author archive (currently driven by section setting `ryan_archive_url` / `tam_archive_url` - point at `/pages/ryan` or `/blogs/field-notes/tagged/ryan` once those are decided)
 - for kids: just first name + age + region + character illustration; no link to "more from this kid" because we don't surface kid history
 
 Why: gives reader a destination after they finish ("more from this person"), and keeps the top byline lightweight. Two scales of attribution = covered both reader needs.
@@ -98,7 +117,7 @@ Why: gives reader a destination after they finish ("more from this person"), and
 - Published date (visible AND in `datePublished` schema)
 - Updated date if `article.updated_at` differs meaningfully (in `dateModified` schema)
 - Read time (compute from word count, ~225 wpm)
-- Topic / primary tag (already wired through `article.metafields.theinside.primary_topic`)
+- Topic / primary tag (already wired through `article.metafields.field_notes.primary_topic`)
 - Audience tag (kids / adults / all) for the field-notes filter system
 
 ---
@@ -113,17 +132,34 @@ Why: gives reader a destination after they finish ("more from this person"), and
 
 ---
 
+## Inline CTA policy (locked)
+
+**Inline CTAs are OFF on Field Notes posts. Full stop.** No mid-blog product prompts, no "send IN your creation" interruptions between paragraphs, no upsells inside the body. Header and footer carry the conversion weight on this surface.
+
+The `inline_cta_items` metafield is defined for future flexibility, but the article template ignores it. The brand position: inline advertising inside editorial reads cheap and breaks the magazine register. If a single post genuinely needs a product nudge, use the **closing CTA** (yellow button below the article body, driven by `closing_cta_label` + `closing_cta_url`) - that surface is editorially pre-positioned as the post's natural ending.
+
+---
+
 ## SEO / AEO requirements
 
 Per CLAUDE.md, all theINmag pages need:
 
-- **Article JSON-LD schema** with: headline, image (full URL), datePublished, dateModified, author (Person for Ryan/Tam with `sameAs` socials, name string for kids), publisher (Organisation theINmag), description (article excerpt or first paragraph).
+- **Article JSON-LD schema** with: headline, image (full URL), datePublished, dateModified, author (Person for Ryan/Tam with **legal name** `Ryan Gow` / `Tam Gow` and `@id` anchored to `/our-story#ryan` / `#tam` for entity consolidation; bare-string author for kids), publisher (Organisation theINmag), description (pulled from the `quick_answer` metafield first, falling back to article excerpt).
+- **FAQPage JSON-LD** when `faq_items` is populated. Built from the metafield's array of `{question, answer}` objects. One of the highest-cited AEO surfaces.
 - **BreadcrumbList JSON-LD**: Home > Field notes > [Article title].
 - **H2s as questions** where natural.
-- **Visible byline** matching schema author (already covered by top + bottom blocks).
+- **Visible byline** uses the editorial form (`Ryan G.` / `Tam B.`); JSON-LD `author.name` uses the legal form. Two different fields doing two different jobs.
 - llms.txt + robots.txt allowing AI crawlers - already done at site level.
-- Meta description = article excerpt (Shopify auto-handles unless overridden).
 - og:image = the canonical cover image at correct dimensions.
+
+**Meta description vs schema description (don't conflate them):**
+- **Shopify-native meta description** lives on the Article resource in admin (Online Store → Blog Posts → [post] → Search engine listing preview → Description). This is the SEO surface. It controls the SERP snippet on Google, Bing, etc.
+- **Article JSON-LD `description`** is a separate field, populated from the `quick_answer` metafield. It's what AI engines extract for synthesis answers.
+- These two fields are intentionally different. Treat them as two distinct copy assignments per post.
+
+### SEO writing-session rule (per post)
+
+Every post gets two meta description options drafted at publish time. 150-160 chars each, both magazine-voice, both anchored to the post's primary keyword. Ryan picks one and pastes it into Shopify admin. Don't reuse the `quick_answer` verbatim - the meta description has a different job (drive the click from SERP), the `quick_answer` does the synthesis-answer job once the user is on the page or the AI engine is harvesting.
 
 ---
 
@@ -145,7 +181,7 @@ Per CLAUDE.md, all theINmag pages need:
 3. Read the existing `theinmag-blog-index-editorial.liquid` and `theinmag-blog-index-archive.liquid` for type/colour conventions to match.
 4. **Confirm with Ryan** before writing any code:
    - Sticky-left column vs scroll-pinned via JS (sticky is simpler; pinned via JS is smoother but heavier)
-   - Whether the bottom "About the author" card should link to `/blogs/theinside/tagged/ryan` (Shopify tag pages) or a custom `/pages/ryan` author page (decide based on whether tag pages render decently in Dawn)
+   - Whether the bottom "About the author" card should link to `/blogs/field-notes/tagged/ryan` (Shopify tag pages) or a custom `/pages/ryan` author page (decide based on whether tag pages render decently in Dawn)
    - Top byline + topic + read time stacking - one row or two?
 5. Plan in checklist form, then build the section, then wire it into `templates/article.json`.
 
