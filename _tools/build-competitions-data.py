@@ -204,8 +204,16 @@ def main():
         tags.append(CATEGORY_MAP.get(r.get("Category", ""), "art"))
         return " ".join(tags)
 
-    # Spotlight pool: hot leads marked with the green dot (🟢) signal
-    spotlight_ids = [r["ID"] for r in rows if "🟢" in (r.get("Cross-promo signal") or "")]
+    # Spotlight pool: locked to a 3-card editor-curated rotation per Ryan's
+    # review. More than 3 means waiting too long for a card you saw earlier
+    # to come back around. Order is the rotation order on page load.
+    SPOTLIGHT_ORDER = [
+        "micador-giveaways",
+        "banabae-artists",
+        "spencil-art-prize",
+    ]
+    by_id = {r["ID"]: r for r in rows}
+    spotlight_ids = [cid for cid in SPOTLIGHT_ORDER if cid in by_id]
 
     lines = []
     lines.append("{%- comment -%}")
