@@ -117,7 +117,11 @@
   ============================================================ {%- endcomment -%}
   <header class="theinmag-comps__choice">
     <div class="theinmag-comps__choice-inner">
-      <h1 id="theinmag-comps-h1" class="visually-hidden">Aussie kids' competitions to enter in 2026</h1>
+      {%- comment -%} H1 + intro are visually-hidden but indexable. Heavy SEO lift here -
+        the visible page is intentionally minimal (tagline + 3 tiles), but the H1 + intro
+        contain the keywords parents actually search for. Established pattern, no SEO penalty. {%- endcomment -%}
+      <h1 id="theinmag-comps-h1" class="visually-hidden">Australian kids' competitions to enter in 2026</h1>
+      <p class="visually-hidden">A free directory of {{ comp_size }} real Australian competitions for kids in 2026 - art competitions, writing competitions, photography and film competitions, STEM and maths competitions, performance and music competitions, and social good competitions. Filter by age (4-6, 7-9, 10-12, 13-16), state (NSW, VIC, QLD, WA, SA, TAS, NT, ACT, national), entry cost (free, paid, paid-optional) and format (online, postal, school-entry, individual, team). Updated monthly by theINmag, Australia's magazine made by kids for kids.</p>
       <p class="theinmag-comps__tagline">{{ tagline_text }}</p>
 
       <div class="theinmag-comps__choice-grid" role="group" aria-label="Pick a competition category">
@@ -261,7 +265,12 @@
               data-state="{{ tile_state }}"
             >
               <span class="theinmag-comps__tile-cover" aria-hidden="true">
-                <span class="theinmag-comps__tile-letter">{{ comp_letter }}</span>
+                {%- assign comp_logo = comp_logos[idx] -%}
+                {%- if comp_logo != blank -%}
+                  <img class="theinmag-comps__tile-logo" src="{{ comp_logo | asset_url }}" alt="" loading="lazy" width="120" height="120">
+                {%- else -%}
+                  <span class="theinmag-comps__tile-letter">{{ comp_letter }}</span>
+                {%- endif -%}
               </span>
               <span class="theinmag-comps__tile-body">
                 <span class="theinmag-comps__tile-chip">{{ comp_categories[idx] | downcase }}</span>
@@ -310,7 +319,12 @@
               data-state="closed"
             >
               <span class="theinmag-comps__tile-cover" aria-hidden="true">
-                <span class="theinmag-comps__tile-letter">{{ comp_letters[idx] }}</span>
+                {%- assign closed_logo = comp_logos[idx] -%}
+                {%- if closed_logo != blank -%}
+                  <img class="theinmag-comps__tile-logo" src="{{ closed_logo | asset_url }}" alt="" loading="lazy" width="120" height="120">
+                {%- else -%}
+                  <span class="theinmag-comps__tile-letter">{{ comp_letters[idx] }}</span>
+                {%- endif -%}
               </span>
               <span class="theinmag-comps__tile-body">
                 <span class="theinmag-comps__tile-chip">{{ comp_categories[idx] | downcase }}</span>
@@ -357,7 +371,12 @@
                 >
                   <span class="theinmag-comps__featured-cover">
                     <span class="theinmag-comps__featured-badge">top pick</span>
-                    <span class="theinmag-comps__featured-letter">{{ comp_letters[spot_idx] }}</span>
+                    {%- assign spot_logo = comp_logos[spot_idx] -%}
+                    {%- if spot_logo != blank -%}
+                      <img class="theinmag-comps__featured-logo" src="{{ spot_logo | asset_url }}" alt="" loading="lazy" width="240" height="240">
+                    {%- else -%}
+                      <span class="theinmag-comps__featured-letter">{{ comp_letters[spot_idx] }}</span>
+                    {%- endif -%}
                   </span>
                   <span class="theinmag-comps__featured-body">
                     <span class="theinmag-comps__featured-chip">{{ comp_categories[spot_idx] | downcase }}</span>
@@ -1098,6 +1117,22 @@
     color: var(--comps-purple-dark);
   }
 
+  /* Auto-fetched logo from each comp's website. object-fit: contain so wide
+     wordmark logos don't crop; small padding so the logo doesn't run hard
+     against the tile-cover edges. The cover keeps its category background
+     colour, and the logo sits on top - if the logo has its own background
+     it just covers the colour, that's fine. */
+  .theinmag-comps__tile-logo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    padding: clamp(6px, 0.8vw, 12px);
+    background-color: #FFF;
+  }
+
   /* Category-coloured covers */
   .theinmag-comps__tile--art .theinmag-comps__tile-cover { background-color: var(--comps-coral-light); }
   .theinmag-comps__tile--art .theinmag-comps__tile-letter { color: var(--comps-coral-dark); }
@@ -1322,6 +1357,14 @@
     font-size: clamp(72px, 9vw, 120px);
     line-height: 1;
     color: var(--comps-purple-dark);
+  }
+  .theinmag-comps__featured-logo {
+    width: clamp(120px, 16vw, 200px);
+    height: clamp(120px, 16vw, 200px);
+    object-fit: contain;
+    padding: clamp(8px, 1vw, 14px);
+    background-color: #FFF;
+    border-radius: 12px;
   }
 
   /* "top pick" badge - small editorial sticker top-left of the cover.
@@ -1756,13 +1799,26 @@
       return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    /* Populate each choice tile with a random character on page load.
-       Each tile gets its own independent pick - characters can repeat
-       across the three tiles (Ryan said totally random). */
+    /* Populate each choice tile with a DISTINCT random character on
+       page load. Fisher-Yates shuffle, then take the first N. Three
+       tiles always show three different characters per visit (Ryan
+       caught a duplicate in review - same character on writing and
+       everything tiles). Modal still draws independently from the
+       full pool, so a modal pick may match a tile - that's fine. */
+    function shuffleArray(arr) {
+      var out = arr.slice();
+      for (var i = out.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = out[i]; out[i] = out[j]; out[j] = tmp;
+      }
+      return out;
+    }
+
     var characterPool = getCharacterPool();
     var choiceCharacters = root.querySelectorAll('[data-choice-character]');
-    choiceCharacters.forEach(function (el) {
-      var url = pickCharacter(characterPool);
+    var distinctPicks = shuffleArray(characterPool).slice(0, choiceCharacters.length);
+    choiceCharacters.forEach(function (el, idx) {
+      var url = distinctPicks[idx];
       if (url) el.style.backgroundImage = "url('" + url + "')";
     });
 
@@ -2020,16 +2076,16 @@
       "type": "paragraph",
       "content": "Add 4-5 question/answer pairs for AEO. Not rendered visually on this page; they feed FAQPage JSON-LD only."
     },
-    { "type": "text", "id": "faq_q1", "label": "Q1", "default": "How do I enter a kids art competition in Australia?" },
-    { "type": "textarea", "id": "faq_a1", "label": "A1", "default": "Most Aussie kids' comps accept entries online or by post. Pick one from this page, click through to the official website, follow their entry steps. Some are entered by parents, some by schools." },
-    { "type": "text", "id": "faq_q2", "label": "Q2", "default": "Are these competitions free?" },
-    { "type": "textarea", "id": "faq_a2", "label": "A2", "default": "Most are free. The cost filter on this page splits them into free, paid, and paid-optional so you can sort by what fits." },
-    { "type": "text", "id": "faq_q3", "label": "Q3", "default": "Can my school enter on my child's behalf?" },
-    { "type": "textarea", "id": "faq_a3", "label": "A3", "default": "Yes. Use the format filter and pick school-entry to see comps that go through schools. Many also accept individual entries." },
-    { "type": "text", "id": "faq_q4", "label": "Q4", "default": "How often is this list updated?" },
-    { "type": "textarea", "id": "faq_a4", "label": "A4", "default": "Every fortnight. Closing dates and new comps are checked on a sweep cadence; the last-updated date sits at the bottom of this page." },
-    { "type": "text", "id": "faq_q5", "label": "Q5" },
-    { "type": "textarea", "id": "faq_a5", "label": "A5" }
+    { "type": "text", "id": "faq_q1", "label": "Q1", "default": "What kids competitions are running in Australia right now?" },
+    { "type": "textarea", "id": "faq_a1", "label": "A1", "default": "This page lists every real Australian kids' competition we have verified for 2026 - covering art, writing, photography, film, STEM, maths, performance, music, and social good. Pick a category, filter by age, state, cost or format, and click through to the official entry page. New comps are added monthly." },
+    { "type": "text", "id": "faq_q2", "label": "Q2", "default": "Are kids competitions in Australia free to enter?" },
+    { "type": "textarea", "id": "faq_a2", "label": "A2", "default": "Most are free. Some charge a small entry fee (often $5-$20), and a few are paid-optional, where there is a free option alongside a paid stream with bigger prizes. Use the cost filter on this page to show only free competitions, only paid, or any combination." },
+    { "type": "text", "id": "faq_q3", "label": "Q3", "default": "Can my child enter competitions from any state in Australia?" },
+    { "type": "textarea", "id": "faq_a3", "label": "A3", "default": "Many are national, open to kids anywhere in Australia. Some are state-specific (NSW, VIC, QLD, WA, SA, TAS, NT, ACT) - usually run by a state government, library network, regional council or local arts organisation. Use the state filter to see only the ones your child is eligible for." },
+    { "type": "text", "id": "faq_q4", "label": "Q4", "default": "What kinds of kids competitions are listed here?" },
+    { "type": "textarea", "id": "faq_a4", "label": "A4", "default": "Art (painting, drawing, photography, film, dance, music), writing (short stories, poetry, picture books), STEM (maths, coding, science, engineering), spelling and reading challenges, plus competitions tied to social good causes like environment, water and First Nations culture. Six categories, all filterable on this page." },
+    { "type": "text", "id": "faq_q5", "label": "Q5", "default": "How often is this list of competitions updated?" },
+    { "type": "textarea", "id": "faq_a5", "label": "A5", "default": "Monthly. Closing dates, new competitions, and verified entry pages are checked on a regular sweep. The last-refreshed date sits at the bottom of this page so you always know how current the list is." }
   ],
   "presets": [
     {

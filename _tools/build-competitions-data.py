@@ -83,12 +83,29 @@ def state_for(row):
         return "opens-in"
     return "live-now"
 
-# First letter of name, used as visual placeholder until logos uploaded
+# First letter of name, used as visual placeholder when no logo exists
 def first_letter(name):
     s = (name or "").strip()
     if not s:
         return "?"
     return s[0].upper()
+
+
+# Resolve a logo filename for a comp: looks in assets/logos/<id>.<ext> for any
+# common image extension. Returns the basename relative to /assets/, or '' if
+# none found. Auto-fetched by _tools/audit-competitions.py; tiny favicons are
+# excluded by a post-fetch size filter (rather than the script).
+def find_logo_filename(comp_id):
+    if not comp_id:
+        return ""
+    logos_dir = os.path.join(ROOT, "assets", "logos")
+    if not os.path.isdir(logos_dir):
+        return ""
+    for ext in (".png", ".jpg", ".jpeg", ".webp", ".svg", ".gif", ".ico"):
+        candidate = os.path.join(logos_dir, comp_id + ext)
+        if os.path.exists(candidate):
+            return "logos/" + comp_id + ext
+    return ""
 
 # Build the search blob - concatenated text used by the JS search filter
 def search_blob(row):
@@ -157,6 +174,7 @@ def main():
             "cross_signal": r.get("Cross-promo signal", ""),
             "tile_state": state_for(r),
             "first_letter": first_letter(r.get("Name", "")),
+            "logo_filename": find_logo_filename(r.get("ID", "")),
         })
 
     os.makedirs(os.path.dirname(JSON_OUT), exist_ok=True)
@@ -214,6 +232,7 @@ def main():
     lines.append(f"  assign comp_cost_slugs = '{col(lambda r: cost_to_slug(r.get('Cost','')))}' | split: '{DELIM}'")
     lines.append(f"  assign comp_websites = '{col(lambda r: r.get('Website',''))}' | split: '{DELIM}'")
     lines.append(f"  assign comp_letters = '{col(lambda r: first_letter(r.get('Name','')))}' | split: '{DELIM}'")
+    lines.append(f"  assign comp_logos = '{col(lambda r: find_logo_filename(r.get('ID','')))}' | split: '{DELIM}'")
     lines.append(f"  assign comp_states_raw = '{col(lambda r: r.get('States',''))}' | split: '{DELIM}'")
     lines.append(f"  assign comp_fields_raw = '{col(lambda r: r.get('Fields',''))}' | split: '{DELIM}'")
     lines.append(f"  assign comp_formats_raw = '{col(lambda r: r.get('Format',''))}' | split: '{DELIM}'")
