@@ -1,0 +1,1888 @@
+{%- comment -%}
+  theinmag-competitions
+  The /pages/competitions hub - browsable directory of real Aussie kid
+  comps, filterable by age, state, field, cost, format. Built per
+  competitions-page-build-spec.md.
+
+  Architecture:
+    1. Three-button entry choice (art / writing / everything)
+    2. Static-stage scroll zone - 100vh on desktop with the comp list
+       scrolling INTERNALLY in the 2/3 column, so the page itself
+       doesn't move while the user browses. Mobile collapses to natural
+       page scroll, featured tile sits between buttons and list.
+    3. Filter bar (sticky to top of stage on desktop; collapses to a
+       drawer on mobile).
+    4. "Missed a comp?" lightbox card with adult-only suggest form.
+    5. Footer transition line.
+
+  Data architecture: Option C (JSON in /assets/) - data lives in
+  competitions-database.csv, gets converted by
+  _tools/build-competitions-data.py into the parallel-array Liquid
+  snippet `theinmag-competitions-data`. Migration path to Option A
+  (Shopify metaobjects) is documented in the spec.
+
+  Spotlight rotation: admin-curated. Pool is the seven competitions
+  flagged as hot leads (Tier 1 green dot) in the master CSV. Rotates
+  every 10s with crossfade, pauses on hover.
+
+  Static-stage technique: section 2 of the stage uses an internal
+  scroll container on desktop (overflow-y: auto on .theinmag-comps__list
+  with scroll-snap-type: y mandatory). The bg image lives at section
+  level so it's stable regardless of scroll depth. On mobile the list
+  flows naturally and the bg moves with the page (sticky/fixed bg in
+  transformed ancestors is unreliable on iOS Safari, so we don't use it).
+
+  Kid characters: random-of-three pattern (per pattern library s4.4).
+  Characters live in the suggest-comp modal only - shown when modal
+  opens, with a slight wobble animation. Confirmed with Ryan: no
+  characters elsewhere on this page.
+
+  Data conventions:
+    - Tile state: live-now / opens-in / closed / soon (TBC dates)
+    - Closed tiles still render but at the bottom under a separator and
+      with reduced opacity; good for SEO and "see last year's winners"
+      energy per spec.
+    - Tile click target: full <a> wrapper opens website in new tab.
+{%- endcomment -%}
+
+{%- comment -%}
+  Bring in the parallel-array data block. We use `include` (not
+  `render`) on purpose: render creates a new variable scope, so the
+  comp_* arrays defined inside wouldn't be visible here. include keeps
+  them in this section's scope. The snippet is auto-generated; do not
+  edit by hand.
+{%- endcomment -%}
+{%- include 'theinmag-competitions-data' -%}
+
+{%- liquid
+  assign comp_size = comp_ids.size
+
+  assign bg_pool_str = section.settings.bg_filename_1
+  assign bg_pool_str = bg_pool_str | append: '|' | append: section.settings.bg_filename_2
+  assign bg_pool_str = bg_pool_str | append: '|' | append: section.settings.bg_filename_3
+  assign bg_pool = bg_pool_str | split: '|'
+  assign day_index = 'now' | date: '%j' | times: 1 | modulo: bg_pool.size
+  assign bg_filename = bg_pool[day_index]
+  assign bg_url = bg_filename | asset_url
+
+  assign last_updated = section.settings.last_updated | default: 'May 2026'
+
+  assign character_count = 0
+  for i in (1..3)
+    assign filename_key = 'character_' | append: i | append: '_filename'
+    assign img_key = 'character_' | append: i
+    if section.settings[filename_key] != blank or section.settings[img_key] != blank
+      assign character_count = character_count | plus: 1
+    endif
+  endfor
+
+  assign h1_text = section.settings.choice_heading | default: 'find your next aussie kids comp'
+  assign list_question = section.settings.list_question | default: 'what competitions are open right now?'
+
+  assign canonical_url = request.origin | append: page.url
+  if page.url == blank
+    assign canonical_url = request.origin | append: '/pages/competitions'
+  endif
+-%}
+
+<section
+  class="theinmag-comps"
+  data-theinmag-comps
+  data-comp-count="{{ comp_size }}"
+  aria-labelledby="theinmag-comps-h1"
+  style="--comps-bg: url('{{ bg_url }}');"
+>
+
+  {%- comment -%} ============================================================
+       Section 1 - Three big buttons
+       Sits on top of a tinted kid-pattern panel. Desktop: 3-up row,
+       fat ~140px sticker buttons with subtle rotation per item.
+       Mobile: stacks vertically, ~80px tall.
+  ============================================================ {%- endcomment -%}
+  <header class="theinmag-comps__choice">
+    <h1 id="theinmag-comps-h1" class="theinmag-comps__choice-heading">{{ h1_text }}</h1>
+    {%- if section.settings.choice_subhead != blank -%}
+      <p class="theinmag-comps__choice-subhead">{{ section.settings.choice_subhead }}</p>
+    {%- endif -%}
+    <div class="theinmag-comps__choice-grid" role="group" aria-label="Pick a competition category">
+      <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--art" data-choice="art">
+        <span class="theinmag-comps__choice-btn-label">art</span>
+        <span class="theinmag-comps__choice-btn-sub">art · photo · film · dance · music</span>
+      </button>
+      <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--writing" data-choice="writing">
+        <span class="theinmag-comps__choice-btn-label">writing</span>
+        <span class="theinmag-comps__choice-btn-sub">writing · poetry · reading · spelling</span>
+      </button>
+      <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--all" data-choice="all">
+        <span class="theinmag-comps__choice-btn-label">everything</span>
+        <span class="theinmag-comps__choice-btn-sub">show me all {{ comp_size }}</span>
+      </button>
+    </div>
+  </header>
+
+  {%- comment -%} ============================================================
+       Section 2+3 - The static stage (100vh single screen on desktop)
+  ============================================================ {%- endcomment -%}
+  <div class="theinmag-comps__stage">
+
+    <div class="theinmag-comps__filter-bar" data-filter-bar>
+      <label class="theinmag-comps__search-wrap">
+        <span class="visually-hidden">Search</span>
+        <input
+          type="search"
+          class="theinmag-comps__search"
+          data-comps-search
+          placeholder="search comps"
+          autocomplete="off"
+        >
+      </label>
+
+      <button
+        type="button"
+        class="theinmag-comps__filter-toggle"
+        data-filter-toggle
+        aria-expanded="false"
+      >
+        filters
+      </button>
+
+      <div class="theinmag-comps__filter-group" data-filter-group>
+        <select class="theinmag-comps__select" data-filter="category" aria-label="Category">
+          <option value="all">all categories</option>
+          <option value="art">art</option>
+          <option value="writing">writing</option>
+          <option value="photofilm">photo &amp; film</option>
+          <option value="stem">stem &amp; maths</option>
+          <option value="performance">performance &amp; music</option>
+          <option value="social-good">social good</option>
+        </select>
+
+        <select class="theinmag-comps__select" data-filter="age" aria-label="Age">
+          <option value="all">all ages</option>
+          <option value="ages-4-6">4-6</option>
+          <option value="ages-7-9">7-9</option>
+          <option value="ages-10-12">10-12</option>
+          <option value="ages-13-16">13-16</option>
+        </select>
+
+        <select class="theinmag-comps__select" data-filter="state" aria-label="State">
+          <option value="all">any state</option>
+          <option value="national">national</option>
+          <option value="nsw">nsw</option>
+          <option value="vic">vic</option>
+          <option value="qld">qld</option>
+          <option value="wa">wa</option>
+          <option value="sa">sa</option>
+          <option value="tas">tas</option>
+          <option value="nt">nt</option>
+          <option value="act">act</option>
+        </select>
+
+        <select class="theinmag-comps__select" data-filter="cost" aria-label="Cost">
+          <option value="all">any cost</option>
+          <option value="free">free</option>
+          <option value="paid">paid</option>
+          <option value="paid-optional">paid-optional</option>
+        </select>
+
+        <select class="theinmag-comps__select" data-filter="format" aria-label="Format">
+          <option value="all">any format</option>
+          <option value="online">online</option>
+          <option value="postal">postal</option>
+          <option value="school-entry">school-entry</option>
+          <option value="individual-entry">individual</option>
+          <option value="team">team</option>
+        </select>
+
+        <button type="button" class="theinmag-comps__clear" data-clear-filters>clear</button>
+      </div>
+    </div>
+
+    <div class="theinmag-comps__grid">
+
+      {%- comment -%} ----- Left column: chronological list ----- {%- endcomment -%}
+      <div class="theinmag-comps__list-wrap">
+        <h2 class="theinmag-comps__list-heading" id="theinmag-comps-question">{{ list_question }}</h2>
+        <div class="theinmag-comps__list" data-comps-list tabindex="0" aria-labelledby="theinmag-comps-question">
+
+          {%- comment -%} ---------- Open + soon tiles, top stack ---------- {%- endcomment -%}
+          {%- for id in comp_ids -%}
+            {%- assign idx = forloop.index0 -%}
+            {%- assign tile_state = comp_tile_states[idx] -%}
+            {%- if tile_state == 'closed' -%}{%- continue -%}{%- endif -%}
+
+            {%- assign cat_slug = comp_category_slugs[idx] -%}
+            {%- assign comp_name = comp_names[idx] -%}
+            {%- assign comp_pitch = comp_pitches[idx] -%}
+            {%- assign comp_letter = comp_letters[idx] -%}
+            {%- assign comp_close = comp_closing_dates[idx] -%}
+            {%- assign comp_where = comp_wheres[idx] -%}
+            {%- assign comp_cost = comp_costs[idx] -%}
+            {%- assign comp_format = comp_formats_raw[idx] -%}
+            {%- assign comp_when = comp_when_text[idx] -%}
+            {%- assign comp_url = comp_websites[idx] -%}
+            {%- if comp_url == blank -%}{%- assign comp_url = '#' -%}{%- endif -%}
+
+            <a
+              class="theinmag-comps__tile theinmag-comps__tile--{{ cat_slug }}"
+              href="{{ comp_url }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-tile-id="{{ id }}"
+              data-tags="{{ comp_tags[idx] }}"
+              data-search="{{ comp_search_blobs[idx] | escape }}"
+              data-state="{{ tile_state }}"
+            >
+              <span class="theinmag-comps__tile-cover" aria-hidden="true">
+                <span class="theinmag-comps__tile-letter">{{ comp_letter }}</span>
+              </span>
+              <span class="theinmag-comps__tile-body">
+                <span class="theinmag-comps__tile-chip">{{ comp_categories[idx] | downcase }}</span>
+                <span class="theinmag-comps__tile-title">{{ comp_name }}</span>
+                <span class="theinmag-comps__tile-pitch">{{ comp_pitch }}</span>
+                <span class="theinmag-comps__tile-meta">
+                  {%- if tile_state == 'soon' -%}
+                    <span class="theinmag-comps__tile-meta-item">{{ comp_when | default: 'opening soon' }}</span>
+                  {%- else -%}
+                    <span class="theinmag-comps__tile-meta-item">closes {{ comp_close }}</span>
+                  {%- endif -%}
+                  <span class="theinmag-comps__tile-meta-item">{{ comp_cost }}</span>
+                  <span class="theinmag-comps__tile-meta-item">{{ comp_where }}</span>
+                </span>
+                <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ tile_state }}">
+                  {%- case tile_state -%}
+                    {%- when 'live-now' -%}<span class="theinmag-comps__dot"></span> live now
+                    {%- when 'opens-in' -%}<span class="theinmag-comps__dot"></span> opens soon
+                    {%- when 'soon' -%}<span class="theinmag-comps__dot"></span> registrations opening soon
+                  {%- endcase -%}
+                </span>
+              </span>
+              <span class="theinmag-comps__tile-cta" aria-hidden="true">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
+            </a>
+          {%- endfor -%}
+
+          {%- comment -%} ---------- Closed tiles, bottom stack ---------- {%- endcomment -%}
+          <h3 class="theinmag-comps__closed-heading">closed for 2026</h3>
+          {%- for id in comp_ids -%}
+            {%- assign idx = forloop.index0 -%}
+            {%- assign tile_state = comp_tile_states[idx] -%}
+            {%- if tile_state != 'closed' -%}{%- continue -%}{%- endif -%}
+
+            {%- assign cat_slug = comp_category_slugs[idx] -%}
+            {%- assign comp_url = comp_websites[idx] -%}
+            {%- if comp_url == blank -%}{%- assign comp_url = '#' -%}{%- endif -%}
+
+            <a
+              class="theinmag-comps__tile theinmag-comps__tile--{{ cat_slug }} theinmag-comps__tile--closed"
+              href="{{ comp_url }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-tile-id="{{ id }}"
+              data-tags="{{ comp_tags[idx] }}"
+              data-search="{{ comp_search_blobs[idx] | escape }}"
+              data-state="closed"
+            >
+              <span class="theinmag-comps__tile-cover" aria-hidden="true">
+                <span class="theinmag-comps__tile-letter">{{ comp_letters[idx] }}</span>
+              </span>
+              <span class="theinmag-comps__tile-body">
+                <span class="theinmag-comps__tile-chip">{{ comp_categories[idx] | downcase }}</span>
+                <span class="theinmag-comps__tile-title">{{ comp_names[idx] }}</span>
+                <span class="theinmag-comps__tile-pitch">{{ comp_pitches[idx] }}</span>
+                <span class="theinmag-comps__tile-meta">
+                  <span class="theinmag-comps__tile-meta-item">closed {{ comp_closing_dates[idx] }}</span>
+                  <span class="theinmag-comps__tile-meta-item">{{ comp_wheres[idx] }}</span>
+                </span>
+                <span class="theinmag-comps__tile-state theinmag-comps__tile-state--closed">closed for 2026</span>
+              </span>
+              <span class="theinmag-comps__tile-cta" aria-hidden="true">view <span class="theinmag-comps__arrow">&rarr;</span></span>
+            </a>
+          {%- endfor -%}
+
+          <p class="theinmag-comps__list-empty" data-list-empty hidden>nothing matches that combo. try clearing a filter.</p>
+        </div>
+      </div>
+
+      {%- comment -%} ----- Right column: rotating spotlight ----- {%- endcomment -%}
+      <aside class="theinmag-comps__featured" data-featured aria-label="Spotlight comp">
+        <span class="theinmag-comps__featured-label">spotlight</span>
+        <div class="theinmag-comps__featured-stack" data-featured-stack>
+          {%- for spot_id in spotlight_ids -%}
+            {%- liquid
+              assign spot_idx = -1
+              for cid in comp_ids
+                if cid == spot_id
+                  assign spot_idx = forloop.index0
+                  break
+                endif
+              endfor
+            -%}
+            {%- if spot_idx >= 0 -%}
+              {%- assign s_cat = comp_category_slugs[spot_idx] -%}
+              {%- assign s_url = comp_websites[spot_idx] -%}
+              {%- if s_url == blank -%}{%- assign s_url = '#' -%}{%- endif -%}
+              <a
+                class="theinmag-comps__featured-card theinmag-comps__featured-card--{{ s_cat }}{% if forloop.first %} is-active{% endif %}"
+                href="{{ s_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-spot-index="{{ forloop.index0 }}"
+              >
+                <span class="theinmag-comps__featured-cover">
+                  <span class="theinmag-comps__featured-letter">{{ comp_letters[spot_idx] }}</span>
+                </span>
+                <span class="theinmag-comps__featured-body">
+                  <span class="theinmag-comps__featured-chip">{{ comp_categories[spot_idx] | downcase }}</span>
+                  <span class="theinmag-comps__featured-title">{{ comp_names[spot_idx] }}</span>
+                  <span class="theinmag-comps__featured-pitch">{{ comp_pitches[spot_idx] }}</span>
+                  <span class="theinmag-comps__featured-cta">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
+                </span>
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  {%- comment -%} ============================================================
+       Section 4 - Missed-a-comp suggest card
+  ============================================================ {%- endcomment -%}
+  <div class="theinmag-comps__missed">
+    <div class="theinmag-comps__missed-inner">
+      <h2 class="theinmag-comps__missed-heading">have we missed a competition?</h2>
+      <p class="theinmag-comps__missed-copy">tell us about it. we'll add it next sweep.</p>
+      <button type="button" class="theinmag-comps__missed-btn" data-open-suggest>
+        suggest a comp
+      </button>
+    </div>
+  </div>
+
+  {%- comment -%} ============================================================
+       Section 5 - Footer transition
+  ============================================================ {%- endcomment -%}
+  <p class="theinmag-comps__updated">
+    fresh comps added every fortnight. last updated {{ last_updated }}.
+  </p>
+
+  {%- comment -%} ============================================================
+       Suggest-a-comp modal (lightbox)
+       Adult-only form per CLAUDE.md. Kid character random-of-three
+       sits in the modal head and only renders once the modal opens.
+  ============================================================ {%- endcomment -%}
+  <div class="theinmag-comps__modal" data-suggest-modal hidden>
+    <div class="theinmag-comps__modal-backdrop" data-modal-close></div>
+    <div class="theinmag-comps__modal-card" role="dialog" aria-modal="true" aria-labelledby="comps-suggest-title">
+      <button type="button" class="theinmag-comps__modal-close" data-modal-close aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+
+      {%- if character_count > 0 -%}
+        {%- liquid
+          assign char_attrs = ''
+          for i in (1..3)
+            assign filename_key = 'character_' | append: i | append: '_filename'
+            assign img_key = 'character_' | append: i
+            assign alt_key = 'character_' | append: i | append: '_alt'
+            assign attr_key = 'character_' | append: i | append: '_attribution'
+            assign char_filename = section.settings[filename_key]
+            assign char_img = section.settings[img_key]
+            assign src = ''
+            if char_img != blank
+              assign src = char_img | image_url: width: 320
+            elsif char_filename != blank
+              assign src = char_filename | asset_url
+            endif
+            if src != blank
+              assign alt_val = section.settings[alt_key] | default: '' | escape
+              assign attr_val = section.settings[attr_key] | default: '' | escape
+              assign char_attrs = char_attrs | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
+              assign char_attrs = char_attrs | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
+              assign char_attrs = char_attrs | append: ' data-attribution-' | append: i | append: '="' | append: attr_val | append: '"'
+            endif
+          endfor
+        -%}
+        <div class="theinmag-comps__modal-character" data-comps-character{{ char_attrs }} aria-hidden="true"></div>
+      {%- endif -%}
+
+      <h3 id="comps-suggest-title" class="theinmag-comps__modal-heading">suggest a comp</h3>
+      <p class="theinmag-comps__modal-copy">{{ section.settings.modal_copy | default: 'Adults only. Send the details and we will verify and add it next sweep.' }}</p>
+
+      <form class="theinmag-comps__modal-form" data-suggest-form {% if section.settings.suggest_form_action != blank %}action="{{ section.settings.suggest_form_action }}" method="post"{% endif %}>
+        <label class="theinmag-comps__modal-field">
+          <span>competition name</span>
+          <input type="text" name="comp_name" required>
+        </label>
+        <label class="theinmag-comps__modal-field">
+          <span>competition website</span>
+          <input type="url" name="comp_url" required placeholder="https://">
+        </label>
+        <div class="theinmag-comps__modal-row">
+          <label class="theinmag-comps__modal-field">
+            <span>age range</span>
+            <input type="text" name="comp_age" placeholder="e.g. 7-12">
+          </label>
+          <label class="theinmag-comps__modal-field">
+            <span>state</span>
+            <select name="comp_state">
+              <option value="">pick one</option>
+              <option value="national">national</option>
+              <option value="nsw">nsw</option>
+              <option value="vic">vic</option>
+              <option value="qld">qld</option>
+              <option value="wa">wa</option>
+              <option value="sa">sa</option>
+              <option value="tas">tas</option>
+              <option value="nt">nt</option>
+              <option value="act">act</option>
+            </select>
+          </label>
+        </div>
+        <label class="theinmag-comps__modal-field">
+          <span>your name (adult)</span>
+          <input type="text" name="adult_name" required>
+        </label>
+        <label class="theinmag-comps__modal-field">
+          <span>your email (adult)</span>
+          <input type="email" name="adult_email" required>
+        </label>
+        <label class="theinmag-comps__modal-field">
+          <span>short pitch (optional)</span>
+          <textarea name="comp_pitch" rows="3" maxlength="500"></textarea>
+        </label>
+        <button type="submit" class="theinmag-comps__modal-submit">send</button>
+        <p class="theinmag-comps__modal-success" data-modal-success hidden>thanks! we'll review and add it.</p>
+      </form>
+    </div>
+  </div>
+
+</section>
+
+{%- comment -%} ============================================================
+     JSON-LD schemas - per CLAUDE.md AEO requirements.
+     ItemList of every comp + BreadcrumbList + FAQPage.
+============================================================ {%- endcomment -%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Australian kids' competitions 2026",
+  "description": "{{ section.settings.choice_subhead | default: 'A directory of real Aussie competitions for kids - filterable by age, state, field, cost and format.' | escape }}",
+  "numberOfItems": {{ comp_size }},
+  "itemListElement": [
+    {%- for id in comp_ids -%}
+      {%- assign idx = forloop.index0 -%}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.index }},
+        "item": {
+          "@type": "Event",
+          "name": {{ comp_names[idx] | json }},
+          "description": {{ comp_pitches[idx] | json }},
+          "url": {{ comp_websites[idx] | json }}
+          {%- if comp_closing_dates[idx] contains '-' -%}
+          ,"endDate": {{ comp_closing_dates[idx] | json }}
+          {%- endif -%}
+          ,"location": {
+            "@type": "Place",
+            "name": {{ comp_wheres[idx] | json }}
+          }
+          ,"offers": {
+            "@type": "Offer",
+            "price": "{% if comp_cost_slugs[idx] == 'free' %}0{% else %}varies{% endif %}",
+            "priceCurrency": "AUD"
+          }
+        }
+      }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": {{ request.origin | json }} },
+    { "@type": "ListItem", "position": 2, "name": "Competitions", "item": {{ canonical_url | json }} }
+  ]
+}
+</script>
+
+{%- if section.settings.faq_q1 != blank or section.settings.faq_q2 != blank -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- assign faq_pairs = '1,2,3,4,5' | split: ',' -%}
+    {%- assign first_done = false -%}
+    {%- for n in faq_pairs -%}
+      {%- assign q_key = 'faq_q' | append: n -%}
+      {%- assign a_key = 'faq_a' | append: n -%}
+      {%- assign q = section.settings[q_key] -%}
+      {%- assign a = section.settings[a_key] -%}
+      {%- if q != blank and a != blank -%}
+        {%- if first_done -%},{%- endif -%}
+        {
+          "@type": "Question",
+          "name": {{ q | json }},
+          "acceptedAnswer": { "@type": "Answer", "text": {{ a | json }} }
+        }
+        {%- assign first_done = true -%}
+      {%- endif -%}
+    {%- endfor -%}
+  ]
+}
+</script>
+{%- endif -%}
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-competitions
+     Multi-zone page section. Read top to bottom: choice header,
+     static stage (filter bar + grid), missed-a-comp card, footer line,
+     suggest modal.
+
+     Mobile-first base styles assume phone width; @media (min-width: ...)
+     promotes to tablet/desktop. Specificity-prefix pattern (s3.1) is
+     applied to every mobile-override rule.
+  ================================================================ */
+
+  .theinmag-comps {
+    --comps-purple-light: #E8DEEF;
+    --comps-purple-dark: #5D3A7A;
+    --comps-coral-light: #FBE0D6;
+    --comps-coral-dark: #C9543E;
+    --comps-peach-light: #FCDDB8;
+    --comps-peach-dark: #D9783A;
+    --comps-mint-light: #D6EAD9;
+    --comps-mint-dark: #4A7C5C;
+    --comps-cream: #FBF6EA;
+    --comps-cream-dark: #2A1F3D;
+    --comps-sky-light: #C9E5E8;
+    --comps-sky-dark: #2D6878;
+    --comps-yellow: #F9C23C;
+
+    background-color: var(--comps-cream);
+    color: var(--comps-cream-dark);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  }
+
+  /* ----- Visually-hidden helper for accessible labels ----- */
+  .theinmag-comps .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ================================================================
+     Section 1 - Three-button choice header
+  ================================================================ */
+  .theinmag-comps__choice {
+    position: relative;
+    background-color: var(--comps-cream);
+    background-image: var(--comps-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: clamp(40px, 6vw, 88px) clamp(16px, 3vw, 32px);
+    text-align: center;
+  }
+  /* Cream wash so the kid pattern reads at ~18% strength per spec */
+  .theinmag-comps__choice::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(251, 246, 234, 0.82);
+    pointer-events: none;
+  }
+  .theinmag-comps__choice > * { position: relative; z-index: 1; }
+
+  .theinmag-comps__choice-heading {
+    margin: 0 auto;
+    max-width: 18ch;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(34px, 5.5vw, 64px);
+    line-height: 1.05;
+    color: var(--comps-cream-dark);
+  }
+  .theinmag-comps__choice-subhead {
+    margin: clamp(10px, 1vw, 16px) auto 0;
+    max-width: 56ch;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.5;
+    color: var(--comps-cream-dark);
+    opacity: 0.78;
+  }
+
+  .theinmag-comps__choice-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(14px, 1.6vw, 22px);
+    margin: clamp(28px, 3vw, 44px) auto 0;
+    max-width: 1100px;
+  }
+  @media (min-width: 750px) {
+    .theinmag-comps__choice-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .theinmag-comps__choice-btn {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    padding: clamp(20px, 2.4vw, 36px) clamp(20px, 2vw, 32px);
+    border-radius: 28px;
+    text-align: center;
+    min-height: 84px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    color: var(--comps-cream-dark);
+    box-shadow: 0 4px 0 rgba(123, 79, 158, 0.28);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+  }
+  @media (min-width: 990px) {
+    .theinmag-comps__choice-btn {
+      min-height: 140px;
+      padding: 28px 32px;
+    }
+  }
+
+  /* Sticker tilts - one per button */
+  .theinmag-comps__choice-btn--art {
+    background-color: var(--comps-coral-light);
+    transform: rotate(-2deg);
+  }
+  .theinmag-comps__choice-btn--writing {
+    background-color: var(--comps-mint-light);
+    transform: rotate(0deg);
+  }
+  .theinmag-comps__choice-btn--all {
+    background-color: var(--comps-peach-light);
+    transform: rotate(1.5deg);
+  }
+
+  .theinmag-comps__choice-btn:hover,
+  .theinmag-comps__choice-btn:focus-visible {
+    outline: none;
+    transform: scale(1.04) rotate(0deg);
+    box-shadow: 0 6px 0 rgba(123, 79, 158, 0.32);
+  }
+  .theinmag-comps__choice-btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--comps-purple-dark), 0 6px 0 rgba(123, 79, 158, 0.32);
+  }
+
+  .theinmag-comps__choice-btn-label {
+    font-size: clamp(28px, 3.4vw, 44px);
+    line-height: 1;
+    letter-spacing: 0;
+  }
+  .theinmag-comps__choice-btn-sub {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(11px, 1vw, 13px);
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    opacity: 0.68;
+  }
+
+  /* "Bounce off" - pressed state when a choice is made */
+  .theinmag-comps__choice-btn.is-leaving {
+    transform: scale(1.18) translateY(-40px);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+  }
+
+  /* ================================================================
+     Section 2 + 3 - Static stage
+     Mobile-first: natural height, scroll list flows in document.
+     Desktop (>=990px): exactly 100vh, internal scroll on the list.
+  ================================================================ */
+  .theinmag-comps__stage {
+    position: relative;
+    background-color: var(--comps-cream);
+    background-image: var(--comps-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: clamp(20px, 3vw, 32px) clamp(12px, 2vw, 24px) clamp(40px, 5vw, 64px);
+  }
+  /* Cream wash on top of bg so content reads cleanly */
+  .theinmag-comps__stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(251, 246, 234, 0.78);
+    pointer-events: none;
+  }
+  .theinmag-comps__stage > * { position: relative; z-index: 1; }
+
+  @media (min-width: 990px) {
+    /* Desktop: lock the stage to one screen and run the list with
+       internal scroll. The bg + filter bar + featured tile do NOT move
+       because they all live inside the 100vh shell. */
+    .theinmag-comps__stage {
+      height: 100vh;
+      max-height: 1000px; /* Prevent ridiculous heights on giant monitors */
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: clamp(12px, 1.4vw, 20px);
+      padding: clamp(16px, 1.8vw, 24px) clamp(20px, 2.4vw, 36px) clamp(20px, 2vw, 28px);
+      overflow: hidden;
+    }
+  }
+
+  /* ----- Filter bar ----- */
+  .theinmag-comps__filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(8px, 1vw, 12px);
+    padding: clamp(10px, 1.2vw, 14px);
+    background-color: var(--comps-cream);
+    border-radius: 18px;
+    box-shadow: 0 4px 16px rgba(123, 79, 158, 0.10);
+  }
+
+  .theinmag-comps__search-wrap {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  @media (min-width: 750px) {
+    .theinmag-comps__search-wrap {
+      flex: 1 1 240px;
+    }
+  }
+  .theinmag-comps__search {
+    width: 100%;
+    border: 1.5px solid rgba(42, 31, 61, 0.16);
+    background-color: #FFF;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--comps-cream-dark);
+    min-height: 40px;
+  }
+  .theinmag-comps__search:focus {
+    outline: none;
+    border-color: var(--comps-purple-dark);
+    box-shadow: 0 0 0 3px rgba(93, 58, 122, 0.18);
+  }
+
+  /* The filters mobile drawer toggle - pill button. Hidden on desktop. */
+  .theinmag-comps__filter-toggle {
+    appearance: none;
+    border: 1.5px solid var(--comps-purple-dark);
+    color: var(--comps-purple-dark);
+    background-color: transparent;
+    border-radius: 32px;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+    cursor: pointer;
+    min-height: 40px;
+    flex: 0 0 auto;
+  }
+  @media (min-width: 750px) {
+    .theinmag-comps__filter-toggle { display: none; }
+  }
+
+  /* Filter dropdown group - hidden behind drawer on mobile */
+  .theinmag-comps__filter-group {
+    display: none;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: clamp(8px, 1vw, 12px);
+    align-items: center;
+  }
+  .theinmag-comps__filter-bar.is-open .theinmag-comps__filter-group {
+    display: flex;
+  }
+  @media (min-width: 750px) {
+    .theinmag-comps__filter-group {
+      display: flex;
+      flex: 1 1 auto;
+    }
+  }
+
+  .theinmag-comps__select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #FFF;
+    border: 1.5px solid rgba(42, 31, 61, 0.16);
+    border-radius: 10px;
+    padding: 9px 32px 9px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--comps-cream-dark);
+    cursor: pointer;
+    min-height: 40px;
+    background-image: linear-gradient(45deg, transparent 50%, var(--comps-cream-dark) 50%),
+                      linear-gradient(135deg, var(--comps-cream-dark) 50%, transparent 50%);
+    background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+    flex: 1 1 calc(50% - 6px);
+    min-width: 110px;
+  }
+  @media (min-width: 990px) {
+    .theinmag-comps__select { flex: 0 1 auto; }
+  }
+  .theinmag-comps__select:focus {
+    outline: none;
+    border-color: var(--comps-purple-dark);
+  }
+
+  .theinmag-comps__clear {
+    appearance: none;
+    background: none;
+    border: 0;
+    color: var(--comps-purple-dark);
+    text-decoration: underline;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 8px;
+    flex: 0 0 auto;
+  }
+
+  /* ================================================================
+     The grid: list (2/3) + featured (1/3) on desktop
+  ================================================================ */
+  .theinmag-comps__grid {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(20px, 2.4vw, 32px);
+    min-height: 0;
+  }
+  @media (min-width: 990px) {
+    .theinmag-comps__grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      gap: clamp(20px, 2vw, 32px);
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+
+  /* Mobile order: featured first (between buttons and list), then list */
+  .theinmag-comps__featured { order: 1; }
+  .theinmag-comps__list-wrap { order: 2; }
+  @media (min-width: 990px) {
+    .theinmag-comps__list-wrap { order: 1; }
+    .theinmag-comps__featured { order: 2; }
+  }
+
+  /* ----- List wrapper + heading ----- */
+  .theinmag-comps__list-wrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .theinmag-comps__list-heading {
+    margin: 0 0 clamp(10px, 1.2vw, 16px);
+    padding-left: 4px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.3;
+    color: var(--comps-cream-dark);
+    opacity: 0.75;
+  }
+
+  /* ----- The scrollable list ----- */
+  .theinmag-comps__list {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 1.4vw, 18px);
+  }
+  @media (min-width: 990px) {
+    .theinmag-comps__list {
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-snap-type: y mandatory;
+      padding: 4px 8px 24px 4px;
+      flex: 1 1 auto;
+      min-height: 0;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(42, 31, 61, 0.3) transparent;
+    }
+    .theinmag-comps__list::-webkit-scrollbar { width: 8px; }
+    .theinmag-comps__list::-webkit-scrollbar-track { background: transparent; }
+    .theinmag-comps__list::-webkit-scrollbar-thumb {
+      background: rgba(42, 31, 61, 0.25);
+      border-radius: 8px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-comps__list { scroll-snap-type: none; }
+  }
+
+  /* ----- Tile ----- */
+  .theinmag-comps__tile {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: clamp(12px, 1.4vw, 18px);
+    background-color: var(--comps-cream);
+    border-radius: 20px;
+    padding: clamp(12px, 1.4vw, 18px);
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.08);
+    scroll-snap-align: start;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    align-items: center;
+    position: relative;
+  }
+  @media (min-width: 600px) {
+    .theinmag-comps__tile {
+      grid-template-columns: 130px 1fr auto;
+      padding: clamp(14px, 1.6vw, 20px);
+    }
+  }
+  .theinmag-comps__tile:hover,
+  .theinmag-comps__tile:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(123, 79, 158, 0.18);
+    outline: none;
+  }
+  .theinmag-comps__tile:focus-visible {
+    box-shadow: 0 0 0 3px var(--comps-purple-dark), 0 6px 20px rgba(123, 79, 158, 0.18);
+  }
+  .theinmag-comps__tile[hidden] { display: none; }
+
+  /* ----- Tile cover (letter placeholder) ----- */
+  .theinmag-comps__tile-cover {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    overflow: hidden;
+    background-color: var(--comps-purple-light);
+    width: 100%;
+    height: 100%;
+  }
+  .theinmag-comps__tile-letter {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(40px, 5vw, 60px);
+    line-height: 1;
+    color: var(--comps-purple-dark);
+  }
+
+  /* Category-coloured covers */
+  .theinmag-comps__tile--art .theinmag-comps__tile-cover { background-color: var(--comps-coral-light); }
+  .theinmag-comps__tile--art .theinmag-comps__tile-letter { color: var(--comps-coral-dark); }
+
+  .theinmag-comps__tile--writing .theinmag-comps__tile-cover { background-color: var(--comps-mint-light); }
+  .theinmag-comps__tile--writing .theinmag-comps__tile-letter { color: var(--comps-mint-dark); }
+
+  .theinmag-comps__tile--photofilm .theinmag-comps__tile-cover { background-color: var(--comps-sky-light); }
+  .theinmag-comps__tile--photofilm .theinmag-comps__tile-letter { color: var(--comps-sky-dark); }
+
+  .theinmag-comps__tile--stem .theinmag-comps__tile-cover { background-color: var(--comps-purple-light); }
+  .theinmag-comps__tile--stem .theinmag-comps__tile-letter { color: var(--comps-purple-dark); }
+
+  .theinmag-comps__tile--performance .theinmag-comps__tile-cover { background-color: var(--comps-peach-light); }
+  .theinmag-comps__tile--performance .theinmag-comps__tile-letter { color: var(--comps-peach-dark); }
+
+  .theinmag-comps__tile--social-good .theinmag-comps__tile-cover { background-color: #F2EBD8; }
+  .theinmag-comps__tile--social-good .theinmag-comps__tile-letter { color: var(--comps-cream-dark); }
+
+  /* ----- Tile body ----- */
+  .theinmag-comps__tile-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .theinmag-comps__tile-chip {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--comps-purple-dark);
+    opacity: 0.78;
+  }
+  .theinmag-comps__tile--art .theinmag-comps__tile-chip { color: var(--comps-coral-dark); }
+  .theinmag-comps__tile--writing .theinmag-comps__tile-chip { color: var(--comps-mint-dark); }
+  .theinmag-comps__tile--photofilm .theinmag-comps__tile-chip { color: var(--comps-sky-dark); }
+  .theinmag-comps__tile--performance .theinmag-comps__tile-chip { color: var(--comps-peach-dark); }
+
+  .theinmag-comps__tile-title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(15px, 1.5vw, 18px);
+    line-height: 1.2;
+    color: var(--comps-cream-dark);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-comps__tile-pitch {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--comps-cream-dark);
+    opacity: 0.8;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-comps__tile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--comps-cream-dark);
+    opacity: 0.62;
+  }
+  .theinmag-comps__tile-meta-item:not(:last-child)::after {
+    content: ' \00B7';
+    margin-left: 6px;
+    opacity: 0.5;
+  }
+
+  .theinmag-comps__tile-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .theinmag-comps__dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .theinmag-comps__tile-state--live-now { color: var(--comps-mint-dark); }
+  .theinmag-comps__tile-state--live-now .theinmag-comps__dot { background-color: var(--comps-mint-dark); }
+  .theinmag-comps__tile-state--opens-in { color: var(--comps-peach-dark); }
+  .theinmag-comps__tile-state--opens-in .theinmag-comps__dot { background-color: var(--comps-peach-dark); }
+  .theinmag-comps__tile-state--soon { color: var(--comps-purple-dark); }
+  .theinmag-comps__tile-state--soon .theinmag-comps__dot { background-color: var(--comps-purple-dark); }
+  .theinmag-comps__tile-state--closed { color: rgba(42, 31, 61, 0.55); }
+
+  /* ----- Tile CTA ----- */
+  .theinmag-comps__tile-cta {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background-color: var(--comps-yellow);
+    color: var(--comps-cream-dark);
+    border-radius: 32px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    box-shadow: 0 3px 0 #D4A02E;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    align-self: center;
+  }
+  @media (min-width: 600px) {
+    .theinmag-comps__tile-cta { display: inline-flex; }
+  }
+  .theinmag-comps__tile:hover .theinmag-comps__tile-cta,
+  .theinmag-comps__tile:focus-visible .theinmag-comps__tile-cta {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #D4A02E;
+  }
+  .theinmag-comps__arrow { display: inline-block; }
+
+  /* ----- Closed tiles - reduced opacity ----- */
+  .theinmag-comps__tile--closed {
+    opacity: 0.55;
+  }
+  .theinmag-comps__tile--closed:hover { opacity: 0.85; }
+
+  .theinmag-comps__closed-heading {
+    margin: clamp(20px, 2.4vw, 32px) 0 4px;
+    padding-left: 4px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--comps-cream-dark);
+    opacity: 0.55;
+    scroll-snap-align: start;
+  }
+
+  .theinmag-comps__list-empty {
+    margin: 32px 0;
+    padding: 24px;
+    text-align: center;
+    color: var(--comps-cream-dark);
+    opacity: 0.6;
+    font-size: 14px;
+  }
+
+  /* ================================================================
+     Featured (right column on desktop, top of stack on mobile)
+  ================================================================ */
+  .theinmag-comps__featured {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+  }
+  .theinmag-comps__featured-label {
+    padding-left: 4px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: clamp(20px, 2vw, 28px);
+    line-height: 1;
+    color: var(--comps-purple-dark);
+  }
+  .theinmag-comps__featured-stack {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 280px;
+  }
+  @media (min-width: 990px) {
+    .theinmag-comps__featured-stack {
+      min-height: 0;
+    }
+  }
+
+  .theinmag-comps__featured-card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--comps-cream);
+    border-radius: 22px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 6px 24px rgba(123, 79, 158, 0.16);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .theinmag-comps__featured-card.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .theinmag-comps__featured-card:hover,
+  .theinmag-comps__featured-card:focus-visible {
+    outline: none;
+    box-shadow: 0 8px 32px rgba(123, 79, 158, 0.22);
+  }
+
+  .theinmag-comps__featured-cover {
+    position: relative;
+    flex: 0 0 42%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--comps-coral-light);
+    min-height: 120px;
+  }
+  .theinmag-comps__featured-card--art .theinmag-comps__featured-cover { background-color: var(--comps-coral-light); }
+  .theinmag-comps__featured-card--writing .theinmag-comps__featured-cover { background-color: var(--comps-mint-light); }
+  .theinmag-comps__featured-card--photofilm .theinmag-comps__featured-cover { background-color: var(--comps-sky-light); }
+  .theinmag-comps__featured-card--stem .theinmag-comps__featured-cover { background-color: var(--comps-purple-light); }
+  .theinmag-comps__featured-card--performance .theinmag-comps__featured-cover { background-color: var(--comps-peach-light); }
+  .theinmag-comps__featured-card--social-good .theinmag-comps__featured-cover { background-color: #F2EBD8; }
+
+  .theinmag-comps__featured-letter {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: clamp(72px, 9vw, 120px);
+    line-height: 1;
+    color: var(--comps-purple-dark);
+  }
+  .theinmag-comps__featured-card--art .theinmag-comps__featured-letter { color: var(--comps-coral-dark); }
+  .theinmag-comps__featured-card--writing .theinmag-comps__featured-letter { color: var(--comps-mint-dark); }
+  .theinmag-comps__featured-card--photofilm .theinmag-comps__featured-letter { color: var(--comps-sky-dark); }
+  .theinmag-comps__featured-card--performance .theinmag-comps__featured-letter { color: var(--comps-peach-dark); }
+
+  .theinmag-comps__featured-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: clamp(16px, 1.6vw, 22px);
+    flex: 1 1 auto;
+  }
+  .theinmag-comps__featured-chip {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--comps-purple-dark);
+    opacity: 0.78;
+  }
+  .theinmag-comps__featured-title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(18px, 1.8vw, 22px);
+    line-height: 1.2;
+  }
+  .theinmag-comps__featured-pitch {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--comps-cream-dark);
+    opacity: 0.82;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-comps__featured-cta {
+    margin-top: auto;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background-color: var(--comps-yellow);
+    color: var(--comps-cream-dark);
+    border-radius: 32px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    box-shadow: 0 3px 0 #D4A02E;
+  }
+
+  /* ================================================================
+     Section 4 - Missed-a-comp card
+  ================================================================ */
+  .theinmag-comps__missed {
+    background-color: var(--comps-cream);
+    padding: clamp(40px, 5vw, 72px) clamp(16px, 3vw, 32px);
+    text-align: center;
+  }
+  .theinmag-comps__missed-inner {
+    max-width: 640px;
+    margin: 0 auto;
+    background-color: var(--comps-purple-light);
+    border-radius: 28px;
+    padding: clamp(28px, 3.6vw, 48px) clamp(20px, 3vw, 36px);
+    box-shadow: 0 8px 32px rgba(123, 79, 158, 0.18);
+  }
+  .theinmag-comps__missed-heading {
+    margin: 0 0 8px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1.2;
+    color: var(--comps-cream-dark);
+  }
+  .theinmag-comps__missed-copy {
+    margin: 0 auto 20px;
+    max-width: 36ch;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--comps-cream-dark);
+    opacity: 0.78;
+  }
+  .theinmag-comps__missed-btn {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    background-color: var(--comps-yellow);
+    color: var(--comps-cream-dark);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 14px 32px;
+    border-radius: 32px;
+    box-shadow: 0 4px 0 #D4A02E;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    min-height: 48px;
+  }
+  .theinmag-comps__missed-btn:hover,
+  .theinmag-comps__missed-btn:focus-visible {
+    outline: none;
+    background-color: var(--comps-purple-dark);
+    color: #FFF;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #4A2D62;
+  }
+
+  /* ================================================================
+     Section 5 - Footer transition line
+  ================================================================ */
+  .theinmag-comps__updated {
+    margin: 0;
+    padding: clamp(24px, 3vw, 40px) clamp(16px, 3vw, 32px);
+    text-align: center;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--comps-cream-dark);
+    opacity: 0.6;
+  }
+
+  /* ================================================================
+     Suggest-a-comp modal
+  ================================================================ */
+  .theinmag-comps__modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 3vw, 32px);
+  }
+  .theinmag-comps__modal[hidden] { display: none; }
+  .theinmag-comps__modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(42, 31, 61, 0.55);
+    backdrop-filter: blur(2px);
+    cursor: pointer;
+    animation: theinmag-comps-fade 0.2s ease forwards;
+  }
+  .theinmag-comps__modal-card {
+    position: relative;
+    background-color: var(--comps-cream);
+    border-radius: 22px;
+    padding: clamp(24px, 3vw, 40px);
+    width: min(100%, 540px);
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
+    animation: theinmag-comps-rise 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+  }
+  @keyframes theinmag-comps-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes theinmag-comps-rise {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-comps__modal-backdrop,
+    .theinmag-comps__modal-card { animation: none; }
+  }
+
+  .theinmag-comps__modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    appearance: none;
+    border: 0;
+    background: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--comps-cream-dark);
+    opacity: 0.6;
+  }
+  .theinmag-comps__modal-close:hover { opacity: 1; }
+
+  .theinmag-comps__modal-character {
+    width: clamp(80px, 12vw, 120px);
+    height: clamp(80px, 12vw, 120px);
+    margin: 0 auto 14px;
+    background-size: contain;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+  }
+  .theinmag-comps__modal-character.is-ready {
+    animation: theinmag-comps-wobble 3.4s ease-in-out infinite;
+  }
+  @keyframes theinmag-comps-wobble {
+    0%, 100% { transform: rotate(-3deg); }
+    50%      { transform: rotate(3deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-comps__modal-character.is-ready { animation: none; }
+  }
+
+  .theinmag-comps__modal-heading {
+    margin: 0 0 4px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(26px, 3vw, 34px);
+    line-height: 1.1;
+    text-align: center;
+    color: var(--comps-cream-dark);
+  }
+  .theinmag-comps__modal-copy {
+    margin: 0 auto 20px;
+    max-width: 38ch;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--comps-cream-dark);
+    opacity: 0.78;
+  }
+
+  .theinmag-comps__modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .theinmag-comps__modal-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .theinmag-comps__modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--comps-cream-dark);
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+  .theinmag-comps__modal-field input,
+  .theinmag-comps__modal-field select,
+  .theinmag-comps__modal-field textarea {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1.5px solid rgba(42, 31, 61, 0.16);
+    background-color: #FFF;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--comps-cream-dark);
+    min-height: 42px;
+  }
+  .theinmag-comps__modal-field textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+  .theinmag-comps__modal-field input:focus,
+  .theinmag-comps__modal-field select:focus,
+  .theinmag-comps__modal-field textarea:focus {
+    outline: none;
+    border-color: var(--comps-purple-dark);
+    box-shadow: 0 0 0 3px rgba(93, 58, 122, 0.16);
+  }
+  .theinmag-comps__modal-submit {
+    margin-top: 6px;
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    background-color: var(--comps-yellow);
+    color: var(--comps-cream-dark);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 14px;
+    border-radius: 32px;
+    box-shadow: 0 4px 0 #D4A02E;
+    min-height: 48px;
+  }
+  .theinmag-comps__modal-submit:hover,
+  .theinmag-comps__modal-submit:focus-visible {
+    outline: none;
+    background-color: var(--comps-purple-dark);
+    color: #FFF;
+  }
+  .theinmag-comps__modal-success {
+    margin: 8px 0 0;
+    text-align: center;
+    color: var(--comps-mint-dark);
+    font-weight: 600;
+  }
+
+  /* ================================================================
+     Mobile-specific tweaks (specificity-prefix pattern - s3.1)
+  ================================================================ */
+  @media (max-width: 749px) {
+    .theinmag-comps .theinmag-comps__choice {
+      padding: clamp(28px, 6vw, 48px) clamp(14px, 4vw, 24px);
+    }
+    .theinmag-comps .theinmag-comps__choice-btn {
+      transform: rotate(0deg);
+    }
+    .theinmag-comps .theinmag-comps__featured {
+      min-height: 320px;
+    }
+    .theinmag-comps .theinmag-comps__missed-inner {
+      padding: clamp(24px, 5vw, 36px) clamp(16px, 4vw, 24px);
+    }
+    .theinmag-comps .theinmag-comps__modal-row {
+      grid-template-columns: 1fr;
+    }
+    .theinmag-comps .theinmag-comps__list {
+      scroll-snap-type: none;
+    }
+  }
+
+  /* Reduced-motion blanket */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-comps__choice-btn,
+    .theinmag-comps__tile,
+    .theinmag-comps__featured-card,
+    .theinmag-comps__missed-btn,
+    .theinmag-comps__modal-submit { transition: none; }
+    .theinmag-comps__choice-btn:hover,
+    .theinmag-comps__choice-btn:focus-visible { transform: none; }
+    .theinmag-comps__tile:hover { transform: none; }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-comps]');
+    if (!root) return;
+
+    /* ------------------------------------------------------------------
+       Filter logic - search + 5 selects + 3 choice buttons all converge
+       on a single applyFilters() function. Each tile carries data-tags
+       (space-separated) and data-search (lowercase blob).
+       ------------------------------------------------------------------ */
+    var tiles = root.querySelectorAll('.theinmag-comps__tile');
+    var listEmpty = root.querySelector('[data-list-empty]');
+    var searchInput = root.querySelector('[data-comps-search]');
+    var selectCategory = root.querySelector('[data-filter="category"]');
+    var selectAge = root.querySelector('[data-filter="age"]');
+    var selectState = root.querySelector('[data-filter="state"]');
+    var selectCost = root.querySelector('[data-filter="cost"]');
+    var selectFormat = root.querySelector('[data-filter="format"]');
+
+    function applyFilters() {
+      var q = (searchInput.value || '').trim().toLowerCase();
+      var cat = selectCategory.value;
+      var age = selectAge.value;
+      var st  = selectState.value;
+      var cost = selectCost.value;
+      var fmt = selectFormat.value;
+      var visible = 0;
+
+      tiles.forEach(function (tile) {
+        var tags = (tile.getAttribute('data-tags') || '').split(/\s+/);
+        var blob = tile.getAttribute('data-search') || '';
+        var ok = true;
+        if (q && blob.indexOf(q) === -1) ok = false;
+        if (ok && cat !== 'all' && tags.indexOf(cat) === -1) ok = false;
+        if (ok && age !== 'all' && tags.indexOf(age) === -1 && tags.indexOf('all-ages') === -1) ok = false;
+        if (ok && st  !== 'all' && tags.indexOf(st)  === -1) ok = false;
+        if (ok && cost !== 'all' && tags.indexOf(cost) === -1) ok = false;
+        if (ok && fmt !== 'all' && tags.indexOf(fmt) === -1) ok = false;
+        tile.hidden = !ok;
+        if (ok) visible++;
+      });
+      if (listEmpty) listEmpty.hidden = visible > 0;
+    }
+
+    /* Debounced search */
+    var searchTimer = null;
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(applyFilters, 200);
+      });
+    }
+    [selectCategory, selectAge, selectState, selectCost, selectFormat].forEach(function (el) {
+      if (el) el.addEventListener('change', applyFilters);
+    });
+
+    /* Choice buttons - set the category dropdown then bounce off */
+    var choiceBtns = root.querySelectorAll('[data-choice]');
+    var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    choiceBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var c = btn.getAttribute('data-choice');
+        if (c === 'art') selectCategory.value = 'art';
+        else if (c === 'writing') selectCategory.value = 'writing';
+        else selectCategory.value = 'all';
+        applyFilters();
+
+        var stage = root.querySelector('.theinmag-comps__stage');
+        var doScroll = function () {
+          if (stage) stage.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+        };
+        if (prefersReducedMotion) {
+          doScroll();
+        } else {
+          btn.classList.add('is-leaving');
+          setTimeout(function () {
+            doScroll();
+            setTimeout(function () { btn.classList.remove('is-leaving'); }, 800);
+          }, 220);
+        }
+      });
+    });
+
+    /* Clear filters */
+    var clearBtn = root.querySelector('[data-clear-filters]');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        if (searchInput) searchInput.value = '';
+        [selectCategory, selectAge, selectState, selectCost, selectFormat].forEach(function (s) {
+          if (s) s.value = 'all';
+        });
+        applyFilters();
+      });
+    }
+
+    /* Mobile filter drawer toggle */
+    var filterBar = root.querySelector('[data-filter-bar]');
+    var filterToggle = root.querySelector('[data-filter-toggle]');
+    if (filterBar && filterToggle) {
+      filterToggle.addEventListener('click', function () {
+        var open = !filterBar.classList.contains('is-open');
+        filterBar.classList.toggle('is-open', open);
+        filterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    }
+
+    /* ------------------------------------------------------------------
+       Featured tile rotation - 10s, crossfade, pause on hover.
+       ------------------------------------------------------------------ */
+    var featuredStack = root.querySelector('[data-featured-stack]');
+    if (featuredStack) {
+      var featuredCards = featuredStack.querySelectorAll('.theinmag-comps__featured-card');
+      var current = 0;
+      var rotationInterval = null;
+      var paused = false;
+
+      function rotate() {
+        if (paused || featuredCards.length < 2) return;
+        featuredCards[current].classList.remove('is-active');
+        current = (current + 1) % featuredCards.length;
+        featuredCards[current].classList.add('is-active');
+      }
+      function start() { rotationInterval = setInterval(rotate, 10000); }
+      function stop() { if (rotationInterval) { clearInterval(rotationInterval); rotationInterval = null; } }
+
+      featuredStack.addEventListener('mouseenter', function () { paused = true; });
+      featuredStack.addEventListener('mouseleave', function () { paused = false; });
+
+      if (featuredCards.length > 1 && !prefersReducedMotion) start();
+    }
+
+    /* ------------------------------------------------------------------
+       Suggest-a-comp modal
+       ------------------------------------------------------------------ */
+    var modal = root.querySelector('[data-suggest-modal]');
+    var openBtn = root.querySelector('[data-open-suggest]');
+    var closeEls = modal ? modal.querySelectorAll('[data-modal-close]') : [];
+    var characterEl = modal ? modal.querySelector('[data-comps-character]') : null;
+    var characterLoaded = false;
+
+    function chooseCharacter() {
+      if (!characterEl || characterLoaded) return;
+      var pool = [];
+      for (var i = 1; i <= 3; i++) {
+        var s = characterEl.dataset['src-' + i];
+        if (s) {
+          pool.push({
+            src: s,
+            alt: characterEl.dataset['alt-' + i] || '',
+            attribution: characterEl.dataset['attribution-' + i] || ''
+          });
+        }
+      }
+      if (!pool.length) return;
+      var chosen = pool[Math.floor(Math.random() * pool.length)];
+      characterEl.style.backgroundImage = "url('" + chosen.src + "')";
+      if (chosen.alt) characterEl.setAttribute('aria-label', chosen.alt);
+      characterEl.classList.add('is-ready');
+      characterLoaded = true;
+    }
+
+    function openModal() {
+      if (!modal) return;
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      chooseCharacter();
+      var firstField = modal.querySelector('input, select, textarea');
+      if (firstField) setTimeout(function () { firstField.focus(); }, 100);
+    }
+    function closeModal() {
+      if (!modal) return;
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    closeEls.forEach(function (el) { el.addEventListener('click', closeModal); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal && !modal.hidden) closeModal();
+    });
+
+    /* Form submit - if no action set, prevent default and show success */
+    var form = modal ? modal.querySelector('[data-suggest-form]') : null;
+    var success = modal ? modal.querySelector('[data-modal-success]') : null;
+    if (form && !form.getAttribute('action')) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (success) {
+          success.hidden = false;
+          success.textContent = "thanks! your suggestion is in the queue. we'll add it next sweep.";
+        }
+        setTimeout(closeModal, 2400);
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "competitions",
+  "tag": "section",
+  "class": "theinmag-competitions-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Choice header"
+    },
+    {
+      "type": "text",
+      "id": "choice_heading",
+      "label": "Heading",
+      "default": "find your next aussie kids comp"
+    },
+    {
+      "type": "text",
+      "id": "choice_subhead",
+      "label": "Subhead (optional)",
+      "default": "real comps. all aussie. filter by age, state, field. pick one and dive in."
+    },
+    {
+      "type": "header",
+      "content": "List section"
+    },
+    {
+      "type": "text",
+      "id": "list_question",
+      "label": "List heading (H2 question)",
+      "default": "what competitions are open right now?"
+    },
+    {
+      "type": "header",
+      "content": "Stage backgrounds (rotated daily)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Three kid-art backgrounds rotate one-per-day across the page. Filenames are read from /assets/. Replace the defaults to swap any of them."
+    },
+    {
+      "type": "text",
+      "id": "bg_filename_1",
+      "label": "Background 1 filename",
+      "default": "section_background_competitions1.jpg"
+    },
+    {
+      "type": "text",
+      "id": "bg_filename_2",
+      "label": "Background 2 filename",
+      "default": "section_background_competitions2.jpg"
+    },
+    {
+      "type": "text",
+      "id": "bg_filename_3",
+      "label": "Background 3 filename",
+      "default": "section_background_competitions3.jpg"
+    },
+    {
+      "type": "header",
+      "content": "Suggest-a-comp modal"
+    },
+    {
+      "type": "textarea",
+      "id": "modal_copy",
+      "label": "Modal subtitle",
+      "default": "Adults only. Send the details and we'll verify and add it next sweep."
+    },
+    {
+      "type": "url",
+      "id": "suggest_form_action",
+      "label": "Form submit URL (optional)",
+      "info": "JotForm endpoint or similar. Leave blank to use the in-page success state."
+    },
+    {
+      "type": "header",
+      "content": "Modal kid characters (random of three)"
+    },
+    {
+      "type": "paragraph",
+      "content": "One of three characters is picked at random when the modal opens. Slight wobble animation. Filenames are read from /assets/."
+    },
+    { "type": "image_picker", "id": "character_1", "label": "Character 1 image" },
+    { "type": "text", "id": "character_1_filename", "label": "Character 1 fallback filename", "default": "character-comp-1.png" },
+    { "type": "text", "id": "character_1_alt", "label": "Character 1 alt text" },
+    { "type": "text", "id": "character_1_attribution", "label": "Character 1 attribution" },
+    { "type": "image_picker", "id": "character_2", "label": "Character 2 image" },
+    { "type": "text", "id": "character_2_filename", "label": "Character 2 fallback filename", "default": "character-comp-2.png" },
+    { "type": "text", "id": "character_2_alt", "label": "Character 2 alt text" },
+    { "type": "text", "id": "character_2_attribution", "label": "Character 2 attribution" },
+    { "type": "image_picker", "id": "character_3", "label": "Character 3 image" },
+    { "type": "text", "id": "character_3_filename", "label": "Character 3 fallback filename", "default": "character-comp-3.png" },
+    { "type": "text", "id": "character_3_alt", "label": "Character 3 alt text" },
+    { "type": "text", "id": "character_3_attribution", "label": "Character 3 attribution" },
+    {
+      "type": "header",
+      "content": "Footer line"
+    },
+    {
+      "type": "text",
+      "id": "last_updated",
+      "label": "Last updated label",
+      "default": "May 2026"
+    },
+    {
+      "type": "header",
+      "content": "FAQ schema (optional - powers FAQPage JSON-LD)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Add 4-5 question/answer pairs for AEO. Not rendered visually on this page; they feed FAQPage JSON-LD only."
+    },
+    { "type": "text", "id": "faq_q1", "label": "Q1", "default": "How do I enter a kids art competition in Australia?" },
+    { "type": "textarea", "id": "faq_a1", "label": "A1", "default": "Most Aussie kids' comps accept entries online or by post. Pick one from this page, click through to the official website, follow their entry steps. Some are entered by parents, some by schools." },
+    { "type": "text", "id": "faq_q2", "label": "Q2", "default": "Are these competitions free?" },
+    { "type": "textarea", "id": "faq_a2", "label": "A2", "default": "Most are free. The cost filter on this page splits them into free, paid, and paid-optional so you can sort by what fits." },
+    { "type": "text", "id": "faq_q3", "label": "Q3", "default": "Can my school enter on my child's behalf?" },
+    { "type": "textarea", "id": "faq_a3", "label": "A3", "default": "Yes. Use the format filter and pick school-entry to see comps that go through schools. Many also accept individual entries." },
+    { "type": "text", "id": "faq_q4", "label": "Q4", "default": "How often is this list updated?" },
+    { "type": "textarea", "id": "faq_a4", "label": "A4", "default": "Every fortnight. Closing dates and new comps are checked on a sweep cadence; the last-updated date sits at the bottom of this page." },
+    { "type": "text", "id": "faq_q5", "label": "Q5" },
+    { "type": "textarea", "id": "faq_a5", "label": "A5" }
+  ],
+  "presets": [
+    {
+      "name": "competitions",
+      "category": "Pages"
+    }
+  ]
+}
+{% endschema %}

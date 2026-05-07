@@ -83,7 +83,13 @@ Every section file in `sections/` with a `theinmag-` prefix. Use this as the ind
 
 | File | Status | Notes |
 |---|---|---|
-| `theinmag-article.liquid` | ● | Single-post template wired via `templates/article.json`. Two-column sticky hero (image left sticky, body right scrolls). Headroom site-header auto-hide. Quick read card (white tile, narrower than body, pulled from metafield). Top byline meta. About-author card with avatar+identity row + full-width bio. "Here's some more we thought you might enjoy" rec strip with 4-card waterfall (curated metafields → topic-match → recent → 4 placeholder cards). See [§9.4](#94-worked-recipe-single-article). |
+| `theinmag-article.liquid` | ● | Single-post template wired via `templates/article.json`. Two-column sticky hero (image left sticky, body right scrolls). Headroom site-header auto-hide. Quick read card (white tile, narrower than body, pulled from metafield). Top byline meta. About-author card with avatar+identity row + full-width bio. "Here's some more we thought you might enjoy" rec strip with 4-card waterfall (curated metafields → topic-match → recent → 4 placeholder cards). See [§9.4](#94-worked-recipe-single-article).
+
+### 1.5 Custom page templates
+
+| Section | Status | Notes |
+|---|---|---|
+| `theinmag-competitions.liquid` | ● | Single-section page wired via `templates/page.competitions.json` (handle `/pages/competitions`). Three-button entry choice → static-stage scroll zone (100vh on desktop, internal scroll on the 2/3 list column, 1/3 spotlight rotates every 10s) → missed-comp suggest modal → footer transition line. Data lives in `competitions-database.csv`; converted by `_tools/build-competitions-data.py` into `snippets/theinmag-competitions-data.liquid` (parallel arrays) + `assets/competitions.json` (reference, future migration map). Scroll-snap on the list. Mobile: stacks vertically with featured between buttons and list, filter dropdowns hide behind a "filters" pill. Modal kid character: random-of-three pool (`character-comp-1/2/3.png`) appears on modal open with slight wobble. JSON-LD: ItemList (69 Events) + BreadcrumbList + FAQPage. |
 
 ### 1.5 Templates
 
@@ -102,6 +108,7 @@ Every section file in `sections/` with a `theinmag-` prefix. Use this as the ind
 |---|---|---|
 | `theinmag-editorial-card.liquid` | `theinmag-blog-index-editorial`, `theinmag-blog-index-feature-banner` | Single card renderer. Variants: `feature` (full-width photo with white-text overlay + scrim), `large_left`, `right_small`, `bottom_small`. Inputs: `block` (Shopify block) + `variant`. |
 | `theinmag-article-rec-card.liquid` | `theinmag-article` | Single rec card for the "more for you" strip. Inputs: `rec` (Article object, required) + `blurb` (string, optional). Strips trailing period from `rec.title` for display (see [§4.1](#41-strip-trailing-period-from-lowercase-headings)). |
+| `theinmag-competitions-data.liquid` | `theinmag-competitions` | **Auto-generated** by `_tools/build-competitions-data.py` from `competitions-database.csv`. Defines parallel arrays (`comp_ids`, `comp_names`, `comp_pitches`, etc.) keyed by index, plus `spotlight_ids` for the rotating featured pool. Uses `include` (NOT `render`) on the consuming side so the arrays stay in scope. Pipe (`\|`) is the row delimiter; the script asserts no source field contains a pipe. Re-run the script after any CSV edit. |
 
 ---
 
@@ -713,7 +720,30 @@ When briefing a new page (or starting a new build session focused on a new page)
 - **Mobile archive flower:** scaled to 180% width, `top left` position, gradient fade pushed to 75-105vw so flower bleeds behind first tile.
 - **Locked:** "more for you." section heading is sentence-case Inter 600 ("here's some more we thought you might enjoy"), NOT Post Regular. Section identity "FIELD NOTES" wordmark stays Post Regular.
 
-### 10.4 Worked recipe: Single article (`/blogs/field-notes/[handle]`)
+### 10.4 Worked recipe: Competitions page (`/pages/competitions`)
+
+- **URL:** `/pages/competitions`
+- **Tier:** 2 (brand) — opens-doors hub for "kid creativity beyond theINmag"
+- **Audience:** parents + teachers (drives kids to enter; never collects kid contact details)
+- **Primary action:** click through to a comp's external website
+- **Colour pair:** cream (universal base) + per-tile category accent (art=coral, writing=mint, photo/film=sky, stem=purple, performance=peach, social-good=cream-warm)
+- **Anchoring kid creation:** `section_background_competitions1.jpg`, `section_background_competitions2.jpg`, `section_background_competitions3.jpg` (rotated daily by date — `'now' | date: '%j' | modulo: 3`). Cream wash at ~78% opacity overlays the bg so content reads cleanly on top.
+- **Sections:** announcement-bar → header → competitions (single section, multi-zone) → footer
+- **Static-stage technique:** desktop ≥990px sets the stage to `height: 100vh; max-height: 1000px`. The 2/3 list column has `overflow-y: auto` + `scroll-snap-type: y mandatory`. The 1/3 spotlight column and the filter bar are siblings inside the 100vh shell so they don't move while the user scrolls the list. Mobile collapses to natural page scroll (sticky/fixed bg in transformed ancestors is unreliable on iOS Safari, so we don't try). **iOS Safari verification still pending — flagged for Ryan to confirm before committing this build pattern more widely.**
+- **Mobile patterns:**
+  - [x] Specificity prefix `.theinmag-comps` on every mobile rule (§3.1)
+  - [x] Featured tile reorders BEFORE the list (flex `order: 1` on featured, `order: 2` on list-wrap)
+  - [x] Filter dropdowns hide behind a "filters" pill button (mobile drawer pattern)
+  - [x] Search input always visible above the pill
+  - [x] `scroll-snap-type: none` on mobile (snap is a desktop feel only)
+- **Data architecture:** Option C (CSV → JSON + Liquid snippet). 69 comps. Migration map to Option A (Shopify metaobjects) lives in `competitions-page-build-spec.md` — re-run the Python script if/when migrating. The JSON file in `/assets/` doubles as the canonical record for an eventual metaobjects bulk-import.
+- **Spotlight rotation:** admin-curated. Pool is the seven Tier-1 🟢 hot leads from the master MD. CSS opacity crossfade every 10s, paused on hover. Reduced motion = no rotation (first card shown statically).
+- **Suggest-comp modal:** lightbox with kid-character random-of-three (slight wobble, no scroll-pop — only fires on modal open). Adult-only fields by design. Form action defaults to in-page success state; a JotForm endpoint can be wired via section setting `suggest_form_action`.
+- **Schema:** ItemList of 69 Events + BreadcrumbList + FAQPage (4-5 Q+A pairs configured via section settings).
+- **Locked:** filter category slugs (`art / writing / photofilm / stem / performance / social-good`) match the Python script's `CATEGORY_MAP`. If you add a new category to the master CSV, update both the script's map AND the filter dropdown options in the section file.
+- **Build artefact:** `_tools/build-competitions-data.py` — single-source-of-truth converter. Re-run after any CSV change. Outputs `assets/competitions.json` (canonical) + `snippets/theinmag-competitions-data.liquid` (Liquid arrays).
+
+### 10.5 Worked recipe: Single article (`/blogs/field-notes/[handle]`)
 
 - **URL:** `/blogs/field-notes/[handle]`
 - **Tier:** 2 (brand)
@@ -798,5 +828,6 @@ This doc is read every session start. The mechanism:
 
 Newest at top. Each entry: date, commit hash (or "uncommitted"), one-line summary of what was added to this doc.
 
+- **2026-05-07** (uncommitted, third pass) — **Built `theinmag-competitions.liquid` + page template.** New custom-page section under [§1.5](#15-custom-page-templates). 69 Aussie kids' comps live in `competitions-database.csv`; a single-source converter (`_tools/build-competitions-data.py`) generates `assets/competitions.json` + `snippets/theinmag-competitions-data.liquid` (parallel-array Liquid via pipe-delimited splits — pattern documented in [§2 snippet catalog](#2-snippet-catalog)). Page recipe added at [§10.4](#104-worked-recipe-competitions-page-pagescompetitions). Static-stage technique (100vh + internal scroll on the list column) is the page's signature; iOS Safari verification still pending Ryan's in-browser check before we lean on this pattern elsewhere. Data architecture: Option C (ship-fast JSON + Liquid) per Ryan's call, with documented migration path to Option A (metaobjects). Spotlight rotation pool = 7 Tier-1 🟢 hot leads from the master MD; admin-curated per Ryan's call. Modal kid characters use the §4.4 random-of-three pattern but trigger on modal-open instead of scroll-pop (per Ryan: no characters elsewhere on this page). Mobile: featured tile reorders before list via flex `order`, filters hide behind a "filters" pill, scroll-snap off on phone widths.
 - **2026-05-07** (uncommitted, second pass) — **Added §9 Kid pattern library.** Per Ryan's prompt: every page or section that calls for a background, decorative surface, or texture should default to a kid creation pulled from the magazine — never synthetic geometric patterns or stock textures. Section captures: the trigger ("STOP and ask Ryan" before defaulting to flat colour), the existing `/assets/` library (blog-image-universal, section_background, HERO, character pools), naming convention going forward (`theinmag-pattern-[surface]-[descriptor]`), six implementation modes (top-anchored gradient blend, full-bleed, decorative corner peek, repeating tile, inline mid-content punctuation, image-on-image overlay), and a "when to ask, when to grab" decision tree (card covers safe to grab; section/hero anchors require Ryan-yes). The Page Recipe template now has a separate "Anchoring kid pattern" slot (distinct from the hero kid creation) so it's checked every time a new page is briefed.
 - **2026-05-07** (uncommitted) — **Initial creation.** Captures the system state through commit `26d0a427` (Field notes article template + mobile blog index polish). Section catalog covers all 17 theinmag sections, 2 snippets, the 5 custom templates. Mobile playbook records the specificity-prefix pattern (real bug that cost a session round-trip), full-bleed negative-margin trick, headroom transform-target gotcha, scroll-snap rail recipe, flex-`order` reorder, and `vh` for hero height. Liquid section captures period-strip, namespace `field_notes`, articles[handle] indexing, kid-character random pool, schema gotchas, asset 1MB limit, Dawn `div:empty` rule. JS section captures headroom delta-anchoring, scroll-driven custom property pattern, React-friendly input setter for admin automation. Editorial voice cheat sheet covers all locked rules including the 2026-05-06 lowercase-no-period revision. Page recipes include the template + worked examples for homepage / blog index / single article.
