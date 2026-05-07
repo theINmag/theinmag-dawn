@@ -390,8 +390,8 @@
           </div>
         </aside>
 
-        {%- comment -%} ----- Compact missed-a-comp card under spotlight ----- {%- endcomment -%}
-        <div class="theinmag-comps__missed">
+        {%- comment -%} Desktop missed-a-comp - sits inside right-col under top pick. Hidden on mobile via CSS. {%- endcomment -%}
+        <div class="theinmag-comps__missed theinmag-comps__missed--desktop">
           <p class="theinmag-comps__missed-copy">missed a comp?</p>
           <button type="button" class="theinmag-comps__missed-btn" data-open-suggest>
             suggest one
@@ -400,6 +400,19 @@
       </div>
 
     </div>
+  </div>
+
+  {%- comment -%} ============================================================
+       Mobile missed-a-comp - lives OUTSIDE the static stage so it
+       sits below the list scroll on phone. Hidden on desktop via CSS.
+       Both copies share the [data-open-suggest] handler so the modal
+       opens from either.
+  ============================================================ {%- endcomment -%}
+  <div class="theinmag-comps__missed theinmag-comps__missed--mobile">
+    <p class="theinmag-comps__missed-copy">missed a comp?</p>
+    <button type="button" class="theinmag-comps__missed-btn" data-open-suggest>
+      suggest one
+    </button>
   </div>
 
   {%- comment -%} ============================================================
@@ -665,16 +678,26 @@
 
   /* Tagline replaces the old H1. Inter 700 (matches blog title register
      per feedback_inter_for_blog_titles), sentence-case lowercase, periods
-     preserved as deliberate beats. */
+     preserved as deliberate beats.
+     Mobile: nowrap + smaller font so it fits on one line per Ryan's
+     review. On phones smaller than ~360px the line may slightly overflow
+     horizontally - accepted trade-off vs an awkward 2-line wrap. */
   .theinmag-comps__tagline {
     margin: 0;
-    max-width: 36ch;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
-    font-size: clamp(20px, 2.4vw, 30px);
+    font-size: clamp(13px, 3.6vw, 30px);
     line-height: 1.25;
     letter-spacing: -0.01em;
     color: var(--comps-cream-dark);
+    white-space: nowrap;
+  }
+  @media (min-width: 750px) {
+    .theinmag-comps__tagline {
+      max-width: 36ch;
+      white-space: normal;
+      font-size: clamp(20px, 2.4vw, 30px);
+    }
   }
 
   .theinmag-comps__choice-grid {
@@ -815,8 +838,13 @@
 
   /* ================================================================
      Section 2 + 3 - Static stage
-     Mobile-first: natural height, scroll list flows in document.
-     Desktop (>=990px): exactly 100vh, internal scroll on the list.
+     Mobile + desktop both run the same static-stage pattern: stage is
+     100vh tall, bg covers exactly that viewport (no stretching), and
+     the list scrolls INTERNALLY. When the user reaches end of list the
+     scroll bubbles up to the page so the missed-comp card + footer
+     come into view. Per Ryan's review the mobile bg was visibly
+     stretched + pixelated because the previous mobile stage was tall;
+     locking to 100vh fixes it.
   ================================================================ */
   .theinmag-comps__stage {
     position: relative;
@@ -825,7 +853,17 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    padding: clamp(20px, 3vw, 32px) clamp(12px, 2vw, 24px) clamp(40px, 5vw, 64px);
+    /* Mobile-first: 100vh stage as a flex column so we can flex-order
+       featured (top pick) → filter bar → list. With display:contents on
+       the inner .grid + .right-col wrappers below, those nested
+       elements become direct flex children of the stage. */
+    height: 100vh;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 2vw, 18px);
+    padding: clamp(14px, 3vw, 24px) clamp(12px, 3vw, 22px);
+    overflow: hidden;
   }
   /* Cream wash on top of bg so content reads cleanly. Slightly less
      opaque than before so the kid pattern shows through more, per Ryan's
@@ -841,22 +879,19 @@
 
   /* Stage hidden until a choice is made */
   .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__stage,
-  .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__updated {
+  .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__updated,
+  .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__missed--mobile {
     display: none;
   }
 
   @media (min-width: 990px) {
-    /* Desktop: lock the stage to one screen and run the list with
-       internal scroll. The bg + filter bar + featured tile do NOT move
-       because they all live inside the 100vh shell. */
+    /* Desktop: switch stage to grid so filter-bar + 2-col grid layout works */
     .theinmag-comps__stage {
-      height: 100vh;
-      max-height: 1000px; /* Prevent ridiculous heights on giant monitors */
       display: grid;
       grid-template-rows: auto 1fr;
+      max-height: 1000px;
       gap: clamp(12px, 1.4vw, 20px);
       padding: clamp(16px, 1.8vw, 24px) clamp(20px, 2.4vw, 36px) clamp(20px, 2vw, 28px);
-      overflow: hidden;
     }
   }
 
@@ -983,13 +1018,26 @@
   /* ================================================================
      The grid: list (2/3) + featured (1/3) on desktop
   ================================================================ */
+  /* Mobile flatten: stage becomes a flex column with featured (top
+     pick) → filter bar → list. We use display:contents on the inner
+     wrappers so the layout participates directly in the stage's flex
+     order. Per Ryan's spec: user sees the top pick first, scrolls a
+     touch to reveal filters, then the list takes over with internal
+     scroll until end-of-list bubbles back to page scroll. */
   .theinmag-comps__grid {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(20px, 2.4vw, 32px);
-    min-height: 0;
+    display: contents;
   }
+  .theinmag-comps__right-col {
+    display: contents;
+  }
+
+  /* Mobile order via flex: featured (1) → filter (2) → list (3) */
+  .theinmag-comps__featured { order: 1; flex: 0 0 auto; max-height: 35vh; }
+  .theinmag-comps__filter-bar { order: 2; }
+  .theinmag-comps__list-wrap { order: 3; flex: 1 1 auto; min-height: 0; }
+
   @media (min-width: 990px) {
+    /* Desktop reverts to the 2-column grid: list (2/3) | right-col (1/3) */
     .theinmag-comps__grid {
       display: grid;
       grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -997,24 +1045,16 @@
       min-height: 0;
       overflow: hidden;
     }
-  }
-
-  /* Mobile order: right-col first (featured + missed), then list */
-  .theinmag-comps__right-col { order: 1; }
-  .theinmag-comps__list-wrap { order: 2; }
-  @media (min-width: 990px) {
-    .theinmag-comps__list-wrap { order: 1; }
-    .theinmag-comps__right-col { order: 2; }
-  }
-
-  /* Right column wraps the rotating spotlight + the compact
-     missed-a-comp card stacked underneath. On desktop both fit in
-     the 1/3 column inside the 100vh stage. */
-  .theinmag-comps__right-col {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(12px, 1.4vw, 18px);
-    min-height: 0;
+    .theinmag-comps__right-col {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(12px, 1.4vw, 18px);
+      min-height: 0;
+      order: 2;
+    }
+    .theinmag-comps__featured { order: initial; max-height: none; }
+    .theinmag-comps__filter-bar { order: initial; }
+    .theinmag-comps__list-wrap { order: 1; flex: initial; }
   }
 
   /* ----- List wrapper + heading ----- */
@@ -1034,28 +1074,35 @@
     opacity: 0.75;
   }
 
-  /* ----- The scrollable list ----- */
+  /* ----- The scrollable list - internal scroll on BOTH mobile + desktop ----- */
   .theinmag-comps__list {
     display: flex;
     flex-direction: column;
-    gap: clamp(12px, 1.4vw, 18px);
+    gap: clamp(10px, 1.4vw, 18px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* When scroll reaches end, page scroll resumes - revealing missed card + footer */
+    overscroll-behavior-y: auto;
+    padding: 4px 6px 16px 4px;
+    flex: 1 1 auto;
+    min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(42, 31, 61, 0.3) transparent;
   }
+  .theinmag-comps__list::-webkit-scrollbar { width: 8px; }
+  .theinmag-comps__list::-webkit-scrollbar-track { background: transparent; }
+  .theinmag-comps__list::-webkit-scrollbar-thumb {
+    background: rgba(42, 31, 61, 0.25);
+    border-radius: 8px;
+  }
+
+  /* Scroll-snap on desktop only - on mobile touch-snap can feel
+     finicky with the small viewport, so plain smooth scroll wins. */
   @media (min-width: 990px) {
     .theinmag-comps__list {
-      overflow-y: auto;
-      overflow-x: hidden;
       scroll-snap-type: y mandatory;
       padding: 4px 8px 24px 4px;
-      flex: 1 1 auto;
-      min-height: 0;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(42, 31, 61, 0.3) transparent;
-    }
-    .theinmag-comps__list::-webkit-scrollbar { width: 8px; }
-    .theinmag-comps__list::-webkit-scrollbar-track { background: transparent; }
-    .theinmag-comps__list::-webkit-scrollbar-thumb {
-      background: rgba(42, 31, 61, 0.25);
-      border-radius: 8px;
     }
   }
 
@@ -1446,16 +1493,20 @@
   }
 
   /* ================================================================
-     Missed-a-comp card - sits inside the right column under the
-     top-pick rotation. Sharp corners + offset purple shadow give it a
-     stamp / sticky-note feel that distinguishes it from the rounded
-     tile language elsewhere on the page.
+     Missed-a-comp card - two copies render in markup:
+       --desktop: sits inside the right column under the top-pick
+                  rotation. Hidden on phone widths.
+       --mobile:  sits below the static stage, just above the footer.
+                  Hidden on desktop.
+     Both share styles. Sharp corners + offset purple shadow give it a
+     stamp / sticky-note feel distinct from the rounded tile language.
+     Narrower than the surrounding cards per Ryan's review.
   ================================================================ */
   .theinmag-comps__missed {
     flex: 0 0 auto;
     background-color: var(--comps-cream);
     border-radius: 0;
-    padding: clamp(12px, 1.4vw, 18px) clamp(14px, 1.6vw, 20px);
+    padding: clamp(10px, 1.2vw, 14px) clamp(12px, 1.4vw, 18px);
     text-align: center;
     box-shadow: 5px 5px 0 var(--comps-purple-dark);
     border: 1.5px solid var(--comps-cream-dark);
@@ -1464,6 +1515,23 @@
     justify-content: center;
     gap: clamp(8px, 1.4vw, 14px);
     flex-wrap: wrap;
+    /* Narrower than the spotlight + tile cards. Centered. */
+    max-width: 320px;
+    width: max-content;
+    margin: 0 auto;
+  }
+  /* Desktop variant - shown on >=990px, hidden everywhere else */
+  .theinmag-comps__missed--desktop { display: none; }
+  @media (min-width: 990px) {
+    .theinmag-comps__missed--desktop { display: flex; }
+  }
+  /* Mobile variant - shown <990px, hidden on desktop */
+  .theinmag-comps__missed--mobile {
+    margin-top: clamp(20px, 4vw, 32px);
+    margin-bottom: clamp(8px, 2vw, 16px);
+  }
+  @media (min-width: 990px) {
+    .theinmag-comps__missed--mobile { display: none; }
   }
   .theinmag-comps__missed-copy {
     margin: 0;
@@ -1697,14 +1765,40 @@
     .theinmag-comps .theinmag-comps__choice-btn {
       transform: rotate(0deg);
     }
+    /* Top-pick card on mobile - sized for 35vh cap (~270px on a 770px
+       phone), ensures the user sees enough but the list still has room
+       below to scroll. */
+    .theinmag-comps .theinmag-comps__featured {
+      max-height: 30vh;
+    }
     .theinmag-comps .theinmag-comps__featured-stack {
-      min-height: 320px;
+      min-height: 0;
+      height: 100%;
+    }
+    .theinmag-comps .theinmag-comps__featured-card {
+      flex-direction: row; /* compact landscape on mobile */
+    }
+    .theinmag-comps .theinmag-comps__featured-cover {
+      flex: 0 0 38%;
+      min-height: 0;
+    }
+    .theinmag-comps .theinmag-comps__featured-letter {
+      font-size: clamp(48px, 10vw, 80px);
+    }
+    .theinmag-comps .theinmag-comps__featured-logo {
+      width: clamp(70px, 16vw, 110px);
+      height: clamp(70px, 16vw, 110px);
+    }
+    .theinmag-comps .theinmag-comps__featured-pitch {
+      -webkit-line-clamp: 2;
+      font-size: 12.5px;
+    }
+    .theinmag-comps .theinmag-comps__featured-cta {
+      padding: 6px 12px;
+      font-size: 12px;
     }
     .theinmag-comps .theinmag-comps__modal-row {
       grid-template-columns: 1fr;
-    }
-    .theinmag-comps .theinmag-comps__list {
-      scroll-snap-type: none;
     }
   }
 
