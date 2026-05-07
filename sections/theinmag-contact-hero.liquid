@@ -20,6 +20,12 @@
     assign bg_url = bg_filename | asset_url
   endif
 
+  assign heading_html = heading
+  capture emphasis_wrap
+    echo '<span class="theinmag-contact-hero__heading-emphasis">IN</span>'
+  endcapture
+  assign heading_html = heading_html | replace_first: 'IN', emphasis_wrap
+
   assign section_style = '--cth-pt: ' | append: section.settings.padding_top | append: 'px; --cth-pb: ' | append: section.settings.padding_bottom | append: 'px;'
   if bg_url != blank
     assign section_style = section_style | append: ' --cth-bg: url(' | append: bg_url | append: ');'
@@ -34,7 +40,7 @@
 >
   <div class="theinmag-contact-hero__inner">
     {%- if heading != blank -%}
-      <h1 id="theinmag-contact-hero-heading" class="theinmag-contact-hero__heading">{{ heading }}</h1>
+      <h1 id="theinmag-contact-hero-heading" class="theinmag-contact-hero__heading">{{ heading_html }}</h1>
     {%- endif -%}
 
     {%- if subhead != blank -%}
@@ -141,6 +147,19 @@
     text-wrap: balance;
   }
 
+  /* Brand-pun "IN" emphasis - slightly larger + yellow with a soft
+     ink shadow for legibility on the lavender / watercolour bg. Same
+     shape of treatment the homepage hero uses for its emphasis word. */
+  .theinmag-contact-hero__heading-emphasis {
+    display: inline-block;
+    font-size: 1.18em;
+    line-height: 1;
+    vertical-align: -0.04em;
+    color: var(--color-yellow, #F9C23C);
+    text-shadow: 0 1px 0 rgba(42, 31, 61, 0.35),
+                 0 0 1px rgba(42, 31, 61, 0.45);
+  }
+
   .theinmag-contact-hero__subhead {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
@@ -177,7 +196,7 @@
       "type": "textarea",
       "id": "subhead",
       "label": "Subhead",
-      "default": "We read every message. Reply within 2 days.",
+      "default": "We do our best to reply within two days.",
       "info": "Keep short - this needs to stay on one line down to Pixel 6 (412px) widths."
     },
     {
