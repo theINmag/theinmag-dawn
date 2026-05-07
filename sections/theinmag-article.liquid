@@ -49,6 +49,8 @@
 
   if author_type == 'tam'
     assign author_name = section.settings.tam_name | default: 'Tam'
+    assign author_legal_name = section.settings.tam_legal_name | default: 'Tam Gow'
+    assign author_person_id = section.settings.tam_person_id | default: '/our-story#tam'
     assign author_role = section.settings.tam_role
     assign author_bio = section.settings.tam_bio
     assign author_archive_url = section.settings.tam_archive_url
@@ -73,11 +75,15 @@
         echo kid_region
       endif
     endcapture
+    assign author_legal_name = blank
+    assign author_person_id = blank
     assign author_role = blank
     assign author_bio = blank
     assign author_archive_url = blank
   else
     assign author_name = section.settings.ryan_name | default: 'Ryan'
+    assign author_legal_name = section.settings.ryan_legal_name | default: 'Ryan Gow'
+    assign author_person_id = section.settings.ryan_person_id | default: '/our-story#ryan'
     assign author_role = section.settings.ryan_role
     assign author_bio = section.settings.ryan_bio
     assign author_archive_url = section.settings.ryan_archive_url
@@ -511,7 +517,14 @@
   {%- else -%}
     {
       "@type": "Person",
-      "name": {{ author_name | json }}
+      {%- comment -%}
+        @id consolidates the author entity across the site. name uses
+        the legal form (Ryan Gow / Tam Gow) for E-E-A-T entity
+        consolidation; the visible byline keeps the Ryan G. / Tam B.
+        editorial form via author_name.
+      {%- endcomment -%}
+      "@id": {{ author_person_id | prepend: root_url | json }},
+      "name": {{ author_legal_name | json }}
       {%- if author_role != blank -%}
         ,"jobTitle": {{ author_role | json }}
       {%- endif -%}
@@ -1341,7 +1354,22 @@
       "type": "text",
       "id": "ryan_name",
       "label": "Display name",
+      "info": "Editorial byline rendered on the post (e.g. Ryan G.).",
       "default": "Ryan G."
+    },
+    {
+      "type": "text",
+      "id": "ryan_legal_name",
+      "label": "Legal name (schema only)",
+      "info": "Used in Article JSON-LD author.name for E-E-A-T entity consolidation. Not visible on the page.",
+      "default": "Ryan Gow"
+    },
+    {
+      "type": "text",
+      "id": "ryan_person_id",
+      "label": "Person @id path (schema only)",
+      "info": "Anchor on /our-story that the Person entity resolves to. Combined with the storefront origin to form a full URL.",
+      "default": "/our-story#ryan"
     },
     {
       "type": "image_picker",
@@ -1395,7 +1423,22 @@
       "type": "text",
       "id": "tam_name",
       "label": "Display name",
+      "info": "Editorial byline rendered on the post (e.g. Tam B.).",
       "default": "Tam B."
+    },
+    {
+      "type": "text",
+      "id": "tam_legal_name",
+      "label": "Legal name (schema only)",
+      "info": "Used in Article JSON-LD author.name for E-E-A-T entity consolidation. Not visible on the page.",
+      "default": "Tam Gow"
+    },
+    {
+      "type": "text",
+      "id": "tam_person_id",
+      "label": "Person @id path (schema only)",
+      "info": "Anchor on /our-story that the Person entity resolves to. Combined with the storefront origin to form a full URL.",
+      "default": "/our-story#tam"
     },
     {
       "type": "image_picker",
