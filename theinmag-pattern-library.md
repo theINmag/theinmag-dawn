@@ -89,9 +89,9 @@ Every section file in `sections/` with a `theinmag-` prefix. Use this as the ind
 
 | Section | Status | Notes |
 |---|---|---|
-| `theinmag-competitions.liquid` | ● | Single-section page wired via `templates/page.competitions.json` (handle `/pages/competitions`). Three-button entry choice → static-stage scroll zone (100vh on desktop, internal scroll on the 2/3 list column, 1/3 spotlight rotates every 10s) → missed-comp suggest modal → footer transition line. Data lives in `competitions-database.csv`; converted by `_tools/build-competitions-data.py` into `snippets/theinmag-competitions-data.liquid` (parallel arrays) + `assets/competitions.json` (reference, future migration map). Scroll-snap on the list. Mobile: stacks vertically with featured between buttons and list, filter dropdowns hide behind a "filters" pill. Modal kid character: random-of-three pool (`character-comp-1/2/3.png`) appears on modal open with slight wobble. JSON-LD: ItemList (69 Events) + BreadcrumbList + FAQPage. |
+| `theinmag-competitions.liquid` | ● | Single-section page wired via `templates/page.competitions.json` (handle `/pages/competitions`). **Quiz-gate UX**: lands the user on a full-screen choice screen with three portrait tiles (art / writing / everything), each rendering a random kid character from the 13-image pool. After a tile click, the gate animates out (`is-leaving`) and the static stage reveals. Stage = 100vh both mobile and desktop, internal scroll on the list, 3-card "top picks" rotation (10s crossfade). On mobile: stage flattens via `display: contents` so featured-pick → filter → list flow as flex-ordered children; missed-a-comp card moves outside the stage to sit just above the footer transition. **Data**: 65 comps in `competitions-database.csv`; `_tools/build-competitions-data.py` regenerates `snippets/theinmag-competitions-data.liquid` (parallel arrays) + `assets/competitions.json` (canonical record). **Logos**: per-comp logo files live in `assets/logos/<id>.<ext>`; section renders `<img>` when present, falls back to a category-coloured letter placeholder when not. **Modal**: adult-only suggest-a-comp form with a kid character picked from the same pool when the modal opens (slight wobble). **JSON-LD**: ItemList of 65 Events + BreadcrumbList + FAQPage. **SEO**: visually-hidden H1 + intro paragraph carry the keyword load; visible page is intentionally minimal. |
 
-### 1.5 Templates
+### 1.6 Templates
 
 | Template | Type | Notes |
 |---|---|---|
@@ -108,7 +108,7 @@ Every section file in `sections/` with a `theinmag-` prefix. Use this as the ind
 |---|---|---|
 | `theinmag-editorial-card.liquid` | `theinmag-blog-index-editorial`, `theinmag-blog-index-feature-banner` | Single card renderer. Variants: `feature` (full-width photo with white-text overlay + scrim), `large_left`, `right_small`, `bottom_small`. Inputs: `block` (Shopify block) + `variant`. |
 | `theinmag-article-rec-card.liquid` | `theinmag-article` | Single rec card for the "more for you" strip. Inputs: `rec` (Article object, required) + `blurb` (string, optional). Strips trailing period from `rec.title` for display (see [§4.1](#41-strip-trailing-period-from-lowercase-headings)). |
-| `theinmag-competitions-data.liquid` | `theinmag-competitions` | **Auto-generated** by `_tools/build-competitions-data.py` from `competitions-database.csv`. Defines parallel arrays (`comp_ids`, `comp_names`, `comp_pitches`, etc.) keyed by index, plus `spotlight_ids` for the rotating featured pool. Uses `include` (NOT `render`) on the consuming side so the arrays stay in scope. Pipe (`\|`) is the row delimiter; the script asserts no source field contains a pipe. Re-run the script after any CSV edit. |
+| `theinmag-competitions-data.liquid` | `theinmag-competitions` | **Auto-generated** by `_tools/build-competitions-data.py` from `competitions-database.csv`. Defines parallel arrays (`comp_ids`, `comp_names`, `comp_pitches`, `comp_logos`, etc.) keyed by index, plus `spotlight_ids` (locked 3-card editor-curated rotation, see [§8 brand-locked](#8-brand-locked-decisions)). Uses `include` (NOT `render`) on the consuming side so the arrays stay in scope. Pipe (`\|`) is the row delimiter; the script asserts no source field contains a pipe. **Re-run the script after any CSV edit OR any new logo file.** Logo files are auto-discovered by ID match in `assets/logos/`. |
 
 ---
 
@@ -220,7 +220,50 @@ When desktop has a complex grid layout and mobile needs to reorder elements with
 
 Used to put the hero feature card at the top of the blog index on mobile (Maude pattern), with intro + audience tabs sliding below it.
 
-### 3.6 Hero-image-fills-screen height
+### 3.6 Static-stage on mobile via `display: contents` flatten
+
+When desktop has a 2-column grid that needs to become a single ordered flex column on mobile (without restructuring markup), wrap the inner containers in `display: contents` so their children participate directly in the parent's flex layout. Then assign `order` on each grandchild to control the mobile stack order.
+
+```html
+<section class="stage">
+  <div class="filter-bar">…</div>
+  <div class="grid">
+    <div class="list-wrap">…</div>
+    <div class="right-col">
+      <div class="featured">…</div>
+      <div class="missed">…</div>
+    </div>
+  </div>
+</section>
+```
+
+```css
+/* Mobile (default): stage = flex column, inner wrappers vanish */
+.stage { display: flex; flex-direction: column; }
+.grid, .right-col { display: contents; }
+
+/* Order each grandchild as if it were a direct child of stage */
+.featured    { order: 1; }
+.filter-bar  { order: 2; }
+.list-wrap   { order: 3; flex: 1 1 auto; min-height: 0; }
+.missed      { order: 4; }
+
+/* Desktop: revert to nested grid layout */
+@media (min-width: 990px) {
+  .stage { display: grid; grid-template-rows: auto 1fr; }
+  .grid { display: grid; grid-template-columns: 2fr 1fr; }
+  .right-col { display: flex; flex-direction: column; }
+  .featured, .filter-bar, .list-wrap, .missed { order: initial; }
+}
+```
+
+Why this matters: mobile and desktop want different element orders, but you don't want two markup copies. `display: contents` removes the wrapper from layout while keeping its children — they bubble up into the parent's flex container.
+
+Reference implementation: `theinmag-competitions.liquid` uses this to put the top-pick card above the search/filter row on mobile while keeping the 2-column grid on desktop. Without it the pattern would require duplicate markup or absolute positioning.
+
+Caveat: `display: contents` removes accessibility roles too. If the wrapper had a `role` attribute or was an aria landmark, you lose it. For purely-presentational wrappers (the case in the competitions section), no concern.
+
+### 3.7 Hero-image-fills-screen height
 
 To make a hero image take a specific viewport-height proportion (e.g., "75% of the phone screen so the next section's heading just peeks below"), use `height: Xvh` not `aspect-ratio`. Aspect ratio ties height to width and varies by phone width. `vh` is consistent.
 
@@ -299,7 +342,9 @@ Same rule applies to any array index: `arr[var | filter]` fails, `arr[var]` work
 
 ### 4.4 Random-pool selection (kid characters)
 
-For a pool of N images where one is picked at page load, store URLs as `data-` attributes and pick in JS:
+For a pool of N images where one is picked at page load, store URLs as `data-` attributes and pick in JS. Two variants in the codebase:
+
+**Variant A — small fixed pool (≤3) defined via section settings**
 
 ```liquid
 <span
@@ -324,7 +369,35 @@ if (pool.length) {
 }
 ```
 
-Reference implementation: `sections/theinmag-mission.liquid` (with scroll-pop animation). Static variant in `sections/theinmag-article.liquid` for kid contributor avatars. See `reference_kid_character_pattern` memory.
+Reference: `sections/theinmag-mission.liquid` (with scroll-pop animation). Static variant in `sections/theinmag-article.liquid` for kid contributor avatars. See `reference_kid_character_pattern` memory.
+
+**Variant B — bigger pool (N up to 30) defined by filename convention + count setting**
+
+When the pool is large enough that listing each one in section settings is annoying admin UX, expose a single integer `character_count` setting and let Liquid iterate, building URLs from a known filename pattern.
+
+```liquid
+{%- liquid
+  assign character_count = section.settings.character_count | default: 13
+  assign character_prefix = section.settings.character_prefix | default: 'character-comp-'
+  assign character_ext = section.settings.character_ext | default: '.png'
+  capture character_attrs
+    for i in (1..character_count)
+      assign char_filename = character_prefix | append: i | append: character_ext
+      assign char_url = char_filename | asset_url
+      echo ' data-character-'
+      echo i
+      echo '="'
+      echo char_url
+      echo '"'
+    endfor
+  endcapture
+-%}
+<section data-theinmag-comps {{ character_attrs }}> ... </section>
+```
+
+JS reads them all into a pool. For multiple distinct picks (e.g. 3 different tiles each needing a unique character), use the Fisher-Yates shuffle in [§5.4](#54-distinct-pick-from-a-random-pool-fisher-yates).
+
+Reference: `sections/theinmag-competitions.liquid` (13-character pool, 3 distinct picks per visit + 1 modal pick). The convention `character-comp-1.png` … `character-comp-13.png` lets Ryan add more by dropping a file in `/assets/` and bumping the integer setting.
 
 ### 4.5 Schema setting gotchas (upload-blocking)
 
@@ -341,7 +414,42 @@ First two cascade into a misleading "section file does not exist" error. The oth
 
 Large MP4s and PNGs in `/assets/` crash theme sync with a misleading HTTP 413 error. Upload via Shopify admin Files (Settings → Files), then reference the CDN URL in section settings. See `feedback_shopify_files_api_for_large_media` memory.
 
-### 4.7 Dawn's `div:empty { display: none }` gotcha
+### 4.7 Filename-convention asset auto-discovery (no admin field)
+
+When the same set of assets needs to be linked per-record (e.g. a logo per competition), DON'T add a per-record image picker setting in the schema — that scales badly and clutters the admin. Instead: name asset files by the record ID (`<id>.<ext>`) and detect them in the build step OR Liquid.
+
+Build-step detection (Python):
+
+```python
+def find_logo_filename(comp_id):
+    if not comp_id:
+        return ""
+    logos_dir = os.path.join(ROOT, "assets", "logos")
+    for ext in (".png", ".jpg", ".jpeg", ".webp", ".svg", ".gif", ".ico"):
+        candidate = os.path.join(logos_dir, comp_id + ext)
+        if os.path.exists(candidate):
+            return "logos/" + comp_id + ext
+    return ""
+```
+
+Liquid-side render (with letter-placeholder fallback):
+
+```liquid
+<span class="tile-cover">
+  {%- assign comp_logo = comp_logos[idx] -%}
+  {%- if comp_logo != blank -%}
+    <img src="{{ comp_logo | asset_url }}" alt="" loading="lazy">
+  {%- else -%}
+    <span class="tile-letter">{{ comp_letter }}</span>
+  {%- endif -%}
+</span>
+```
+
+Why: replacing or adding a logo is just dropping the file in `assets/logos/<id>.png` (or jpg, etc) and re-running the build script. **Same-extension swaps don't even need a script run** — Shopify's asset URL versioning bumps automatically.
+
+Reference: `_tools/build-competitions-data.py` (`find_logo_filename` helper) + `sections/theinmag-competitions.liquid` (cover render).
+
+### 4.8 Dawn's `div:empty { display: none }` gotcha
 
 `assets/base.css` has `div:empty { display: none }` which collapses any decorative background-image-only `<div>` layer. If you write a `<div>` whose only purpose is to hold a background image (no children, no text), bump specificity with a parent class to override:
 
@@ -413,7 +521,87 @@ Then in CSS, every effect reads from `--hero-progress`:
 
 Reference: `sections/theinmag-article.liquid`.
 
-### 5.3 React-friendly input setter (Shopify admin automation)
+### 5.3 Distinct-pick from a random pool (Fisher-Yates)
+
+When N elements each need a different random pick from the same pool (no duplicates allowed across the N), shuffle the pool and take the first N. Pick-each-independently is the obvious mistake — duplicates happen at random.
+
+```js
+function shuffleArray(arr) {
+  var out = arr.slice();
+  for (var i = out.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = out[i]; out[i] = out[j]; out[j] = tmp;
+  }
+  return out;
+}
+
+var pool = getCharacterPool(); // pool of 13 URLs
+var slots = root.querySelectorAll('[data-choice-character]'); // 3 tiles
+var distinct = shuffleArray(pool).slice(0, slots.length);
+slots.forEach(function (el, idx) {
+  if (distinct[idx]) el.style.backgroundImage = "url('" + distinct[idx] + "')";
+});
+```
+
+Reference: `sections/theinmag-competitions.liquid` choice-tile character placement. Modal character still picks independently from the full pool — overlap with a tile is acceptable in that flow because they don't appear together.
+
+Bug Ryan caught (and the reason this pattern exists): the original implementation called `pickRandom(pool)` once per tile, so two tiles could end up with the same character. Always think about whether the picks must be distinct *across* the N.
+
+### 5.4 Choice-gate state machine (CSS-driven show/hide)
+
+Two-screen flows (e.g. "pick a category" → "browse the category") can be modelled as a single section with a `data-state` attribute and CSS rules that toggle visibility. Avoid duplicate templates or routing.
+
+```html
+<section data-theinmag-comps data-choice-state="choosing">
+  <header class="choice"> ... </header>
+  <div class="stage"> ... </div>
+</section>
+```
+
+```css
+.theinmag-comps[data-choice-state="chosen"] .choice { display: none; }
+.theinmag-comps[data-choice-state="choosing"] .stage { display: none; }
+
+/* Animate the leaving screen first, then JS flips the state */
+.choice.is-leaving {
+  opacity: 0;
+  transform: translateY(-24px) scale(0.98);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+```
+
+```js
+function commitChoice(category) {
+  // 1. Apply category filter
+  // 2. Run the bounce-out animation
+  choiceSection.classList.add('is-leaving');
+  // 3. Flip state after the animation completes
+  setTimeout(function () { root.dataset.choiceState = 'chosen'; }, 350);
+}
+```
+
+Reference: `sections/theinmag-competitions.liquid`. Page lands at `choosing`, transitions to `chosen` on tile click. Default-on-load is always `choosing` — refreshes restart the gate. If you ever need persistence across reloads, hook localStorage in the JS, but the simple "every visit starts fresh" UX has tested well so far.
+
+### 5.5 Sticky-header-aware scrollTo
+
+When JS scrolls the page to a target element, account for the sticky site header so the target lands BELOW the header, not behind it.
+
+```js
+function scrollToBelowHeader(targetEl) {
+  var header = document.querySelector('.theinmag-header-section');
+  var headerH = header ? header.offsetHeight : 0;
+  var top = targetEl.getBoundingClientRect().top + window.pageYOffset - headerH;
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+}
+```
+
+Why this matters: `.theinmag-header-section` is `position: sticky` (see [§3.3](#33-headroom-auto-hide-header-on-scroll) for related). When you scroll the page so a section's top sits at viewport y=0, the sticky header overlays the top ~80px. Anything in that band is hidden.
+
+Reference: `sections/theinmag-competitions.liquid` `commitChoice()`. Without the headerH subtraction, the filter bar landed behind the header after a category pick — Ryan caught this in review.
+
+### 5.6 React-friendly input setter (Shopify admin automation)
 
 Shopify admin React inputs ignore plain `input.value = ...` writes. Use the native value setter:
 
@@ -473,12 +661,83 @@ Three positions: Home → Field notes → [Article title]. Full URLs (use `reque
 
 The Quick read paragraph is the densest answer at the top of the post and is what AI engines quote. Reuse it as `description` in Article schema AND as the `<meta name="description">`. Same dense paragraph in three places (visible, schema, meta) → strong AEO signal. See `convention_quick_answer_block` memory.
 
-### 6.4 Existing schema implementations
+### 6.4 Visually-hidden keyword-rich copy for SEO
+
+When a page's visible chrome is intentionally minimal (e.g. the competitions choice screen — three big tiles + a tagline, nothing else above the fold), Google needs more text to rank for parent search queries. The fix: keep the visible page minimal, AND emit a richly-keyworded H1 + intro paragraph in the markup but visually hide them. Google reads them, users don't see them, no UX impact.
+
+```liquid
+<header class="choice">
+  {%- comment -%} Indexable but not visible {%- endcomment -%}
+  <h1 class="visually-hidden">Australian kids' competitions to enter in 2026</h1>
+  <p class="visually-hidden">A free directory of {{ comp_size }} real Australian
+    competitions for kids in 2026 - art competitions, writing competitions,
+    photography and film, STEM and maths, performance and music, and social good.
+    Filter by age (4-6, 7-9, 10-12, 13-16), state (NSW, VIC, QLD, WA, SA, TAS,
+    NT, ACT, national), entry cost (free, paid, paid-optional) and format
+    (online, postal, school-entry, individual, team). Updated monthly.</p>
+
+  {%- comment -%} The visible UI {%- endcomment -%}
+  <p class="tagline">{{ tagline_text }}</p>
+  <div class="choice-grid"> ... </div>
+</header>
+```
+
+Pair with a per-page `meta_description` set in admin (via the page's "Search engine listing" panel) that mirrors the same keywords in 150-160 chars. The combination — visible tagline + hidden H1/intro + meta description — gives Google three keyword-aligned signals without compromising the visual minimalism.
+
+Important: this is an established SEO pattern, not keyword stuffing. The hidden text matches the page's actual content (the categories, ages, states, costs are all real filters). Google penalises hidden text only when it's *unrelated* to the visible content.
+
+Reference: `sections/theinmag-competitions.liquid` (visually-hidden H1 + intro near top of choice section).
+
+### 6.5 Auto-generated ItemList JSON-LD from a data array
+
+When a page presents a directory of items (competitions, products, events), emit `@type: ItemList` JSON-LD with each item as an `Event` (or `Product` etc) so Google can show the list as a rich SERP feature.
+
+```liquid
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Australian kids' competitions 2026",
+  "numberOfItems": {{ comp_size }},
+  "itemListElement": [
+    {%- for id in comp_ids -%}
+      {%- assign idx = forloop.index0 -%}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.index }},
+        "item": {
+          "@type": "Event",
+          "name": {{ comp_names[idx] | json }},
+          "description": {{ comp_pitches[idx] | json }},
+          "url": {{ comp_websites[idx] | json }}
+          {%- if comp_closing_dates[idx] contains '-' -%}
+          ,"endDate": {{ comp_closing_dates[idx] | json }}
+          {%- endif -%}
+          ,"location": { "@type": "Place", "name": {{ comp_wheres[idx] | json }} }
+          ,"offers": {
+            "@type": "Offer",
+            "price": "{% if comp_cost_slugs[idx] == 'free' %}0{% else %}varies{% endif %}",
+            "priceCurrency": "AUD"
+          }
+        }
+      }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ]
+}
+</script>
+```
+
+Use the `| json` filter on every dynamic value — it handles quote-escaping and Unicode safely. Conditional fields (e.g. `endDate`) should only emit when the underlying data is valid (here: only when the closing date contains a hyphen, indicating an ISO date rather than "TBC").
+
+Reference: `sections/theinmag-competitions.liquid`. Combined with the `BreadcrumbList` and `FAQPage` schemas on the same page, the result is dense structured data that AEO crawlers (GPTBot, ClaudeBot, PerplexityBot, Googlebot-Extended) consistently cite.
+
+### 6.6 Existing schema implementations
 
 | Section | Schema |
 |---|---|
 | `theinmag-faq.liquid` | FAQPage |
 | `theinmag-article.liquid` | Article + BreadcrumbList |
+| `theinmag-competitions.liquid` | ItemList (65 Events) + BreadcrumbList + FAQPage |
 | (homepage / our-story when built) | Organisation + Person (Ryan/Tam) |
 
 ---
@@ -535,6 +794,13 @@ Compact reference. Each is a "do not deviate without explicit Ryan instruction."
 | Image reuse rule: anything in a hero on a page can't also appear as a blog/product card on the same page. | `feedback_no_image_reuse_same_page` |
 | Section bg-color matches kid-art ground (don't re-export artwork to fight bg). | `feedback_match_section_bg_to_artwork_ground` |
 | White-on-scrim over coloured pills on photographic surfaces. | `feedback_premium_photo_text` |
+| **"Top picks"** for the rotating editor-curated comp card — NOT "spotlight" (too generic), NOT "featured" (sounds like in-magazine endorsement), NOT "sponsored" (paid-placement implication). Plural "top picks" signals a rotating collection without endorsement. | Competitions session 2026-05-07 |
+| **Quiz-gate UX for content discovery**: when a directory has 3 broad axes the user can pick from upfront (e.g. art / writing / everything), use a full-screen choice screen as the first interaction rather than dumping the whole list. The choice fades out, the directory reveals. State machine via `data-choice-state` (see [§5.4](#54-choice-gate-state-machine-css-driven-show-hide)). | Competitions session |
+| **Top-pick rotation cap = 3 cards**, 10s crossfade. More than 3 means the user waits too long for a card they saw earlier to come back. Hardcoded order in `_tools/build-competitions-data.py` (`SPOTLIGHT_ORDER`) so the rotation order is editorial, not auto-derived. | Competitions session |
+| **Logos render as `<img>` when the file exists, else letter placeholder.** Logo files live in `assets/logos/<id>.<ext>`; auto-discovered by ID match. Replacements via same-extension swap need no rebuild; new logos or extension changes need `python3 _tools/build-competitions-data.py`. | [§4.7](#47-filename-convention-asset-auto-discovery-no-admin-field) |
+| **Static-stage UX** = stage 100vh + internal-scroll on the list + sticky-feeling bg + missed/footer revealed on overscroll. Same on mobile + desktop. The bg image is daily-stable random across 3 pre-approved options. | [§3.6](#36-static-stage-on-mobile-via-display-contents-flatten) |
+| **Missed-a-comp card visual differentiator**: sharp corners + offset purple shadow (`5px 5px 0 var(--purple-dark)`) + thin dark border. Stands out against the rounded tile language elsewhere on the page. Card narrower than tiles (`max-width: 320px`, centred). | Competitions session |
+| **"Top picks" badge** (small cream pill with dark border, slight `-2deg` tilt) overlaid top-left of each rotating top-pick card cover. Editorial sticker, deliberately understated to avoid sponsored-content vibes. | Competitions session |
 
 ---
 
@@ -727,21 +993,37 @@ When briefing a new page (or starting a new build session focused on a new page)
 - **Audience:** parents + teachers (drives kids to enter; never collects kid contact details)
 - **Primary action:** click through to a comp's external website
 - **Colour pair:** cream (universal base) + per-tile category accent (art=coral, writing=mint, photo/film=sky, stem=purple, performance=peach, social-good=cream-warm)
-- **Anchoring kid creation:** `section_background_competitions1.jpg`, `section_background_competitions2.jpg`, `section_background_competitions3.jpg` (rotated daily by date — `'now' | date: '%j' | modulo: 3`). Cream wash at ~78% opacity overlays the bg so content reads cleanly on top.
+- **Anchoring kid creation:** `section_background_competitions1.jpg`, `_2.jpg`, `_3.jpg` — daily-stable random pick (`'now' | date: '%j' | modulo: 3`). Cream wash at ~55% opacity overlays the bg so content reads cleanly on top (Ryan asked for the pattern to come through more — was 0.82, now 0.55).
 - **Sections:** announcement-bar → header → competitions (single section, multi-zone) → footer
-- **Static-stage technique:** desktop ≥990px sets the stage to `height: 100vh; max-height: 1000px`. The 2/3 list column has `overflow-y: auto` + `scroll-snap-type: y mandatory`. The 1/3 spotlight column and the filter bar are siblings inside the 100vh shell so they don't move while the user scrolls the list. Mobile collapses to natural page scroll (sticky/fixed bg in transformed ancestors is unreliable on iOS Safari, so we don't try). **iOS Safari verification still pending — flagged for Ryan to confirm before committing this build pattern more widely.**
+- **Page UX is a quiz gate, not a directory dump:** user lands on a full-screen choice screen with three portrait tiles (art / writing / everything). After clicking, the gate animates out (`is-leaving` class, ~350ms) and the static stage reveals. State machine via `data-choice-state` attribute on the section root (`choosing` → `chosen`). See [§5.4](#54-choice-gate-state-machine-css-driven-show-hide).
+- **Static-stage technique:** stage = `height: 100vh; max-height: 100dvh` on **both** mobile and desktop. List has `overflow-y: auto` so it scrolls internally; when the user reaches the end, `overscroll-behavior-y: auto` lets page scroll resume so the missed-card and footer come into view. On desktop the stage is a 2-row grid (filter-bar + 2-col grid below); on mobile the stage is a flex column with `display: contents` flattening the inner wrappers (see [§3.6](#36-static-stage-on-mobile-via-display-contents-flatten)) so featured / filter / list become direct flex children with explicit `order` values (top-pick → filter → list).
 - **Mobile patterns:**
-  - [x] Specificity prefix `.theinmag-comps` on every mobile rule (§3.1)
-  - [x] Featured tile reorders BEFORE the list (flex `order: 1` on featured, `order: 2` on list-wrap)
-  - [x] Filter dropdowns hide behind a "filters" pill button (mobile drawer pattern)
-  - [x] Search input always visible above the pill
-  - [x] `scroll-snap-type: none` on mobile (snap is a desktop feel only)
-- **Data architecture:** Option C (CSV → JSON + Liquid snippet). 69 comps. Migration map to Option A (Shopify metaobjects) lives in `competitions-page-build-spec.md` — re-run the Python script if/when migrating. The JSON file in `/assets/` doubles as the canonical record for an eventual metaobjects bulk-import.
-- **Spotlight rotation:** admin-curated. Pool is the seven Tier-1 🟢 hot leads from the master MD. CSS opacity crossfade every 10s, paused on hover. Reduced motion = no rotation (first card shown statically).
-- **Suggest-comp modal:** lightbox with kid-character random-of-three (slight wobble, no scroll-pop — only fires on modal open). Adult-only fields by design. Form action defaults to in-page success state; a JotForm endpoint can be wired via section setting `suggest_form_action`.
-- **Schema:** ItemList of 69 Events + BreadcrumbList + FAQPage (4-5 Q+A pairs configured via section settings).
+  - [x] Specificity prefix `.theinmag-comps` on every mobile rule ([§3.1](#31-the-specificity-prefix-pattern-critical))
+  - [x] `display: contents` flatten on inner wrappers for stage flex order ([§3.6](#36-static-stage-on-mobile-via-display-contents-flatten))
+  - [x] Featured-card switches to landscape layout (image left, text right) inside a 30vh cap
+  - [x] Tagline `white-space: nowrap` + smaller font (clamp 13/3.6vw/30) so it stays one line at common phone widths
+  - [x] Missed-a-comp card has TWO markup copies: `--desktop` inside right-col, `--mobile` outside the stage just above the footer line. CSS toggles which shows
+  - [x] Filter dropdowns hide behind a "filters" pill button on phone widths
+- **Choice tile characters:** 13 PNG pool in `/assets/` (`character-comp-1.png` … `character-comp-13.png`). On page load, a Fisher-Yates shuffle picks 3 distinct ones for the three tiles ([§5.3](#53-distinct-pick-from-a-random-pool-fisher-yates)). Modal character picks independently from the same pool when the modal opens (slight wobble animation). Filename pattern surfaced as schema settings (`character_count`, `character_prefix`, `character_ext`) so adding more is a single integer change.
+- **Top-pick rotation:** locked to **3 cards** in fixed editorial order (Micador → Banabae → Spencil), 10s opacity crossfade, paused on hover. Order is hardcoded in `_tools/build-competitions-data.py` `SPOTLIGHT_ORDER`. Each card has a small "top picks" sticker badge (cream pill, dark border, -2deg tilt) overlaying the cover top-left.
+- **Tile cover render:** `<img>` when a logo file exists at `assets/logos/<id>.<ext>`, else a category-coloured letter placeholder. Auto-discovered by ID match in the build script ([§4.7](#47-filename-convention-asset-auto-discovery-no-admin-field)). Same logic for the top-pick cards (bigger logo, `clamp(120px, 16vw, 200px)`).
+- **Missed-a-comp card:** sharp corners + offset purple shadow + thin dark border, narrow (`max-width: 320px`, centred). Distinct from the rounded tile language so it stands out as a different type of CTA. On desktop sits inside the right column under the top-pick rotation; on mobile lives outside the stage, between the list end and the footer transition line.
+- **Data architecture:** Option C (CSV → JSON + Liquid snippet). **65 comps** currently. Migration map to Option A (Shopify metaobjects) lives in `competitions-page-build-spec.md`. The JSON file (`assets/competitions.json`) doubles as the canonical record.
+- **Suggest-comp modal:** lightbox with adult-only fields per CLAUDE.md. Modal kid character drawn from the same 13-pool. Form action defaults to in-page success state; a JotForm endpoint can be wired via section setting `suggest_form_action`.
+- **SEO**:
+  - Visible page is intentionally minimal (tagline + 3 tiles)
+  - Visually-hidden H1: "Australian kids' competitions to enter in 2026"
+  - Visually-hidden intro paragraph carries every keyword parents search for (categories, age ranges, all states, cost types, format types) — see [§6.4](#64-visually-hidden-keyword-rich-copy-for-seo)
+  - Page meta_description set in admin: "69 verified Australian kids' competitions for 2026..." (re-set when comp count changes)
+  - Page title in admin: "Australian kids' competitions 2026 - art, writing, photography, more"
+  - FAQ schema defaults are 5 keyword-aligned Q+A pairs targeting parent-search queries
+- **Schema:** ItemList of 65 Events + BreadcrumbList + FAQPage (see [§6.5](#65-auto-generated-itemlist-json-ld-from-a-data-array)).
+- **Sticky-header-aware scroll:** `commitChoice()` reads `.theinmag-header-section` offsetHeight and subtracts from the scroll target so the filter bar lands BELOW the sticky header, not behind it ([§5.5](#55-sticky-header-aware-scrollto)).
+- **Operational tools:**
+  - `_tools/build-competitions-data.py` — converts CSV → JSON + Liquid snippet. Re-run after any CSV change OR when a new logo file is added at a new extension
+  - `_tools/audit-competitions.py` — combined logo-fetcher + link-verifier. Walks each comp's website, pulls og:image / apple-touch-icon / favicon (priority order), saves to `assets/logos/<id>.<ext>`. Outputs `comps-logos.csv` + `comps-link-audit.csv` for triage
 - **Locked:** filter category slugs (`art / writing / photofilm / stem / performance / social-good`) match the Python script's `CATEGORY_MAP`. If you add a new category to the master CSV, update both the script's map AND the filter dropdown options in the section file.
-- **Build artefact:** `_tools/build-competitions-data.py` — single-source-of-truth converter. Re-run after any CSV change. Outputs `assets/competitions.json` (canonical) + `snippets/theinmag-competitions-data.liquid` (Liquid arrays).
+- **Launch-day checklist:** open the page in admin → Template dropdown will list `competitions` once Dawn is the live theme → pick it, save. Done. Until then, preview via `?view=competitions` URL parameter.
 
 ### 10.5 Worked recipe: Single article (`/blogs/field-notes/[handle]`)
 
@@ -828,6 +1110,7 @@ This doc is read every session start. The mechanism:
 
 Newest at top. Each entry: date, commit hash (or "uncommitted"), one-line summary of what was added to this doc.
 
-- **2026-05-07** (uncommitted, third pass) — **Built `theinmag-competitions.liquid` + page template.** New custom-page section under [§1.5](#15-custom-page-templates). 69 Aussie kids' comps live in `competitions-database.csv`; a single-source converter (`_tools/build-competitions-data.py`) generates `assets/competitions.json` + `snippets/theinmag-competitions-data.liquid` (parallel-array Liquid via pipe-delimited splits — pattern documented in [§2 snippet catalog](#2-snippet-catalog)). Page recipe added at [§10.4](#104-worked-recipe-competitions-page-pagescompetitions). Static-stage technique (100vh + internal scroll on the list column) is the page's signature; iOS Safari verification still pending Ryan's in-browser check before we lean on this pattern elsewhere. Data architecture: Option C (ship-fast JSON + Liquid) per Ryan's call, with documented migration path to Option A (metaobjects). Spotlight rotation pool = 7 Tier-1 🟢 hot leads from the master MD; admin-curated per Ryan's call. Modal kid characters use the §4.4 random-of-three pattern but trigger on modal-open instead of scroll-pop (per Ryan: no characters elsewhere on this page). Mobile: featured tile reorders before list via flex `order`, filters hide behind a "filters" pill, scroll-snap off on phone widths.
+- **2026-05-07** (a5d8006f) — **Competitions page review pass + new patterns.** Multi-commit session refining the competitions hub from MVP to launch-ready, with several reusable patterns extracted along the way. Head commits: `79a4e1cd` (choice gate + 13-character pool + tighter stage) → `d5736059` (top-pick badge, sticker missed-card, headings hidden) → `61a24595` (Fisher-Yates distinct picks, auto-fetched logos, link-audit, SEO uplift) → `eb5e75d2` (drop bunnings + micador, fix 2 URLs, refetch their logos) → `4641cd38` (24 manual logos, top-3 spotlight cap, CSV cleanup) → `8c7d5486` (mobile static-stage + tagline single-line + missed-card --mobile/--desktop variants) → `a5d8006f` (sticky-header-aware scrollTo). New patterns documented: [§3.6](#36-static-stage-on-mobile-via-display-contents-flatten) (display:contents flatten for mobile static-stage), [§4.4 Variant B](#44-random-pool-selection-kid-characters) (large-pool filename-convention), [§4.7](#47-filename-convention-asset-auto-discovery-no-admin-field) (filename auto-discovery for assets), [§5.3](#53-distinct-pick-from-a-random-pool-fisher-yates) (Fisher-Yates distinct pick), [§5.4](#54-choice-gate-state-machine-css-driven-show-hide) (choice-gate state machine), [§5.5](#55-sticky-header-aware-scrollto) (sticky-header-aware scrollTo), [§6.4](#64-visually-hidden-keyword-rich-copy-for-seo) (visually-hidden SEO copy), [§6.5](#65-auto-generated-itemlist-json-ld-from-a-data-array) (auto-generated ItemList JSON-LD). New brand-locked decisions: "top picks" naming + 3-card cap + missed-card visual differentiator + quiz-gate UX. New tooling: `_tools/audit-competitions.py` (combined logo-fetcher + link-verifier, stdlib only). Page recipe at [§10.4](#104-worked-recipe-competitions-page-pagescompetitions) fully rewritten to reflect the launch-ready state (65 comps, 3-card spotlight, character pool, logo+letter rendering, mobile static-stage, SEO uplift). Section catalog [§1.5](#15-custom-page-templates) entry expanded.
+- **2026-05-07** (uncommitted, third pass) — **Built `theinmag-competitions.liquid` + page template.** New custom-page section. 69 Aussie kids' comps live in `competitions-database.csv`; a single-source converter (`_tools/build-competitions-data.py`) generates `assets/competitions.json` + `snippets/theinmag-competitions-data.liquid` (parallel-array Liquid via pipe-delimited splits). Static-stage technique (100vh + internal scroll on the list column) is the page's signature. Data architecture: Option C (ship-fast JSON + Liquid) per Ryan's call, with documented migration path to Option A (metaobjects). Spotlight rotation pool = 7 Tier-1 🟢 hot leads from the master MD initially. Mobile: featured tile reorders before list via flex `order`, filters hide behind a "filters" pill.
 - **2026-05-07** (uncommitted, second pass) — **Added §9 Kid pattern library.** Per Ryan's prompt: every page or section that calls for a background, decorative surface, or texture should default to a kid creation pulled from the magazine — never synthetic geometric patterns or stock textures. Section captures: the trigger ("STOP and ask Ryan" before defaulting to flat colour), the existing `/assets/` library (blog-image-universal, section_background, HERO, character pools), naming convention going forward (`theinmag-pattern-[surface]-[descriptor]`), six implementation modes (top-anchored gradient blend, full-bleed, decorative corner peek, repeating tile, inline mid-content punctuation, image-on-image overlay), and a "when to ask, when to grab" decision tree (card covers safe to grab; section/hero anchors require Ryan-yes). The Page Recipe template now has a separate "Anchoring kid pattern" slot (distinct from the hero kid creation) so it's checked every time a new page is briefed.
 - **2026-05-07** (uncommitted) — **Initial creation.** Captures the system state through commit `26d0a427` (Field notes article template + mobile blog index polish). Section catalog covers all 17 theinmag sections, 2 snippets, the 5 custom templates. Mobile playbook records the specificity-prefix pattern (real bug that cost a session round-trip), full-bleed negative-margin trick, headroom transform-target gotcha, scroll-snap rail recipe, flex-`order` reorder, and `vh` for hero height. Liquid section captures period-strip, namespace `field_notes`, articles[handle] indexing, kid-character random pool, schema gotchas, asset 1MB limit, Dawn `div:empty` rule. JS section captures headroom delta-anchoring, scroll-driven custom property pattern, React-friendly input setter for admin automation. Editorial voice cheat sheet covers all locked rules including the 2026-05-06 lowercase-no-period revision. Page recipes include the template + worked examples for homepage / blog index / single article.
