@@ -107,6 +107,17 @@
 
   assign rec_heading = section.settings.rec_heading | default: "here's some more we thought you might enjoy"
 
+  comment
+    JSON metafield - .value returns the parsed array of {question, answer}
+    objects. Block renders + FAQPage JSON-LD emits only when populated.
+  endcomment
+  assign faq_items = article.metafields.field_notes.faq_items.value
+  assign faq_heading = section.settings.faq_heading | default: 'Frequently asked.'
+  assign has_faqs = false
+  if faq_items != blank and faq_items.size > 0
+    assign has_faqs = true
+  endif
+
   assign rec_1_handle = article.metafields.field_notes.recommendation_1_handle
   assign rec_2_handle = article.metafields.field_notes.recommendation_2_handle
   assign rec_3_handle = article.metafields.field_notes.recommendation_3_handle
@@ -242,6 +253,47 @@
         <div class="theinmag-article__body rte">
           {{ article.content }}
         </div>
+
+        {%- if has_faqs -%}
+          <section
+            class="theinmag-article__faq"
+            data-theinmag-article-faq
+            aria-labelledby="theinmag-article-faq-heading"
+          >
+            <h2 id="theinmag-article-faq-heading" class="theinmag-article__faq-heading">{{ faq_heading }}</h2>
+            <ul class="theinmag-article__faq-list" role="list">
+              {%- for item in faq_items -%}
+                {%- liquid
+                  assign panel_id = 'theinmag-article-faq-answer-' | append: section.id | append: '-' | append: forloop.index
+                -%}
+                <li class="theinmag-article__faq-item">
+                  <h3 class="theinmag-article__faq-question-heading">
+                    <button
+                      type="button"
+                      class="theinmag-article__faq-trigger"
+                      aria-expanded="false"
+                      aria-controls="{{ panel_id }}"
+                      data-theinmag-article-faq-trigger
+                    >
+                      <span class="theinmag-article__faq-question">{{ item.question }}</span>
+                      <span class="theinmag-article__faq-caret" aria-hidden="true"></span>
+                    </button>
+                  </h3>
+                  <div
+                    id="{{ panel_id }}"
+                    class="theinmag-article__faq-answer-wrap"
+                    data-theinmag-article-faq-answer
+                    data-open="false"
+                  >
+                    <div class="theinmag-article__faq-answer">
+                      {{ item.answer }}
+                    </div>
+                  </div>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </section>
+        {%- endif -%}
 
         {%- if author_type != 'kid' -%}
           <aside class="theinmag-article__about" aria-label="About the author">
@@ -585,6 +637,27 @@
   ]
 }
 </script>
+
+{%- if has_faqs -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- for item in faq_items -%}
+      {
+        "@type": "Question",
+        "name": {{ item.question | strip_html | strip | json }},
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": {{ item.answer | strip_html | strip | json }}
+        }
+      }{%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+  ]
+}
+</script>
+{%- endif -%}
 
 {%- stylesheet -%}
   .theinmag-article {
@@ -1225,6 +1298,165 @@
       }
     }
   }
+
+  /* ================================================================
+     FAQ block (in-post). Reads field_notes.faq_items metafield.
+     Same accordion shape as theinmag-send-in-faq, scoped to the
+     article so it can coexist on the same page render.
+     ================================================================ */
+
+  .theinmag-article__faq {
+    margin: clamp(40px, 5vw, 64px) 0 clamp(32px, 4vw, 48px);
+    padding: clamp(20px, 2.5vw, 28px) 0 clamp(8px, 1vw, 12px);
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .theinmag-article__faq-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(24px, 3.4vw, 32px);
+    line-height: 1.15;
+    margin: 0 0 clamp(16px, 2vw, 24px);
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+
+  .theinmag-article__faq-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .theinmag-article__faq-item {
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .theinmag-article__faq-question-heading {
+    margin: 0;
+    font: inherit;
+  }
+
+  .theinmag-article__faq-trigger {
+    appearance: none;
+    background: none;
+    border: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(12px, 1.5vw, 20px);
+    padding: clamp(14px, 1.8vw, 20px) clamp(4px, 1vw, 12px);
+    cursor: pointer;
+    text-align: left;
+    color: var(--color-ink);
+    min-height: 56px;
+    transition: color 0.15s ease;
+  }
+
+  .theinmag-article__faq-trigger:hover,
+  .theinmag-article__faq-trigger:focus-visible {
+    color: var(--color-purple-dark);
+    outline: none;
+  }
+
+  .theinmag-article__faq-trigger:focus-visible {
+    outline: 2px dashed var(--color-purple-dark);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .theinmag-article__faq-question {
+    flex: 1;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.4;
+  }
+
+  .theinmag-article__faq-caret {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    position: relative;
+    transition: transform 0.3s ease;
+    color: var(--color-purple-dark);
+  }
+
+  .theinmag-article__faq-caret::before,
+  .theinmag-article__faq-caret::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 11px;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 2px;
+    transform-origin: 50% 50%;
+  }
+
+  .theinmag-article__faq-caret::before {
+    left: 1px;
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .theinmag-article__faq-caret::after {
+    right: 1px;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+
+  .theinmag-article__faq-trigger[aria-expanded="true"] .theinmag-article__faq-caret {
+    transform: rotate(180deg);
+  }
+
+  .theinmag-article__faq-answer-wrap {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theinmag-article__faq-answer-wrap[data-open="true"] {
+    max-height: 1500px;
+  }
+
+  .theinmag-article__faq-answer {
+    padding: 0 clamp(4px, 1vw, 12px) clamp(16px, 2vw, 22px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.7;
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__faq-answer p {
+    margin: 0 0 clamp(10px, 1.2vw, 14px);
+  }
+
+  .theinmag-article__faq-answer p:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-article__faq-answer a {
+    color: var(--color-teal);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease, text-decoration-thickness 0.15s ease;
+  }
+
+  .theinmag-article__faq-answer a:hover,
+  .theinmag-article__faq-answer a:focus-visible {
+    color: var(--color-purple-dark);
+    text-decoration-thickness: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-article__faq-caret,
+    .theinmag-article__faq-answer-wrap,
+    .theinmag-article__faq-trigger {
+      transition: none;
+    }
+  }
 {%- endstylesheet -%}
 
 <script>
@@ -1308,6 +1540,19 @@
       var pick = pool[Math.floor(Math.random() * pool.length)];
       el.style.backgroundImage = "url('" + pick + "')";
     });
+
+    /* FAQ accordion. Each trigger toggles its own answer panel via
+       aria-expanded + data-open. Multiple panels can be open at once. */
+    var faqTriggers = article.querySelectorAll('[data-theinmag-article-faq-trigger]');
+    faqTriggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        var expanded = trigger.getAttribute('aria-expanded') === 'true';
+        var answer = document.getElementById(trigger.getAttribute('aria-controls'));
+        if (!answer) return;
+        trigger.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        answer.setAttribute('data-open', expanded ? 'false' : 'true');
+      });
+    });
   })();
 </script>
 
@@ -1331,6 +1576,17 @@
       "step": 5,
       "unit": "%",
       "default": 30
+    },
+    {
+      "type": "header",
+      "content": "FAQ block (in-post)"
+    },
+    {
+      "type": "text",
+      "id": "faq_heading",
+      "label": "FAQ heading",
+      "info": "Renders above the FAQ accordion. The block only appears when the post's field_notes.faq_items metafield has entries.",
+      "default": "Frequently asked."
     },
     {
       "type": "header",
