@@ -2,7 +2,7 @@
   theinmag-competitions
   The /pages/competitions hub - browsable directory of real Aussie kid
   comps, filterable by age, state, field, cost, format. Built per
-  competitions-page-build-spec.md.
+  ../theinmag-docs/competitions-page-build-spec.md.
 
   Architecture:
     1. Three-button entry choice (art / writing / everything)
@@ -16,8 +16,8 @@
     5. Footer transition line.
 
   Data architecture: Option C (JSON in /assets/) - data lives in
-  competitions-database.csv, gets converted by
-  _tools/build-competitions-data.py into the parallel-array Liquid
+  ../theinmag-docs/competitions-database.csv, gets converted by
+  ../theinmag-docs/_tools/build-competitions-data.py into the parallel-array Liquid
   snippet `theinmag-competitions-data`. Migration path to Option A
   (Shopify metaobjects) is documented in the spec.
 
