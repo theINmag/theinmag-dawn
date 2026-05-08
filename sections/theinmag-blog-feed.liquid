@@ -62,10 +62,14 @@
     <header class="theinmag-blog-feed__header">
       <div class="theinmag-blog-feed__title-stack">
         <h2 id="theinmag-blog-feed-heading" class="theinmag-blog-feed__heading">
-          {%- if heading_pre != blank -%}<span class="theinmag-blog-feed__heading-aux">{{ heading_pre }}</span>{%- endif -%}
-          {%- if heading_emphasis != blank -%}<span class="theinmag-blog-feed__heading-main">{{ heading_emphasis }}</span>{%- endif -%}
-          {%- if heading_post != blank -%}<span class="theinmag-blog-feed__heading-aux">{{ heading_post }}</span>{%- endif -%}
-          {%- if heading_period != blank -%}<span class="theinmag-blog-feed__heading-period">{{ heading_period }}</span>{%- endif -%}
+          <img
+            src="{{ 'fieldnotes_logo.png' | asset_url }}"
+            alt="Field notes"
+            class="theinmag-blog-feed__heading-logo"
+            width="2160"
+            height="1440"
+            loading="lazy"
+          >
         </h2>
         {%- if subhead != blank -%}
           <p class="theinmag-blog-feed__subhead">{{ subhead }}</p>
@@ -313,6 +317,13 @@
 
   .theinmag-blog-feed__heading-period {
     margin-left: -0.02em;
+  }
+
+  .theinmag-blog-feed__heading-logo {
+    display: block;
+    height: 1em;
+    width: auto;
+    flex: 0 0 auto;
   }
 
   .theinmag-blog-feed__subhead {

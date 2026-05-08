@@ -69,10 +69,13 @@
     <header class="theinmag-editorial__intro">
       <div class="theinmag-editorial__wordmark">
         <h1 id="theinmag-editorial-heading" class="theinmag-editorial__heading">
-          {%- if heading_pre != blank -%}<span class="theinmag-editorial__heading-aux">{{ heading_pre }}</span>{%- endif -%}
-          {%- if heading_emphasis != blank -%}<span class="theinmag-editorial__heading-main">{{ heading_emphasis }}</span>{%- endif -%}
-          {%- if heading_post != blank -%}<span class="theinmag-editorial__heading-aux">{{ heading_post }}</span>{%- endif -%}
-          {%- if heading_period != blank -%}<span class="theinmag-editorial__heading-period">{{ heading_period }}</span>{%- endif -%}
+          <img
+            src="{{ 'fieldnotes_logo.png' | asset_url }}"
+            alt="Field notes"
+            class="theinmag-editorial__heading-logo"
+            width="2160"
+            height="1440"
+          >
         </h1>
         {%- if subhead != blank -%}
           <p class="theinmag-editorial__subhead">{{ subhead }}</p>
@@ -332,6 +335,13 @@
 
   .theinmag-editorial__heading-period {
     margin-left: -0.02em;
+  }
+
+  .theinmag-editorial__heading-logo {
+    display: block;
+    height: 1em;
+    width: auto;
+    flex: 0 0 auto;
   }
 
   /* Subhead tucks UP under the emphasis word (rightmost in the
