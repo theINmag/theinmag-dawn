@@ -88,9 +88,13 @@
         "facebook_url": "https://www.facebook.com/theINmagazine/",
         "youtube_url": "https://www.youtube.com/@theINmag/videos"
       }
+    },
+    "theinmag-flyout-newsletter": {
+      "type": "theinmag-flyout-newsletter"
     }
   },
   "order": [
-    "theinmag-footer"
+    "theinmag-footer",
+    "theinmag-flyout-newsletter"
   ]
 }

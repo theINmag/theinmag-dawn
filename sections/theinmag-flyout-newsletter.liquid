@@ -1,0 +1,292 @@
+{%- comment -%}
+  theinmag-flyout-newsletter
+  Branded newsletter flyout for theINmag (Klaviyo list SMGVLB).
+  Shows on 40% scroll depth, once per session, on allowed page types.
+  Posts to Klaviyo client subscription API; gated by TEST_MODE in
+  assets/theinmag-flyout-newsletter.js (must stay true until launch).
+
+  Assets used:
+    e-mag_cover.jpg, pop-up_background.jpg, pop-up_success-character.png
+
+  Spec: tonight's prompt, plus design tokens / page playbook in
+  ../theinmag-docs/.
+{%- endcomment -%}
+
+{%- liquid
+  assign should_render = false
+
+  if section.settings.enabled
+    case template.name
+      when 'index'
+        assign should_render = section.settings.show_on_index
+      when 'page'
+        assign should_render = section.settings.show_on_pages
+      when 'blog', 'article'
+        assign should_render = section.settings.show_on_blog
+      when 'collection', 'list-collections'
+        assign should_render = section.settings.show_on_collections
+      when 'product'
+        assign should_render = section.settings.show_on_products
+    endcase
+
+    assign current_handle = ''
+    case template.name
+      when 'page'
+        assign current_handle = page.handle
+      when 'product'
+        assign current_handle = product.handle
+      when 'collection'
+        assign current_handle = collection.handle
+      when 'article'
+        assign current_handle = article.handle
+      when 'blog'
+        assign current_handle = blog.handle
+    endcase
+
+    if should_render and current_handle != blank and section.settings.hidden_handles != blank
+      assign hidden_list = section.settings.hidden_handles | replace: ' ', '' | split: ','
+      if hidden_list contains current_handle
+        assign should_render = false
+      endif
+    endif
+  endif
+-%}
+
+{%- if should_render -%}
+  {{ 'theinmag-flyout-newsletter.css' | asset_url | stylesheet_tag: preload: false }}
+
+  <div
+    class="theinmag-flyout"
+    data-theinmag-flyout
+    data-scroll-trigger="{{ section.settings.scroll_trigger_percent }}"
+    data-dismiss-days="{{ section.settings.dismiss_cookie_days }}"
+    data-klaviyo-public-key="QT6Qj3"
+    data-klaviyo-list-id="SMGVLB"
+    hidden
+  >
+    <button
+      type="button"
+      class="theinmag-flyout__tab"
+      data-theinmag-flyout-tab
+      aria-label="Open newsletter signup"
+      hidden
+    >
+      <span class="theinmag-flyout__tab-text">{{ section.settings.tab_text | escape }}</span>
+      <svg class="theinmag-flyout__tab-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+        <path d="M6 2 L10 8 L2 8 Z" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <div
+      class="theinmag-flyout__card"
+      data-theinmag-flyout-card
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="theinmag-flyout-headline"
+      hidden
+    >
+      <button
+        type="button"
+        class="theinmag-flyout__close"
+        data-theinmag-flyout-close
+        aria-label="Close newsletter signup"
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+          <path d="M1 1 L13 13 M13 1 L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <h2 id="theinmag-flyout-headline" class="theinmag-flyout__headline">
+        {{ section.settings.headline | escape }}
+      </h2>
+
+      <div class="theinmag-flyout__cover">
+        <img
+          src="{{ 'e-mag_cover.jpg' | asset_url }}"
+          alt="theINmag free e-mag cover"
+          width="130"
+          height="180"
+          loading="lazy"
+        >
+      </div>
+
+      <div class="theinmag-flyout__content">
+        <div class="theinmag-flyout__form-state" data-theinmag-flyout-form-state>
+          <p class="theinmag-flyout__subheading">
+            {{ section.settings.subheading | escape }}
+          </p>
+
+          <form class="theinmag-flyout__form" data-theinmag-flyout-form novalidate>
+            <label class="theinmag-flyout__visually-hidden" for="theinmag-flyout-first-name">First name (optional)</label>
+            <input
+              type="text"
+              id="theinmag-flyout-first-name"
+              name="first_name"
+              class="theinmag-flyout__input"
+              placeholder="First name (optional)"
+              autocomplete="given-name"
+            >
+
+            <div class="theinmag-flyout__email-row">
+              <label class="theinmag-flyout__visually-hidden" for="theinmag-flyout-email">Your email</label>
+              <input
+                type="email"
+                id="theinmag-flyout-email"
+                name="email"
+                class="theinmag-flyout__input theinmag-flyout__input--email"
+                placeholder="Your email"
+                autocomplete="email"
+                required
+                aria-describedby="theinmag-flyout-error"
+              >
+
+              <button
+                type="submit"
+                class="theinmag-flyout__submit"
+                data-theinmag-flyout-submit
+                aria-label="{{ section.settings.button_text | escape }}"
+                title="{{ section.settings.button_text | escape }}"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M3 11.5 21 3l-6 18-3.6-7.4L3 11.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <p
+              class="theinmag-flyout__error"
+              id="theinmag-flyout-error"
+              data-theinmag-flyout-error
+              hidden
+            ></p>
+          </form>
+        </div>
+
+        <div class="theinmag-flyout__success-state" data-theinmag-flyout-success-state hidden aria-live="polite">
+          <p class="theinmag-flyout__success-message">
+            {{ section.settings.success_message | escape }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ 'theinmag-flyout-newsletter.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "theINmag e-mag flyout",
+  "tag": "aside",
+  "class": "theinmag-flyout-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Display"
+    },
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable flyout",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "scroll_trigger_percent",
+      "label": "Scroll depth to trigger (%)",
+      "min": 10,
+      "max": 80,
+      "step": 5,
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "dismiss_cookie_days",
+      "label": "Days to wait after dismiss",
+      "min": 1,
+      "max": 60,
+      "step": 1,
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Page targeting"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_index",
+      "label": "Show on homepage",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_pages",
+      "label": "Show on standard pages (About, FAQ, etc.)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_blog",
+      "label": "Show on Field Notes (blog)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_collections",
+      "label": "Show on Shop and collection pages",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_products",
+      "label": "Show on product pages",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "hidden_handles",
+      "label": "Hide on specific page handles (comma-separated)",
+      "default": "for-kids,submit-your-creation,schools-order"
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "headline",
+      "label": "Headline",
+      "default": "Grab the FREE e-mag"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Plus a monthly hit of kid creativity."
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Submit button text",
+      "default": "Send IN my e-mag"
+    },
+    {
+      "type": "text",
+      "id": "tab_text",
+      "label": "Minimised tab text",
+      "default": "FREE e-mag"
+    },
+    {
+      "type": "textarea",
+      "id": "success_message",
+      "label": "Success message",
+      "default": "You're IN! Your e-mag is on its way. Get cosy and have a flick through."
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag e-mag flyout"
+    }
+  ]
+}
+{% endschema %}

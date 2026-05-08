@@ -1,0 +1,450 @@
+/* theinmag-flyout-newsletter
+   Persistent rectangular tab + expandable card. White editorial text on the
+   painted background, with text-shadow scrim per brand premium-photo rule.
+   Sharp edges throughout (4px on the tab corners only). */
+
+.theinmag-flyout {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9999;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  pointer-events: none;
+}
+
+.theinmag-flyout[hidden] {
+  display: none;
+}
+
+.theinmag-flyout__tab,
+.theinmag-flyout__card {
+  pointer-events: auto;
+}
+
+/* ---------- Persistent tab ---------- */
+
+.theinmag-flyout__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  background: #F9C23C;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  animation: theinmag-flyout-tab-in 0.32s ease-out both;
+}
+
+.theinmag-flyout__tab[hidden] {
+  display: none;
+}
+
+.theinmag-flyout__tab:hover,
+.theinmag-flyout__tab:focus-visible {
+  background: #7B4F9E;
+  color: #ffffff;
+  outline: none;
+}
+
+.theinmag-flyout__tab:focus-visible {
+  box-shadow: 0 0 0 3px rgba(123, 79, 158, 0.35), 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.theinmag-flyout__tab-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+@keyframes theinmag-flyout-tab-in {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Expanded card ---------- */
+
+.theinmag-flyout__card {
+  position: relative;
+  display: grid;
+  gap: 8px 18px;
+  grid-template-columns: 130px 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "cover headline"
+    "cover content";
+  align-items: start;
+  width: 460px;
+  padding: 24px;
+  background-image: url('pop-up_background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 0;
+  color: #ffffff;
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.08),
+    0 12px 24px rgba(0, 0, 0, 0.12),
+    0 24px 48px rgba(0, 0, 0, 0.16),
+    0 40px 80px rgba(0, 0, 0, 0.10),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.4);
+  transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) rotate(-1.2deg);
+  transform-origin: bottom left;
+  animation: theinmag-flyout-card-in 0.42s ease-out both;
+}
+
+.theinmag-flyout__card[hidden] {
+  display: none;
+}
+
+@keyframes theinmag-flyout-card-in {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) rotate(-1.2deg) translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) rotate(-1.2deg) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .theinmag-flyout__card {
+    animation:
+      theinmag-flyout-card-in 0.42s ease-out both,
+      theinmag-flyout-wobble 10s ease-in-out 0.42s infinite;
+  }
+}
+
+@keyframes theinmag-flyout-wobble {
+  0%   { transform: perspective(1200px) rotateY(-2deg)   rotateX(1deg)   rotate(-1.2deg) translateY(0); }
+  25%  { transform: perspective(1200px) rotateY(-2.3deg) rotateX(1.2deg) rotate(-1.5deg) translateY(-1px); }
+  50%  { transform: perspective(1200px) rotateY(-1.7deg) rotateX(0.8deg) rotate(-0.9deg) translateY(1px); }
+  75%  { transform: perspective(1200px) rotateY(-2.1deg) rotateX(1.1deg) rotate(-1.3deg) translateY(-0.5px); }
+  100% { transform: perspective(1200px) rotateY(-2deg)   rotateX(1deg)   rotate(-1.2deg) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theinmag-flyout__card {
+    animation: none;
+  }
+  .theinmag-flyout__tab {
+    animation: none;
+  }
+}
+
+/* ---------- Close button ---------- */
+
+.theinmag-flyout__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  opacity: 0.85;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}
+
+.theinmag-flyout__close:hover,
+.theinmag-flyout__close:focus-visible {
+  opacity: 1;
+  outline: none;
+}
+
+.theinmag-flyout__close:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
+}
+
+/* ---------- Headline (grid area) ---------- */
+
+.theinmag-flyout__headline {
+  grid-area: headline;
+  margin: 0;
+  padding-right: 32px; /* leaves space for close button on desktop */
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #ffffff;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 0 8px rgba(0, 0, 0, 0.35);
+}
+
+.theinmag-flyout__subheading {
+  margin: 0 0 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #ffffff;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Cover (grid area) ---------- */
+
+.theinmag-flyout__cover {
+  grid-area: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theinmag-flyout__cover img {
+  display: block;
+  width: 130px;
+  height: auto;
+  transform: rotate(-2deg);
+  filter:
+    drop-shadow(0 0 8px rgba(249, 194, 60, 0.5))
+    drop-shadow(0 0 16px rgba(249, 194, 60, 0.3))
+    drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+.theinmag-flyout__content {
+  grid-area: content;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+/* ---------- Form ---------- */
+
+.theinmag-flyout__form {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  gap: 8px;
+}
+
+.theinmag-flyout__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.theinmag-flyout__input {
+  width: 100%;
+  padding: 9px 12px;
+  background: #ffffff;
+  border: 1px solid rgba(26, 26, 26, 0.85);
+  border-radius: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #1a1a1a;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.theinmag-flyout__input::placeholder {
+  color: rgba(26, 26, 26, 0.55);
+  opacity: 1;
+}
+
+.theinmag-flyout__input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(249, 194, 60, 0.6);
+}
+
+.theinmag-flyout__input[aria-invalid="true"] {
+  border-color: #c0392b;
+  box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.25);
+}
+
+.theinmag-flyout__email-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.theinmag-flyout__input--email {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.theinmag-flyout__error {
+  margin: 2px 0 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #ffffff;
+  background: rgba(192, 57, 43, 0.92);
+  padding: 4px 8px;
+  border-radius: 0;
+  align-self: flex-start;
+}
+
+.theinmag-flyout__error[hidden] {
+  display: none;
+}
+
+.theinmag-flyout__submit {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #F9C23C;
+  color: #1a1a1a;
+  border: 1px solid rgba(26, 26, 26, 0.85);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.theinmag-flyout__submit svg {
+  display: block;
+}
+
+.theinmag-flyout__submit:hover,
+.theinmag-flyout__submit:focus-visible {
+  background: #7B4F9E;
+  color: #ffffff;
+  outline: none;
+}
+
+.theinmag-flyout__submit:focus-visible {
+  box-shadow: 0 0 0 3px rgba(123, 79, 158, 0.45);
+}
+
+.theinmag-flyout__submit[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* ---------- Success state ---------- */
+
+.theinmag-flyout__card.is-success {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: "content";
+  min-height: 180px;
+}
+
+.theinmag-flyout__card.is-success .theinmag-flyout__headline,
+.theinmag-flyout__card.is-success .theinmag-flyout__cover {
+  display: none;
+}
+
+.theinmag-flyout__card.is-success .theinmag-flyout__content {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 16px 12px; /* heavier top padding biases the message visually lower */
+}
+
+.theinmag-flyout__success-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+}
+
+.theinmag-flyout__success-state[hidden] {
+  display: none;
+}
+
+.theinmag-flyout__success-message {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  color: #ffffff;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 0 8px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 767px) {
+  .theinmag-flyout__success-message {
+    font-size: 17px;
+  }
+}
+
+/* ---------- Mobile (under 768px) ---------- */
+
+@media (max-width: 767px) {
+  .theinmag-flyout {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .theinmag-flyout__card {
+    width: 100%;
+    max-width: 340px;
+    padding: 18px;
+    gap: 10px 12px;
+    grid-template-columns: 90px 1fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "headline headline"
+      "cover    content";
+  }
+
+  .theinmag-flyout__headline {
+    font-size: 18px;
+    padding-right: 28px;
+  }
+
+  .theinmag-flyout__subheading {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .theinmag-flyout__cover img {
+    width: 90px;
+  }
+
+  .theinmag-flyout__input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .theinmag-flyout__submit {
+    width: 40px;
+    height: 34px;
+  }
+
+  .theinmag-flyout__success-character {
+    width: 56px;
+  }
+}
