@@ -17,10 +17,11 @@ Critical deadline: site live before mid-June 2026 (Queensland trip + Dept of Edu
 
 ## Reference files (read these first)
 
-Two companion files live in this folder. Read them before any design or content decision:
+Three companion files live in this folder. Read them before any design or content decision:
 
 - `theinmag-design-tokens.md` - colours, type, spacing, shadows, button specs, animation, image specs, brand language. The technical reference.
 - `theinmag-design-principles.md` - the philosophy behind decisions. Read when judgment is needed (clarity vs personality, speed vs richness, etc.).
+- `theinmag-page-playbook.md` - **the senior front-end designer's playbook for every new page.** Bridges principles to execution, anchored to the three hero pages (homepage, competitions, field notes). Read end-to-end at the start of every new page session. Treat those three pages as the quality bar; the send-in funnel is a recent build and a useful pattern source but is NOT at the same polish level — don't lift its visual register as a reference.
 
 The brief and sitemap live in the Claude Project knowledge, not in this folder. Reference them when needed but they're not always loaded.
 
@@ -119,9 +120,10 @@ Judge.me / Sky Pilot / Klaviyo / Make.com / JotForm / AusPost API / GA4 / Lucky 
 2. Track exchange count, flag at 12 of 15 max - break to fresh chat at the limit.
 3. Confirm one specific task for this conversation.
 4. Confirm prompt specificity before writing any code.
-5. **Read `theinmag-pattern-library.md` before any new work.** It catalogues every section + snippet, captures mobile patterns / Liquid / JS / schema gotchas, and holds page recipes. Run `git log --oneline -10` and compare to its Maintenance log — if commits exist that aren't logged there yet, integrate them into the doc before starting new work, and add a fresh log entry at session end.
-6. Read companion files (design tokens + design principles) when judgment is needed. Read `homepage-build-spec.md` when working on any homepage section, `blog-post-build-spec.md` when working on the article template.
+5. **Read `theinmag-page-playbook.md` end-to-end at the start of every new page session.** It's the bridge from principles → execution, anchored to the four hero pages we built at elite quality (homepage, competitions, field notes, send-in). Pre-build checklist, quality bar, anti-patterns, section starter templates all live here.
+6. **Read `theinmag-pattern-library.md` before any new work.** It catalogues every section + snippet, captures mobile patterns / Liquid / JS / schema gotchas, and holds page recipes. Run `git log --oneline -10` and compare to its Maintenance log — if commits exist that aren't logged there yet, integrate them into the doc before starting new work, and add a fresh log entry at session end.
+7. Read companion files (design tokens + design principles) when judgment is needed. Read `homepage-build-spec.md` when working on any homepage section, `blog-post-build-spec.md` when working on the article template.
 
 ---
 
-*CLAUDE.md last updated: May 7 2026 - added pattern-library session-start step (item 5). Fonts locked (Post Regular + Inter), design audit complete, four project files in place. Hero headline aligned to homepage build spec ("The magazine for creative kids"). Git ownership note: Claude Code commits/pushes from here forward.*
+*CLAUDE.md last updated: May 7 2026 - added page-playbook reference (companion files + session-start step 5). The playbook is the new "before any new page" doc, anchored to the three hero pages (homepage, competitions, field notes) as the quality bar. Send-in is a recent build and pattern source but NOT a quality reference. Pattern-library + tokens + principles still apply. Fonts locked (Post Regular + Inter), design audit complete. Hero headline aligned to homepage build spec ("The magazine for creative kids"). Git ownership note: Claude Code commits/pushes from here forward.*

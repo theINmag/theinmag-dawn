@@ -89,7 +89,17 @@ Every section file in `sections/` with a `theinmag-` prefix. Use this as the ind
 
 | Section | Status | Notes |
 |---|---|---|
+| `theinmag-send-in-hero.liquid` | ● | Section 1 of `/pages/send-in`. Caveat eyebrow + Post Regular H1 + Inter subhead + one focused kid creation/character with named attribution + yellow sticker CTA anchored to `#send-in-form`. CTA scroll uses sticky-header-aware `scrollTo` ([§5.5](#55-sticky-header-aware-scrollto)). **Page-level JSON-LD** (BreadcrumbList Home → Send IN, plus WebPage with `mainEntityOfPage`) lives at the bottom of this section file because the hero is always present. Background `#FDFAF5`. |
+| `theinmag-send-in-inspiration.liquid` | ● | Section 2 of `/pages/send-in`. Open masonry grid (no accordion, no category labels) of 8-12 real kid creation tiles via repeating `creation_tile` block. Layout uses CSS multi-column (2 / 3 / 4 cols across breakpoints) with `break-inside: avoid` for masonry without JS measuring. Tap-to-zoom inline lightbox: single overlay reused across tiles, ESC / outside-click / X to close, body-scroll lock, focus returns to the trigger. v1 ships with 8 placeholder blocks; **Phase 2** plan = auto-pull from gallery metaobjects (flagged in send-in brief). Background `var(--color-cream)` (`#FBF6EA`). |
+| `theinmag-send-in-cycle.liquid` | ● | Section 3 of `/pages/send-in`. Single-row accordion (closed by default). Header is the question; panel reveals static wheel image (`assets/sendincontent_submissionwheel.jpg` per Ryan) alongside a soft three-paragraph explainer: "theINmag drops three times a year - Feb / Jun / Oct" + "submissions always open" + Membership-delivery angle. **Earlier build had dynamic "Mag XX, dropping DD Month YYYY" text** driven by an editor-set anchor + 120-day cutoff; Ryan pulled that on 2026-05-07 (too specific, creates a staleness risk if the anchor isn't bumped on release day). Reusable date-cycle pattern preserved at [§4.9](#49-liquid-cycling-drop-dates-from-an-anchor) for future surfaces. Background `#FDFAF5`. |
+| `theinmag-send-in-form.liquid` | ● | Section 4 of `/pages/send-in`. JotForm jsform embed — script tag built from a `jotform_id` setting (default `232212492042848`). White card surface inside a cream section. Anchor ID `#send-in-form` plus `scroll-margin-top: 96px` so direct-link jumps clear the sticky header. `<noscript>` fallback links to JotForm directly. Background `var(--color-cream)`. |
+| `theinmag-send-in-tips.liquid` | ● | Section 5 of `/pages/send-in`. Same accordion mechanics as the homepage FAQ (max-height transition + caret rotation). 8 default tip blocks via preset; kid-direct voice; quietly raises quality and reduces vetting (no faces, no traced work, full-quality images). No kid character. Background `#FDFAF5`. |
+| `theinmag-send-in-faq.liquid` | ● | Section 6 of `/pages/send-in`. Mirrors `theinmag-faq.liquid` accordion + FAQPage JSON-LD but scoped to its own data attributes (`data-theinmag-send-in-faq`) so it can coexist with the homepage FAQ. 9 default Q+As via preset, no kid character, no contact CTA. Background `var(--color-cream)`. |
 | `theinmag-competitions.liquid` | ● | Single-section page wired via `templates/page.competitions.json` (handle `/pages/competitions`). **Quiz-gate UX**: lands the user on a full-screen choice screen with three portrait tiles (art / writing / everything), each rendering a random kid character from the 13-image pool. After a tile click, the gate animates out (`is-leaving`) and the static stage reveals. Stage = 100vh both mobile and desktop, internal scroll on the list, 3-card "top picks" rotation (10s crossfade). On mobile: stage flattens via `display: contents` so featured-pick → filter → list flow as flex-ordered children; missed-a-comp card moves outside the stage to sit just above the footer transition. **Data**: 65 comps in `competitions-database.csv`; `_tools/build-competitions-data.py` regenerates `snippets/theinmag-competitions-data.liquid` (parallel arrays) + `assets/competitions.json` (canonical record). **Logos**: per-comp logo files live in `assets/logos/<id>.<ext>`; section renders `<img>` when present, falls back to a category-coloured letter placeholder when not. **Modal**: adult-only suggest-a-comp form with a kid character picked from the same pool when the modal opens (slight wobble). **JSON-LD**: ItemList of 65 Events + BreadcrumbList + FAQPage. **SEO**: visually-hidden H1 + intro paragraph carry the keyword load; visible page is intentionally minimal. |
+| `theinmag-contact-hero.liquid` | ● | Section 1 of `/pages/contact`. Short lavender band (purple pair light bg + dark companion). H1 "Get IN touch" + subhead "We read every message. Usually reply within 2 business days." Caps at ~30vh desktop, less on mobile so the form below is the page's centre of gravity. **Page-level JSON-LD** (BreadcrumbList Home → Contact + WebPage) lives at the bottom of this file. Background `var(--color-lavender)` (`#E8DEEF`). |
+| `theinmag-contact-form.liquid` | ● | Section 2 of `/pages/contact`. Two-column on desktop (form 55% left, image 45% right); single column mobile-first. Uses Shopify-native `{% form 'contact' %}` so submissions route to the store's notification email (heyhey@theinmag.com.au). Three fields only: `contact[name]` / `contact[email]` / `contact[body]`. Honeypot is `contact[website]`, visually-hidden + JS submit guard. **Three states**: default form / `form.errors` (errors above, form preserved via `form.name|email|body`) / `form.posted_successfully?` (form REPLACED with thank-you block in same column - yellow circle+tick SVG, "Got it!", primary CTA, "Send another message" link back to `page.url`). Image column uses image_picker first, falls back to `image_filename` (default `theinmag-van-contact.jpg`), final fallback is a styled lavender placeholder shown via JS `onerror`. Background `var(--color-cream)`. |
+| `theinmag-contact-router.liquid` | ● | Section 3 of `/pages/contact`. Soft helper - three white tiles (schools / stockists / partnerships) with chevron arrows. NOT a hero; quiet bg `#FDFAF5`. All three target pages don't exist yet (May 2026); links wired anyway per build list. |
+| `theinmag-contact-social.liquid` | ● | Section 4 of `/pages/contact`. The "Come hang with us!" POP moment. Three big tappable buttons (min-height 64px mobile / 72px desktop) filled with brand-companion darks: Instagram = `--color-purple-dark`, Facebook = `--color-teal-dark`, YouTube = `--color-sage-dark`. White Post Regular platform name + Inter handle. All open in new tab. Bg `#FDFAF5` so the saturated buttons carry the colour work. URL defaults stored as `text` settings (NOT `url` type - schema gotcha §4.5 - `url` defaults must be Shopify datasource paths). |
 
 ### 1.6 Templates
 
@@ -98,7 +108,9 @@ Every section file in `sections/` with a `theinmag-` prefix. Use this as the ind
 | `templates/index.json` | Homepage | Stitches all homepage sections together. |
 | `templates/blog.json` | Blog index | Editorial → feature banner → archive. |
 | `templates/article.json` | Article | Single section: `theinmag-article`. No blocks. |
-| `templates/page.json`, `page.contact.json` | Generic pages | Default Dawn templates, not yet customised for theINmag pages. |
+| `templates/page.json` | Generic page | Default Dawn template, not yet customised. |
+| `templates/page.contact.json` | Contact page | Wires the four `theinmag-contact-*` sections in order: hero → form → router → social. Handle `/pages/contact`. The simplest page on the site - single primary action is "send us a message", everything else is supporting. |
+| `templates/page.send-in.json` | Send IN page | Wires the six `theinmag-send-in-*` sections in order: hero → inspiration → cycle → form → tips → faq. Handle `/pages/send-in`. Submission funnel — every "Send IN" CTA across the site lands here. |
 
 ---
 
@@ -458,6 +470,69 @@ Reference: `_tools/build-competitions-data.py` (`find_logo_filename` helper) + `
 ```
 
 Or use `<span>` (not affected). See `feedback_dawn_empty_div_hide` memory.
+
+### 4.9 Liquid: cycling drop dates from an anchor
+
+When a section needs to display "the next X" where X is a recurring event on a fixed schedule (mag drops on the 15th of Feb / Jun / Oct), don't make the editor enter every future occurrence. Take **one anchor** (next drop date + a serial number like the mag number) and walk forward in Liquid to derive future entries.
+
+```liquid
+{%- liquid
+  assign anchor_drop = section.settings.next_mag_drop          # "2026-06-15"
+  assign anchor_mag = section.settings.next_mag_number | plus: 0
+  assign anchor_year = anchor_drop | date: '%Y' | plus: 0
+  assign anchor_m = anchor_drop | date: '%m' | plus: 0
+  assign anchor_pos = 0
+  if anchor_m == 6
+    assign anchor_pos = 1
+  endif
+  if anchor_m == 10
+    assign anchor_pos = 2
+  endif
+
+  assign cutoff_ts = 'now' | date: '%s' | plus: 10368000   # today + 120 days
+
+  assign next_iso = ''
+  assign next_mag = anchor_mag
+  for offset in (0..6)
+    assign idx_pos = anchor_pos | plus: offset
+    assign year_off = idx_pos | divided_by: 3
+    assign month_idx = idx_pos | modulo: 3
+    assign cand_year = anchor_year | plus: year_off
+    if month_idx == 0
+      assign cand_month = '02'
+    elsif month_idx == 1
+      assign cand_month = '06'
+    else
+      assign cand_month = '10'
+    endif
+    capture cand_iso
+      echo cand_year
+      echo '-'
+      echo cand_month
+      echo '-15'
+    endcapture
+    assign cand_ts = cand_iso | date: '%s' | plus: 0
+    if next_iso == '' and cand_ts >= cutoff_ts
+      assign next_iso = cand_iso
+      assign next_mag = anchor_mag | plus: offset
+    endif
+  endfor
+-%}
+```
+
+Why an anchor + walk rather than 6 separate settings: Ryan only ever updates ONE thing per cycle (3x/year). The position-index trick (`pos = year*3 + monthIdx`) lets Liquid arithmetic carry the year roll without conditionals. Liquid's `date` filter accepts ISO `YYYY-MM-DD` strings directly via `'%s'` to get unix timestamps for comparison.
+
+Use a `[[ name ]]`-style placeholder + `replace` filter convention to let editors write copy with calculated values inline. **Do NOT use `{{ name }}` placeholders inside JSON template settings — Shopify reads them as dynamic source bindings and rejects the upload with `"Dynamic source 'X' is invalid"`.** Square brackets sidestep that parser entirely:
+
+```liquid
+{%- assign mag_token = '[[next_issue_label]]' -%}
+{%- assign date_token = '[[next_issue_date]]' -%}
+{%- assign rendered = explainer
+  | replace: mag_token, mag_replacement
+  | replace: date_token, next_iso_label -%}
+```
+
+Reference: pattern was originally built for `sections/theinmag-send-in-cycle.liquid` (commit history shows it). **Removed in deployment** on 2026-05-07 — Ryan pulled it because surfacing a specific "Mag 11, dropping 15 October 2026" line creates a staleness risk if the editor anchor isn't bumped on release day, and the brand voice prefers softer "every Feb / Jun / Oct" framing on the Send IN page. Pattern is preserved here as a known-working approach for any future surface where the staleness risk is acceptable (membership cycle copy, school-term countdown copy, anywhere `today + lead_time` needs to land on the next of a recurring event).
 
 ---
 
@@ -1110,6 +1185,9 @@ This doc is read every session start. The mechanism:
 
 Newest at top. Each entry: date, commit hash (or "uncommitted"), one-line summary of what was added to this doc.
 
+- **2026-05-07** (uncommitted) — **Built the Contact page** (`/pages/contact`). Four new sections plus a fully-wired `templates/page.contact.json`: `theinmag-contact-hero` (lavender band, "Get IN touch", page-level BreadcrumbList + WebPage JSON-LD anchored here), `theinmag-contact-form` (two-column desktop, Shopify `{% form 'contact' %}` with three fields + honeypot, success state REPLACES form with yellow-tick "Got it!" block, errors above form preserve input), `theinmag-contact-router` (three soft tiles for schools / stockists / partnerships - target pages don't exist yet, links wired anyway per build list), `theinmag-contact-social` (the POP moment - "Come hang with us!" + three big brand-companion-filled buttons, Instagram=purple-dark / Facebook=teal-dark / YouTube=sage-dark). Form-state pattern is reusable for any future Shopify-native contact form: form / `form.errors` / `form.posted_successfully?` rendered in one column slot via if/else inside `{% form %}`. Van photo asset (`theinmag-van-contact.jpg`) not yet in `/assets/`; section renders styled lavender placeholder via `<img onerror>` until Ryan drops the file (or uploads via image_picker). NOT shipped on this page: newsletter signup (footer covers it), FAQ (deferred), postal address (deferred), phone, last-name field. Outstanding admin tasks: set page title "Contact theINmag | Get IN Touch" + meta description in admin Online Store → Pages → Contact (Shopify Page resource, not a theme template setting). Section catalog [§1.5](#15-custom-page-templates) extended with all four new sections; templates [§1.6](#16-templates) gets `page.contact.json`.
+- **2026-05-07** (uncommitted) — **Created `theinmag-page-playbook.md`.** Senior front-end designer's playbook for every new page build. Distilled from the week shipping homepage / competitions / field notes at elite quality, plus the first pass of send-in. Captures the pre-build checklist, the quality-bar tests, anti-patterns paid for the hard way (the `--path` push gotcha, dynamic-source binding rejections, Post Regular fatigue, border-radius:50% on rectangular illustrated images, sticker-button discipline, etc.), and section starter templates. Anchored to the three hero pages as the standard for everything else on the site; send-in is included as a pattern source but explicitly flagged as NOT a quality reference. CLAUDE.md session-start checklist now references it as step 5. Reduces "did we already learn this lesson?" recall loops in future sessions.
+- **2026-05-07** (uncommitted) — **Built the Send IN page** (`/pages/send-in`). Six new sections (hero / inspiration / cycle / form / tips / faq) plus `templates/page.send-in.json`. The page is the funnel target for every "Send IN" CTA across the site. Hero carries the page-level BreadcrumbList + WebPage JSON-LD because it's always present. Inspiration grid uses CSS multi-column for masonry without JS measuring + an inline lightbox (no library, ESC / outside-click / X to close). Cycle section pairs the existing `sendincontent_submissionwheel.jpg` with **dynamic Liquid date-math** (anchor + walk-forward, 120-day curation cutoff, derives next mag number and drop date automatically — one editor field per cycle). Form section embeds JotForm via `jsform` script (Ryan's call over iframe — cleaner appearance, auto-resizes), form ID `232212492042848`. Tips + FAQ accordions both reuse the homepage FAQ mechanics but scoped to their own data-attribute namespaces (`data-theinmag-send-in-tips`, `data-theinmag-send-in-faq`) so they coexist with the homepage FAQ without collisions. NO kid characters anywhere on this page (Ryan's call — funnel page, keep it focused). New pattern documented: [§4.9](#49-liquid-cycling-drop-dates-from-an-anchor) (Liquid drop-date cycling from an anchor + walk-forward — reusable for any recurring fixed-schedule "what's next" copy). Section catalog [§1.5](#15-custom-page-templates) extended with all six new sections; templates table [§1.6](#16-templates) gets `page.send-in.json`. Outstanding inputs Ryan still needs to paste in admin: hero image + alt + attribution; 8-12 inspiration tile images + captions; confirm `next_mag_number` / `next_mag_drop` are correct on release day.
 - **2026-05-07** (a5d8006f) — **Competitions page review pass + new patterns.** Multi-commit session refining the competitions hub from MVP to launch-ready, with several reusable patterns extracted along the way. Head commits: `79a4e1cd` (choice gate + 13-character pool + tighter stage) → `d5736059` (top-pick badge, sticker missed-card, headings hidden) → `61a24595` (Fisher-Yates distinct picks, auto-fetched logos, link-audit, SEO uplift) → `eb5e75d2` (drop bunnings + micador, fix 2 URLs, refetch their logos) → `4641cd38` (24 manual logos, top-3 spotlight cap, CSV cleanup) → `8c7d5486` (mobile static-stage + tagline single-line + missed-card --mobile/--desktop variants) → `a5d8006f` (sticky-header-aware scrollTo). New patterns documented: [§3.6](#36-static-stage-on-mobile-via-display-contents-flatten) (display:contents flatten for mobile static-stage), [§4.4 Variant B](#44-random-pool-selection-kid-characters) (large-pool filename-convention), [§4.7](#47-filename-convention-asset-auto-discovery-no-admin-field) (filename auto-discovery for assets), [§5.3](#53-distinct-pick-from-a-random-pool-fisher-yates) (Fisher-Yates distinct pick), [§5.4](#54-choice-gate-state-machine-css-driven-show-hide) (choice-gate state machine), [§5.5](#55-sticky-header-aware-scrollto) (sticky-header-aware scrollTo), [§6.4](#64-visually-hidden-keyword-rich-copy-for-seo) (visually-hidden SEO copy), [§6.5](#65-auto-generated-itemlist-json-ld-from-a-data-array) (auto-generated ItemList JSON-LD). New brand-locked decisions: "top picks" naming + 3-card cap + missed-card visual differentiator + quiz-gate UX. New tooling: `_tools/audit-competitions.py` (combined logo-fetcher + link-verifier, stdlib only). Page recipe at [§10.4](#104-worked-recipe-competitions-page-pagescompetitions) fully rewritten to reflect the launch-ready state (65 comps, 3-card spotlight, character pool, logo+letter rendering, mobile static-stage, SEO uplift). Section catalog [§1.5](#15-custom-page-templates) entry expanded.
 - **2026-05-07** (uncommitted, third pass) — **Built `theinmag-competitions.liquid` + page template.** New custom-page section. 69 Aussie kids' comps live in `competitions-database.csv`; a single-source converter (`_tools/build-competitions-data.py`) generates `assets/competitions.json` + `snippets/theinmag-competitions-data.liquid` (parallel-array Liquid via pipe-delimited splits). Static-stage technique (100vh + internal scroll on the list column) is the page's signature. Data architecture: Option C (ship-fast JSON + Liquid) per Ryan's call, with documented migration path to Option A (metaobjects). Spotlight rotation pool = 7 Tier-1 🟢 hot leads from the master MD initially. Mobile: featured tile reorders before list via flex `order`, filters hide behind a "filters" pill.
 - **2026-05-07** (uncommitted, second pass) — **Added §9 Kid pattern library.** Per Ryan's prompt: every page or section that calls for a background, decorative surface, or texture should default to a kid creation pulled from the magazine — never synthetic geometric patterns or stock textures. Section captures: the trigger ("STOP and ask Ryan" before defaulting to flat colour), the existing `/assets/` library (blog-image-universal, section_background, HERO, character pools), naming convention going forward (`theinmag-pattern-[surface]-[descriptor]`), six implementation modes (top-anchored gradient blend, full-bleed, decorative corner peek, repeating tile, inline mid-content punctuation, image-on-image overlay), and a "when to ask, when to grab" decision tree (card covers safe to grab; section/hero anchors require Ryan-yes). The Page Recipe template now has a separate "Anchoring kid pattern" slot (distinct from the hero kid creation) so it's checked every time a new page is briefed.
