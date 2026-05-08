@@ -17,6 +17,13 @@
     "theinmag-header": {
       "type": "theinmag-header",
       "blocks": {
+        "info-competitions": {
+          "type": "dropdown_item",
+          "settings": {
+            "label": "Competitions for Kids",
+            "link": "/pages/competitions"
+          }
+        },
         "info-parents": {
           "type": "dropdown_item",
           "settings": {
@@ -54,6 +61,7 @@
         }
       },
       "block_order": [
+        "info-competitions",
         "info-parents",
         "info-teachers",
         "info-homeschoolers",

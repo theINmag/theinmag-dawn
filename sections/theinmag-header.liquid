@@ -370,10 +370,22 @@
      header doesn't inherit, so we make the wrapper sticky directly.
      Margin + padding zeroed on the wrapper so nothing leaks below the
      header into the hero. */
-  .theinmag-header-section {
+  /* Two-class selector beats Dawn's base.css rule
+     `.shopify-section-group-header-group { z-index: 4 }` which has only
+     one class of specificity and would otherwise win the cascade. The
+     dropdown panel was being painted at z-index 4 because of that. */
+  .shopify-section.theinmag-header-section {
     position: sticky;
     top: 0;
-    z-index: 50;
+    /* z-index 90 keeps the INfo dropdown above sections below the
+       header. Stays below the mobile drawer at z-index 100 so drawer
+       overlay still wins on open. isolation: isolate forces a stacking
+       context independent of z-index ordering. overflow: visible
+       guarantees the dropdown panel can paint outside the header's
+       bounds even if a parent rule tries to clip it. */
+    z-index: 90;
+    isolation: isolate;
+    overflow: visible;
     margin: 0;
     padding: 0;
     line-height: 0;
@@ -593,7 +605,10 @@
     transition: opacity var(--transition-standard),
                 transform var(--transition-standard),
                 visibility 0s linear var(--transition-standard);
-    z-index: 51;
+    /* High z-index inside the header section's own stacking context.
+       Combined with isolation:isolate on the section wrapper, this
+       guarantees the dropdown paints above any neighbouring section. */
+    z-index: 9999;
   }
 
   /* Show on hover OR keyboard focus OR explicit aria-expanded.
@@ -1292,6 +1307,7 @@
   ],
   "default": {
     "blocks": [
+      { "type": "dropdown_item", "settings": { "label": "Competitions for Kids", "link": "/pages/competitions" } },
       { "type": "dropdown_item", "settings": { "label": "For Parents" } },
       { "type": "dropdown_item", "settings": { "label": "For Teachers" } },
       { "type": "dropdown_item", "settings": { "label": "For Homeschoolers" } },
