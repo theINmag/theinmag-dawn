@@ -62,14 +62,16 @@
     <header class="theinmag-blog-feed__header">
       <div class="theinmag-blog-feed__title-stack">
         <h2 id="theinmag-blog-feed-heading" class="theinmag-blog-feed__heading">
-          <img
-            src="{{ 'fieldnotes_logo.png' | asset_url }}"
-            alt="Field notes"
-            class="theinmag-blog-feed__heading-logo"
-            width="2160"
-            height="1440"
-            loading="lazy"
-          >
+          <a class="theinmag-blog-feed__heading-link" href="/blogs/field-notes" aria-label="Browse all field notes">
+            <img
+              src="{{ 'fieldnotes_logo.png' | asset_url }}"
+              alt="Field notes"
+              class="theinmag-blog-feed__heading-logo"
+              width="2160"
+              height="1440"
+              loading="lazy"
+            >
+          </a>
         </h2>
         {%- if subhead != blank -%}
           <p class="theinmag-blog-feed__subhead">{{ subhead }}</p>
@@ -324,6 +326,30 @@
     height: 1em;
     width: auto;
     flex: 0 0 auto;
+  }
+
+  /* Wrapping the logo in an anchor to /blogs/field-notes — styles
+     keep the image as the only visible affordance (no underline,
+     no inherited color), with a soft hover lift to signal it's
+     interactive. Focus ring kept for keyboard nav. */
+  .theinmag-blog-feed__heading-link {
+    display: inline-block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .theinmag-blog-feed__heading-link:hover,
+  .theinmag-blog-feed__heading-link:focus-visible {
+    transform: translateY(-1px);
+    opacity: 0.92;
+    outline: none;
+  }
+
+  .theinmag-blog-feed__heading-link:focus-visible {
+    outline: 2px dashed var(--color-purple-dark, #5D3A7A);
+    outline-offset: 4px;
+    border-radius: 4px;
   }
 
   .theinmag-blog-feed__subhead {

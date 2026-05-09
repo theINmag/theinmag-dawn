@@ -36,7 +36,7 @@
   assign logo_full = section.settings.logo_image_full
 
   assign cta_label = section.settings.cta_label | default: 'Send IN content'
-  assign cta_link = section.settings.cta_link | default: '/pages/send-in-content'
+  assign cta_link = section.settings.cta_link | default: '/pages/send-in'
 
   assign instagram_url = section.settings.instagram_url
   assign facebook_url = section.settings.facebook_url
@@ -1199,7 +1199,7 @@
       "type": "url",
       "id": "cta_link",
       "label": "CTA link",
-      "info": "Defaults to /pages/send-in-content."
+      "info": "Defaults to /pages/send-in."
     },
     {
       "type": "header",
