@@ -135,10 +135,18 @@
 
   if is_guest
     comment
-      Guest mode overrides the standard byline overlay. Post Regular
-      treatment is applied via a CSS modifier class (set below).
+      Guest mode overrides the standard byline overlay. Strip a single
+      trailing period from guest_name before appending one so values
+      like "Mitch G." don't render as "Meet Mitch G..". Inter subheading
+      styling is applied via a CSS modifier class (set below).
     endcomment
-    assign byline_overlay = 'Meet ' | append: guest_name | append: '.'
+    assign trimmed_guest = guest_name
+    assign guest_last_char = guest_name | slice: -1
+    if guest_last_char == '.'
+      assign guest_trim_to = guest_name | size | minus: 1
+      assign trimmed_guest = guest_name | slice: 0, guest_trim_to
+    endif
+    assign byline_overlay = 'Meet ' | append: trimmed_guest | append: '.'
   elsif author_type == 'kid'
     assign byline_overlay = author_name
   else
@@ -883,15 +891,16 @@
     max-width: 32ch;
   }
 
-  /* Guest mode "Meet [Name]." pattern — Post Regular gives this byline
-     the brand-identity register, distinct from the editorial Inter
-     used for By Ryan / By Tam / kid attributions. */
+  /* Guest mode "Meet [Name]." byline — Inter 700 at the body-H2
+     subheading scale so it reads as a proper editorial subheading
+     rather than a stylised moment. Sits over the photo with the
+     standard text-shadow scrim from the parent overlay. */
   .theinmag-article__overlay-byline--guest {
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(18px, 2vw, 24px);
-    line-height: 1.2;
-    letter-spacing: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(18px, 1.9vw, 22px);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
     opacity: 1;
     margin-bottom: 4px;
   }
@@ -1483,18 +1492,19 @@
   .theinmag-article__advice-label {
     display: block;
     margin-bottom: clamp(10px, 1.2vw, 14px);
-    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
-    font-size: clamp(20px, 2vw, 24px);
-    line-height: 1;
+    font-size: clamp(18px, 1.9vw, 22px);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
     color: var(--color-purple-dark);
   }
 
   .theinmag-article__advice-body {
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(16px, 1.5vw, 19px);
-    line-height: 1.55;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.6;
     color: var(--color-ink);
   }
 
