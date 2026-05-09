@@ -21,6 +21,7 @@
   Series-republish metafields (Real Jobs, Real People etc):
 
     field_notes.guest_name              (single line, e.g. "Mitch G.")
+    field_notes.guest_avatar            (file_reference: image - tighter face crop)
     field_notes.series_name             (single line, e.g. "Real Jobs, Real People")
     field_notes.series_strip_text       (multi-line, body of the series strip)
     field_notes.advice_block            (multi-line, closing advice quote)
@@ -53,6 +54,7 @@
   assign quick_answer = article.metafields.field_notes.quick_answer
 
   assign guest_name = article.metafields.field_notes.guest_name
+  assign guest_avatar = article.metafields.field_notes.guest_avatar.value
   assign series_name = article.metafields.field_notes.series_name
   assign series_strip_text = article.metafields.field_notes.series_strip_text
   assign advice_block_text = article.metafields.field_notes.advice_block
@@ -295,6 +297,22 @@
             <span class="theinmag-article__quick-read-label">Quick read</span>
             <div class="theinmag-article__quick-read-body rte">{{ quick_answer }}</div>
           </aside>
+        {%- endif -%}
+
+        {%- if guest_avatar != blank -%}
+          <figure class="theinmag-article__guest-portrait">
+            <img
+              class="theinmag-article__guest-portrait-img"
+              src="{{ guest_avatar | image_url: width: 240 }}"
+              alt="{{ guest_name | default: article.title | escape }}"
+              width="120"
+              height="120"
+              loading="lazy"
+            >
+            {%- if guest_name != blank -%}
+              <figcaption class="theinmag-article__guest-portrait-caption">{{ guest_name }}</figcaption>
+            {%- endif -%}
+          </figure>
         {%- endif -%}
 
         <div class="theinmag-article__body rte">
@@ -1380,6 +1398,40 @@
         aspect-ratio: 3 / 4;
       }
     }
+  }
+
+  /* ================================================================
+     Guest portrait — small circular avatar between the Quick read
+     card and the body, conditional on `field_notes.guest_avatar`.
+     Helps kids connect a face to the person they're reading about
+     after the cover image scrolls past on mobile. Caption uses the
+     guest_name in Caveat (matches the brand-voice cursive style for
+     warmth moments per the visual style guide).
+     ================================================================ */
+  .theinmag-article__guest-portrait {
+    margin: clamp(8px, 1vw, 12px) auto clamp(28px, 3.2vw, 40px);
+    max-width: 84%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .theinmag-article__guest-portrait-img {
+    width: clamp(80px, 8vw, 96px);
+    height: clamp(80px, 8vw, 96px);
+    border-radius: 9999px;
+    object-fit: cover;
+    box-shadow: 0 4px 14px rgba(123, 79, 158, 0.15);
+  }
+
+  .theinmag-article__guest-portrait-caption {
+    margin: clamp(8px, 1vw, 12px) 0 0;
+    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(18px, 1.8vw, 22px);
+    line-height: 1;
+    color: var(--color-purple-dark);
   }
 
   /* ================================================================
