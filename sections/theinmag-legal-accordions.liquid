@@ -273,9 +273,14 @@
     background-color: #FFFFFF;
   }
 
+  /* Wider column than the readability default of ~65ch. Legal copy
+     is scanned, not read deeply - a wider line means fewer visual
+     breaks and a shorter perceived page. 80ch is the upper end of
+     comfortable measure for Inter at 16px; beyond that, the eye
+     starts losing its place between lines. */
   .theinmag-legal-accordions__content {
     padding: clamp(8px, 1.5vw, 16px) clamp(16px, 2.5vw, 28px) clamp(24px, 3vw, 32px);
-    max-width: 65ch;
+    max-width: 80ch;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
     font-size: clamp(15px, 1.4vw, 16px);
