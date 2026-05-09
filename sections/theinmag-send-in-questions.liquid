@@ -1,0 +1,647 @@
+{%- comment -%}
+  theinmag-send-in-questions
+  Section that sits below the form on /pages/send-in. Replaces the
+  separate hero / inspiration / cycle / tips sections from the
+  earlier build pass per Ryan's 2026-05-07 restructure: the page is
+  form-first, so all the meta-info (when, how, what) collapses into
+  a single interactive panel.
+
+  Pattern: lifted from theinmag-philosophy.liquid - large editorial
+  anchors stacked on the left, image + answer panel on the right.
+  Hover (desktop) / click / focus swaps the active anchor. Sticky
+  behaviour: stays active until the next interaction. First anchor
+  is the default and pulses once until the visitor engages.
+
+  This variant extends the philosophy pattern by ALSO swapping the
+  right-hand image when the active anchor changes - each block has
+  an optional image (or fallback filename for assets like the
+  submission wheel). If a block has no image, the visual column
+  fades out gently rather than going blank.
+
+  Answers are rich text (paragraphs + lists supported) so each
+  panel is rendered in markup with [data-answer-for] and toggled
+  via .is-active. textContent injection wouldn't survive list HTML.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign blocks = section.blocks | where: 'type', 'question'
+
+  assign wheel_url = ''
+  if section.settings.wheel_image != blank
+    assign wheel_url = section.settings.wheel_image | image_url: width: 1200
+  elsif section.settings.wheel_image_filename != blank
+    assign wheel_url = section.settings.wheel_image_filename | asset_url
+  endif
+  assign wheel_alt = section.settings.wheel_image_alt | default: 'theINmag submission wheel - the three issues a year, February, June, and October.'
+
+  assign bg_url = ''
+  if section.settings.background_image != blank
+    assign bg_url = section.settings.background_image | image_url: width: 1200
+  elsif section.settings.background_image_filename != blank
+    assign bg_url = section.settings.background_image_filename | asset_url
+  endif
+
+  assign section_style = '--siq-pt: ' | append: section.settings.padding_top | append: 'px; --siq-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  if bg_url != blank
+    assign section_style = section_style | append: ' --siq-bg-image: url(' | append: bg_url | append: ');'
+  endif
+-%}
+
+<section
+  class="theinmag-send-in-questions"
+  id="send-in-questions"
+  data-theinmag-send-in-questions
+  aria-labelledby="theinmag-send-in-questions-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-send-in-questions__inner">
+    {%- if blocks.size > 0 -%}
+      <div class="theinmag-send-in-questions__layout">
+        <div class="theinmag-send-in-questions__copy">
+          {%- if heading != blank or subhead != blank -%}
+            <header class="theinmag-send-in-questions__header">
+              {%- if heading != blank -%}
+                <h2 id="theinmag-send-in-questions-heading" class="theinmag-send-in-questions__heading">{{ heading }}</h2>
+              {%- endif -%}
+              {%- if subhead != blank -%}
+                <p class="theinmag-send-in-questions__subhead">{{ subhead }}</p>
+              {%- endif -%}
+            </header>
+          {%- endif -%}
+
+          <ul class="theinmag-send-in-questions__anchors" role="list" data-theinmag-send-in-questions-anchors>
+            {%- for block in blocks -%}
+              {%- liquid
+                assign block_id = 'theinmag-send-in-q-' | append: section.id | append: '-' | append: forloop.index
+              -%}
+              <li class="theinmag-send-in-questions__anchor-item" {{ block.shopify_attributes }}>
+                <h3 class="theinmag-send-in-questions__anchor-heading">
+                  <button
+                    type="button"
+                    class="theinmag-send-in-questions__anchor"
+                    data-theinmag-send-in-questions-trigger
+                    data-target="{{ block_id }}"
+                    aria-controls="{{ block_id }}"
+                  >
+                    {{ block.settings.label }}
+                  </button>
+                </h3>
+              </li>
+            {%- endfor -%}
+          </ul>
+
+          <div class="theinmag-send-in-questions__reveal" data-theinmag-send-in-questions-reveal aria-live="polite">
+            {%- for block in blocks -%}
+              {%- liquid
+                assign block_id = 'theinmag-send-in-q-' | append: section.id | append: '-' | append: forloop.index
+              -%}
+              <div
+                id="{{ block_id }}"
+                class="theinmag-send-in-questions__answer"
+                data-theinmag-send-in-questions-answer
+              >
+                {{ block.settings.answer }}
+              </div>
+            {%- endfor -%}
+          </div>
+        </div>
+
+        <div class="theinmag-send-in-questions__visual-col" aria-hidden="true">
+          {%- if wheel_url != blank -%}
+            <div class="theinmag-send-in-questions__visual-wrap">
+              <img
+                class="theinmag-send-in-questions__visual"
+                src="{{ wheel_url }}"
+                alt="{{ wheel_alt | escape }}"
+                loading="lazy"
+                width="1200"
+                height="1200"
+              >
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-send-in-questions
+     Lavender feature surface with a kid-art eyeball pattern tiled
+     over the top (section_background_competitions2.jpg by default).
+     Lavender base shows where the pattern thins so the section
+     never goes harsh on contrast. Pattern is set via CSS custom
+     property emitted from Liquid (Shopify's stylesheet block can't
+     run Liquid filters - the inline section style does the work).
+     ================================================================ */
+
+  .theinmag-send-in-questions {
+    background-color: var(--color-lavender, #E8DEEF);
+    background-image: var(--siq-bg-image, none);
+    /* Single big image - no tiling. cover stretches to fill the
+       section regardless of viewport ratio; center positioning keeps
+       the focal area visible at all widths. Default asset
+       (contact_header.jpg) is a soft lavender abstract that doesn't
+       fight the type, so no overlay layer needed. */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--siq-pt, 64px) clamp(16px, 4vw, 32px) var(--siq-pb, 64px);
+    position: relative;
+    overflow: hidden;
+    scroll-margin-top: 96px;
+  }
+
+  .theinmag-send-in-questions__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  /* Header now sits at the top of the LEFT column (above the question
+     anchors), not centered above the layout. Left-aligned, smaller
+     bottom margin than before so the question stack starts close to
+     it. This frees vertical space on the right column and lets the
+     wheel sit slightly higher on the section. */
+  .theinmag-send-in-questions__header {
+    text-align: left;
+    margin: 0 0 clamp(20px, 3vw, 28px);
+  }
+
+  .theinmag-send-in-questions__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.6vw, 42px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  /* Emphasis words in the heading - matches the homepage FAQ
+     pattern. Same color + size lift, italic stripped (Post Regular
+     has no italic cut and we want the visual weight from scale not
+     style). */
+  .theinmag-send-in-questions__heading em {
+    font-style: normal;
+    font-size: 1.25em;
+    line-height: 0.9;
+    letter-spacing: 0;
+    vertical-align: -0.06em;
+    display: inline-block;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-send-in-questions__subhead {
+    margin: clamp(10px, 1.4vw, 14px) 0 0;
+    max-width: 56ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.85;
+  }
+
+  /* ================================================================
+     Layout - left copy column, right visual column. Stacks on
+     mobile (visual moves above copy on phone for "what am I
+     looking at" anchoring; flips back to side-by-side on desktop).
+     ================================================================ */
+
+  .theinmag-send-in-questions__layout {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(20px, 3vw, 36px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-send-in-questions__layout {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: clamp(32px, 5vw, 64px);
+    }
+
+    .theinmag-send-in-questions__copy {
+      flex: 1 1 55%;
+      min-width: 0;
+    }
+
+    .theinmag-send-in-questions__visual-col {
+      flex: 1 1 45%;
+      min-width: 0;
+      /* Negative top margin lifts the wheel slightly above the heading
+         baseline on the left - same trick the homepage philosophy
+         section uses to anchor the photo. Small enough that the wheel
+         doesn't crash into the sticky header above. */
+      margin-top: clamp(-12px, -1vw, -4px);
+    }
+  }
+
+  /* ================================================================
+     Anchor list (questions) - large editorial buttons stacked
+     vertically. Active anchor is dark purple; resting state is the
+     muted ink. Same hover-up nudge as philosophy.
+     ================================================================ */
+
+  .theinmag-send-in-questions__anchors {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1vw, 10px);
+  }
+
+  .theinmag-send-in-questions__anchor-item {
+    margin: 0;
+  }
+
+  /* H3 wrapper carries semantic hierarchy under the section H2.
+     Reset typography so the inner <button> handles the visual work
+     (matches the FAQ accordion pattern). */
+  .theinmag-send-in-questions__anchor-heading {
+    margin: 0;
+    font: inherit;
+  }
+
+  .theinmag-send-in-questions__anchor {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: clamp(6px, 1vw, 10px) 0;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    /* Inter 700 to match field-notes editorial titles - Post Regular
+       reads kiddy when stacked three-deep. Single-source memory:
+       feedback_inter_for_blog_titles. */
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(20px, 2.8vw, 28px);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.45;
+    transition: opacity var(--transition-hover, 0.2s ease),
+                color var(--transition-hover, 0.2s ease),
+                transform var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-send-in-questions__anchor:hover,
+  .theinmag-send-in-questions__anchor:focus-visible {
+    opacity: 1;
+    color: var(--color-purple-dark, #5D3A7A);
+    outline: none;
+    transform: translateX(2px);
+  }
+
+  .theinmag-send-in-questions__anchor:focus-visible {
+    outline: 2px dashed var(--color-purple-dark, #5D3A7A);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  .theinmag-send-in-questions__anchor.is-active {
+    opacity: 1;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  /* Pulse hint - first anchor pulses once until the user interacts. */
+  .theinmag-send-in-questions__anchor.is-pulsing {
+    animation: theinmag-send-in-questions-pulse 2.4s ease-in-out 0.6s 2;
+  }
+
+  @keyframes theinmag-send-in-questions-pulse {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(4px); }
+  }
+
+  /* ================================================================
+     Reveal - active answer fades. Inactive answers are display:none
+     so they don't take vertical space. Quick fade on swap.
+     ================================================================ */
+
+  .theinmag-send-in-questions__reveal {
+    margin-top: clamp(16px, 2.4vw, 24px);
+    transition: opacity 0.16s ease, transform 0.16s ease;
+  }
+
+  .theinmag-send-in-questions__reveal.is-swapping {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  .theinmag-send-in-questions__answer {
+    display: none;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.7;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-send-in-questions__answer.is-active {
+    display: block;
+  }
+
+  .theinmag-send-in-questions__answer p {
+    margin: 0 0 clamp(12px, 1.4vw, 16px);
+  }
+
+  .theinmag-send-in-questions__answer p:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-send-in-questions__answer ul,
+  .theinmag-send-in-questions__answer ol {
+    margin: clamp(8px, 1vw, 12px) 0 clamp(12px, 1.4vw, 16px);
+    padding-left: clamp(20px, 2vw, 26px);
+  }
+
+  .theinmag-send-in-questions__answer li {
+    margin: 0 0 clamp(6px, 0.8vw, 10px);
+  }
+
+  .theinmag-send-in-questions__answer li:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-send-in-questions__answer strong {
+    color: var(--color-purple-dark, #5D3A7A);
+    font-weight: 600;
+  }
+
+  .theinmag-send-in-questions__answer em {
+    font-style: italic;
+    opacity: 0.85;
+  }
+
+  /* ================================================================
+     Visual column - now a fixed wheel image (no per-question swap).
+     Layered box-shadows give a soft lavender glow that lifts the
+     wheel off the busy eyeball pattern behind it.
+     ================================================================ */
+
+  .theinmag-send-in-questions__visual-wrap {
+    position: relative;
+    border-radius: var(--radius-xl, 28px);
+    background-color: transparent;
+    box-shadow:
+      0 0 32px rgba(123, 79, 158, 0.22),
+      0 0 64px rgba(123, 79, 158, 0.14),
+      0 12px 28px rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-send-in-questions__visual {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-xl, 28px);
+    /* Important: NO border-radius:50% here. The wheel asset already
+       has its own circular composition + surrounding labels ("WHEN
+       WILL MY CONTENT BE IN?" header, month wedge text). Clipping
+       to a circle cut those labels off in an earlier build. */
+  }
+
+  /* ================================================================
+     Reduced motion: instant swap, no pulse. State changes still
+     happen, just without animation.
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-send-in-questions__anchor,
+    .theinmag-send-in-questions__reveal,
+    .theinmag-send-in-questions__visual-wrap {
+      transition: none;
+    }
+    .theinmag-send-in-questions__anchor.is-pulsing {
+      animation: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-send-in-questions]');
+    if (!root) return;
+
+    var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var triggers = Array.prototype.slice.call(root.querySelectorAll('[data-theinmag-send-in-questions-trigger]'));
+    var answers = Array.prototype.slice.call(root.querySelectorAll('[data-theinmag-send-in-questions-answer]'));
+    var reveal = root.querySelector('[data-theinmag-send-in-questions-reveal]');
+
+    if (!triggers.length || !reveal) return;
+
+    /* ----------------------------------------------------------------
+       Pulse hint - first anchor pulses twice until interaction.
+       Mirrors the philosophy section's "and there are more like
+       this" cue rather than a "click me" prompt.
+       ---------------------------------------------------------------- */
+    triggers[0].classList.add('is-pulsing');
+
+    var activeTrigger = null;
+    var swapTimer = null;
+
+    function clearPulse() {
+      var pulser = root.querySelector('.theinmag-send-in-questions__anchor.is-pulsing');
+      if (pulser) pulser.classList.remove('is-pulsing');
+    }
+
+    function applyContent(trigger) {
+      var targetId = trigger.getAttribute('data-target');
+      answers.forEach(function (a) {
+        a.classList.toggle('is-active', a.id === targetId);
+      });
+    }
+
+    function setActive(trigger, opts) {
+      if (activeTrigger === trigger) return;
+      var initial = !!(opts && opts.initial);
+
+      triggers.forEach(function (t) {
+        t.classList.toggle('is-active', t === trigger);
+      });
+      activeTrigger = trigger;
+
+      if (initial || reducedMotion) {
+        applyContent(trigger);
+        return;
+      }
+
+      /* Wheel image stays put - only the answer text fades and swaps.
+         Per Ryan: the wheel is a constant visual anchor for the whole
+         section, not an answer that comes and goes. */
+      reveal.classList.add('is-swapping');
+      window.clearTimeout(swapTimer);
+      swapTimer = window.setTimeout(function () {
+        applyContent(trigger);
+        reveal.classList.remove('is-swapping');
+      }, 160);
+    }
+
+    setActive(triggers[0], { initial: true });
+
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('mouseenter', function () {
+        clearPulse();
+        setActive(trigger);
+      });
+      trigger.addEventListener('click', function () {
+        clearPulse();
+        setActive(trigger);
+      });
+      trigger.addEventListener('focus', function () {
+        clearPulse();
+        setActive(trigger);
+      });
+    });
+
+    root.addEventListener('click', clearPulse);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag Send IN Q+A",
+  "tag": "section",
+  "class": "theinmag-send-in-questions-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Wrap words in <em>...</em> tags to emphasise them (renders larger + dark purple)."
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead (optional)"
+    },
+    {
+      "type": "header",
+      "content": "Submission wheel"
+    },
+    {
+      "type": "paragraph",
+      "content": "Stays fixed on the right. Doesn't swap when questions change."
+    },
+    {
+      "type": "image_picker",
+      "id": "wheel_image",
+      "label": "Wheel image"
+    },
+    {
+      "type": "text",
+      "id": "wheel_image_alt",
+      "label": "Wheel alt text"
+    },
+    {
+      "type": "text",
+      "id": "wheel_image_filename",
+      "label": "Wheel fallback filename",
+      "default": "sendincontent_submissionwheel.jpg",
+      "info": "Used if no image picker. Asset filename in /assets/."
+    },
+    {
+      "type": "header",
+      "content": "Background pattern"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image"
+    },
+    {
+      "type": "text",
+      "id": "background_image_filename",
+      "label": "Background fallback filename",
+      "default": "contact_header.jpg",
+      "info": "Asset filename in /assets/. Renders as one big cover image, no tiling."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 72
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 72
+    }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "limit": 5,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Question",
+          "info": "Phrased as a question. AEO benefits."
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer (rich text)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Send IN Q+A",
+      "blocks": [
+        {
+          "type": "question",
+          "settings": {
+            "label": "When will my creation be in the mag?",
+            "answer": "<p>theINmag drops three times a year - February, June, and October. Submissions are always open. Send yours in any time and we'll consider it for the next issue.</p><p>Want to make sure your kid never misses one? <strong>Members get every new mag delivered straight to their door.</strong></p><p><em>We can't publish every creation - there are more incredible kids than there are pages. If yours doesn't make this issue, don't get discouraged - keep creating, making, and sharing it with the world.</em></p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "label": "How do I send IN something great?",
+            "answer": "<ul><li>Use a phone or iPad camera, not a laptop one - the photo will be way clearer.</li><li>Take it somewhere bright, with no shadows across your creation.</li><li>Save it as big as you can - small fuzzy pictures don't print well.</li><li>Make it yours - we only publish stuff kids made themselves.</li><li>Tell us about it - two or three sentences about how you made it makes it land.</li></ul>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "label": "What can I send IN?",
+            "answer": "<p>Anything you're proud of. Writing, drawings, photos, jokes, facts, puzzles, songs, recipes, hobbies - even things you've built like shelters, veggie patches, sculptures, or a really great box.</p><p>By sending it IN, you inspire other kids - and you could see yourself in print.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

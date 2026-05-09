@@ -1,0 +1,22 @@
+{%- comment -%}
+  theinmag-stockists-modal
+  Lightbox modal triggered by the "Become a stockist" CTA in the
+  sibling theinmag-stockists-hero section. Listens for the global
+  CustomEvent 'theinmag-stockists:open-modal'. Full markup + form
+  embed land in step 7 of the build sequence.
+{%- endcomment -%}
+
+<div class="theinmag-stockists-modal" data-theinmag-stockists-modal hidden></div>
+
+{%- stylesheet -%}
+  .theinmag-stockists-modal[hidden] { display: none; }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Stockists modal",
+  "tag": "aside",
+  "class": "shopify-section--theinmag-stockists-modal",
+  "settings": []
+}
+{% endschema %}

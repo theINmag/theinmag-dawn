@@ -1,0 +1,395 @@
+{%- comment -%}
+  theinmag-send-in-tips
+  Section 5 of /pages/send-in. Accordion. Closed by default. Tap to
+  expand. Kid-direct voice. Quietly raises the quality bar and
+  reduces vetting workload by nudging kids toward submissions that
+  won't get rejected (full faces, contact info, traced work, etc.).
+
+  Same accordion mechanics as theinmag-faq.liquid - max-height
+  transition, caret rotation, ARIA expanded/controls. NO kid
+  character on this page (Ryan's call).
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign tip_blocks = section.blocks | where: 'type', 'tip_item'
+
+  assign section_style = '--sit-pt: ' | append: section.settings.padding_top | append: 'px; --sit-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-send-in-tips"
+  data-theinmag-send-in-tips
+  aria-labelledby="theinmag-send-in-tips-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-send-in-tips__inner">
+    {%- if heading != blank or subhead != blank -%}
+      <header class="theinmag-send-in-tips__header">
+        {%- if heading != blank -%}
+          <h2 id="theinmag-send-in-tips-heading" class="theinmag-send-in-tips__heading">{{ heading }}</h2>
+        {%- endif -%}
+        {%- if subhead != blank -%}
+          <p class="theinmag-send-in-tips__subhead">{{ subhead }}</p>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if tip_blocks.size > 0 -%}
+      <ul class="theinmag-send-in-tips__list" role="list">
+        {%- for block in tip_blocks -%}
+          {%- liquid
+            assign tip_label = block.settings.label
+            assign tip_body = block.settings.body
+            assign panel_id = 'theinmag-send-in-tip-' | append: section.id | append: '-' | append: forloop.index
+          -%}
+          <li class="theinmag-send-in-tips__item" {{ block.shopify_attributes }}>
+            <h3 class="theinmag-send-in-tips__label-heading">
+              <button
+                type="button"
+                class="theinmag-send-in-tips__trigger"
+                aria-expanded="false"
+                aria-controls="{{ panel_id }}"
+                data-theinmag-send-in-tips-trigger
+              >
+                <span class="theinmag-send-in-tips__label">{{ tip_label }}</span>
+                <span class="theinmag-send-in-tips__caret" aria-hidden="true"></span>
+              </button>
+            </h3>
+            <div
+              id="{{ panel_id }}"
+              class="theinmag-send-in-tips__body-wrap"
+              data-theinmag-send-in-tips-body
+              data-open="false"
+            >
+              <div class="theinmag-send-in-tips__body">
+                {{ tip_body }}
+              </div>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-send-in-tips
+     Warm off-white background to alternate with the cream-pair
+     sections sitting above and below.
+     ================================================================ */
+
+  .theinmag-send-in-tips {
+    background-color: #FDFAF5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--sit-pt, 56px) clamp(16px, 4vw, 32px) var(--sit-pb, 56px);
+    position: relative;
+  }
+
+  .theinmag-send-in-tips__inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .theinmag-send-in-tips__header {
+    text-align: center;
+    margin-bottom: clamp(20px, 3vw, 32px);
+  }
+
+  .theinmag-send-in-tips__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(26px, 4.2vw, 38px);
+    line-height: 1.1;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-send-in-tips__subhead {
+    margin: clamp(10px, 1.4vw, 14px) auto 0;
+    max-width: 56ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.8;
+  }
+
+  /* Accordion list - hairline rules between rows. */
+  .theinmag-send-in-tips__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-send-in-tips__item {
+    border-bottom: 1px solid rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-send-in-tips__label-heading {
+    margin: 0;
+    font: inherit;
+  }
+
+  .theinmag-send-in-tips__trigger {
+    appearance: none;
+    background: none;
+    border: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(12px, 1.5vw, 20px);
+    padding: clamp(16px, 2vw, 22px) clamp(8px, 1.5vw, 16px);
+    cursor: pointer;
+    text-align: left;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    min-height: 56px;
+    transition: color var(--transition-standard, 0.15s ease);
+  }
+
+  .theinmag-send-in-tips__trigger:hover,
+  .theinmag-send-in-tips__trigger:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    outline: none;
+  }
+
+  .theinmag-send-in-tips__trigger:focus-visible {
+    outline: 2px dashed var(--color-purple-dark, #5D3A7A);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .theinmag-send-in-tips__label {
+    flex: 1;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.4;
+  }
+
+  /* Caret matches the FAQ pattern. */
+  .theinmag-send-in-tips__caret {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    position: relative;
+    transition: transform 0.3s ease;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-send-in-tips__caret::before,
+  .theinmag-send-in-tips__caret::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 11px;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 2px;
+    transform-origin: 50% 50%;
+  }
+
+  .theinmag-send-in-tips__caret::before {
+    left: 1px;
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .theinmag-send-in-tips__caret::after {
+    right: 1px;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+
+  .theinmag-send-in-tips__trigger[aria-expanded="true"] .theinmag-send-in-tips__caret {
+    transform: rotate(180deg);
+  }
+
+  .theinmag-send-in-tips__body-wrap {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theinmag-send-in-tips__body-wrap[data-open="true"] {
+    max-height: 800px;
+  }
+
+  .theinmag-send-in-tips__body {
+    padding: 0 clamp(8px, 1.5vw, 16px) clamp(16px, 2vw, 22px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.7;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-send-in-tips__body p {
+    margin: 0 0 clamp(8px, 1vw, 12px);
+  }
+
+  .theinmag-send-in-tips__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-send-in-tips__caret,
+    .theinmag-send-in-tips__body-wrap {
+      transition: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-send-in-tips]');
+    if (!root) return;
+
+    var triggers = root.querySelectorAll('[data-theinmag-send-in-tips-trigger]');
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        var expanded = trigger.getAttribute('aria-expanded') === 'true';
+        var body = document.getElementById(trigger.getAttribute('aria-controls'));
+        if (!body) return;
+        trigger.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        body.setAttribute('data-open', expanded ? 'false' : 'true');
+      });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag Send IN tips",
+  "tag": "section",
+  "class": "theinmag-send-in-tips-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "How do I send IN something great?"
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "A few simple tips from us. None of them are rules - just stuff that helps your creation shine."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tip_item",
+      "name": "Tip",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Tip label"
+        },
+        {
+          "type": "richtext",
+          "id": "body",
+          "label": "Tip body"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Send IN tips",
+      "blocks": [
+        {
+          "type": "tip_item",
+          "settings": {
+            "label": "Take your time.",
+            "body": "<p>A creation you're proud of beats a rushed one every time. There's no deadline - the mag comes around again every four months.</p>"
+          }
+        },
+        {
+          "type": "tip_item",
+          "settings": {
+            "label": "Send the best version.",
+            "body": "<p>If you've drawn it three times, send the one you love most. Take a clean photo of it in good light, no shadows.</p>"
+          }
+        },
+        {
+          "type": "tip_item",
+          "settings": {
+            "label": "Only your name and your town.",
+            "body": "<p>Just first name, your last name's first letter, your age, and your town. We never publish full names, school names, or where you live.</p>"
+          }
+        },
+        {
+          "type": "tip_item",
+          "settings": {
+            "label": "No faces in photos, please.",
+            "body": "<p>This isn't a school photo - it's a creation. Pets, places, things, hands at work - all great. Faces, no.</p>"
+          }
+        },
+        {
+          "type": "tip_item",
+          "settings": {
+            "label": "Make it yours.",
+            "body": "<p>If you traced it, copied it, or your robot helper made it, it doesn't count. We only publish stuff kids made themselves.</p>"
+          }
+        },
+        {
+          "type": "tip_item",
+          "settings": {
+            "label": "Tell us about it.",
+            "body": "<p>Two or three sentences about how you made it, what you were thinking, why you love it. Sometimes the story is the best part.</p>"
+          }
+        },
+        {
+          "type": "tip_item",
+          "settings": {
+            "label": "Big pictures look better.",
+            "body": "<p>If you have the option, save your image at the highest quality (or biggest size). Small fuzzy pictures don't print well.</p>"
+          }
+        },
+        {
+          "type": "tip_item",
+          "settings": {
+            "label": "One creation per submission.",
+            "body": "<p>Send each one separately. That way each gets its own moment.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

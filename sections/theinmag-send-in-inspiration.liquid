@@ -1,0 +1,559 @@
+{%- comment -%}
+  theinmag-send-in-inspiration
+  Section 2 of /pages/send-in. An open inspiration grid - no
+  accordion, no gating, no category labels. Real kid creations on
+  display so a kid sees the breadth of what counts before they
+  scroll to the form.
+
+  Layout: CSS columns (multi-column) for masonry-style flow without
+  JS measuring. 2 cols on mobile, 3 cols at 750px, 4 cols at 990px.
+  break-inside:avoid keeps each tile intact across the column break.
+
+  Lightbox: pure inline overlay - clicking a tile opens an enlarged
+  view with the caption + optional process quote. Trap focus, close
+  on outside click / ESC / X. No third-party library.
+
+  v1 ships with hard-coded tile blocks. Phase 2: auto-pull 8-12
+  approved submissions from the same Shopify Metaobjects feeding the
+  /gallery page (flagged in the brief, NOT built here).
+
+  Cream pair `#FBF6EA` background - alternates with the hero's
+  `#FDFAF5` to give a soft "card on a page" feel.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign cta_label = section.settings.cta_label
+  assign cta_anchor = section.settings.cta_anchor
+  assign tile_limit = section.settings.tile_limit | default: 8
+
+  assign tile_blocks = section.blocks | where: 'type', 'creation_tile'
+
+  assign section_style = '--sii-pt: ' | append: section.settings.padding_top | append: 'px; --sii-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-send-in-inspiration"
+  data-theinmag-send-in-inspiration
+  aria-labelledby="theinmag-send-in-inspiration-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-send-in-inspiration__inner">
+    {%- if heading != blank or subhead != blank -%}
+      <header class="theinmag-send-in-inspiration__header">
+        {%- if heading != blank -%}
+          <h2 id="theinmag-send-in-inspiration-heading" class="theinmag-send-in-inspiration__heading">{{ heading }}</h2>
+        {%- endif -%}
+        {%- if subhead != blank -%}
+          <p class="theinmag-send-in-inspiration__subhead">{{ subhead }}</p>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if tile_blocks.size > 0 -%}
+      <ul class="theinmag-send-in-inspiration__grid" role="list">
+        {%- for block in tile_blocks limit: tile_limit -%}
+          {%- liquid
+            assign tile_image = block.settings.image
+            assign tile_image_alt = block.settings.image_alt
+            assign tile_caption = block.settings.caption
+            assign tile_quote = block.settings.process_quote
+            assign tile_id = 'theinmag-send-in-tile-' | append: section.id | append: '-' | append: forloop.index
+          -%}
+          {%- comment -%}
+            Skip placeholder tiles (no image AND no caption). Empty
+            tiles preset before Ryan fills them in would render as
+            blank white cards otherwise. Once a tile has either an
+            image or caption, it shows up.
+          {%- endcomment -%}
+          {%- if tile_image == blank and tile_caption == blank -%}
+            {%- continue -%}
+          {%- endif -%}
+          <li class="theinmag-send-in-inspiration__tile" {{ block.shopify_attributes }}>
+            <button
+              type="button"
+              class="theinmag-send-in-inspiration__tile-trigger"
+              data-theinmag-send-in-tile-trigger
+              data-tile-image="{% if tile_image != blank %}{{ tile_image | image_url: width: 1600 }}{% endif %}"
+              data-tile-alt="{{ tile_image_alt | escape }}"
+              data-tile-caption="{{ tile_caption | escape }}"
+              data-tile-quote="{{ tile_quote | strip_html | escape }}"
+              aria-label="View larger: {{ tile_caption | strip_html | escape }}"
+            >
+              {%- if tile_image != blank -%}
+                {{ tile_image | image_url: width: 800 | image_tag:
+                  loading: 'lazy',
+                  widths: '300, 500, 800',
+                  sizes: '(min-width: 990px) 240px, (min-width: 750px) 32vw, 46vw',
+                  class: 'theinmag-send-in-inspiration__tile-image',
+                  alt: tile_image_alt
+                }}
+              {%- endif -%}
+              {%- if tile_caption != blank -%}
+                <span class="theinmag-send-in-inspiration__tile-caption">{{ tile_caption }}</span>
+              {%- endif -%}
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    {%- if cta_label != blank and cta_anchor != blank -%}
+      <div class="theinmag-send-in-inspiration__cta-wrap">
+        <a class="theinmag-btn theinmag-btn--primary theinmag-send-in-inspiration__cta" href="{{ cta_anchor }}">{{ cta_label }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%}
+    Lightbox overlay - hidden until a tile trigger fires. Single
+    overlay reused for every tile. role="dialog", focus trapped on
+    the close button when open.
+  {%- endcomment -%}
+  <div
+    class="theinmag-send-in-inspiration__lightbox"
+    data-theinmag-send-in-lightbox
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="theinmag-send-in-lightbox-caption"
+    aria-hidden="true"
+    hidden
+  >
+    <button
+      type="button"
+      class="theinmag-send-in-inspiration__lightbox-close"
+      data-theinmag-send-in-lightbox-close
+      aria-label="Close"
+    >&times;</button>
+    <div class="theinmag-send-in-inspiration__lightbox-inner">
+      <img class="theinmag-send-in-inspiration__lightbox-image" alt="" data-theinmag-send-in-lightbox-image>
+      <p id="theinmag-send-in-lightbox-caption" class="theinmag-send-in-inspiration__lightbox-caption" data-theinmag-send-in-lightbox-caption></p>
+      <p class="theinmag-send-in-inspiration__lightbox-quote" data-theinmag-send-in-lightbox-quote></p>
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-send-in-inspiration
+     Cream-pair background. The grid does the visual work, so the
+     surround stays calm.
+     ================================================================ */
+
+  .theinmag-send-in-inspiration {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--sii-pt, 56px) clamp(16px, 4vw, 32px) var(--sii-pb, 64px);
+    position: relative;
+  }
+
+  .theinmag-send-in-inspiration__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .theinmag-send-in-inspiration__header {
+    text-align: center;
+    margin-bottom: clamp(24px, 3vw, 36px);
+  }
+
+  .theinmag-send-in-inspiration__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.6vw, 42px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-send-in-inspiration__subhead {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 18px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.85;
+    max-width: 56ch;
+    margin: clamp(10px, 1.4vw, 14px) auto 0;
+    text-wrap: pretty;
+  }
+
+  /* ================================================================
+     Grid - CSS multi-column for masonry without JS measuring. Tiles
+     flow top-to-bottom in each column then wrap. break-inside:avoid
+     keeps a tile from being split across columns.
+     ================================================================ */
+
+  .theinmag-send-in-inspiration__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    column-count: 2;
+    column-gap: clamp(10px, 1.6vw, 18px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-send-in-inspiration__grid {
+      column-count: 3;
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-send-in-inspiration__grid {
+      column-count: 4;
+    }
+  }
+
+  .theinmag-send-in-inspiration__tile {
+    break-inside: avoid;
+    margin: 0 0 clamp(10px, 1.6vw, 18px);
+  }
+
+  /* The whole tile is a button so the lightbox trigger is a single
+     focusable element. Resets default button chrome. */
+  .theinmag-send-in-inspiration__tile-trigger {
+    appearance: none;
+    background: #FFFFFF;
+    border: 0;
+    padding: 0;
+    width: 100%;
+    display: block;
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
+    cursor: pointer;
+    text-align: left;
+    transition: box-shadow var(--transition-hover, 0.2s ease), transform var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-send-in-inspiration__tile-trigger:hover,
+  .theinmag-send-in-inspiration__tile-trigger:focus-visible {
+    box-shadow: var(--shadow-card-hover, 0 4px 20px rgba(123, 79, 158, 0.15));
+    transform: translateY(-2px);
+    outline: none;
+  }
+
+  .theinmag-send-in-inspiration__tile-trigger:focus-visible {
+    outline: 2px dashed var(--color-purple-dark, #5D3A7A);
+    outline-offset: 3px;
+  }
+
+  .theinmag-send-in-inspiration__tile-image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .theinmag-send-in-inspiration__tile-caption {
+    display: block;
+    padding: clamp(8px, 1.2vw, 14px) clamp(10px, 1.4vw, 16px);
+    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(13px, 1.4vw, 16px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* ================================================================
+     Bottom CTA - sticker, anchored back to the form.
+     ================================================================ */
+
+  .theinmag-send-in-inspiration__cta-wrap {
+    margin-top: clamp(24px, 3vw, 40px);
+    text-align: center;
+  }
+
+  /* ================================================================
+     Lightbox - fixed overlay covering the viewport. Single instance
+     reused across tiles. Closed via ESC, outside click, or close
+     button. Body scroll locked while open via JS.
+     ================================================================ */
+
+  .theinmag-send-in-inspiration__lightbox[hidden] {
+    display: none;
+  }
+
+  .theinmag-send-in-inspiration__lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background-color: rgba(42, 31, 61, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 4vw, 32px);
+    /* Animate fade-in. Reduced-motion override below. */
+    animation: theinmag-send-in-lightbox-in 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-send-in-inspiration__lightbox {
+      animation: none;
+    }
+  }
+
+  @keyframes theinmag-send-in-lightbox-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .theinmag-send-in-inspiration__lightbox-inner {
+    max-width: 720px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: #FFFFFF;
+    border-radius: var(--radius-xl, 28px);
+    padding: clamp(16px, 2.4vw, 24px);
+    text-align: center;
+    box-shadow: var(--shadow-modal, 0 8px 32px rgba(123, 79, 158, 0.18));
+  }
+
+  .theinmag-send-in-inspiration__lightbox-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: var(--radius-md, 12px);
+    margin: 0 auto;
+  }
+
+  .theinmag-send-in-inspiration__lightbox-caption {
+    margin: clamp(10px, 1.4vw, 16px) 0 0;
+    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(16px, 1.8vw, 20px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-send-in-inspiration__lightbox-quote {
+    margin: clamp(8px, 1vw, 12px) auto 0;
+    max-width: 52ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.85;
+  }
+
+  /* Hide the quote paragraph when there's no quote text - empty <p>
+     would still leave a tiny gap. Set via JS by checking textContent. */
+  .theinmag-send-in-inspiration__lightbox-quote:empty {
+    display: none;
+  }
+
+  .theinmag-send-in-inspiration__lightbox-close {
+    position: absolute;
+    top: clamp(8px, 2vw, 16px);
+    right: clamp(8px, 2vw, 16px);
+    appearance: none;
+    background: rgba(255, 255, 255, 0.95);
+    border: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    cursor: pointer;
+    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
+    transition: background-color var(--transition-standard, 0.15s ease), color var(--transition-standard, 0.15s ease);
+  }
+
+  .theinmag-send-in-inspiration__lightbox-close:hover,
+  .theinmag-send-in-inspiration__lightbox-close:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-send-in-inspiration]');
+    if (!root) return;
+
+    var triggers = root.querySelectorAll('[data-theinmag-send-in-tile-trigger]');
+    var lightbox = root.querySelector('[data-theinmag-send-in-lightbox]');
+    var closeBtn = root.querySelector('[data-theinmag-send-in-lightbox-close]');
+    var imageEl = root.querySelector('[data-theinmag-send-in-lightbox-image]');
+    var captionEl = root.querySelector('[data-theinmag-send-in-lightbox-caption]');
+    var quoteEl = root.querySelector('[data-theinmag-send-in-lightbox-quote]');
+    if (!lightbox || !closeBtn || !imageEl || !captionEl || !quoteEl) return;
+
+    var lastTrigger = null;
+
+    function openLightbox(trigger) {
+      lastTrigger = trigger;
+      imageEl.src = trigger.getAttribute('data-tile-image') || '';
+      imageEl.alt = trigger.getAttribute('data-tile-alt') || '';
+      captionEl.textContent = trigger.getAttribute('data-tile-caption') || '';
+      quoteEl.textContent = trigger.getAttribute('data-tile-quote') || '';
+
+      lightbox.hidden = false;
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      closeBtn.focus();
+    }
+
+    function closeLightbox() {
+      lightbox.hidden = true;
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      imageEl.src = '';
+      if (lastTrigger) lastTrigger.focus();
+    }
+
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        openLightbox(trigger);
+      });
+    });
+
+    closeBtn.addEventListener('click', closeLightbox);
+
+    /* Click outside the inner card closes the lightbox. */
+    lightbox.addEventListener('click', function (evt) {
+      if (evt.target === lightbox) closeLightbox();
+    });
+
+    document.addEventListener('keydown', function (evt) {
+      if (lightbox.hidden) return;
+      if (evt.key === 'Escape') closeLightbox();
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag Send IN ideas",
+  "tag": "section",
+  "class": "theinmag-send-in-inspiration-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What can I send IN?"
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "Whatever you've made. Stories, drawings, photos, puzzles, jokes, hobbies, wonderings, songs, recipes, anything in between. We sort it later - your job is to send it."
+    },
+    {
+      "type": "header",
+      "content": "Grid"
+    },
+    {
+      "type": "range",
+      "id": "tile_limit",
+      "label": "Tiles to display",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "default": 8,
+      "info": "Caps how many tile blocks render. Add up to 12 below."
+    },
+    {
+      "type": "header",
+      "content": "Bottom CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "Send IN yours ↓"
+    },
+    {
+      "type": "text",
+      "id": "cta_anchor",
+      "label": "Anchor target",
+      "default": "#send-in-form"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "creation_tile",
+      "name": "Creation tile",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Creation image",
+          "info": "Real kid creation. JPG under 200KB. Filename prefix SENDIN_."
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Image alt text",
+          "info": "Descriptive: medium + subject + kid + town. Example: Watercolour of a galah by Maya M., age 9, Fremantle WA."
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "label": "Caption",
+          "info": "First name + initial, age, town and a 2-3 word descriptor. Example: Maya M., age 9 | Fremantle WA - watercolour galah."
+        },
+        {
+          "type": "richtext",
+          "id": "process_quote",
+          "label": "Process quote (optional)",
+          "info": "Two or three sentences from the kid about how they made it. Shown only inside the lightbox."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Send IN ideas",
+      "blocks": [
+        { "type": "creation_tile" },
+        { "type": "creation_tile" },
+        { "type": "creation_tile" },
+        { "type": "creation_tile" },
+        { "type": "creation_tile" },
+        { "type": "creation_tile" },
+        { "type": "creation_tile" },
+        { "type": "creation_tile" }
+      ]
+    }
+  ]
+}
+{% endschema %}

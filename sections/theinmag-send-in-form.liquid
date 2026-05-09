@@ -1,0 +1,378 @@
+{%- comment -%}
+  theinmag-send-in-form
+  The first thing visitors see on /pages/send-in (form-first per
+  Ryan's 2026-05-07 restructure - hero killed, form sits at the top
+  so a grade-one independently submitting doesn't have to scroll).
+
+  The JotForm itself ships with its own peach/cream design - earlier
+  build wrapped it in a white card which squished the form's own
+  background. This pass strips the card so JotForm's full design
+  reads through. Wrapper is transparent + max-width-contained only.
+
+  JotForm embed: jsform variant (cleaner appearance than iframe,
+  auto-resizes naturally as JotForm content changes height). The
+  form ID lives in a section setting so it can be swapped without
+  touching code.
+
+  Consent wording lives inside the JotForm itself, not in this
+  Liquid section - flagged in build-state.md pre-launch checklist.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign jotform_id = section.settings.jotform_id | strip
+  assign closing_note = section.settings.closing_note
+  assign questions_btn_label = section.settings.questions_btn_label
+  assign questions_btn_target = section.settings.questions_btn_target
+
+  assign section_style = '--sif-pt: ' | append: section.settings.padding_top | append: 'px; --sif-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-send-in-form-section"
+  id="send-in-form"
+  data-theinmag-send-in-form
+  aria-labelledby="theinmag-send-in-form-h1"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-send-in-form-section__inner">
+    {%- comment -%}
+      Visually-hidden H1 anchors the page for AEO + screen readers.
+      The visible JotForm has its own large "Send it IN!" heading
+      built in, so the page doesn't need a competing visible H1.
+      Pattern library §6.4.
+    {%- endcomment -%}
+    <h1 id="theinmag-send-in-form-h1" class="visually-hidden">Send IN your creation - submit Aussie kids' art, writing, photos and more to theINmag.</h1>
+
+    <header class="theinmag-send-in-form-section__header">
+      {%- if heading != blank -%}
+        <h2 class="theinmag-send-in-form-section__heading">{{ heading }}</h2>
+      {%- endif -%}
+      {%- if subhead != blank or questions_btn_label != blank -%}
+        <div class="theinmag-send-in-form-section__intro-row">
+          {%- if subhead != blank -%}
+            <p class="theinmag-send-in-form-section__subhead">{{ subhead }}</p>
+          {%- endif -%}
+          {%- if questions_btn_label != blank and questions_btn_target != blank -%}
+            <a
+              class="theinmag-btn theinmag-btn--secondary theinmag-send-in-form-section__questions-btn"
+              href="{{ questions_btn_target }}"
+              data-theinmag-send-in-form-questions-btn
+            >{{ questions_btn_label }}</a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </header>
+
+    <div class="theinmag-send-in-form-section__embed">
+      {%- if jotform_id != blank -%}
+        <script type="text/javascript" src="https://form.jotform.com/jsform/{{ jotform_id }}"></script>
+        <noscript>
+          <p class="theinmag-send-in-form-section__noscript">
+            Our submission form needs JavaScript to load. If it isn't showing up, please enable JavaScript or
+            <a href="https://form.jotform.com/{{ jotform_id }}" target="_blank" rel="noopener">open the form in a new tab</a>.
+          </p>
+        </noscript>
+      {%- else -%}
+        <p class="theinmag-send-in-form-section__placeholder">
+          The submission form will appear here once the JotForm ID is added in the theme editor.
+        </p>
+      {%- endif -%}
+    </div>
+
+    {%- if closing_note != blank -%}
+      <p class="theinmag-send-in-form-section__closing">{{ closing_note }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- comment -%} Page-level JSON-LD - BreadcrumbList + WebPage. Lives on the form section because it's always at the top of the Send IN page. {%- endcomment -%}
+{%- assign page_origin = request.origin | default: 'https://theinmag.com.au' -%}
+{%- assign page_url = page_origin | append: '/pages/send-in' -%}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": {{ page_origin | json }}
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Send IN",
+        "item": {{ page_url | json }}
+      }
+    ]
+  }
+</script>
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Send IN your creation",
+    "description": "Submit your Aussie kid's creation - art, writing, photos, jokes, builds, anything - for consideration in the next issue of theINmag.",
+    "url": {{ page_url | json }},
+    "mainEntityOfPage": {{ page_url | json }},
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "theINmag",
+      "url": {{ page_origin | json }}
+    }
+  }
+</script>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-send-in-form-section
+     Form-first surface. The JotForm renders edge-to-edge inside a
+     transparent max-width wrapper so JotForm's own peach/cream
+     design shows through (NO white card wrapper - earlier build
+     squished the form's background, hiding its design). Generous
+     vertical padding gives the form proper "page-start" weight.
+     ================================================================ */
+
+  .theinmag-send-in-form-section {
+    /* White background lets the form section "pop" against the cream
+       page bg above (announcement bar + nav header). The JotForm's
+       own peach/cream design also stands out cleanly on white. */
+    background-color: #FFFFFF;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--sif-pt, 64px) clamp(8px, 3vw, 24px) var(--sif-pb, 56px);
+    position: relative;
+    scroll-margin-top: 96px;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-send-in-form-section {
+      padding-top: calc(var(--sif-pt, 64px) * 1.25);
+    }
+  }
+
+  .theinmag-send-in-form-section__inner {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  .theinmag-send-in-form-section__header {
+    margin-bottom: clamp(16px, 2.4vw, 24px);
+  }
+
+  .theinmag-send-in-form-section__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(26px, 4.2vw, 38px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0 0 clamp(12px, 1.6vw, 18px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+    text-align: center;
+  }
+
+  /* Intro row - subhead message offset against the "Got questions?"
+     button. Stacks on mobile (subhead first, button below, both
+     centred). Side-by-side from 750px up - subhead takes the bulk,
+     button hugs the right. */
+  .theinmag-send-in-form-section__intro-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(12px, 1.6vw, 18px);
+    text-align: center;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-send-in-form-section__intro-row {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(20px, 3vw, 32px);
+      text-align: left;
+    }
+  }
+
+  .theinmag-send-in-form-section__subhead {
+    margin: 0;
+    max-width: 52ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.8;
+    text-wrap: pretty;
+  }
+
+  .theinmag-send-in-form-section__questions-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  /* Embed wrapper - transparent surface so JotForm's own design
+     reads through. min-height stops layout collapse while the
+     script is loading; once JotForm injects the form the actual
+     content takes over. */
+  .theinmag-send-in-form-section__embed {
+    background-color: transparent;
+    padding: 0;
+    min-height: 600px;
+  }
+
+  /* JotForm's jsform script injects a <form> element directly. Make
+     sure it sits centered and doesn't get clipped on narrow viewports. */
+  .theinmag-send-in-form-section__embed > form {
+    margin: 0 auto !important;
+    max-width: 100% !important;
+  }
+
+  .theinmag-send-in-form-section__placeholder,
+  .theinmag-send-in-form-section__noscript {
+    margin: 0;
+    padding: clamp(20px, 3vw, 32px);
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
+  }
+
+  .theinmag-send-in-form-section__closing {
+    margin: clamp(16px, 2vw, 20px) 0 0;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    /* Sticky-header-aware smooth scroll for the "Got questions?"
+       button. Mirrors the pattern in pattern library §5.5 - lands
+       the target below the sticky header rather than behind it. */
+    var btns = document.querySelectorAll('[data-theinmag-send-in-form-questions-btn]');
+    if (!btns.length) return;
+
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function (evt) {
+        var href = btn.getAttribute('href') || '';
+        if (href.charAt(0) !== '#') return;
+        var target = document.querySelector(href);
+        if (!target) return;
+
+        evt.preventDefault();
+        var header = document.querySelector('.theinmag-header-section') || document.querySelector('header[role="banner"]');
+        var headerH = header ? header.offsetHeight : 0;
+        var top = target.getBoundingClientRect().top + window.pageYOffset - headerH - 12;
+        var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+
+        target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
+      });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag Send IN form",
+  "tag": "section",
+  "class": "theinmag-send-in-form-wrap",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Ready? Send IN your creation."
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "A grown-up needs to fill this in with you. They're the one giving permission for your creation to be considered for the mag."
+    },
+    {
+      "type": "header",
+      "content": "JotForm embed"
+    },
+    {
+      "type": "paragraph",
+      "content": "Paste only the form ID, e.g. 232212492042848. The script tag is built around it."
+    },
+    {
+      "type": "text",
+      "id": "jotform_id",
+      "label": "JotForm form ID",
+      "default": "232212492042848"
+    },
+    {
+      "type": "header",
+      "content": "Got questions button"
+    },
+    {
+      "type": "text",
+      "id": "questions_btn_label",
+      "label": "Button label",
+      "default": "Got questions?",
+      "info": "Outlined purple button shown next to the subhead. Anchors down to the Q+A section."
+    },
+    {
+      "type": "text",
+      "id": "questions_btn_target",
+      "label": "Button anchor target",
+      "default": "#send-in-questions"
+    },
+    {
+      "type": "header",
+      "content": "Closing note"
+    },
+    {
+      "type": "text",
+      "id": "closing_note",
+      "label": "Note below form",
+      "default": "After you hit submit, we'll take you somewhere fun."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Send IN form"
+    }
+  ]
+}
+{% endschema %}

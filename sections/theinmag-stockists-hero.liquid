@@ -1,0 +1,857 @@
+{%- comment -%}
+  theinmag-stockists-hero (v1.1 - 2026-05-09)
+  The /pages/stockists hub. Two-column split:
+    Left 2/3: full-bleed Leaflet map of Australia (left edge bleeds
+              past the cream background to the viewport edge on desktop).
+    Right 1/3: header + search + state filter + scrollable stockist
+               list + "Become a stockist" CTA.
+
+  v1 (this build): hardcoded placeholder stockists in JS, no live data
+  pipeline. Map and search are added in later steps. Mobile uses an
+  Airbnb-style map/list toggle (added later); desktop is two columns
+  filling 100vh with no page scroll.
+
+  Modal lives in the sibling section theinmag-stockists-modal. The
+  "become a stockist" button here dispatches a global CustomEvent
+  ('theinmag-stockists:open-modal') that the modal section listens for.
+
+  Code conventions:
+    - theinmag- prefix on filenames + CSS classes
+    - CSS custom properties only (design tokens), no hardcoded colours
+      apart from the design-token hex codes themselves
+    - Mobile-first, prefers-reduced-motion respected throughout
+{%- endcomment -%}
+
+<section
+  class="theinmag-stockists"
+  data-theinmag-stockists
+  data-view="map"
+  aria-labelledby="theinmag-stockists-h1"
+>
+  {%- comment -%} Visually-hidden H1 for AEO. The visible heading on the right column is the H2. {%- endcomment -%}
+  <h1 id="theinmag-stockists-h1" class="theinmag-stockists__sr">Where to buy theINmag in Australia</h1>
+
+  <div class="theinmag-stockists__stage">
+
+    {%- comment -%} ----- Left: full-bleed map column (placeholder until step 3) ----- {%- endcomment -%}
+    <div class="theinmag-stockists__map-col">
+      <div class="theinmag-stockists__map" data-stockists-map aria-label="Map of theINmag stockists across Australia">
+        <p class="theinmag-stockists__map-placeholder">map loads here</p>
+      </div>
+    </div>
+
+    {%- comment -%} ----- Right: header + filters + list + CTA ----- {%- endcomment -%}
+    <aside class="theinmag-stockists__panel" aria-label="Stockist list">
+      <header class="theinmag-stockists__panel-head">
+        <h2 class="theinmag-stockists__heading">Find a stockist near you</h2>
+        <p class="theinmag-stockists__sub">Our stockists really care about growing creative community in their patch of Australia. Find your nearest one - or order online.</p>
+      </header>
+
+      <div class="theinmag-stockists__filters" data-stockists-filters>
+        <label class="theinmag-stockists__search-wrap">
+          <span class="theinmag-stockists__sr">Search by suburb or postcode</span>
+          <span class="theinmag-stockists__search-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </span>
+          <input
+            type="search"
+            class="theinmag-stockists__search"
+            data-stockists-search
+            placeholder="Suburb or postcode"
+            autocomplete="off"
+            inputmode="search"
+          >
+        </label>
+
+        <select class="theinmag-stockists__select" data-stockists-state-filter aria-label="Filter by state">
+          <option value="all">All states</option>
+          <option value="ACT">ACT</option>
+          <option value="NSW">NSW</option>
+          <option value="NT">NT</option>
+          <option value="QLD">QLD</option>
+          <option value="SA">SA</option>
+          <option value="TAS">TAS</option>
+          <option value="VIC">VIC</option>
+          <option value="WA">WA</option>
+        </select>
+      </div>
+
+      <div class="theinmag-stockists__list-wrap">
+        <ul class="theinmag-stockists__list" data-stockists-list aria-live="polite"></ul>
+        <p class="theinmag-stockists__list-empty" data-stockists-empty hidden>
+          No stockists found near that search. We're growing fast - check back soon, or apply to stock theINmag yourself below.
+        </p>
+      </div>
+
+      <div class="theinmag-stockists__cta-wrap">
+        <button
+          type="button"
+          class="theinmag-stockists__cta"
+          data-stockists-open-modal
+        >
+          Become a stockist
+        </button>
+      </div>
+    </aside>
+
+  </div>
+
+  {%- comment -%}
+    v1 placeholder data. Swap-out point: replace this whole script tag
+    with a Liquid loop over Shopify metaobjects (stockist definition)
+    once the Make.com pipeline is in place. Field names match the
+    metaobject schema exactly so the swap is one-for-one.
+  {%- endcomment -%}
+  <script type="application/json" data-stockists-data>
+  [
+    {
+      "id": "the-little-bookshop",
+      "shop_name": "The Little Bookshop",
+      "type": "bookshop",
+      "street_address": "12 High Street",
+      "suburb": "Castlemaine",
+      "state": "VIC",
+      "postcode": "3450",
+      "latitude": -37.0667,
+      "longitude": 144.2167,
+      "contact_name": "Sarah Mills",
+      "contact_phone": "0354721234",
+      "instagram_handle": "littlebookshop_castlemaine",
+      "website_url": "https://thelittlebookshop.com.au"
+    },
+    {
+      "id": "birdwood-newsagency",
+      "shop_name": "Birdwood Newsagency",
+      "type": "newsagent",
+      "street_address": "234 High Street",
+      "suburb": "Eaglehawk",
+      "state": "VIC",
+      "postcode": "3556",
+      "latitude": -36.7167,
+      "longitude": 144.2667,
+      "contact_name": "Dave Pollard",
+      "contact_phone": "0354461823",
+      "instagram_handle": "birdwoodnews",
+      "website_url": ""
+    },
+    {
+      "id": "sun-studios-gallery",
+      "shop_name": "Sun Studios Gallery",
+      "type": "gallery",
+      "street_address": "8 South Terrace",
+      "suburb": "Fremantle",
+      "state": "WA",
+      "postcode": "6160",
+      "latitude": -32.0566,
+      "longitude": 115.7464,
+      "contact_name": "Priya Anand",
+      "contact_phone": "0893351100",
+      "instagram_handle": "sunstudios.fremantle",
+      "website_url": "https://sunstudiosgallery.com.au"
+    },
+    {
+      "id": "salt-cafe-byron",
+      "shop_name": "Salt Cafe",
+      "type": "cafe",
+      "street_address": "4 Lawson Street",
+      "suburb": "Byron Bay",
+      "state": "NSW",
+      "postcode": "2481",
+      "latitude": -28.6474,
+      "longitude": 153.6020,
+      "contact_name": "Mia Hawthorne",
+      "contact_phone": "0266856712",
+      "instagram_handle": "saltbyron",
+      "website_url": "https://saltcafebyron.com.au"
+    },
+    {
+      "id": "tillys-treasure",
+      "shop_name": "Tilly's Treasure",
+      "type": "gift_shop",
+      "street_address": "62 Main Street",
+      "suburb": "Hahndorf",
+      "state": "SA",
+      "postcode": "5245",
+      "latitude": -35.0294,
+      "longitude": 138.8132,
+      "contact_name": "Tilly Becker",
+      "contact_phone": "0883881409",
+      "instagram_handle": "tillystreasure_hahndorf",
+      "website_url": "https://tillystreasure.com.au"
+    },
+    {
+      "id": "the-reading-nook-hobart",
+      "shop_name": "The Reading Nook",
+      "type": "bookshop",
+      "street_address": "118 Elizabeth Street",
+      "suburb": "Hobart",
+      "state": "TAS",
+      "postcode": "7000",
+      "latitude": -42.8821,
+      "longitude": 147.3272,
+      "contact_name": "James Carrington",
+      "contact_phone": "0362312788",
+      "instagram_handle": "readingnookhobart",
+      "website_url": "https://readingnookhobart.com.au"
+    },
+    {
+      "id": "bowerbird-gifts",
+      "shop_name": "Bowerbird Gifts",
+      "type": "gift_shop",
+      "street_address": "287 Margaret Street",
+      "suburb": "Toowoomba",
+      "state": "QLD",
+      "postcode": "4350",
+      "latitude": -27.5598,
+      "longitude": 151.9507,
+      "contact_name": "",
+      "contact_phone": "0746392001",
+      "instagram_handle": "bowerbirdtoowoomba",
+      "website_url": "https://bowerbirdgifts.com.au"
+    },
+    {
+      "id": "daintree-books",
+      "shop_name": "Daintree Books",
+      "type": "bookshop",
+      "street_address": "16 Macrossan Street",
+      "suburb": "Port Douglas",
+      "state": "QLD",
+      "postcode": "4877",
+      "latitude": -16.4842,
+      "longitude": 145.4596,
+      "contact_name": "Olivia Tran",
+      "contact_phone": "0740995422",
+      "instagram_handle": "daintreebooks",
+      "website_url": "https://daintreebooks.com.au"
+    },
+    {
+      "id": "newtown-newsagency",
+      "shop_name": "Newtown Newsagency",
+      "type": "newsagent",
+      "street_address": "320 King Street",
+      "suburb": "Newtown",
+      "state": "NSW",
+      "postcode": "2042",
+      "latitude": -33.8970,
+      "longitude": 151.1789,
+      "contact_name": "Rachel Doukas",
+      "contact_phone": "0295573344",
+      "instagram_handle": "newtownnews",
+      "website_url": ""
+    }
+  ]
+  </script>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-stockists-hero
+     Two-column split. Left = full-bleed map. Right = header + list +
+     CTA. Desktop fits 100vh with no page scroll - the right column
+     scrolls internally. Mobile collapses (toggle pattern added in a
+     later step).
+
+     Specificity-prefix pattern (.theinmag-stockists .child) is used on
+     overrides so we beat Dawn's base.css cascade where needed (per
+     the dawn-empty-div / dawn-header-group-zindex notes).
+  ================================================================ */
+
+  .theinmag-stockists {
+    --st-purple-light: #E8DEEF;
+    --st-purple-dark: #5D3A7A;
+    --st-coral-light: #FBE0D6;
+    --st-coral-dark: #C9543E;
+    --st-peach-light: #FCDDB8;
+    --st-peach-dark: #D9783A;
+    --st-mint-light: #D6EAD9;
+    --st-mint-dark: #4A7C5C;
+    --st-cream: #FBF6EA;
+    --st-cream-dark: #2A1F3D;
+    --st-sky-light: #C9E5E8;
+    --st-sky-dark: #2D6878;
+    --st-yellow: #F9C23C;
+    --st-yellow-shadow: #D4A02E;
+    --st-purple-press: #4A2D62;
+
+    /* Header height assumption matches the rest of the build (competitions
+       uses calc(100vh - 80px) too). The site header is ~80px tall on
+       both mobile + desktop. */
+    --st-header-h: 80px;
+
+    background-color: var(--st-cream);
+    color: var(--st-cream-dark);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    /* Bleed the section to the viewport edges so the map can run
+       edge-to-edge on the left. The page wrapper above adds no
+       horizontal padding to sections by default in Dawn, but we set
+       width here defensively so the section is locked to the
+       viewport. */
+    width: 100%;
+  }
+
+  .theinmag-stockists__sr {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ----- Stage: 100vh on desktop, single column on mobile ----- */
+  .theinmag-stockists__stage {
+    position: relative;
+    /* Mobile-first: stack vertically. Mobile toggle replaces this in
+       step 6, but step 1 just shows them stacked so the layout works
+       cold without JS. */
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - var(--st-header-h));
+  }
+
+  @media (min-width: 990px) {
+    /* Desktop: two columns, 2fr 1fr, exactly viewport height (minus
+       header). The map column bleeds full-height. */
+    .theinmag-stockists__stage {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      height: calc(100vh - var(--st-header-h));
+      min-height: 0;
+      max-height: 1000px;
+    }
+  }
+
+  /* ----- Left column: full-bleed map placeholder ----- */
+  .theinmag-stockists__map-col {
+    position: relative;
+    background-color: var(--st-purple-light);
+    /* Mobile: short hero strip just so step-1 layout reads. The real
+       map fills full height via the toggle pattern in step 6. */
+    height: 40vh;
+    min-height: 280px;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-stockists__map-col {
+      height: 100%;
+      min-height: 0;
+    }
+  }
+
+  .theinmag-stockists__map {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theinmag-stockists__map-placeholder {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: clamp(20px, 3vw, 32px);
+    color: var(--st-purple-dark);
+    opacity: 0.6;
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ----- Right column: panel ----- */
+  .theinmag-stockists__panel {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 1.4vw, 18px);
+    padding: clamp(20px, 3vw, 32px) clamp(16px, 3vw, 28px);
+    background-color: var(--st-cream);
+    min-height: 0;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-stockists__panel {
+      height: 100%;
+      overflow: hidden;
+      padding: clamp(20px, 1.8vw, 32px) clamp(20px, 1.8vw, 32px) clamp(20px, 1.8vw, 28px);
+    }
+  }
+
+  .theinmag-stockists__panel-head {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .theinmag-stockists__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(26px, 3vw, 36px);
+    line-height: 1.15;
+    letter-spacing: 0;
+    color: var(--st-cream-dark);
+  }
+
+  .theinmag-stockists__sub {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(14px, 1.05vw, 15.5px);
+    line-height: 1.55;
+    color: var(--st-cream-dark);
+    opacity: 0.78;
+  }
+
+  /* ----- Filters: search input + state dropdown ----- */
+  .theinmag-stockists__filters {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: clamp(8px, 1vw, 12px);
+    align-items: stretch;
+  }
+
+  .theinmag-stockists__search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .theinmag-stockists__search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    color: var(--st-cream-dark);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .theinmag-stockists__search,
+  .theinmag-stockists__select {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    border: 1.5px solid rgba(42, 31, 61, 0.16);
+    background-color: #FFFFFF;
+    color: var(--st-cream-dark);
+    border-radius: 12px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    line-height: 1.2;
+    appearance: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .theinmag-stockists__search {
+    padding-left: 36px;
+  }
+  .theinmag-stockists__search::placeholder {
+    color: var(--st-cream-dark);
+    opacity: 0.45;
+  }
+  .theinmag-stockists__search:focus,
+  .theinmag-stockists__select:focus {
+    outline: none;
+    border-color: var(--st-purple-dark);
+    box-shadow: 0 0 0 3px rgba(93, 58, 122, 0.18);
+  }
+
+  .theinmag-stockists__select {
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1.5L6 6.5L11 1.5' stroke='%232A1F3D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+    min-width: 110px;
+  }
+
+  /* ----- List ----- */
+  .theinmag-stockists__list-wrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .theinmag-stockists__list {
+    list-style: none;
+    margin: 0;
+    padding: 4px 4px 12px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1vw, 14px);
+    min-height: 0;
+  }
+
+  /* On desktop the list takes the remaining height and scrolls internally */
+  @media (min-width: 990px) {
+    .theinmag-stockists__list {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      min-height: 0;
+      /* Custom scrollbar - subtle */
+      scrollbar-width: thin;
+      scrollbar-color: rgba(93, 58, 122, 0.3) transparent;
+    }
+    .theinmag-stockists__list::-webkit-scrollbar { width: 6px; }
+    .theinmag-stockists__list::-webkit-scrollbar-thumb {
+      background-color: rgba(93, 58, 122, 0.3);
+      border-radius: 3px;
+    }
+  }
+
+  .theinmag-stockists__list-empty {
+    margin: 16px 4px;
+    padding: 16px;
+    text-align: center;
+    color: var(--st-cream-dark);
+    opacity: 0.65;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  /* ----- Stockist card ----- */
+  .theinmag-stockists__card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: clamp(10px, 1vw, 14px);
+    background-color: var(--st-cream);
+    border: 1px solid rgba(42, 31, 61, 0.06);
+    border-radius: 18px;
+    padding: clamp(12px, 1.2vw, 16px) clamp(14px, 1.4vw, 18px);
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .theinmag-stockists__card:hover,
+  .theinmag-stockists__card.is-active {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(123, 79, 158, 0.16);
+    border-color: rgba(93, 58, 122, 0.18);
+  }
+  .theinmag-stockists__card.is-active {
+    border-color: var(--st-purple-dark);
+  }
+
+  .theinmag-stockists__card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .theinmag-stockists__card-name {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: 1.25;
+    color: var(--st-cream-dark);
+  }
+
+  .theinmag-stockists__card-chip {
+    align-self: flex-start;
+    margin-top: 2px;
+    padding: 3px 9px;
+    background-color: var(--st-purple-light);
+    color: var(--st-purple-dark);
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 6px;
+  }
+  .theinmag-stockists__card[data-type="bookshop"] .theinmag-stockists__card-chip {
+    background-color: var(--st-purple-light); color: var(--st-purple-dark);
+  }
+  .theinmag-stockists__card[data-type="newsagent"] .theinmag-stockists__card-chip {
+    background-color: var(--st-coral-light); color: var(--st-coral-dark);
+  }
+  .theinmag-stockists__card[data-type="gallery"] .theinmag-stockists__card-chip {
+    background-color: var(--st-mint-light); color: var(--st-mint-dark);
+  }
+  .theinmag-stockists__card[data-type="cafe"] .theinmag-stockists__card-chip {
+    background-color: var(--st-peach-light); color: var(--st-peach-dark);
+  }
+  .theinmag-stockists__card[data-type="gift_shop"] .theinmag-stockists__card-chip {
+    background-color: var(--st-sky-light); color: var(--st-sky-dark);
+  }
+
+  .theinmag-stockists__card-address,
+  .theinmag-stockists__card-contact {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--st-cream-dark);
+    opacity: 0.78;
+  }
+  .theinmag-stockists__card-contact {
+    opacity: 0.62;
+    font-size: 12.5px;
+  }
+
+  .theinmag-stockists__card-maps {
+    align-self: flex-start;
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--st-sky-dark);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+  .theinmag-stockists__card-maps:hover {
+    color: var(--st-purple-dark);
+  }
+
+  /* Right side: stacked icon links */
+  .theinmag-stockists__card-icons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-start;
+    align-self: start;
+  }
+  .theinmag-stockists__card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--st-purple-light);
+    color: var(--st-purple-dark);
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+  .theinmag-stockists__card-icon:hover,
+  .theinmag-stockists__card-icon:focus-visible {
+    background-color: var(--st-purple-dark);
+    color: #FFFFFF;
+    outline: none;
+    transform: translateY(-1px);
+  }
+  .theinmag-stockists__card-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-stockists__card,
+    .theinmag-stockists__card-icon {
+      transition: none;
+    }
+    .theinmag-stockists__card:hover,
+    .theinmag-stockists__card.is-active,
+    .theinmag-stockists__card-icon:hover {
+      transform: none;
+    }
+  }
+
+  /* ----- "Become a stockist" CTA - yellow stamp button (design tokens) ----- */
+  .theinmag-stockists__cta-wrap {
+    margin-top: auto;
+    padding-top: clamp(12px, 1.6vw, 18px);
+  }
+
+  .theinmag-stockists__cta {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 14px 28px;
+    background-color: var(--st-yellow);
+    color: var(--st-cream-dark);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(20px, 1.6vw, 24px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    border-radius: 32px;
+    box-shadow: 0 4px 0 var(--st-yellow-shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-stockists__cta {
+      padding: 16px 32px;
+    }
+  }
+
+  .theinmag-stockists__cta:hover,
+  .theinmag-stockists__cta:focus-visible {
+    background-color: var(--st-purple-dark);
+    color: #FFFFFF;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--st-purple-press);
+    outline: none;
+  }
+  .theinmag-stockists__cta:focus-visible {
+    box-shadow: 0 0 0 3px var(--st-purple-dark), 0 2px 0 var(--st-purple-press);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-stockists__cta { transition: none; }
+    .theinmag-stockists__cta:hover,
+    .theinmag-stockists__cta:focus-visible { transform: none; }
+  }
+{%- endstylesheet -%}
+
+{%- javascript -%}
+  (function () {
+    var section = document.querySelector('[data-theinmag-stockists]');
+    if (!section) return;
+
+    var dataNode = section.querySelector('[data-stockists-data]');
+    var listNode = section.querySelector('[data-stockists-list]');
+    var emptyNode = section.querySelector('[data-stockists-empty]');
+    var stateFilter = section.querySelector('[data-stockists-state-filter]');
+    var searchInput = section.querySelector('[data-stockists-search]');
+
+    var stockists = [];
+    if (dataNode) {
+      try { stockists = JSON.parse(dataNode.textContent || '[]'); }
+      catch (e) { console.warn('[stockists] data parse failed', e); }
+    }
+
+    // SVG icon factory - kept inline so we don't ship a separate sprite
+    // for three icons. Returns an HTML string (safe - no user input).
+    function icon(name) {
+      switch (name) {
+        case 'instagram':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><path d="M16 11.4a4 4 0 1 1-7.9 1.2 4 4 0 0 1 7.9-1.2z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>';
+        case 'globe':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="3" y1="12" x2="21" y2="12"></line><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"></path></svg>';
+        case 'phone':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z"></path></svg>';
+        case 'maps-arrow':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>';
+      }
+      return '';
+    }
+
+    // Phone link uses tel: with non-digit chars stripped (Aussie numbers
+    // tend to render with spaces). We keep the human label readable.
+    function telHref(raw) {
+      return 'tel:' + (raw || '').replace(/[^0-9+]/g, '');
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function typeLabel(t) {
+      switch (t) {
+        case 'gift_shop': return 'Gift shop';
+        case 'newsagent': return 'Newsagent';
+        case 'bookshop':  return 'Bookshop';
+        case 'gallery':   return 'Gallery';
+        case 'cafe':      return 'Cafe';
+        default:          return 'Other';
+      }
+    }
+
+    function renderCard(s) {
+      var addressLine1 = escapeHtml(s.street_address || '');
+      var addressLine2 = [s.suburb, s.state, s.postcode].filter(Boolean).map(escapeHtml).join(' ');
+      var contactLine = s.contact_name
+        ? '<p class="theinmag-stockists__card-contact">Contact ' + escapeHtml(s.contact_name) + '</p>'
+        : '';
+
+      var icons = '';
+      if (s.instagram_handle) {
+        icons += '<a class="theinmag-stockists__card-icon" href="https://instagram.com/' + encodeURIComponent(s.instagram_handle) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHtml(s.shop_name) + ' on Instagram">' + icon('instagram') + '</a>';
+      }
+      if (s.website_url) {
+        icons += '<a class="theinmag-stockists__card-icon" href="' + escapeHtml(s.website_url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHtml(s.shop_name) + ' website">' + icon('globe') + '</a>';
+      }
+      if (s.contact_phone) {
+        icons += '<a class="theinmag-stockists__card-icon" href="' + escapeHtml(telHref(s.contact_phone)) + '" aria-label="Call ' + escapeHtml(s.shop_name) + '">' + icon('phone') + '</a>';
+      }
+
+      var mapsHref = 'https://www.google.com/maps/search/?api=1&query=' + s.latitude + ',' + s.longitude;
+
+      return (
+        '<li class="theinmag-stockists__card" data-stockist-id="' + escapeHtml(s.id) + '" data-type="' + escapeHtml(s.type) + '" data-state="' + escapeHtml(s.state) + '" tabindex="0">' +
+          '<div class="theinmag-stockists__card-body">' +
+            '<h3 class="theinmag-stockists__card-name">' + escapeHtml(s.shop_name) + '</h3>' +
+            '<span class="theinmag-stockists__card-chip">' + escapeHtml(typeLabel(s.type)) + '</span>' +
+            '<p class="theinmag-stockists__card-address">' + addressLine1 + (addressLine2 ? '<br>' + addressLine2 : '') + '</p>' +
+            contactLine +
+            '<a class="theinmag-stockists__card-maps" href="' + mapsHref + '" target="_blank" rel="noopener noreferrer">Open in Google Maps ' + icon('maps-arrow') + '</a>' +
+          '</div>' +
+          '<div class="theinmag-stockists__card-icons">' + icons + '</div>' +
+        '</li>'
+      );
+    }
+
+    function render(list) {
+      if (!listNode) return;
+      if (!list.length) {
+        listNode.innerHTML = '';
+        if (emptyNode) emptyNode.hidden = false;
+        return;
+      }
+      if (emptyNode) emptyNode.hidden = true;
+      listNode.innerHTML = list.map(renderCard).join('');
+    }
+
+    // Step-2 baseline: alphabetical by shop name. Real proximity sort
+    // lands in step 5 with the postcode lookup.
+    function sortAlpha(a, b) {
+      return a.shop_name.localeCompare(b.shop_name);
+    }
+
+    // Step-2 filter: state dropdown only. Search input is wired but
+    // does a basic name/suburb/postcode contains-match for now -
+    // proper geo-aware proximity ranking is step 5.
+    function applyFilters() {
+      var st = stateFilter ? stateFilter.value : 'all';
+      var q = (searchInput && searchInput.value || '').trim().toLowerCase();
+
+      var filtered = stockists.filter(function (s) {
+        if (st !== 'all' && s.state !== st) return false;
+        if (q) {
+          var hay = (s.shop_name + ' ' + s.suburb + ' ' + s.postcode).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+      filtered.sort(sortAlpha);
+      render(filtered);
+    }
+
+    if (stateFilter) stateFilter.addEventListener('change', applyFilters);
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+
+    applyFilters();
+
+    // Modal bridge: CTA dispatches a global event the sibling
+    // theinmag-stockists-modal section listens for.
+    section.addEventListener('click', function (e) {
+      var target = e.target.closest('[data-stockists-open-modal]');
+      if (!target) return;
+      e.preventDefault();
+      document.dispatchEvent(new CustomEvent('theinmag-stockists:open-modal'));
+    });
+  })();
+{%- endjavascript -%}
+
+{% schema %}
+{
+  "name": "Stockists hero",
+  "tag": "section",
+  "class": "shopify-section--theinmag-stockists",
+  "settings": []
+}
+{% endschema %}

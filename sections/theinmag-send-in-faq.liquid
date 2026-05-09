@@ -1,0 +1,425 @@
+{%- comment -%}
+  theinmag-send-in-faq
+  Section 6 of /pages/send-in. Accordion. Closed by default. Tap to
+  reveal answer. FAQPage JSON-LD rendered inline at the bottom -
+  AEO-targeted at "submit kids' work to magazine Australia" type
+  queries.
+
+  Same accordion pattern as theinmag-faq.liquid but scoped to its own
+  data attributes (data-theinmag-send-in-faq) so it can coexist with
+  the homepage FAQ section without collisions. NO kid character on
+  this page (Ryan's call), NO contact CTA - this section is just the
+  Q+As + the schema.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign faq_blocks = section.blocks | where: 'type', 'faq_item'
+
+  assign section_style = '--sifaq-pt: ' | append: section.settings.padding_top | append: 'px; --sifaq-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-send-in-faq"
+  data-theinmag-send-in-faq
+  aria-labelledby="theinmag-send-in-faq-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-send-in-faq__inner">
+    {%- if heading != blank or subhead != blank -%}
+      <header class="theinmag-send-in-faq__header">
+        {%- if heading != blank -%}
+          <h2 id="theinmag-send-in-faq-heading" class="theinmag-send-in-faq__heading">{{ heading }}</h2>
+        {%- endif -%}
+        {%- if subhead != blank -%}
+          <p class="theinmag-send-in-faq__subhead">{{ subhead }}</p>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if faq_blocks.size > 0 -%}
+      <ul class="theinmag-send-in-faq__list" role="list">
+        {%- for block in faq_blocks -%}
+          {%- liquid
+            assign question = block.settings.question
+            assign answer = block.settings.answer
+            assign panel_id = 'theinmag-send-in-faq-answer-' | append: section.id | append: '-' | append: forloop.index
+          -%}
+          <li class="theinmag-send-in-faq__item" {{ block.shopify_attributes }}>
+            <h3 class="theinmag-send-in-faq__question-heading">
+              <button
+                type="button"
+                class="theinmag-send-in-faq__trigger"
+                aria-expanded="false"
+                aria-controls="{{ panel_id }}"
+                data-theinmag-send-in-faq-trigger
+              >
+                <span class="theinmag-send-in-faq__question">{{ question }}</span>
+                <span class="theinmag-send-in-faq__caret" aria-hidden="true"></span>
+              </button>
+            </h3>
+            <div
+              id="{{ panel_id }}"
+              class="theinmag-send-in-faq__answer-wrap"
+              data-theinmag-send-in-faq-answer
+              data-open="false"
+            >
+              <div class="theinmag-send-in-faq__answer">
+                {{ answer }}
+              </div>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- if faq_blocks.size > 0 -%}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {%- for block in faq_blocks -%}
+          {
+            "@type": "Question",
+            "name": {{ block.settings.question | strip_html | strip | json }},
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": {{ block.settings.answer | strip_html | strip | json }}
+            }
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ]
+    }
+  </script>
+{%- endif -%}
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-send-in-faq
+     Cream-pair background. Alternates with the warmer #FDFAF5 of
+     the tips section just above.
+     ================================================================ */
+
+  .theinmag-send-in-faq {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--sifaq-pt, 64px) clamp(16px, 4vw, 32px) var(--sifaq-pb, 64px);
+    position: relative;
+  }
+
+  .theinmag-send-in-faq__inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .theinmag-send-in-faq__header {
+    text-align: center;
+    margin-bottom: clamp(20px, 3vw, 32px);
+  }
+
+  .theinmag-send-in-faq__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(26px, 4.2vw, 38px);
+    line-height: 1.1;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-send-in-faq__subhead {
+    margin: clamp(10px, 1.4vw, 14px) auto 0;
+    max-width: 56ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.8;
+  }
+
+  .theinmag-send-in-faq__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-send-in-faq__item {
+    border-bottom: 1px solid rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-send-in-faq__question-heading {
+    margin: 0;
+    font: inherit;
+  }
+
+  .theinmag-send-in-faq__trigger {
+    appearance: none;
+    background: none;
+    border: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(12px, 1.5vw, 20px);
+    padding: clamp(16px, 2vw, 22px) clamp(8px, 1.5vw, 16px);
+    cursor: pointer;
+    text-align: left;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    min-height: 56px;
+    transition: color var(--transition-standard, 0.15s ease);
+  }
+
+  .theinmag-send-in-faq__trigger:hover,
+  .theinmag-send-in-faq__trigger:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    outline: none;
+  }
+
+  .theinmag-send-in-faq__trigger:focus-visible {
+    outline: 2px dashed var(--color-purple-dark, #5D3A7A);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .theinmag-send-in-faq__question {
+    flex: 1;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.4;
+  }
+
+  .theinmag-send-in-faq__caret {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    position: relative;
+    transition: transform 0.3s ease;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-send-in-faq__caret::before,
+  .theinmag-send-in-faq__caret::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 11px;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 2px;
+    transform-origin: 50% 50%;
+  }
+
+  .theinmag-send-in-faq__caret::before {
+    left: 1px;
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .theinmag-send-in-faq__caret::after {
+    right: 1px;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+
+  .theinmag-send-in-faq__trigger[aria-expanded="true"] .theinmag-send-in-faq__caret {
+    transform: rotate(180deg);
+  }
+
+  .theinmag-send-in-faq__answer-wrap {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theinmag-send-in-faq__answer-wrap[data-open="true"] {
+    max-height: 1500px;
+  }
+
+  .theinmag-send-in-faq__answer {
+    padding: 0 clamp(8px, 1.5vw, 16px) clamp(16px, 2vw, 22px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.7;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-send-in-faq__answer p {
+    margin: 0 0 clamp(10px, 1.2vw, 14px);
+  }
+
+  .theinmag-send-in-faq__answer p:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-send-in-faq__answer ul,
+  .theinmag-send-in-faq__answer ol {
+    margin: clamp(8px, 1vw, 12px) 0;
+    padding-left: clamp(20px, 2vw, 26px);
+  }
+
+  .theinmag-send-in-faq__answer li {
+    margin: 0 0 clamp(4px, 0.6vw, 6px);
+  }
+
+  .theinmag-send-in-faq__answer strong {
+    font-weight: 600;
+  }
+
+  .theinmag-send-in-faq__answer a {
+    color: var(--color-teal-dark, #2D6878);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease, text-decoration-thickness 0.15s ease;
+  }
+
+  .theinmag-send-in-faq__answer a:hover,
+  .theinmag-send-in-faq__answer a:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration-thickness: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-send-in-faq__caret,
+    .theinmag-send-in-faq__answer-wrap {
+      transition: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var roots = document.querySelectorAll('[data-theinmag-send-in-faq]');
+    if (!roots.length) return;
+
+    roots.forEach(function (root) {
+      var triggers = root.querySelectorAll('[data-theinmag-send-in-faq-trigger]');
+      triggers.forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+          var expanded = trigger.getAttribute('aria-expanded') === 'true';
+          var answer = document.getElementById(trigger.getAttribute('aria-controls'));
+          if (!answer) return;
+          trigger.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+          answer.setAttribute('data-open', expanded ? 'false' : 'true');
+        });
+      });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag Send IN FAQ",
+  "tag": "section",
+  "class": "theinmag-send-in-faq-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Got questions about sending IN?"
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead (optional)"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq_item",
+      "name": "FAQ item",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "info": "Phrased in customer search language for AEO discoverability."
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Send IN FAQ",
+      "blocks": [
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Who can send IN?",
+            "answer": "<p>Any Aussie kid up to age 16. International kids are welcome too - we just only print and post within Australia.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "What happens after we hit submit?",
+            "answer": "<p>You'll see a celebration screen. Then a real human reviews every submission - we never auto-publish anything. If your creation is selected for print and you provided a parent email on the form, we'll be in touch before the issue drops. (The parent email is optional, so we only contact families who chose to share it.)</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "What if our creation isn't picked?",
+            "answer": "<p>There are more incredible kids than there are pages, so not every creation makes it into print. Every submission that doesn't make this issue still goes up in our gallery so other kids can see what you made. A couple of things help your chances next time: we always notice when a kid has put serious effort into a creation, and kids who send IN lots of different things across the year have more chances of being picked. Keep creating.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Is this safe for my kid to use?",
+            "answer": "<p>Kid safety is locked in across the whole process. We never collect contactable details from kids - only the parent on the form, and that's optional. We never publish full names, schools, addresses, contact info, or faces in photos. We follow proper Australian child-safety guidelines and protocols across every submission.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I take my kid's creation down later?",
+            "answer": "<p>Yes - email heyhey@theinmag.com.au and we'll remove it from the website and gallery within 7 days. Print copies already shipped can't be recalled, but nothing future-facing stays up if you ask us to take it down.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
