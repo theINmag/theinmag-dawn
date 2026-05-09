@@ -1,0 +1,342 @@
+{%- comment -%}
+  theinmag-legal-footer-support
+  Sits at the bottom of the legal page, before the site footer. Three
+  short columns reassure the reader that real humans handle requests:
+  general questions, take-down requests, and privacy/data requests.
+  Also stamps the last-reviewed date a second time so the page closes
+  on the same trust signal it opened with.
+
+  Background is the lavender wash from the purple pair (light surface,
+  inky text on top per the locked colour-pair rule). Field notes uses
+  cream + lavender as its register; this strip continues that mood
+  on the legal page.
+
+  The last-reviewed date is a section setting in this file, mirrored
+  from the hero. The editor keeps both in sync when policies are
+  reviewed - paragraph note in the hero schema flags this.
+
+  Spec: prompt from session 2026-05-09. Tokens: ../theinmag-docs/theinmag-design-tokens.md.
+{%- endcomment -%}
+
+{%- liquid
+  assign col1_heading = section.settings.col1_heading | default: 'Got a question?'
+  assign col1_body = section.settings.col1_body
+  assign col1_email = section.settings.col1_email | default: 'heyhey@theinmag.com.au'
+
+  assign col2_heading = section.settings.col2_heading | default: 'Want a creation taken down?'
+  assign col2_body = section.settings.col2_body
+  assign col2_email = section.settings.col2_email | default: 'heyhey@theinmag.com.au'
+
+  assign col3_heading = section.settings.col3_heading | default: 'Privacy or data request?'
+  assign col3_body = section.settings.col3_body
+  assign col3_email = section.settings.col3_email | default: 'heyhey@theinmag.com.au'
+
+  assign last_reviewed = section.settings.last_reviewed | default: '9 May 2026'
+  assign last_reviewed_label = section.settings.last_reviewed_label | default: 'Last reviewed'
+
+  assign section_style = '--legal-support-pt: ' | append: section.settings.padding_top | append: 'px; --legal-support-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-legal-footer-support"
+  data-theinmag-legal-footer-support
+  aria-label="theINmag policy support"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-legal-footer-support__inner">
+
+    <ul class="theinmag-legal-footer-support__columns" role="list">
+
+      <li class="theinmag-legal-footer-support__column">
+        <h2 class="theinmag-legal-footer-support__heading">{{ col1_heading }}</h2>
+        {%- if col1_body != blank -%}
+          <div class="theinmag-legal-footer-support__body">{{ col1_body }}</div>
+        {%- endif -%}
+        {%- if col1_email != blank -%}
+          <a class="theinmag-legal-footer-support__email" href="mailto:{{ col1_email }}">{{ col1_email }}</a>
+        {%- endif -%}
+      </li>
+
+      <li class="theinmag-legal-footer-support__column">
+        <h2 class="theinmag-legal-footer-support__heading">{{ col2_heading }}</h2>
+        {%- if col2_body != blank -%}
+          <div class="theinmag-legal-footer-support__body">{{ col2_body }}</div>
+        {%- endif -%}
+        {%- if col2_email != blank -%}
+          <a class="theinmag-legal-footer-support__email" href="mailto:{{ col2_email }}">{{ col2_email }}</a>
+        {%- endif -%}
+      </li>
+
+      <li class="theinmag-legal-footer-support__column">
+        <h2 class="theinmag-legal-footer-support__heading">{{ col3_heading }}</h2>
+        {%- if col3_body != blank -%}
+          <div class="theinmag-legal-footer-support__body">{{ col3_body }}</div>
+        {%- endif -%}
+        {%- if col3_email != blank -%}
+          <a class="theinmag-legal-footer-support__email" href="mailto:{{ col3_email }}">{{ col3_email }}</a>
+        {%- endif -%}
+      </li>
+
+    </ul>
+
+    {%- if last_reviewed != blank -%}
+      <p class="theinmag-legal-footer-support__date">
+        <em>{{ last_reviewed_label }}: <time datetime="{{ last_reviewed | date: '%Y-%m-%d' }}">{{ last_reviewed }}</time></em>
+      </p>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-legal-footer-support
+     Lavender wash from the purple pair. Three columns on desktop,
+     single-column stack on mobile. Quiet, reassuring, sits between
+     the dense accordion stack and the site footer.
+     ================================================================ */
+
+  .theinmag-legal-footer-support {
+    background-color: var(--color-lavender, #E8DEEF);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--legal-support-pt, 48px) clamp(16px, 4vw, 32px) var(--legal-support-pb, 48px);
+    position: relative;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-legal-footer-support {
+      padding-top: var(--legal-support-pt, 64px);
+      padding-bottom: var(--legal-support-pb, 56px);
+    }
+  }
+
+  .theinmag-legal-footer-support__inner {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  /* ================================================================
+     Columns - single column on mobile, three columns at >=750px.
+     Generous gap so each column reads as its own discrete moment.
+     ================================================================ */
+
+  .theinmag-legal-footer-support__columns {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 3vw, 32px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-legal-footer-support__columns {
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(28px, 3.5vw, 48px);
+    }
+  }
+
+  .theinmag-legal-footer-support__column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(8px, 1vw, 12px);
+  }
+
+  .theinmag-legal-footer-support__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(20px, 2.2vw, 24px);
+    line-height: 1.15;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-legal-footer-support__body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 15px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.85;
+    max-width: 36ch;
+  }
+
+  .theinmag-legal-footer-support__body p {
+    margin: 0 0 clamp(8px, 1vw, 10px);
+  }
+
+  .theinmag-legal-footer-support__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-legal-footer-support__email {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(14px, 1.4vw, 15px);
+    line-height: 1.4;
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: color 0.15s ease, text-decoration-thickness 0.15s ease;
+    margin-top: clamp(2px, 0.5vw, 4px);
+    word-break: break-all;
+  }
+
+  .theinmag-legal-footer-support__email:hover,
+  .theinmag-legal-footer-support__email:focus-visible {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-decoration-thickness: 2px;
+    outline: none;
+  }
+
+  /* ================================================================
+     Last-reviewed line - small italic, separated from the columns
+     by a thin top border. Closes the page on the same trust signal
+     it opened with.
+     ================================================================ */
+
+  .theinmag-legal-footer-support__date {
+    margin: clamp(28px, 3vw, 40px) 0 0;
+    padding-top: clamp(16px, 2vw, 20px);
+    border-top: 1px solid rgba(93, 58, 122, 0.18);
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(13px, 1.2vw, 14px);
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.75;
+  }
+
+  .theinmag-legal-footer-support__date em {
+    font-style: italic;
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag legal support",
+  "tag": "section",
+  "class": "theinmag-legal-footer-support-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Column 1 - questions"
+    },
+    {
+      "type": "text",
+      "id": "col1_heading",
+      "label": "Heading",
+      "default": "Got a question?"
+    },
+    {
+      "type": "richtext",
+      "id": "col1_body",
+      "label": "Body",
+      "default": "<p>A real human reads every email. We reply within two business days.</p>"
+    },
+    {
+      "type": "text",
+      "id": "col1_email",
+      "label": "Email",
+      "default": "heyhey@theinmag.com.au"
+    },
+    {
+      "type": "header",
+      "content": "Column 2 - take down"
+    },
+    {
+      "type": "text",
+      "id": "col2_heading",
+      "label": "Heading",
+      "default": "Want a creation taken down?"
+    },
+    {
+      "type": "richtext",
+      "id": "col2_body",
+      "label": "Body",
+      "default": "<p>Email us with the issue or page it appears on. We'll remove it from the website within 7 days, social within 14 days.</p>"
+    },
+    {
+      "type": "text",
+      "id": "col2_email",
+      "label": "Email",
+      "default": "heyhey@theinmag.com.au"
+    },
+    {
+      "type": "header",
+      "content": "Column 3 - privacy"
+    },
+    {
+      "type": "text",
+      "id": "col3_heading",
+      "label": "Heading",
+      "default": "Privacy or data request?"
+    },
+    {
+      "type": "richtext",
+      "id": "col3_body",
+      "label": "Body",
+      "default": "<p>We respond within 30 days, in line with Australian privacy law.</p>"
+    },
+    {
+      "type": "text",
+      "id": "col3_email",
+      "label": "Email",
+      "default": "heyhey@theinmag.com.au"
+    },
+    {
+      "type": "header",
+      "content": "Last reviewed line"
+    },
+    {
+      "type": "paragraph",
+      "content": "Mirrors the hero pill. When you update one, update both."
+    },
+    {
+      "type": "text",
+      "id": "last_reviewed_label",
+      "label": "Label",
+      "default": "Last reviewed"
+    },
+    {
+      "type": "text",
+      "id": "last_reviewed",
+      "label": "Last reviewed date",
+      "default": "9 May 2026"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag legal support"
+    }
+  ]
+}
+{% endschema %}

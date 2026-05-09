@@ -60,8 +60,8 @@
   assign copyright_text = section.settings.copyright_text | default: 'giving kids a place to be seen, heard and celebrated.'
   assign abn = section.settings.abn
 
-  assign privacy_url = section.settings.privacy_url | default: '/policies/privacy-policy'
-  assign terms_url = section.settings.terms_url | default: '/policies/terms-of-service'
+  assign legal_url = section.settings.legal_url | default: '/pages/child-safety-terms-conditions-privacy-policy'
+  assign legal_label = section.settings.legal_label | default: 'Child Safety, Terms and Privacy'
   assign refund_url = section.settings.refund_url | default: '/policies/refund-policy'
   assign shipping_url = section.settings.shipping_url | default: '/policies/shipping-policy'
 
@@ -273,8 +273,7 @@
         </p>
 
         <ul class="theinmag-footer__legal" role="list" aria-label="Legal">
-          <li><a class="theinmag-footer__legal-link" href="{{ privacy_url }}">Privacy</a></li>
-          <li><a class="theinmag-footer__legal-link" href="{{ terms_url }}">Terms</a></li>
+          <li><a class="theinmag-footer__legal-link" href="{{ legal_url }}">{{ legal_label }}</a></li>
           <li><a class="theinmag-footer__legal-link" href="{{ refund_url }}">Refunds</a></li>
           <li><a class="theinmag-footer__legal-link" href="{{ shipping_url }}">Shipping</a></li>
         </ul>
@@ -1156,15 +1155,16 @@
     },
     {
       "type": "text",
-      "id": "privacy_url",
-      "label": "Privacy Policy URL",
-      "default": "/policies/privacy-policy"
+      "id": "legal_label",
+      "label": "Legal link label",
+      "default": "Child Safety, Terms and Privacy"
     },
     {
       "type": "text",
-      "id": "terms_url",
-      "label": "Terms of Service URL",
-      "default": "/policies/terms-of-service"
+      "id": "legal_url",
+      "label": "Legal page URL",
+      "default": "/pages/child-safety-terms-conditions-privacy-policy",
+      "info": "Single combined legal page covering Child Safety, Submission Terms, T+Cs, Privacy and GDPR."
     },
     {
       "type": "text",

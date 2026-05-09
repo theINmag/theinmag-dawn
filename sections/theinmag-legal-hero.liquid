@@ -1,0 +1,272 @@
+{%- comment -%}
+  theinmag-legal-hero
+  Hero for the combined legal page (child safety, submission terms,
+  T+Cs, privacy, GDPR). Calm cream-pair surface so the page reads as
+  a trust page, not a conversion page. No CTA - the hero exists to
+  set tone and stamp the last-reviewed date.
+
+  Last-reviewed date is editor-controlled via a single text setting.
+  Not auto-stamped from page.updated_at because section-setting edits
+  do not tick page.updated_at, and a "last reviewed" date on a legal
+  page should be a deliberate human signal, not a side-effect of
+  fixing a typo. Set it intentionally when the policy is reviewed.
+
+  Spec: prompt from session 2026-05-09. Tokens: ../theinmag-docs/theinmag-design-tokens.md.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading | default: 'Child Safety, Terms and Privacy'
+  assign subhead = section.settings.subhead
+  assign last_reviewed = section.settings.last_reviewed | default: '9 May 2026'
+  assign pill_label = section.settings.pill_label | default: 'Last reviewed'
+
+  assign section_style = '--legal-hero-pt: ' | append: section.settings.padding_top | append: 'px; --legal-hero-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+
+  assign page_origin = request.origin | default: shop.url
+  if page.url != blank
+    assign page_path = page.url
+  else
+    assign page_path = '/pages/child-safety-terms-conditions-privacy-policy'
+  endif
+  assign page_full_url = page_origin | append: page_path
+  assign date_modified_iso = last_reviewed | date: '%Y-%m-%d'
+  assign meta_description = 'How we keep kids safe, the rules for sending IN your creation, and what we do with your information. Plain English, written for kids and parents to read together.'
+-%}
+
+<section
+  class="theinmag-legal-hero"
+  data-theinmag-legal-hero
+  aria-labelledby="theinmag-legal-hero-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-legal-hero__inner">
+
+    {%- if last_reviewed != blank -%}
+      <p class="theinmag-legal-hero__pill">
+        <span class="theinmag-legal-hero__pill-label">{{ pill_label }}:</span>
+        <time class="theinmag-legal-hero__pill-date" datetime="{{ last_reviewed | date: '%Y-%m-%d' }}">{{ last_reviewed }}</time>
+      </p>
+    {%- endif -%}
+
+    <h1 id="theinmag-legal-hero-heading" class="theinmag-legal-hero__heading">{{ heading }}</h1>
+
+    {%- if subhead != blank -%}
+      <div class="theinmag-legal-hero__subhead">{{ subhead }}</div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": {{ page_origin | json }} },
+      { "@type": "ListItem", "position": 2, "name": {{ heading | json }}, "item": {{ page_full_url | json }} }
+    ]
+  }
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": {{ heading | json }},
+    "description": {{ meta_description | json }},
+    "url": {{ page_full_url | json }},
+    "mainEntityOfPage": {{ page_full_url | json }},
+    "dateModified": {{ date_modified_iso | json }},
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "theINmag",
+      "url": {{ page_origin | json }}
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "theINmag",
+      "legalName": "T.J Branch and R.M Gow trading as theINmag",
+      "url": {{ page_origin | json }},
+      "email": "heyhey@theinmag.com.au",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "9 Birdwood Close",
+        "addressLocality": "Eaglehawk",
+        "addressRegion": "VIC",
+        "postalCode": "3556",
+        "addressCountry": "AU"
+      },
+      "identifier": {
+        "@type": "PropertyValue",
+        "propertyID": "ABN",
+        "value": "95 229 012 388"
+      }
+    }
+  }
+</script>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-legal-hero
+     Cream-pair surface, centred composition. Generous vertical
+     padding signals "stop and read" - the page is dense, the hero
+     gives it room to breathe before the accordions.
+     ================================================================ */
+
+  .theinmag-legal-hero {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--legal-hero-pt, 48px) clamp(16px, 4vw, 32px) var(--legal-hero-pb, 32px);
+    position: relative;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-legal-hero {
+      padding-top: var(--legal-hero-pt, 96px);
+      padding-bottom: var(--legal-hero-pb, 64px);
+    }
+  }
+
+  .theinmag-legal-hero__inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(16px, 2.5vw, 24px);
+  }
+
+  /* Pill sits above the heading - small, calm, says "this page is
+     looked after" before the page name itself lands. Purple-on-
+     lavender pair, not yellow (yellow is a stamp colour for action,
+     not for date stamps). */
+  .theinmag-legal-hero__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 6px 14px;
+    background-color: var(--color-lavender, #E8DEEF);
+    color: var(--color-purple-dark, #5D3A7A);
+    border-radius: var(--radius-pill, 9999px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(11px, 1.1vw, 12px);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .theinmag-legal-hero__pill-label {
+    opacity: 0.75;
+  }
+
+  .theinmag-legal-hero__pill-date {
+    font-weight: 700;
+  }
+
+  .theinmag-legal-hero__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(32px, 5.5vw, 56px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-legal-hero__subhead {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 18px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+    max-width: 56ch;
+  }
+
+  .theinmag-legal-hero__subhead p {
+    margin: 0 0 clamp(8px, 1vw, 12px);
+  }
+
+  .theinmag-legal-hero__subhead p:last-child {
+    margin-bottom: 0;
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag legal hero",
+  "tag": "section",
+  "class": "theinmag-legal-hero-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Hero copy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Child Safety, Terms and Privacy"
+    },
+    {
+      "type": "richtext",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "<p>One page covering how we keep kids safe, the rules for sending IN your creation, and what we do with the information you share with us. Written so kids and grown-ups can read it together.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Last reviewed pill"
+    },
+    {
+      "type": "paragraph",
+      "content": "Set this when the policies are reviewed. Treat it as a deliberate human signal, not an auto-stamp - typo fixes should not bump the legal review date."
+    },
+    {
+      "type": "text",
+      "id": "pill_label",
+      "label": "Pill label",
+      "default": "Last reviewed"
+    },
+    {
+      "type": "text",
+      "id": "last_reviewed",
+      "label": "Last reviewed date",
+      "default": "9 May 2026",
+      "info": "Format: D Month YYYY (e.g. 9 May 2026). Mirrored at the foot of the page and in the WebPage JSON-LD dateModified."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag legal hero"
+    }
+  ]
+}
+{% endschema %}

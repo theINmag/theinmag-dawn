@@ -1,0 +1,591 @@
+{%- comment -%}
+  theinmag-legal-accordions
+  Six-item accordion stack for the combined legal page (kid version,
+  child safety, submission terms, T+Cs, privacy, GDPR). Reuses the
+  homepage FAQ accordion pattern: H3 + button + aria-expanded +
+  data-open max-height transition (per page-playbook section 8.5).
+
+  Differences from the homepage FAQ:
+  - Single-open behaviour (one panel open at a time). Legal page is
+    long-read, not cross-comparison; one open keeps focus.
+  - Per-item URL hash deep-linking. JotForm consent + checkout +
+    footer all link directly to specific anchors.
+  - Yellow-star marker on the "kid version" item, since it is the
+    one item we explicitly invite kids to open first.
+  - Prefers-reduced-motion: instant show/hide, no slide.
+
+  Spec: prompt from session 2026-05-09. Tokens: ../theinmag-docs/theinmag-design-tokens.md.
+{%- endcomment -%}
+
+{%- liquid
+  assign blocks = section.blocks | where: 'type', 'accordion_item'
+
+  assign section_style = '--legal-acc-pt: ' | append: section.settings.padding_top | append: 'px; --legal-acc-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-legal-accordions"
+  data-theinmag-legal-accordions
+  aria-label="theINmag policies"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-legal-accordions__inner">
+
+    {%- if blocks.size > 0 -%}
+      <ul class="theinmag-legal-accordions__list" role="list">
+        {%- for block in blocks -%}
+          {%- liquid
+            assign title = block.settings.title
+            assign anchor_id = block.settings.anchor_id | default: block.id
+            assign is_kid = block.settings.is_kid_version
+            assign content = block.settings.content
+            assign panel_id = 'theinmag-legal-panel-' | append: anchor_id
+          -%}
+          <li
+            class="theinmag-legal-accordions__item{% if is_kid %} is-kid-version{% endif %}"
+            id="{{ anchor_id }}"
+            {{ block.shopify_attributes }}
+          >
+            <h2 class="theinmag-legal-accordions__heading">
+              <button
+                type="button"
+                class="theinmag-legal-accordions__trigger"
+                aria-expanded="false"
+                aria-controls="{{ panel_id }}"
+                data-theinmag-legal-trigger
+                data-anchor="{{ anchor_id }}"
+              >
+                {%- if is_kid -%}
+                  <span class="theinmag-legal-accordions__star" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="22" height="22" focusable="false">
+                      <path d="M12 2.5l2.7 6.1 6.6.6-5 4.6 1.5 6.5L12 17l-5.8 3.3 1.5-6.5-5-4.6 6.6-.6z" fill="currentColor"/>
+                    </svg>
+                  </span>
+                {%- endif -%}
+                <span class="theinmag-legal-accordions__title">{{ title }}</span>
+                <span class="theinmag-legal-accordions__caret" aria-hidden="true"></span>
+              </button>
+            </h2>
+            <div
+              id="{{ panel_id }}"
+              class="theinmag-legal-accordions__panel"
+              data-theinmag-legal-panel
+              data-open="false"
+            >
+              <div class="theinmag-legal-accordions__content">
+                {{ content }}
+              </div>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-legal-accordions
+     Cream-pair surface continuing from the hero. Single-column,
+     edge-to-edge accordion list. Touch-target generous on mobile
+     (>=56px header height); content max-width 65ch inside open
+     panels so long legal paragraphs do not sprawl on desktop.
+     ================================================================ */
+
+  .theinmag-legal-accordions {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--legal-acc-pt, 32px) clamp(0px, 2vw, 16px) var(--legal-acc-pb, 64px);
+    position: relative;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-legal-accordions {
+      padding-left: clamp(16px, 4vw, 32px);
+      padding-right: clamp(16px, 4vw, 32px);
+    }
+  }
+
+  .theinmag-legal-accordions__inner {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  /* ================================================================
+     List - thin border between rows. Top + bottom borders frame the
+     stack so it reads as a single editorial unit.
+     ================================================================ */
+
+  .theinmag-legal-accordions__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-legal-accordions__item {
+    border-bottom: 1px solid rgba(42, 31, 61, 0.12);
+    /* Direct browser anchor jumps clear the sticky header. */
+    scroll-margin-top: 96px;
+  }
+
+  /* H2 wrapper carries semantic weight (each accordion is a top-
+     level policy section, hence H2 not H3). Reset margins/font so
+     the button child does the visible heavy lifting. */
+  .theinmag-legal-accordions__heading {
+    margin: 0;
+    font: inherit;
+  }
+
+  /* ================================================================
+     Trigger - full-row button. Star (kid version only) + title on
+     the left, caret on the right. min-height: 56px on mobile, 64px
+     on desktop so the touch target stays comfortable.
+     ================================================================ */
+
+  .theinmag-legal-accordions__trigger {
+    appearance: none;
+    background: none;
+    border: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 1.5vw, 14px);
+    padding: clamp(18px, 2.4vw, 24px) clamp(16px, 2.5vw, 28px);
+    cursor: pointer;
+    text-align: left;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    min-height: 56px;
+    transition: color var(--transition-standard, 0.15s ease),
+                background-color var(--transition-standard, 0.15s ease);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-legal-accordions__trigger {
+      min-height: 64px;
+    }
+  }
+
+  .theinmag-legal-accordions__trigger:hover {
+    background-color: rgba(232, 222, 239, 0.35);
+  }
+
+  .theinmag-legal-accordions__trigger:focus-visible {
+    outline: 2px dashed var(--color-purple-dark, #5D3A7A);
+    outline-offset: -2px;
+    border-radius: 4px;
+  }
+
+  /* Active state - heading colour shifts to dark purple, caret
+     rotates 180deg (rule below). */
+  .theinmag-legal-accordions__trigger[aria-expanded="true"] {
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  /* Star marker for the kid-version item. Yellow stamp accent
+     (allowed - this is a small badge moment, not a background field). */
+  .theinmag-legal-accordions__star {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    color: var(--color-yellow, #F9C23C);
+  }
+
+  .theinmag-legal-accordions__star svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* Subtle deeper-yellow stroke so the star reads on cream
+       without losing the warm yellow fill. */
+    filter: drop-shadow(0 1px 0 rgba(212, 160, 46, 0.6));
+  }
+
+  .theinmag-legal-accordions__title {
+    flex: 1;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(20px, 2.4vw, 26px);
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  /* Caret - same chevron style as theinmag-faq for visual unity. */
+  .theinmag-legal-accordions__caret {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    position: relative;
+    transition: transform 0.3s ease;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-legal-accordions__caret::before,
+  .theinmag-legal-accordions__caret::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 12px;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 2px;
+    transform-origin: 50% 50%;
+  }
+
+  .theinmag-legal-accordions__caret::before {
+    left: 1px;
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .theinmag-legal-accordions__caret::after {
+    right: 1px;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+
+  .theinmag-legal-accordions__trigger[aria-expanded="true"] .theinmag-legal-accordions__caret {
+    transform: rotate(180deg);
+  }
+
+  /* ================================================================
+     Panel - max-height 0 -> 4000px transition (legal copy is
+     significantly longer than the FAQ answers, so the safe upper
+     bound is bumped). Background flips white when open so the open
+     content separates visually from the cream surface.
+     ================================================================ */
+
+  .theinmag-legal-accordions__panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.2s ease;
+  }
+
+  .theinmag-legal-accordions__panel[data-open="true"] {
+    max-height: 4000px;
+    background-color: #FFFFFF;
+  }
+
+  .theinmag-legal-accordions__content {
+    padding: clamp(8px, 1.5vw, 16px) clamp(16px, 2.5vw, 28px) clamp(24px, 3vw, 32px);
+    max-width: 65ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.4vw, 16px);
+    line-height: 1.65;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* Tighter side padding on mobile so legal copy gets the full
+     screen width to breathe. */
+  @media (max-width: 749px) {
+    .theinmag-legal-accordions__content {
+      padding-left: clamp(12px, 4vw, 20px);
+      padding-right: clamp(12px, 4vw, 20px);
+    }
+  }
+
+  .theinmag-legal-accordions__content p {
+    margin: 0 0 clamp(12px, 1.5vw, 16px);
+  }
+
+  .theinmag-legal-accordions__content p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* H3 inside an open panel - editorial sub-heading. Inter 600
+     dark purple, tighter line-height than body. Not Post Regular -
+     stacking three-plus Post lockups inside a single open panel
+     would read kiddy on a legal page (page-playbook anti-pattern:
+     Post Regular fatigue). */
+  .theinmag-legal-accordions__content h3 {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(16px, 1.7vw, 19px);
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: var(--color-purple-dark, #5D3A7A);
+    margin: clamp(20px, 2.5vw, 28px) 0 clamp(6px, 0.8vw, 10px);
+  }
+
+  .theinmag-legal-accordions__content h3:first-child {
+    margin-top: 0;
+  }
+
+  .theinmag-legal-accordions__content ul,
+  .theinmag-legal-accordions__content ol {
+    margin: clamp(8px, 1vw, 12px) 0 clamp(12px, 1.5vw, 16px);
+    padding-left: clamp(20px, 2vw, 26px);
+  }
+
+  .theinmag-legal-accordions__content li {
+    margin: 0 0 clamp(4px, 0.6vw, 6px);
+  }
+
+  .theinmag-legal-accordions__content li:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-legal-accordions__content strong {
+    font-weight: 600;
+    letter-spacing: 0.005em;
+  }
+
+  .theinmag-legal-accordions__content a {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease, text-decoration-thickness 0.15s ease;
+  }
+
+  .theinmag-legal-accordions__content a:hover,
+  .theinmag-legal-accordions__content a:focus-visible {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-decoration-thickness: 2px;
+  }
+
+  /* ================================================================
+     Reduced motion - state changes happen instantly. No slide, no
+     caret rotation animation, no background fade. Keeps the page
+     functional for users who have requested no motion.
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-legal-accordions__panel,
+    .theinmag-legal-accordions__caret,
+    .theinmag-legal-accordions__trigger {
+      transition: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-legal-accordions]');
+    if (!root) return;
+
+    var triggers = root.querySelectorAll('[data-theinmag-legal-trigger]');
+    if (!triggers.length) return;
+
+    var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ----------------------------------------------------------------
+       Single-open accordion. Opening one collapses any others. Per
+       prompt: legal copy is long-read, one-at-a-time keeps focus.
+       ---------------------------------------------------------------- */
+    function setOpen(trigger, open) {
+      var panelId = trigger.getAttribute('aria-controls');
+      var panel = panelId ? document.getElementById(panelId) : null;
+      if (!panel) return;
+      trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      panel.setAttribute('data-open', open ? 'true' : 'false');
+    }
+
+    function closeAll() {
+      triggers.forEach(function (t) { setOpen(t, false); });
+    }
+
+    function openTrigger(trigger) {
+      var willOpen = trigger.getAttribute('aria-expanded') !== 'true';
+      closeAll();
+      if (willOpen) setOpen(trigger, true);
+    }
+
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        openTrigger(trigger);
+      });
+    });
+
+    /* ----------------------------------------------------------------
+       Sticky-header-aware scrollTo. Subtracts the theinmag-header
+       height plus a 12px breath so the open panel's heading lands
+       just below the sticky nav. Pattern lifted from page-playbook
+       section 8.4.
+       ---------------------------------------------------------------- */
+    function scrollToItem(item) {
+      var header = document.querySelector('.theinmag-header-section') || document.querySelector('header[role="banner"]');
+      var headerH = header ? header.offsetHeight : 0;
+      var top = item.getBoundingClientRect().top + window.pageYOffset - headerH - 12;
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: prefersReducedMotion ? 'auto' : 'smooth'
+      });
+    }
+
+    /* ----------------------------------------------------------------
+       Deep-link on load. If the URL hash matches an item's anchor
+       id, open that panel and scroll to it. Used by JotForm consent
+       (#submission-terms), checkout (#terms), footer (page root).
+       Wait one frame so layout has settled before measuring scroll.
+       ---------------------------------------------------------------- */
+    function openFromHash() {
+      var hash = window.location.hash ? window.location.hash.replace('#', '') : '';
+      if (!hash) return;
+      var item = document.getElementById(hash);
+      if (!item) return;
+      var trigger = item.querySelector('[data-theinmag-legal-trigger]');
+      if (!trigger) return;
+      closeAll();
+      setOpen(trigger, true);
+      window.requestAnimationFrame(function () {
+        scrollToItem(item);
+      });
+    }
+
+    openFromHash();
+
+    /* In-page links from elsewhere in the document (or the same page)
+       that target an accordion anchor: open + scroll to it. */
+    document.addEventListener('click', function (evt) {
+      var link = evt.target.closest && evt.target.closest('a[href*="#"]');
+      if (!link) return;
+      var href = link.getAttribute('href') || '';
+      var hashIndex = href.indexOf('#');
+      if (hashIndex === -1) return;
+      var hash = href.slice(hashIndex + 1);
+      if (!hash) return;
+      var item = document.getElementById(hash);
+      if (!item || !root.contains(item)) return;
+      var trigger = item.querySelector('[data-theinmag-legal-trigger]');
+      if (!trigger) return;
+      evt.preventDefault();
+      closeAll();
+      setOpen(trigger, true);
+      if (history.replaceState) history.replaceState(null, '', '#' + hash);
+      window.requestAnimationFrame(function () { scrollToItem(item); });
+    });
+
+    /* Browser back/forward also re-evaluates the hash. */
+    window.addEventListener('hashchange', openFromHash);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "theINmag legal accordions",
+  "tag": "section",
+  "class": "theinmag-legal-accordions-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "accordion_item",
+      "name": "Accordion item",
+      "limit": 10,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "type": "text",
+          "id": "anchor_id",
+          "label": "Anchor id (URL hash)",
+          "info": "Used for deep-linking, e.g. /pages/.../#submission-terms. Lowercase, hyphens only, no spaces."
+        },
+        {
+          "type": "checkbox",
+          "id": "is_kid_version",
+          "label": "Mark as kid version (yellow star)",
+          "default": false
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Body content"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag legal accordions",
+      "blocks": [
+        {
+          "type": "accordion_item",
+          "settings": {
+            "title": "The kid version (read this first)",
+            "anchor_id": "kid-version",
+            "is_kid_version": true,
+            "content": "<p>A short version, written for kids. The grown-up version is below. Your parent or guardian needs to read that one too.</p><h3>What is this page?</h3><p>Sending IN your creation is a big deal. It could end up in a real magazine. So we wrote down the rules for how that works, and how we keep you safe while we do it.</p><h3>What we'll publish about you</h3><p>If your creation gets in:</p><ul><li>Your first name and the first letter of your last name (so \"Banjo P.\" not \"Banjo Patterson\")</li><li>Your age</li><li>Your town and state</li></ul><p>That's it. We don't publish your full name, your school, your address, your phone number, your email, your face, or anything else. Promise.</p><h3>What we need from your grown-up</h3><p>Before you send IN anything, a parent or guardian has to say yes. That's why the form has a tick box for them. They're saying it's okay for us to print your creation and share it on our website and social media.</p><h3>What you can send IN</h3><p>Stuff you made. Drawings, stories, photos, jokes, maths puzzles, comics, songs, anything creative. It has to be your own creation, in your own style.</p><p>You can absolutely be inspired by things you love. Drawing your version of a favourite character, or writing a story about something you saw on TV, or making art in the style of an artist you admire is all welcome. That's how creative people learn.</p><p>What you can't do is straight-up copy someone else's creation and call it yours. Tracing a picture from a book and submitting it, or copying a story word-for-word from somewhere else, isn't sending IN your creation. It's sending IN theirs.</p><h3>What you can't send IN</h3><ul><li>Anything someone else made (copied, traced, or word-for-word)</li><li>Anything mean about another person</li><li>Anything with full names, addresses, or phone numbers in it (yours or anyone else's)</li><li>Photos of people's faces. Not yours, not your friends, not your family. theINmag is about your creations, not about what anyone looks like. (Photos of objects, places, animals, your hands making something, all good.)</li></ul><h3>What if you change your mind?</h3><p>If you ever want your creation taken down, your parent or guardian can email us and we'll take it off the website and our social media. We can't un-print magazines that have already been sent to people's letterboxes, but we'll never publish it again after that.</p><h3>Will I get money for it?</h3><p>Nope, not directly. Here's the deal: theINmag has no ads. Zero. So when we sell prints or t-shirts or anything else with kid creations on them down the track, every single dollar goes back into the next magazine. That keeps the magazine ad-free and full of kid creativity instead of toy commercials.</p><p>If that doesn't sit right with your family, that's totally fair. Don't tick the box, don't send IN. We'll still think you're cool.</p>"
+          }
+        },
+        {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Child Safety Policy",
+            "anchor_id": "child-safety",
+            "is_kid_version": false,
+            "content": "<p>This is the most important section. We're a magazine made by kids, for kids. That comes with serious responsibility, and we take it seriously.</p><h3>Who we are and what we're committed to</h3><p>theINmag is run by Ryan G. and Tam B., both former teachers, currently travelling Australia in a van with our daughter Nora. Before we were publishers, we spent years in classrooms. We've held the duty of care that comes with kids in your charge. We bring that mindset to every part of theINmag.</p><p>We're committed to the safety, wellbeing and dignity of every child whose creation appears in our magazine, on our website, or on our social media channels. We have zero tolerance for child abuse of any kind, and we comply with Australian child safety law including the National Principles for Child Safe Organisations.</p><h3>What we publish about a child</h3><p>When a child's creation is published in the magazine, on our website, or on social media, we publish only:</p><ul><li>The child's first name and the initial of their surname</li><li>Their age at the time of submission</li><li>The town and state they live in</li></ul><p>We do not publish full names, schools, addresses, contact details, photos of the child themselves, or any other information that could identify a child outside their immediate community.</p><h3>No photos of kids' faces, ever</h3><p>This is one of our core pillars. We do not publish photos of children's faces, anywhere, on any channel. Not in the magazine, not on the website, not on social media. The focus is the kid's creation, not what they look like. Photographs that include a child's face are returned and not published. Photographs of objects, places, or hands at work are welcome.</p><h3>What parental consent looks like</h3><p>We require explicit consent from a parent or legal guardian before any child's creation is published. That consent is captured at the point of submission, on the Send IN form, with a single tick box that covers:</p><ul><li>Permission to publish the creation in the printed magazine</li><li>Permission to display it on our website</li><li>Permission to share it on our social media channels</li><li>Permission to use it in our marketing and advertising</li><li>Permission to use it commercially (the full picture is in the Submission Terms section below)</li></ul><p>If a parent doesn't tick the box, the creation doesn't get published. End of story.</p><h3>What we will never do</h3><ul><li>We will never publish a child's full name, school, address, phone number, email, or face</li><li>We will never sell a child's personal information to anyone, ever</li><li>We will never publish a creation without parental consent</li><li>We will never run advertising in our magazine or on our kid-facing pages</li></ul><h3>Reporting a concern</h3><p>If you ever have a concern about anything related to a child's safety on our platform (content you've seen, behaviour you've noticed, an interaction with our team, anything at all), please email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> and we will respond within two business days.</p><p>If a concern relates to suspected criminal conduct involving a child, we will report it to the relevant Australian authorities (Police, eSafety Commissioner, or the Department of Communities in the relevant state) in line with our mandatory reporting obligations.</p><h3>Asking us to take a creation down</h3><p>A parent or legal guardian can ask us to remove their child's creation at any time. Email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> with the request and the issue or page it appears on, and we will:</p><ul><li>Remove it from our website within 7 days</li><li>Remove it from our active social media channels within 14 days</li><li>Stop using it in any future marketing or advertising</li></ul><p>What we cannot do: recall printed magazines that have already been distributed, or remove screenshots or shares that other people have made of our content. We're sorry. The print magazine is real and physical, and once it's in the world we can't pull it back.</p><h3>Annual review</h3><p>We review this Child Safety Policy every 12 months and whenever Australian child safety law changes. The \"Last reviewed\" date at the top of this page tells you when it was last looked at.</p>"
+          }
+        },
+        {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Submission Terms",
+            "anchor_id": "submission-terms",
+            "is_kid_version": false,
+            "content": "<p>These are the rules for sending IN a creation. If you're under 18, your parent or legal guardian needs to read this and tick the consent box on the Send IN form before you submit anything.</p><h3>Who can send IN</h3><ul><li>Any kid creator can send IN, anywhere in the world, as long as they have parent or guardian consent</li><li>The creation must be the kid's own work, in their own style</li><li>We accept submissions from kids of all ages</li></ul><h3>Original work, in your own style</h3><p>Kids are inspired by the world around them, and that's exactly how creativity works. Drawing a kid's version of a favourite character, writing a story sparked by a film, painting in the style of an artist they love, or photographing a scene that reminded them of something they've seen, all of that is welcome and encouraged. Kid-style versions of the things you love are how creative people learn.</p><p>What we don't accept: direct copies, traced images, or content reproduced word-for-word from another source and submitted as the kid's own. There's a clear line between inspiration and copying, and we trust kids and parents to know the difference. If we receive something that looks like a direct copy, we won't publish it.</p><h3>What you're agreeing to when you tick the consent box</h3><p>When a parent or legal guardian ticks the consent box on the Send IN form, they're giving theINmag permission to:</p><ol><li>Publish the creation in our printed magazine, on our website, on our social media, and in any other format we publish in now or in the future.</li><li>Use the creation in our advertising and marketing. That includes website banners, email newsletters, social media ads, school pitch decks, and anything else we use to grow theINmag.</li><li>Use the creation commercially. This is the broad bit, so we want to be clear about it. We may, now or in the future, sell products that feature kid creations, including prints, cards, calendars, books, merchandise, or anything else we choose to make. Every dollar of profit from those products goes straight back into the next print issue of theINmag, which is how we keep the magazine 100% ad-free. No proceeds go to the families of contributors.</li><li>Adapt or edit the creation for clarity, layout, spelling, or production needs. We won't change the meaning of a kid's creation. We may clean up a typo or crop an artwork to fit a page.</li><li>Sublicense the creation to printers, manufacturers, and other partners who help us produce the magazine and any related products.</li></ol><p>This is a non-exclusive, royalty-free, worldwide, perpetual licence. Plain English version: the kid still owns their creation. They can do whatever else they want with it. We just have permission to use it the ways listed above, anywhere in the world, for as long as we exist, without paying a royalty.</p><h3>Why the licence is broad</h3><p>We need to plan for the future. theINmag might one day sell art prints made from kid drawings to fund the next print run. We might licence creations into a school resource. We might run a workshop where kid creations get printed onto materials. We don't know everything we'll do in five years. The broad licence means we don't have to chase down hundreds of families every time we have a new idea, and every dollar from any of it goes back into the magazine.</p><p>If a parent isn't comfortable with that, we completely understand. The right move is to not tick the box, and not send IN. No hard feelings.</p><h3>What we won't accept</h3><p>We reserve the right to reject or remove any submission that:</p><ul><li>Isn't the kid's own creation</li><li>Includes content we consider unsafe, inappropriate, or harmful</li><li>Includes a recognisable photo of any child's face</li><li>Includes identifiable information about other kids who haven't given consent</li><li>Infringes someone else's copyright, trademark, or other rights</li><li>Doesn't fit the magazine for editorial reasons</li></ul><p>We don't owe you a reason if we choose not to publish a particular creation. We get a lot of submissions and we publish the ones that fit best for each issue.</p><h3>Withdrawing a submission</h3><p>A parent or legal guardian can withdraw consent at any time by emailing <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a>. Once we receive a withdrawal request:</p><ul><li>We'll remove the creation from our website and active social channels (timeframes in the Child Safety section above)</li><li>We won't include the creation in any new printings or new products from the date of the request</li><li>We can't recall any printed magazines or products already distributed</li></ul>"
+          }
+        },
+        {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Terms and Conditions",
+            "anchor_id": "terms",
+            "is_kid_version": false,
+            "content": "<p>The general rules for using theinmag.com.au and buying things from us. Less exciting than the kid stuff, but here we are.</p><h3>Who we are</h3><p>theINmag is published by T.J Branch and R.M Gow (ABN 95 229 012 388), trading as theINmag, based in Eaglehawk, Victoria, Australia. Our postal address is 9 Birdwood Close, Eaglehawk VIC 3556. Our contact email is <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a>.</p><h3>Using our website</h3><p>By using theinmag.com.au, you agree to use it lawfully and not to:</p><ul><li>Copy, scrape, or republish our content (kid creations, blog posts, photography, illustrations, design) without our written permission</li><li>Try to break, hack, or interfere with our site or its security</li><li>Use our site to harass, threaten, or harm anyone</li><li>Pretend to be someone else when you contact us or submit content</li></ul><h3>Buying things from us</h3><p>When you place an order through our shop:</p><ul><li>All prices are in Australian dollars and include GST where applicable</li><li>We accept the payment methods shown at checkout</li><li>Your order is confirmed once we send you an order confirmation email</li><li>We reserve the right to cancel an order in the rare case of pricing errors, stock errors, or suspected fraud, and we'll refund you in full if we do</li></ul><h3>Shipping</h3><p>We ship Australia-wide and internationally. Full shipping details (timeframes, costs, and what happens if a parcel goes missing) are on our Shipping page. The headline:</p><ul><li>We don't guarantee delivery dates. Once a parcel leaves us, it's in the carrier's hands.</li><li>If a parcel is lost or damaged in transit, contact us within 14 days and we'll work with you on a replacement or refund</li></ul><h3>Refunds and returns</h3><p>Because the magazine is a printed, dated product, we generally don't offer refunds for change of mind. We will refund or replace if:</p><ul><li>The product arrives damaged</li><li>The wrong product was sent</li><li>The product is faulty in some way</li></ul><p>For Membership orders (our recurring print subscription), you can cancel anytime and we won't charge you for any future issues. We don't refund issues you've already received.</p><p>This sits alongside your rights under the Australian Consumer Law, which we're not allowed to override and wouldn't want to anyway.</p><h3>Schools</h3><p>Schools can order on a \"ship before pay\" arrangement with 14-day invoice terms. Full details are on our Schools page. If your school doesn't pay an invoice within 60 days, we may pause future orders until the account is settled.</p><h3>Free downloads (Freebies)</h3><p>The Freebies on our site are free for personal and classroom use. You can:</p><ul><li>Download them, print them, share them with your family or your class</li><li>Use them in your homeschool, your classroom, your community group</li></ul><p>You can't:</p><ul><li>Sell them, or include them in something you sell</li><li>Republish them on another website or platform as if they were yours</li><li>Strip our branding or credits off them</li></ul><h3>Competitions</h3><p>Competitions on our Competitions Hub are run by external organisations, not by theINmag (unless we explicitly say otherwise). We curate them because we think they're cool, but we don't run them, judge them, or hold prizes for them. Each competition will link out to the host's own terms.</p><h3>Linking to other sites</h3><p>We sometimes link out to other websites, including stockists, partners, news articles, and competitions. We don't control those sites, can't vouch for what's on them after we've linked, and aren't responsible for their content or privacy practices. Use your judgement.</p><h3>Things we have to say (the disclaimers)</h3><p>To the maximum extent permitted by Australian law:</p><ul><li>We provide the website \"as is\" without any warranty that it will be error-free, uninterrupted, or fit for any specific purpose</li><li>We're not liable for any indirect, incidental, or consequential loss arising from your use of the site</li><li>Nothing in these terms limits any rights you have under the Australian Consumer Law that can't be excluded</li></ul><h3>Changing these terms</h3><p>We may update these Terms and Conditions from time to time. The \"Last reviewed\" date at the top of this page reflects the most recent change. Continuing to use the site after we update the terms means you're okay with the updated version.</p><h3>Which law applies</h3><p>These terms are governed by the laws of Victoria, Australia. Any dispute that we can't resolve over a friendly email will be heard in the courts of Victoria.</p>"
+          }
+        },
+        {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Privacy Policy",
+            "anchor_id": "privacy",
+            "is_kid_version": false,
+            "content": "<p>What information we collect, why, what we do with it, and how to ask us to delete it.</p><h3>What we collect</h3><p><strong>When you buy something:</strong> Your name, email address, postal address, phone number, and payment details. Payment details go directly to our payment processor. We never see or store your card numbers.</p><p><strong>When you sign up to our newsletter:</strong> Your name and email address.</p><p><strong>When you send IN a creation:</strong> The kid's first name, surname initial, age, town, state, and the creation itself. The submitting parent or guardian's email address is requested but optional. We don't ask for the parent's full name or phone number.</p><p><strong>When you contact us:</strong> Whatever you put in the email or contact form.</p><p><strong>When you visit our site:</strong> Cookies and basic analytics data, including pages you viewed, how long you stayed, what device and browser you used, and roughly where in the world you connected from. We don't tie this back to a named person.</p><h3>Why we collect it</h3><ul><li>To process your order and send you the magazine</li><li>To send you the newsletter you signed up for</li><li>To consider your kid's creation for publication and let you know if it gets in</li><li>To respond to messages you send us</li><li>To improve the website (which pages are working, where people are getting stuck)</li><li>To meet our legal obligations (tax records, business records)</li></ul><h3>Who else sees it</h3><p>We share information with the third-party service providers we use to run theINmag, including our shop platform, our email newsletter platform, our forms platform, our printers, our shipping carriers, our payment processors, and our analytics tools.</p><p>We've vetted each of these providers. They're either Australian-based or comply with Australian or equivalent privacy law. We share only what each provider needs to do its job, and only for the time it needs it.</p><p>We don't sell your information to anyone, and we never will.</p><p>We may share information if we're required to by Australian law, or where it's necessary to protect a child or report suspected harm.</p><h3>How long we keep it</h3><ul><li>Order records: 7 years (we have to, for tax)</li><li>Newsletter records: until you unsubscribe, then deleted within 30 days</li><li>Submission records (parent contact details, kid info): 7 years from submission. The creation itself we may keep indefinitely under the licence in the Submission Terms.</li><li>Site analytics: aggregate data is kept indefinitely. We don't link it to named people.</li></ul><h3>Your rights</h3><p>You can, at any time:</p><ul><li>Ask us what information we hold about you</li><li>Ask us to correct anything that's wrong</li><li>Ask us to delete your information (where we're not legally required to keep it)</li><li>Unsubscribe from our newsletter (one-click link in every email)</li><li>Withdraw consent for a kid's creation to be published (see Submission Terms above)</li></ul><p>To do any of those, email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a>. We'll respond within 30 days.</p><h3>How we keep it safe</h3><p>We use the security tools built into our platforms and we keep our admin accounts protected with strong passwords and two-factor authentication. We're a small team and we keep it that way deliberately. Fewer people have access to your information.</p><p>No system is 100% secure and we can't promise zero risk. If we ever have a data breach that affects you, we'll notify you in line with the Notifiable Data Breaches scheme under the Privacy Act 1988 (Cth).</p><h3>Australian Privacy Principles</h3><p>We're an Australian business. We comply with the Australian Privacy Principles set out in the Privacy Act 1988 (Cth). If you've got a privacy concern we haven't resolved through <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a>, you can take it to the Office of the Australian Information Commissioner at <a href=\"https://www.oaic.gov.au\" rel=\"noopener\" target=\"_blank\">oaic.gov.au</a>.</p><h3>Cookies</h3><p>Our site uses cookies for essential functions (cart, login, checkout) and for site analytics. Most browsers let you turn cookies off. If you do, parts of the site (like the cart) might not work properly. We'll always tell you on first visit and let you choose your cookie preferences.</p><h3>Changes to this Privacy Policy</h3><p>We may update this Privacy Policy when our practices change or the law changes. The \"Last reviewed\" date at the top of this page reflects the most recent change.</p>"
+          }
+        },
+        {
+          "type": "accordion_item",
+          "settings": {
+            "title": "For European visitors (GDPR)",
+            "anchor_id": "gdpr",
+            "is_kid_version": false,
+            "content": "<p>If you're submitting a creation, signing up to our newsletter, or buying from us from inside the European Union or the United Kingdom, this short section applies to you on top of everything above.</p><p>Under the GDPR, we are the \"data controller\" for the information you give us. The legal bases we rely on for processing your data are:</p><ul><li>Consent (newsletter signup, kid creation submission)</li><li>Contract (processing your order, sending you the magazine)</li><li>Legitimate interests (running and improving our site, responding to you)</li><li>Legal obligation (keeping tax records)</li></ul><p>You have the rights set out in the Privacy Policy above, plus the GDPR-specific rights to:</p><ul><li>Object to processing based on legitimate interests</li><li>Restrict processing in certain circumstances</li><li>Data portability (get a copy of the information you've given us in a machine-readable format)</li><li>Lodge a complaint with your country's data protection authority</li></ul><p>We process your data on servers operated by our service providers, which may be located outside the EU/UK. Each of those providers complies with appropriate cross-border transfer safeguards (Standard Contractual Clauses, adequacy decisions, or equivalent).</p><p>To exercise any GDPR right, email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a>. We respond within 30 days.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
