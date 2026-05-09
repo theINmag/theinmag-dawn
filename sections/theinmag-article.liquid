@@ -17,6 +17,20 @@
     field_notes.recommendation_1_blurb  (single line text, italic connective)
     field_notes.recommendation_2_handle / _blurb
     field_notes.recommendation_3_handle / _blurb
+
+  Series-republish metafields (Real Jobs, Real People etc):
+
+    field_notes.guest_name              (single line, e.g. "Mitch G.")
+    field_notes.series_name             (single line, e.g. "Real Jobs, Real People")
+    field_notes.series_strip_text       (multi-line, body of the series strip)
+    field_notes.advice_block            (multi-line, closing advice quote)
+    field_notes.closing_cta_label       (single line, button label)
+    field_notes.closing_cta_url         (URL, button destination)
+
+  When `guest_name` is set the post enters guest mode: the hero
+  overlay byline reads "Meet [guest_name]." in Post Regular, the
+  about-the-author card is suppressed (cover image carries the photo),
+  and `author_role_override` carries the role/location/age line.
 {%- endcomment -%}
 
 {%- liquid
@@ -37,6 +51,24 @@
   endif
 
   assign quick_answer = article.metafields.field_notes.quick_answer
+
+  assign guest_name = article.metafields.field_notes.guest_name
+  assign series_name = article.metafields.field_notes.series_name
+  assign series_strip_text = article.metafields.field_notes.series_strip_text
+  assign advice_block_text = article.metafields.field_notes.advice_block
+  assign closing_cta_label = article.metafields.field_notes.closing_cta_label
+  assign closing_cta_url = article.metafields.field_notes.closing_cta_url
+
+  comment
+    Guest mode: triggered by guest_name presence, not a separate
+    author_type value. Keeps the existing ryan/tam/kid enum simple
+    while letting any post opt in to the "Meet [Name]" byline.
+  endcomment
+  assign is_guest = false
+  if guest_name != blank
+    assign is_guest = true
+    assign guest_first_name = guest_name | split: ' ' | first
+  endif
 
   assign author_type = article.metafields.field_notes.author_type | downcase
   if author_type == blank
@@ -99,7 +131,13 @@
     assign author_role = author_role_override
   endif
 
-  if author_type == 'kid'
+  if is_guest
+    comment
+      Guest mode overrides the standard byline overlay. Post Regular
+      treatment is applied via a CSS modifier class (set below).
+    endcomment
+    assign byline_overlay = 'Meet ' | append: guest_name | append: '.'
+  elsif author_type == 'kid'
     assign byline_overlay = author_name
   else
     assign byline_overlay = 'By ' | append: author_name
@@ -218,7 +256,7 @@
             <span class="theinmag-article__overlay-topic">{{ primary_topic }}</span>
           {%- endif -%}
           {%- if byline_overlay != blank -%}
-            <p class="theinmag-article__overlay-byline">{{ byline_overlay }}</p>
+            <p class="theinmag-article__overlay-byline{% if is_guest %} theinmag-article__overlay-byline--guest{% endif %}">{{ byline_overlay }}</p>
           {%- endif -%}
           {%- if author_type != 'kid' and author_role != blank -%}
             <p class="theinmag-article__overlay-role">{{ author_role }}</p>
@@ -243,6 +281,15 @@
           </span>
         </header>
 
+        {%- if series_name != blank -%}
+          <aside class="theinmag-article__series-strip" aria-label="Series">
+            <span class="theinmag-article__series-name">{{ series_name }}</span>
+            {%- if series_strip_text != blank -%}
+              <p class="theinmag-article__series-text">{{ series_strip_text | newline_to_br }}</p>
+            {%- endif -%}
+          </aside>
+        {%- endif -%}
+
         {%- if quick_answer != blank -%}
           <aside class="theinmag-article__quick-read" aria-label="Quick read">
             <span class="theinmag-article__quick-read-label">Quick read</span>
@@ -253,6 +300,17 @@
         <div class="theinmag-article__body rte">
           {{ article.content }}
         </div>
+
+        {%- if advice_block_text != blank -%}
+          <aside class="theinmag-article__advice" aria-label="Advice">
+            {%- if is_guest and guest_first_name != blank -%}
+              <span class="theinmag-article__advice-label">{{ guest_first_name }}'s advice.</span>
+            {%- else -%}
+              <span class="theinmag-article__advice-label">A bit of advice.</span>
+            {%- endif -%}
+            <div class="theinmag-article__advice-body rte">{{ advice_block_text | newline_to_br }}</div>
+          </aside>
+        {%- endif -%}
 
         {%- if has_faqs -%}
           <section
@@ -295,7 +353,13 @@
           </section>
         {%- endif -%}
 
-        {%- if author_type != 'kid' -%}
+        {%- if is_guest -%}
+          {%- comment -%}
+            Guest mode: skip the about-the-author card. The hero
+            overlay byline + role line + cover photo carry attribution.
+            A second avatar would feel redundant against the photo.
+          {%- endcomment -%}
+        {%- elsif author_type != 'kid' -%}
           <aside class="theinmag-article__about" aria-label="About the author">
             <div class="theinmag-article__about-header">
               <div class="theinmag-article__about-avatar">
@@ -391,6 +455,12 @@
             </div>
             <p class="theinmag-article__about-bio">A creation from a kid published in theINmag. We feature contributors by first name, age, and region only.</p>
           </aside>
+        {%- endif -%}
+
+        {%- if closing_cta_label != blank and closing_cta_url != blank -%}
+          <div class="theinmag-article__closing-cta">
+            <a class="theinmag-article__closing-cta-link" href="{{ closing_cta_url }}">{{ closing_cta_label }}</a>
+          </div>
         {%- endif -%}
       </div>
     </div>
@@ -793,6 +863,19 @@
     color: #FFFFFF;
     opacity: 0.92;
     max-width: 32ch;
+  }
+
+  /* Guest mode "Meet [Name]." pattern — Post Regular gives this byline
+     the brand-identity register, distinct from the editorial Inter
+     used for By Ryan / By Tam / kid attributions. */
+  .theinmag-article__overlay-byline--guest {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.2;
+    letter-spacing: 0;
+    opacity: 1;
+    margin-bottom: 4px;
   }
 
   .theinmag-article__overlay-role {
@@ -1297,6 +1380,115 @@
         aspect-ratio: 3 / 4;
       }
     }
+  }
+
+  /* ================================================================
+     Series strip — sits between the byline-row and the Quick read
+     card on republished-series posts (Real Jobs, Real People etc).
+     Light cream variant differentiated from the body cream so the
+     strip reads as meta without breaking the cream surface family.
+     ================================================================ */
+  .theinmag-article__series-strip {
+    margin: 0 0 clamp(28px, 3vw, 40px);
+    padding: clamp(18px, 2.4vw, 28px) clamp(20px, 2.6vw, 32px);
+    background-color: #F4ECD2;
+    border-radius: 12px;
+  }
+
+  .theinmag-article__series-name {
+    display: block;
+    margin-bottom: clamp(6px, 0.8vw, 10px);
+    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(18px, 1.8vw, 22px);
+    line-height: 1;
+    color: var(--color-purple-dark);
+  }
+
+  .theinmag-article__series-text {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(13px, 1.2vw, 14px);
+    line-height: 1.5;
+    color: var(--color-ink);
+    opacity: 0.85;
+  }
+
+  /* ================================================================
+     Advice block — sits between the body and the FAQ on republished
+     interviews. Light purple per the field-notes visual style guide
+     (#f0eaf8 inline-block treatment). Caveat label, Post Regular body
+     so the closing line reads with brand-identity weight.
+     ================================================================ */
+  .theinmag-article__advice {
+    margin: clamp(32px, 4vw, 48px) 0 clamp(8px, 1vw, 12px);
+    padding: clamp(24px, 3vw, 36px) clamp(24px, 3vw, 36px) clamp(28px, 3.4vw, 40px);
+    background-color: #f0eaf8;
+    border-radius: 20px;
+  }
+
+  .theinmag-article__advice-label {
+    display: block;
+    margin-bottom: clamp(10px, 1.2vw, 14px);
+    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(20px, 2vw, 24px);
+    line-height: 1;
+    color: var(--color-purple-dark);
+  }
+
+  .theinmag-article__advice-body {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.5vw, 19px);
+    line-height: 1.55;
+    color: var(--color-ink);
+  }
+
+  .theinmag-article__advice-body p {
+    margin: 0 0 0.7em;
+  }
+
+  .theinmag-article__advice-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ================================================================
+     Closing CTA — yellow pill button below the post body, driven by
+     field_notes.closing_cta_label + field_notes.closing_cta_url.
+     Matches the homepage yellow CTA convention (yellow fill, dark
+     text, purple+white on hover).
+     ================================================================ */
+  .theinmag-article__closing-cta {
+    margin: clamp(32px, 4vw, 48px) 0 clamp(16px, 2vw, 24px);
+    text-align: center;
+  }
+
+  .theinmag-article__closing-cta-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    background-color: #F9C23C;
+    color: #1a1a1a;
+    border-radius: 32px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(13px, 1.3vw, 15px);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+
+  .theinmag-article__closing-cta-link:hover,
+  .theinmag-article__closing-cta-link:focus-visible {
+    background-color: var(--color-purple-dark);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    outline: none;
   }
 
   /* ================================================================
