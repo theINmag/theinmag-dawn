@@ -291,36 +291,36 @@
           </span>
         </header>
 
-        {%- if series_name != blank -%}
-          <aside class="theinmag-article__series-strip" aria-label="Series">
-            <span class="theinmag-article__series-name">{{ series_name }}</span>
-            {%- if series_strip_text != blank -%}
-              <p class="theinmag-article__series-text">{{ series_strip_text | newline_to_br }}</p>
+        {%- comment -%}
+          Quick read row: holds the Quick read card + guest portrait
+          as siblings. Default flow stacks them column-wise (mobile);
+          desktop flips to row so the portrait sits beside the card.
+        {%- endcomment -%}
+        {%- if quick_answer != blank or guest_avatar != blank -%}
+          <div class="theinmag-article__quick-row">
+            {%- if quick_answer != blank -%}
+              <aside class="theinmag-article__quick-read" aria-label="Quick read">
+                <span class="theinmag-article__quick-read-label">Quick read</span>
+                <div class="theinmag-article__quick-read-body rte">{{ quick_answer }}</div>
+              </aside>
             {%- endif -%}
-          </aside>
-        {%- endif -%}
 
-        {%- if quick_answer != blank -%}
-          <aside class="theinmag-article__quick-read" aria-label="Quick read">
-            <span class="theinmag-article__quick-read-label">Quick read</span>
-            <div class="theinmag-article__quick-read-body rte">{{ quick_answer }}</div>
-          </aside>
-        {%- endif -%}
-
-        {%- if guest_avatar != blank -%}
-          <figure class="theinmag-article__guest-portrait">
-            <img
-              class="theinmag-article__guest-portrait-img"
-              src="{{ guest_avatar | image_url: width: 240 }}"
-              alt="{{ guest_name | default: article.title | escape }}"
-              width="120"
-              height="120"
-              loading="lazy"
-            >
-            {%- if guest_name != blank -%}
-              <figcaption class="theinmag-article__guest-portrait-caption">{{ guest_name }}</figcaption>
+            {%- if guest_avatar != blank -%}
+              <figure class="theinmag-article__guest-portrait">
+                <img
+                  class="theinmag-article__guest-portrait-img"
+                  src="{{ guest_avatar | image_url: width: 240 }}"
+                  alt="{{ guest_name | default: article.title | escape }}"
+                  width="120"
+                  height="120"
+                  loading="lazy"
+                >
+                {%- if guest_name != blank -%}
+                  <figcaption class="theinmag-article__guest-portrait-caption">{{ guest_name }}</figcaption>
+                {%- endif -%}
+              </figure>
             {%- endif -%}
-          </figure>
+          </div>
         {%- endif -%}
 
         <div class="theinmag-article__body rte">
@@ -377,6 +377,21 @@
               {%- endfor -%}
             </ul>
           </section>
+        {%- endif -%}
+
+        {%- comment -%}
+          Series strip — sign-off below FAQ on republished-series posts.
+          Sits between the FAQ block and the about-author / closing CTA
+          stack so it reads as "this was Real Jobs, Real People" rather
+          than introducing the post.
+        {%- endcomment -%}
+        {%- if series_name != blank -%}
+          <aside class="theinmag-article__series-strip" aria-label="About this series">
+            <span class="theinmag-article__series-name">{{ series_name }}</span>
+            {%- if series_strip_text != blank -%}
+              <p class="theinmag-article__series-text">{{ series_strip_text | newline_to_br }}</p>
+            {%- endif -%}
+          </aside>
         {%- endif -%}
 
         {%- if is_guest -%}
@@ -1410,12 +1425,40 @@
   }
 
   /* ================================================================
-     Guest portrait — small circular avatar between the Quick read
-     card and the body, conditional on `field_notes.guest_avatar`.
-     Helps kids connect a face to the person they're reading about
-     after the cover image scrolls past on mobile. Caption uses the
-     guest_name in Caveat (matches the brand-voice cursive style for
-     warmth moments per the visual style guide).
+     Quick row — wraps Quick read card + guest portrait. Mobile:
+     normal block flow (each child keeps its own auto-centering and
+     bottom margin). Desktop (>=990px): flex row so the portrait
+     sits beside the Quick read card rather than below it.
+     ================================================================ */
+  @media (min-width: 990px) {
+    .theinmag-article__quick-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(20px, 2.4vw, 36px);
+      margin-bottom: clamp(28px, 3vw, 40px);
+    }
+
+    .theinmag-article__quick-row .theinmag-article__quick-read {
+      margin: 0;
+      flex: 1 1 auto;
+      max-width: none;
+    }
+
+    .theinmag-article__quick-row .theinmag-article__guest-portrait {
+      margin: 0;
+      flex: 0 0 auto;
+    }
+  }
+
+  /* ================================================================
+     Guest portrait — small circular avatar shown alongside the
+     Quick read card (or below on mobile), conditional on
+     `field_notes.guest_avatar`. Helps kids connect a face to the
+     person they're reading about after the cover image scrolls
+     past. Caption uses the guest_name in Caveat (matches the
+     brand-voice cursive style for warmth moments per the visual
+     style guide).
      ================================================================ */
   .theinmag-article__guest-portrait {
     margin: clamp(8px, 1vw, 12px) auto clamp(28px, 3.2vw, 40px);
