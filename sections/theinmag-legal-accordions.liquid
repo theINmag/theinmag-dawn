@@ -204,13 +204,18 @@
     filter: drop-shadow(0 1px 0 rgba(212, 160, 46, 0.6));
   }
 
+  /* Editorial register - Inter 700 (mirrors field-notes article and
+     post-card titles). Post Regular is reserved for the H1 at the
+     top of the page; stacking six Post Regular triggers reads kiddy
+     and tips the page over the Post Regular fatigue line (see
+     page-playbook section 7 anti-pattern). */
   .theinmag-legal-accordions__title {
     flex: 1;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(20px, 2.4vw, 26px);
-    line-height: 1.2;
-    letter-spacing: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(17px, 1.9vw, 21px);
+    line-height: 1.3;
+    letter-spacing: -0.005em;
   }
 
   /* Caret - same chevron style as theinmag-faq for visual unity. */

@@ -143,12 +143,16 @@
     gap: clamp(8px, 1vw, 12px);
   }
 
+  /* Editorial register - Inter 700 to match the accordion titles
+     above and field-notes' card heading convention. Post Regular is
+     reserved for the page H1; stacking three Post column headings
+     here would tip the page over Post Regular fatigue. */
   .theinmag-legal-footer-support__heading {
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(20px, 2.2vw, 24px);
-    line-height: 1.15;
-    letter-spacing: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(16px, 1.7vw, 19px);
+    line-height: 1.3;
+    letter-spacing: -0.005em;
     margin: 0;
     color: var(--color-purple-dark, #5D3A7A);
   }
