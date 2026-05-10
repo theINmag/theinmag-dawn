@@ -1,0 +1,314 @@
+{%- comment -%}
+  theinmag-behind-the-mag-hero
+  Editorial-cover hero for /pages/behind-the-mag. Full-bleed drone shot
+  of the founders + van fills the section. Headline + subhead overlay
+  bottom-left on a soft gradient scrim - white-on-scrim per house style
+  (no coloured pills on photography). Single Post Regular moment, no
+  CTA buttons (this hero earns trust, doesn't ask).
+
+  Carries the page-level JSON-LD: BreadcrumbList + AboutPage + Person
+  for Ryan and Tam. Per the design tokens: Organisation + Person schema
+  required on the about page.
+
+  Pattern source: editorial-cover hero. Sibling of homepage's split-
+  screen hero but full-bleed image rather than 50/50 split. Gives the
+  drone shot the room it deserves.
+
+  Spec: ../theinmag-docs/theinmag-design-tokens.md (cream/inky pair, no em dashes,
+  white-on-scrim convention from feedback memory).
+{%- endcomment -%}
+
+{%- liquid
+  assign image_src = ''
+  if section.settings.image != blank
+    assign image_src = section.settings.image | image_url: width: 2400
+  elsif section.settings.fallback_filename != blank
+    assign image_src = section.settings.fallback_filename | asset_url
+  endif
+
+  assign image_alt = section.settings.image_alt | default: 'Aerial drone shot of theINmag founders Ryan and Tam standing in front of their self-converted home-on-wheels van.'
+
+  assign headline = section.settings.headline | default: 'It started with a kid sending a drawing to the local paper.'
+  assign subhead = section.settings.subhead | default: "That kid was Ryan. He's now one half of theINmag."
+
+  assign page_origin = request.origin | default: 'https://theinmag.com.au'
+  assign page_url = page_origin | append: '/pages/behind-the-mag'
+-%}
+
+<section
+  class="theinmag-bm-hero"
+  data-theinmag-bm-hero
+  aria-labelledby="theinmag-bm-hero-heading"
+>
+  {%- comment -%}
+    Sitewide character pool gets rendered once per page. Top of the
+    hero is a natural place - all behind-the-mag character slots can
+    then read from the same shuffled list and stay distinct.
+  {%- endcomment -%}
+  {% render 'theinmag-character-pool' %}
+
+  <div class="theinmag-bm-hero__media">
+    {%- if image_src != blank -%}
+      <img
+        class="theinmag-bm-hero__image"
+        src="{{ image_src }}"
+        alt="{{ image_alt | escape }}"
+        width="2400"
+        height="1350"
+        fetchpriority="high"
+      >
+    {%- else -%}
+      {%- comment -%}
+        Placeholder when the drone shot hasn't been uploaded yet. Solid
+        lavender so the headline still reads, no broken-image icon.
+      {%- endcomment -%}
+      <div class="theinmag-bm-hero__placeholder" aria-hidden="true"></div>
+    {%- endif -%}
+
+    {%- comment -%}
+      Bottom-anchored gradient scrim - dark at the base, fading to
+      transparent. Lifts the headline contrast without darkening the
+      whole image (Ryan + Tam stay readable up top).
+    {%- endcomment -%}
+    <div class="theinmag-bm-hero__scrim" aria-hidden="true"></div>
+
+    {%- comment -%}
+      Random kid character slot - top-right corner, peeks in just
+      enough to feel populated without competing with the headline.
+    {%- endcomment -%}
+    <span class="theinmag-bm-hero__character" data-theinmag-pool-character></span>
+  </div>
+
+  <div class="theinmag-bm-hero__copy">
+    <h1 id="theinmag-bm-hero-heading" class="theinmag-bm-hero__headline">{{ headline }}</h1>
+    {%- if subhead != blank -%}
+      <p class="theinmag-bm-hero__subhead">{{ subhead }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": {{ page_origin | json }} },
+    { "@type": "ListItem", "position": 2, "name": "Behind the mag", "item": {{ page_url | json }} }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": "Behind the mag - the story of theINmag",
+  "description": "How a kid sending drawings to the local paper grew up to make a magazine for every Aussie kid. The story, the team, the why - all in one place.",
+  "url": {{ page_url | json }},
+  "mainEntityOfPage": {{ page_url | json }},
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "theINmag",
+    "url": {{ page_origin | json }}
+  },
+  "about": {
+    "@type": "Organization",
+    "name": "theINmag",
+    "url": {{ page_origin | json }},
+    "founder": [
+      {
+        "@type": "Person",
+        "name": "Ryan",
+        "jobTitle": "Co-founder, theINmag",
+        "url": {{ page_url | append: '#ryan' | json }}
+      },
+      {
+        "@type": "Person",
+        "name": "Tam",
+        "jobTitle": "Co-founder, theINmag",
+        "url": {{ page_url | append: '#tam' | json }}
+      }
+    ]
+  }
+}
+</script>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-bm-hero
+     Full-bleed editorial cover. Image fills the viewport-width section,
+     headline + subhead anchored bottom-left over a gradient scrim.
+     ================================================================ */
+
+  .theinmag-bm-hero {
+    position: relative;
+    background-color: var(--color-inky-purple-navy, #2A1F3D);
+    color: #FFFFFF;
+    overflow: hidden;
+    /* Mobile: tall enough that the drone shot reads as a moment, short
+       enough that headline + the start of the next section both peek
+       above the fold on a Pixel 6 (915px tall). */
+    min-height: clamp(540px, 80vh, 720px);
+    display: grid;
+    grid-template-areas: "stack";
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-hero {
+      min-height: clamp(620px, 78vh, 820px);
+    }
+  }
+
+  .theinmag-bm-hero__media,
+  .theinmag-bm-hero__copy {
+    grid-area: stack;
+  }
+
+  .theinmag-bm-hero__media {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .theinmag-bm-hero__image,
+  .theinmag-bm-hero__placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Mobile: nudge focal point slightly low so the headline scrim
+       doesn't bury the founders. Drone shots have headroom up top. */
+    object-position: 50% 35%;
+  }
+
+  .theinmag-bm-hero__placeholder {
+    /* Solid lavender placeholder when no image is uploaded yet. */
+    background: linear-gradient(135deg, #5D3A7A 0%, #2A1F3D 100%);
+  }
+
+  /* Bottom gradient scrim for headline legibility. Stronger at the base,
+     fades to fully transparent at ~60% up the section. White text-shadow
+     belt-and-braces beneath that. */
+  .theinmag-bm-hero__scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0.4) 30%,
+      rgba(0, 0, 0, 0.0) 65%
+    );
+  }
+
+  /* Kid-character pop in the top-right corner. Hidden on the smallest
+     phones to avoid eating headline real-estate. */
+  .theinmag-bm-hero__character {
+    position: absolute;
+    top: clamp(16px, 4vw, 32px);
+    right: clamp(12px, 4vw, 40px);
+    width: clamp(80px, 12vw, 140px);
+    z-index: 2;
+  }
+
+  @media (max-width: 479px) {
+    .theinmag-bm-hero__character {
+      display: none;
+    }
+  }
+
+  /* Copy block sits over the scrim, anchored bottom-left. */
+  .theinmag-bm-hero__copy {
+    position: relative;
+    z-index: 3;
+    align-self: end;
+    max-width: min(900px, 92%);
+    padding: 0 clamp(20px, 5vw, 56px) clamp(28px, 5vw, 64px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bm-hero__copy {
+      padding-left: clamp(40px, 6vw, 96px);
+      padding-bottom: clamp(48px, 6vw, 96px);
+    }
+  }
+
+  .theinmag-bm-hero__headline {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(32px, 6vw, 64px);
+    line-height: 1.05;
+    letter-spacing: 0;
+    color: #FFFFFF;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+    text-wrap: balance;
+  }
+
+  .theinmag-bm-hero__subhead {
+    margin: clamp(12px, 1.6vw, 20px) 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.8vw, 20px);
+    line-height: 1.5;
+    color: #FFFFFF;
+    opacity: 0.94;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+    max-width: 50ch;
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag BM hero",
+  "tag": "section",
+  "class": "theinmag-bm-hero-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Hero image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Hero image"
+    },
+    {
+      "type": "text",
+      "id": "fallback_filename",
+      "label": "Fallback filename",
+      "info": "Used when the image picker is empty. Filename of an image in /assets/. Recommended: HERO_behind-the-mag-van.jpg"
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text"
+    },
+    {
+      "type": "header",
+      "content": "Headline + subhead"
+    },
+    {
+      "type": "text",
+      "id": "headline",
+      "label": "Headline (H1)"
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead"
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag BM hero",
+      "settings": {
+        "fallback_filename": "HERO_behind-the-mag-van.jpg",
+        "image_alt": "Aerial drone shot of theINmag founders Ryan and Tam standing in front of their self-converted home-on-wheels van.",
+        "headline": "It started with a kid sending a drawing to the local paper.",
+        "subhead": "That kid was Ryan. He's now one half of theINmag."
+      }
+    }
+  ]
+}
+{% endschema %}

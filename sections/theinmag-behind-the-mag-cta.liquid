@@ -1,0 +1,321 @@
+{%- comment -%}
+  theinmag-behind-the-mag-cta
+  Page-closer split CTA. Single overarching heading + two equally-
+  weighted cards. Both cards use the yellow stamp primary button
+  because the section heading carries the lead - the user has read
+  the whole story by now and is ready to act.
+
+  Peach-pair section ("Have a go" colour - inviting, low-pressure)
+  with a kid character peeking between the cards on desktop.
+{%- endcomment -%}
+
+{%- liquid
+  assign cards = section.blocks | where: 'type', 'cta_card'
+  assign heading = section.settings.heading | default: 'Your kid could be in the next issue.'
+  assign aeo_heading = section.settings.aeo_heading | default: 'How can your kid be in theINmag?'
+-%}
+
+<section
+  class="theinmag-bm-cta"
+  data-theinmag-bm-cta
+  aria-labelledby="theinmag-bm-cta-heading"
+>
+  <span class="visually-hidden">{{ aeo_heading }}</span>
+
+  <div class="theinmag-bm-cta__inner">
+    <h2 id="theinmag-bm-cta-heading" class="theinmag-bm-cta__heading">{{ heading }}</h2>
+
+    <div class="theinmag-bm-cta__row">
+      <span class="theinmag-bm-cta__character" data-theinmag-pool-character></span>
+
+      <ul class="theinmag-bm-cta__cards" role="list">
+        {%- for block in cards -%}
+          {%- liquid
+            assign card_src = ''
+            if block.settings.image != blank
+              assign card_src = block.settings.image | image_url: width: 1600
+            elsif block.settings.fallback_filename != blank
+              assign card_src = block.settings.fallback_filename | asset_url
+            endif
+          -%}
+          <li class="theinmag-bm-cta__card-item" {{ block.shopify_attributes }}>
+            <article class="theinmag-bm-cta__card">
+              <div class="theinmag-bm-cta__card-media">
+                {%- if card_src != blank -%}
+                  <img
+                    src="{{ card_src }}"
+                    alt="{{ block.settings.image_alt | default: block.settings.heading | escape }}"
+                    loading="lazy"
+                    width="1200"
+                    height="900"
+                  >
+                {%- else -%}
+                  <div class="theinmag-bm-cta__card-placeholder" aria-hidden="true"></div>
+                {%- endif -%}
+              </div>
+
+              <div class="theinmag-bm-cta__card-body">
+                {%- if block.settings.heading != blank -%}
+                  <h3 class="theinmag-bm-cta__card-heading">{{ block.settings.heading }}</h3>
+                {%- endif -%}
+                {%- if block.settings.body != blank -%}
+                  <p class="theinmag-bm-cta__card-text">{{ block.settings.body }}</p>
+                {%- endif -%}
+                {%- if block.settings.button_label != blank -%}
+                  <a class="theinmag-bm-cta__btn" href="{{ block.settings.link | default: '#' }}">
+                    {{ block.settings.button_label }}
+                  </a>
+                {%- endif -%}
+              </div>
+            </article>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-bm-cta {
+    background-color: var(--color-peach, #FCDDB8);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(64px, 9vw, 128px) clamp(20px, 5vw, 48px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theinmag-bm-cta__inner {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .theinmag-bm-cta__heading {
+    margin: 0 0 clamp(28px, 4vw, 44px);
+    text-align: center;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(32px, 5.6vw, 56px);
+    line-height: 1.05;
+    letter-spacing: 0;
+    color: var(--color-sandy-orange-dark, #D9783A);
+    text-wrap: balance;
+  }
+
+  .theinmag-bm-cta__row {
+    position: relative;
+  }
+
+  .theinmag-bm-cta__cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(20px, 3vw, 32px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-cta__cards {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .theinmag-bm-cta__card-item { margin: 0; display: flex; }
+
+  .theinmag-bm-cta__card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    background-color: #FFFFFF;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(217, 120, 58, 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .theinmag-bm-cta__card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 26px rgba(217, 120, 58, 0.28);
+  }
+
+  .theinmag-bm-cta__card-media {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background-color: var(--color-wave-peach, #F8C99E);
+  }
+
+  .theinmag-bm-cta__card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-bm-cta__card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--color-wave-peach, #F8C99E) 0%, var(--color-peach, #FCDDB8) 100%);
+  }
+
+  .theinmag-bm-cta__card-body {
+    padding: clamp(20px, 2.6vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.4vw, 14px);
+    flex: 1;
+    align-items: flex-start;
+  }
+
+  .theinmag-bm-cta__card-heading {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(22px, 2.4vw, 26px);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-bm-cta__card-text {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.6vw, 16px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.92;
+  }
+
+  /* Yellow stamp primary button per design tokens. Both CTAs use this -
+     equal weight, since the section heading carries the lead. */
+  .theinmag-bm-cta__btn {
+    display: inline-block;
+    margin-top: clamp(6px, 1vw, 10px);
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.8vw, 18px);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    padding: 13px 26px;
+    border-radius: var(--radius-button, 32px);
+    box-shadow: 0 4px 0 var(--color-yellow-shadow, #D4A02E);
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .theinmag-bm-cta__btn:hover,
+  .theinmag-bm-cta__btn:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #4A2D62;
+    outline: none;
+  }
+
+  /* Kid character peeks between the two cards on desktop. Hidden on
+     mobile - cards stack so there's no "between." */
+  .theinmag-bm-cta__character {
+    display: none;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bm-cta__character {
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -55%);
+      width: clamp(80px, 8vw, 110px);
+      z-index: 2;
+      pointer-events: none;
+    }
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bm-cta__card,
+    .theinmag-bm-cta__btn {
+      transition: none;
+    }
+    .theinmag-bm-cta__card:hover {
+      transform: none;
+    }
+    .theinmag-bm-cta__btn:hover,
+    .theinmag-bm-cta__btn:focus-visible {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag BM final CTA",
+  "tag": "section",
+  "class": "theinmag-bm-cta-section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Overarching heading (H2)" },
+    { "type": "text", "id": "aeo_heading", "label": "Visually-hidden secondary H2 (question form)" }
+  ],
+  "blocks": [
+    {
+      "type": "cta_card",
+      "name": "CTA card",
+      "limit": 4,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Card heading (H3)" },
+        { "type": "textarea", "id": "body", "label": "Body" },
+        { "type": "text", "id": "button_label", "label": "Button label" },
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "image_picker", "id": "image", "label": "Card image" },
+        { "type": "text", "id": "fallback_filename", "label": "Fallback filename" },
+        { "type": "text", "id": "image_alt", "label": "Image alt text" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag BM final CTA",
+      "settings": {
+        "heading": "Your kid could be in the next issue.",
+        "aeo_heading": "How can your kid be in theINmag?"
+      },
+      "blocks": [
+        {
+          "type": "cta_card",
+          "settings": {
+            "heading": "Send something in",
+            "body": "Drawings, stories, photos, jokes, maths puzzles, anything. If they made it and they're proud of it, send it IN.",
+            "button_label": "Send IN a creation",
+            "link": "/pages/send-in",
+            "fallback_filename": "behind-the-mag-cta-send-in.jpg",
+            "image_alt": "A pile of kid creations ready to be sent in to theINmag."
+          }
+        },
+        {
+          "type": "cta_card",
+          "settings": {
+            "heading": "Grab a Membership",
+            "body": "Three issues a year, straight to your letterbox. Never miss one.",
+            "button_label": "Get a Membership",
+            "link": "/products/theinmag-membership",
+            "fallback_filename": "behind-the-mag-cta-membership.jpg",
+            "image_alt": "A theINmag membership pack landing in an Aussie letterbox."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

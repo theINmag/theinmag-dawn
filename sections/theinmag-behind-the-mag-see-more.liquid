@@ -1,0 +1,394 @@
+{%- comment -%}
+  theinmag-behind-the-mag-see-more
+  Two-card row pointing visitors to Branching Out (YouTube) and the
+  @the.inmag Instagram. Cream section so it sits calmly between the
+  mint kid-crew above and the peach final-CTA below.
+
+  Cards are blocks - editor can re-order or swap one if the social
+  list ever changes. Buttons use secondary outlined-purple style so
+  they don't compete with the yellow stamp CTAs in the Final CTA
+  section directly below.
+{%- endcomment -%}
+
+{%- liquid
+  assign cards = section.blocks | where: 'type', 'social_card'
+  assign heading = section.settings.heading | default: 'See more of us.'
+  assign aeo_heading = section.settings.aeo_heading | default: 'Where can you follow theINmag?'
+-%}
+
+<section
+  class="theinmag-bm-see-more"
+  data-theinmag-bm-see-more
+  aria-labelledby="theinmag-bm-see-more-heading"
+>
+  <div class="theinmag-bm-see-more__inner">
+    <div class="theinmag-bm-see-more__head">
+      <h2 id="theinmag-bm-see-more-heading" class="theinmag-bm-see-more__heading">{{ heading }}</h2>
+      <span class="theinmag-bm-see-more__a11y-heading">{{ aeo_heading }}</span>
+    </div>
+
+    <ul class="theinmag-bm-see-more__cards" role="list">
+      {%- for block in cards -%}
+        {%- liquid
+          assign card_src = ''
+          if block.settings.image != blank
+            assign card_src = block.settings.image | image_url: width: 1600
+          elsif block.settings.fallback_filename != blank
+            assign card_src = block.settings.fallback_filename | asset_url
+          endif
+
+          assign platform_class = ''
+          case block.settings.platform
+            when 'youtube'
+              assign platform_class = 'theinmag-bm-see-more__card--youtube'
+            when 'instagram'
+              assign platform_class = 'theinmag-bm-see-more__card--instagram'
+          endcase
+        -%}
+        <li class="theinmag-bm-see-more__card-item" {{ block.shopify_attributes }}>
+          <article class="theinmag-bm-see-more__card {{ platform_class }}">
+            <a class="theinmag-bm-see-more__card-link" href="{{ block.settings.link }}" rel="noopener" target="_blank">
+              <span class="visually-hidden">{{ block.settings.button_label | default: 'View profile' }}</span>
+            </a>
+
+            <div class="theinmag-bm-see-more__card-media">
+              {%- if card_src != blank -%}
+                <img
+                  src="{{ card_src }}"
+                  alt="{{ block.settings.image_alt | default: block.settings.heading | escape }}"
+                  loading="lazy"
+                  width="1200"
+                  height="900"
+                >
+              {%- else -%}
+                <div class="theinmag-bm-see-more__card-placeholder" aria-hidden="true"></div>
+              {%- endif -%}
+
+              {%- if block.settings.platform != blank -%}
+                <span class="theinmag-bm-see-more__platform" aria-hidden="true">
+                  {%- case block.settings.platform -%}
+                    {%- when 'youtube' -%}
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.8.5-5.8.5-5.8s0-4-.5-5.8zM9.6 15.6V8.4l6.4 3.6-6.4 3.6z" fill="currentColor"/>
+                      </svg>
+                    {%- when 'instagram' -%}
+                      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+                        <path d="M16 11.4a4 4 0 1 1-7.9 1.2 4 4 0 0 1 7.9-1.2z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                      </svg>
+                  {%- endcase -%}
+                </span>
+              {%- endif -%}
+            </div>
+
+            <div class="theinmag-bm-see-more__card-body">
+              {%- if block.settings.heading != blank -%}
+                <h3 class="theinmag-bm-see-more__card-heading">{{ block.settings.heading }}</h3>
+              {%- endif -%}
+              {%- if block.settings.subheading != blank -%}
+                <p class="theinmag-bm-see-more__card-subheading">{{ block.settings.subheading }}</p>
+              {%- endif -%}
+              {%- if block.settings.body != blank -%}
+                <p class="theinmag-bm-see-more__card-text">{{ block.settings.body }}</p>
+              {%- endif -%}
+              {%- if block.settings.button_label != blank -%}
+                <span class="theinmag-bm-see-more__btn">{{ block.settings.button_label }}</span>
+              {%- endif -%}
+            </div>
+          </article>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-bm-see-more {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(56px, 8vw, 104px) clamp(20px, 5vw, 48px);
+  }
+
+  .theinmag-bm-see-more__a11y-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .theinmag-bm-see-more__inner {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .theinmag-bm-see-more__head {
+    text-align: center;
+    margin-bottom: clamp(24px, 4vw, 40px);
+  }
+
+  .theinmag-bm-see-more__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-bm-see-more__cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 2.5vw, 28px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-see-more__cards {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .theinmag-bm-see-more__card-item {
+    margin: 0;
+    display: flex;
+  }
+
+  /* Whole-card link uses an absolute-positioned anchor on top of the
+     entire card. Keeps real links indexable but means the card's body
+     and image surface all click through. */
+  .theinmag-bm-see-more__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .theinmag-bm-see-more__card:hover,
+  .theinmag-bm-see-more__card:focus-within {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(123, 79, 158, 0.18);
+  }
+
+  .theinmag-bm-see-more__card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    text-indent: -9999px;
+    overflow: hidden;
+  }
+  .theinmag-bm-see-more__card-link:focus-visible {
+    outline: 3px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: -3px;
+    border-radius: 16px;
+  }
+
+  .theinmag-bm-see-more__card-media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background-color: var(--color-lavender, #E8DEEF);
+  }
+
+  .theinmag-bm-see-more__card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .theinmag-bm-see-more__card:hover .theinmag-bm-see-more__card-media img {
+    transform: scale(1.03);
+  }
+
+  .theinmag-bm-see-more__card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--color-lavender, #E8DEEF) 0%, var(--color-wave-purple, #C9B5DB) 100%);
+  }
+
+  /* Platform stamp - small round badge top-left of the image. Uses
+     the platform's own brand colour as a stamp accent. */
+  .theinmag-bm-see-more__platform {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.96);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+  .theinmag-bm-see-more__platform svg {
+    width: 20px;
+    height: 20px;
+  }
+  .theinmag-bm-see-more__card--youtube .theinmag-bm-see-more__platform { color: #FF0000; }
+  .theinmag-bm-see-more__card--instagram .theinmag-bm-see-more__platform { color: #E1306C; }
+
+  .theinmag-bm-see-more__card-body {
+    padding: clamp(20px, 2.4vw, 28px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1vw, 12px);
+  }
+
+  .theinmag-bm-see-more__card-heading {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(20px, 2.2vw, 24px);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-bm-see-more__card-subheading {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(14px, 1.4vw, 15px);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-bm-see-more__card-text {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.6vw, 16px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.9;
+  }
+
+  /* "Button" is a span that styles as the secondary outlined-purple
+     button. The whole card is the link - this is the visible affordance. */
+  .theinmag-bm-see-more__btn {
+    display: inline-block;
+    align-self: flex-start;
+    margin-top: clamp(6px, 1vw, 10px);
+    background-color: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(13px, 1.4vw, 14px);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: 2px solid var(--color-purple-dark, #5D3A7A);
+    border-radius: 32px;
+    padding: 10px 22px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .theinmag-bm-see-more__card:hover .theinmag-bm-see-more__btn,
+  .theinmag-bm-see-more__card:focus-within .theinmag-bm-see-more__btn {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bm-see-more__card,
+    .theinmag-bm-see-more__card-media img,
+    .theinmag-bm-see-more__btn {
+      transition: none;
+    }
+    .theinmag-bm-see-more__card:hover {
+      transform: none;
+    }
+    .theinmag-bm-see-more__card:hover .theinmag-bm-see-more__card-media img {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag BM see more",
+  "tag": "section",
+  "class": "theinmag-bm-see-more-section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Section heading (H2)" },
+    { "type": "text", "id": "aeo_heading", "label": "Visually-hidden secondary H2 (question form)" }
+  ],
+  "blocks": [
+    {
+      "type": "social_card",
+      "name": "Social card",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "select",
+          "id": "platform",
+          "label": "Platform",
+          "options": [
+            { "value": "youtube", "label": "YouTube" },
+            { "value": "instagram", "label": "Instagram" },
+            { "value": "other", "label": "Other" }
+          ],
+          "default": "youtube"
+        },
+        { "type": "text", "id": "heading", "label": "Card heading (H3)" },
+        { "type": "text", "id": "subheading", "label": "Sub-heading" },
+        { "type": "textarea", "id": "body", "label": "Body" },
+        { "type": "text", "id": "button_label", "label": "Button label" },
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "image_picker", "id": "image", "label": "Card image" },
+        { "type": "text", "id": "fallback_filename", "label": "Fallback filename" },
+        { "type": "text", "id": "image_alt", "label": "Image alt text" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag BM see more",
+      "settings": {
+        "heading": "See more of us.",
+        "aeo_heading": "Where can you follow theINmag?"
+      },
+      "blocks": [
+        {
+          "type": "social_card",
+          "settings": {
+            "platform": "youtube",
+            "heading": "Branching Out",
+            "subheading": "Adventures from the road.",
+            "body": "Branching Out is our YouTube channel where we share our travels, the places we land, and what Nora's up to.",
+            "button_label": "Watch on YouTube",
+            "link": "https://www.youtube.com/@Branchingout-tnr",
+            "fallback_filename": "behind-the-mag-branching-out.jpg",
+            "image_alt": "Still from the Branching Out YouTube channel - Ryan, Tam and Nora on the road."
+          }
+        },
+        {
+          "type": "social_card",
+          "settings": {
+            "platform": "instagram",
+            "heading": "@the.inmag",
+            "subheading": "Behind every page.",
+            "body": "Sneak peeks of upcoming issues, kid creations, and the messy bits between. If you want the day-to-day, this is where it lives.",
+            "button_label": "Follow on Instagram",
+            "link": "https://www.instagram.com/the.inmag/",
+            "fallback_filename": "behind-the-mag-instagram.jpg",
+            "image_alt": "Grid preview of the @the.inmag Instagram feed."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

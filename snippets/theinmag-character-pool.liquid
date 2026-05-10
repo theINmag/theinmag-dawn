@@ -1,0 +1,132 @@
+{%- comment -%}
+  theinmag-character-pool
+  Sitewide random kid-character pool. Drop one render of this snippet
+  on a page (top of the first behind-the-mag section), then drop bare
+  <span data-theinmag-pool-character> markers wherever you want a
+  character to pop in. JS picks one URL from the pool per marker, with
+  Fisher-Yates shuffle so the picks are distinct per page until the
+  pool is exhausted. New characters: drop character-N.png into /assets/
+  and bump pool_size below.
+
+  Distinct from the per-section data-theinmag-character pattern used in
+  mission/philosophy/etc - those carry their own three filenames in
+  block settings. This pool is universal and doesn't need editor
+  configuration. Fewer config knobs = future-proof for Ryan dropping
+  in new kid creations every release.
+
+  Slot styling (positioning, size, scroll-pop) lives on each section's
+  CSS. This snippet only handles the random-fill + the "is-popped"
+  scroll trigger that sections opt into via [data-pop-on-scroll].
+
+  Pool: character-1.png through character-N.png in /assets/. Missing
+  files 404 silently and the slot hides itself (img.onerror handler).
+{%- endcomment -%}
+
+{%- liquid
+  assign pool_size = 12
+-%}
+
+<script type="application/json" data-theinmag-character-pool>
+[{% for i in (1..pool_size) %}{%- assign filename = 'character-' | append: i | append: '.png' -%}{{ filename | asset_url | json }}{% if forloop.last == false %},{% endif %}{% endfor %}]
+</script>
+
+<script>
+  (function () {
+    var poolEl = document.querySelector('[data-theinmag-character-pool]');
+    if (!poolEl) return;
+    var pool;
+    try { pool = JSON.parse(poolEl.textContent); } catch (e) { return; }
+    if (!pool || !pool.length) return;
+
+    var slots = document.querySelectorAll('[data-theinmag-pool-character]');
+    if (!slots.length) return;
+
+    // Fisher-Yates shuffle so picks are distinct per page until the pool
+    // is exhausted. Once exhausted (more slots than pool entries), modulo
+    // wraps around - acceptable for our 4-slot page against a 12 pool.
+    var shuffled = pool.slice();
+    for (var i = shuffled.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = shuffled[i];
+      shuffled[i] = shuffled[j];
+      shuffled[j] = tmp;
+    }
+
+    Array.prototype.forEach.call(slots, function (slot, idx) {
+      if (slot.querySelector('img')) return;
+      var url = shuffled[idx % shuffled.length];
+      var img = document.createElement('img');
+      img.className = 'theinmag-pool-character__img';
+      img.src = url;
+      img.alt = '';
+      img.setAttribute('aria-hidden', 'true');
+      // Hide the slot if the file is missing - Ryan can drop in fewer
+      // than pool_size character files without code changes.
+      img.onerror = function () { slot.style.display = 'none'; };
+      slot.appendChild(img);
+    });
+
+    // One-shot scroll-pop. Plain scroll listener (not IO) for parity
+    // with the rest of the theinmag- sections. Removes itself once
+    // every slot has popped.
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      Array.prototype.forEach.call(slots, function (s) { s.classList.add('is-popped'); });
+      return;
+    }
+
+    var pending = Array.prototype.slice.call(slots);
+    function check() {
+      pending = pending.filter(function (slot) {
+        var rect = slot.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.85) {
+          slot.classList.add('is-popped');
+          return false;
+        }
+        return true;
+      });
+      if (!pending.length) window.removeEventListener('scroll', onScroll);
+    }
+    function onScroll() { window.requestAnimationFrame(check); }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    check();
+  })();
+</script>
+
+{%- comment -%}
+  Base styling for every pool slot. Sections position the slot
+  absolutely; this snippet handles the bob + pop transition only.
+{%- endcomment -%}
+{% stylesheet %}
+[data-theinmag-pool-character] {
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+[data-theinmag-pool-character].is-popped {
+  opacity: 1;
+  transform: translateY(0);
+}
+.theinmag-pool-character__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: theinmag-pool-character-bob 4s ease-in-out infinite;
+}
+@keyframes theinmag-pool-character-bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-5px) rotate(2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theinmag-pool-character] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .theinmag-pool-character__img {
+    animation: none;
+  }
+}
+{% endstylesheet %}

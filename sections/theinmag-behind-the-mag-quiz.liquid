@@ -1,0 +1,853 @@
+{%- comment -%}
+  theinmag-behind-the-mag-quiz
+  "Match the kid to the maker." Two grids (adults on top, kids below)
+  and 9 reveal cards rendered as real DOM (hidden until matched / skip).
+  Real DOM = bios are crawlable for AEO; JS is a presentation layer.
+
+  Each reveal card lives as a block with:
+    - adult label + role + photo (one combined photo for paired cards)
+    - kid 1 name + photo (always)
+    - kid 2 name + photo (optional, for paired cards)
+    - bio + fun fact
+  The kid grid renders 1 tile per solo block, 2 tiles per paired block
+  (so a 9-block default gives 11 kid tiles for 9 adult tiles).
+
+  Stage 1 (this file):
+    - Static structure - all markup, no interactivity
+    - All bios in DOM with `hidden` so crawlers index them
+    - Skip button is rendered but inert
+
+  Stage 3 will add:
+    - State machine (kid-first selection, paired/solo logic)
+    - Wrong + correct reveal flows ("Nope - that's actually [pair]")
+    - Confetti micro-animation on correct match
+    - Skip-to-team behaviour (unhide all, hide grid)
+    - Shuffle the kid-grid order on load so the quiz isn't trivial
+    - All-revealed completion message
+{%- endcomment -%}
+
+{%- liquid
+  assign reveal_blocks = section.blocks | where: 'type', 'reveal_card'
+  assign heading = section.settings.heading | default: 'Match the kid to the maker'
+  assign intro_1 = section.settings.intro_1
+  assign intro_2 = section.settings.intro_2
+  assign skip_label = section.settings.skip_label | default: 'Skip the quiz - just show me the team'
+  assign aeo_heading = section.settings.aeo_heading | default: 'Who is on the theINmag team?'
+
+  assign all_done_message = section.settings.all_done_message | default: "Nice work, you've met the whole team."
+  assign paired_hint = section.settings.paired_hint | default: 'Nice - now find the other kid.'
+-%}
+
+<section
+  class="theinmag-bm-quiz"
+  data-theinmag-bm-quiz
+  aria-labelledby="theinmag-bm-quiz-heading"
+  data-paired-hint="{{ paired_hint | escape }}"
+  data-all-done-message="{{ all_done_message | escape }}"
+>
+  <h2 class="theinmag-bm-quiz__a11y-heading">{{ aeo_heading }}</h2>
+
+  <div class="theinmag-bm-quiz__head">
+    <div class="theinmag-bm-quiz__head-copy">
+      <h2 id="theinmag-bm-quiz-heading" class="theinmag-bm-quiz__heading">{{ heading }}</h2>
+      {%- if intro_1 != blank -%}
+        <p class="theinmag-bm-quiz__intro">{{ intro_1 }}</p>
+      {%- endif -%}
+      {%- if intro_2 != blank -%}
+        <p class="theinmag-bm-quiz__intro">{{ intro_2 }}</p>
+      {%- endif -%}
+    </div>
+
+    <span class="theinmag-bm-quiz__character" data-theinmag-pool-character></span>
+
+    <button
+      type="button"
+      class="theinmag-bm-quiz__skip"
+      data-bm-quiz-skip
+      disabled
+    >
+      {{ skip_label }}
+    </button>
+  </div>
+
+  <div class="theinmag-bm-quiz__board" data-bm-quiz-board>
+
+    <div class="theinmag-bm-quiz__grid theinmag-bm-quiz__grid--adults">
+      <p class="theinmag-bm-quiz__grid-label">Now</p>
+      <ul class="theinmag-bm-quiz__tiles" role="list" data-bm-quiz-adults>
+        {%- for block in reveal_blocks -%}
+          {%- liquid
+            assign adult_src = ''
+            if block.settings.adult_image != blank
+              assign adult_src = block.settings.adult_image | image_url: width: 800
+            elsif block.settings.adult_fallback_filename != blank
+              assign adult_src = block.settings.adult_fallback_filename | asset_url
+            endif
+            assign is_paired = false
+            if block.settings.kid_2_name != blank
+              assign is_paired = true
+            endif
+          -%}
+          <li class="theinmag-bm-quiz__tile-item" {{ block.shopify_attributes }}>
+            <button
+              type="button"
+              class="theinmag-bm-quiz__tile theinmag-bm-quiz__tile--adult"
+              data-bm-quiz-adult
+              data-block-id="{{ block.id }}"
+              data-paired="{{ is_paired }}"
+              aria-label="Tap once you've found {%- if is_paired -%}the kids{%- else -%}the kid{%- endif -%} who grew into {{ block.settings.adult_label | escape }}"
+            >
+              <span class="theinmag-bm-quiz__tile-frame">
+                {%- if adult_src != blank -%}
+                  <img src="{{ adult_src }}" alt="{{ block.settings.adult_label | escape }}" loading="lazy" width="400" height="400">
+                {%- else -%}
+                  <span class="theinmag-bm-quiz__tile-placeholder" aria-hidden="true"></span>
+                {%- endif -%}
+              </span>
+              <span class="theinmag-bm-quiz__tile-label">{{ block.settings.adult_label }}</span>
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+
+    <div class="theinmag-bm-quiz__grid theinmag-bm-quiz__grid--kids">
+      <p class="theinmag-bm-quiz__grid-label">Then</p>
+      <ul class="theinmag-bm-quiz__tiles" role="list" data-bm-quiz-kids>
+        {%- comment -%}
+          Render kid_1 for every block first, then kid_2 for paired
+          blocks. Stage 3 shuffles the visual order via CSS `order`.
+        {%- endcomment -%}
+        {%- for block in reveal_blocks -%}
+          {%- liquid
+            assign kid_1_src = ''
+            if block.settings.kid_1_image != blank
+              assign kid_1_src = block.settings.kid_1_image | image_url: width: 600
+            elsif block.settings.kid_1_fallback_filename != blank
+              assign kid_1_src = block.settings.kid_1_fallback_filename | asset_url
+            endif
+          -%}
+          <li class="theinmag-bm-quiz__tile-item">
+            <button
+              type="button"
+              class="theinmag-bm-quiz__tile theinmag-bm-quiz__tile--kid"
+              data-bm-quiz-kid
+              data-block-id="{{ block.id }}"
+              data-kid-name="{{ block.settings.kid_1_name | escape }}"
+              aria-label="Kid photo of {{ block.settings.kid_1_name | escape }}"
+            >
+              <span class="theinmag-bm-quiz__tile-frame">
+                {%- if kid_1_src != blank -%}
+                  <img src="{{ kid_1_src }}" alt="A kid version of one theINmag team member." loading="lazy" width="300" height="300">
+                {%- else -%}
+                  <span class="theinmag-bm-quiz__tile-placeholder" aria-hidden="true"></span>
+                {%- endif -%}
+              </span>
+            </button>
+          </li>
+        {%- endfor -%}
+        {%- for block in reveal_blocks -%}
+          {%- if block.settings.kid_2_name != blank -%}
+            {%- liquid
+              assign kid_2_src = ''
+              if block.settings.kid_2_image != blank
+                assign kid_2_src = block.settings.kid_2_image | image_url: width: 600
+              elsif block.settings.kid_2_fallback_filename != blank
+                assign kid_2_src = block.settings.kid_2_fallback_filename | asset_url
+              endif
+            -%}
+            <li class="theinmag-bm-quiz__tile-item">
+              <button
+                type="button"
+                class="theinmag-bm-quiz__tile theinmag-bm-quiz__tile--kid"
+                data-bm-quiz-kid
+                data-block-id="{{ block.id }}"
+                data-kid-name="{{ block.settings.kid_2_name | escape }}"
+                aria-label="Kid photo of {{ block.settings.kid_2_name | escape }}"
+              >
+                <span class="theinmag-bm-quiz__tile-frame">
+                  {%- if kid_2_src != blank -%}
+                    <img src="{{ kid_2_src }}" alt="A kid version of one theINmag team member." loading="lazy" width="300" height="300">
+                  {%- else -%}
+                    <span class="theinmag-bm-quiz__tile-placeholder" aria-hidden="true"></span>
+                  {%- endif -%}
+                </span>
+              </button>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    </div>
+
+    {%- comment -%}
+      Status / hint area - tells the user what to do next or what just
+      happened. Polite live region so screen readers announce changes
+      without being interrupting.
+    {%- endcomment -%}
+    <div class="theinmag-bm-quiz__status" data-bm-quiz-status aria-live="polite"></div>
+
+  </div>
+
+  <div class="theinmag-bm-quiz__reveals" data-bm-quiz-reveals>
+    {%- for block in reveal_blocks -%}
+      {%- liquid
+        assign adult_src = ''
+        if block.settings.adult_image != blank
+          assign adult_src = block.settings.adult_image | image_url: width: 800
+        elsif block.settings.adult_fallback_filename != blank
+          assign adult_src = block.settings.adult_fallback_filename | asset_url
+        endif
+
+        assign kid_1_src = ''
+        if block.settings.kid_1_image != blank
+          assign kid_1_src = block.settings.kid_1_image | image_url: width: 600
+        elsif block.settings.kid_1_fallback_filename != blank
+          assign kid_1_src = block.settings.kid_1_fallback_filename | asset_url
+        endif
+
+        assign kid_2_src = ''
+        if block.settings.kid_2_image != blank
+          assign kid_2_src = block.settings.kid_2_image | image_url: width: 600
+        elsif block.settings.kid_2_fallback_filename != blank
+          assign kid_2_src = block.settings.kid_2_fallback_filename | asset_url
+        endif
+      -%}
+      <article
+        class="theinmag-bm-quiz__reveal"
+        data-bm-quiz-reveal
+        data-block-id="{{ block.id }}"
+        hidden
+      >
+        <div class="theinmag-bm-quiz__reveal-photos">
+          <div class="theinmag-bm-quiz__reveal-then">
+            {%- if kid_1_src != blank -%}
+              <img src="{{ kid_1_src }}" alt="{{ block.settings.kid_1_name | escape }} as a kid.">
+            {%- endif -%}
+            {%- if kid_2_src != blank -%}
+              <img src="{{ kid_2_src }}" alt="{{ block.settings.kid_2_name | escape }} as a kid.">
+            {%- endif -%}
+          </div>
+          <div class="theinmag-bm-quiz__reveal-arrow" aria-hidden="true">→</div>
+          <div class="theinmag-bm-quiz__reveal-now">
+            {%- if adult_src != blank -%}
+              <img src="{{ adult_src }}" alt="{{ block.settings.adult_label | escape }} now.">
+            {%- endif -%}
+          </div>
+        </div>
+
+        <div class="theinmag-bm-quiz__reveal-copy">
+          <h3 class="theinmag-bm-quiz__reveal-name" id="theinmag-bm-quiz-reveal-{{ block.id }}-name">
+            {{ block.settings.adult_label }}
+          </h3>
+          {%- if block.settings.adult_role != blank -%}
+            <p class="theinmag-bm-quiz__reveal-role">{{ block.settings.adult_role }}</p>
+          {%- endif -%}
+          {%- if block.settings.bio != blank -%}
+            <p class="theinmag-bm-quiz__reveal-bio">{{ block.settings.bio }}</p>
+          {%- endif -%}
+          {%- if block.settings.fun_fact != blank -%}
+            <p class="theinmag-bm-quiz__reveal-fun-fact"><em>Fun fact:</em> {{ block.settings.fun_fact }}</p>
+          {%- endif -%}
+        </div>
+      </article>
+    {%- endfor -%}
+  </div>
+
+  <p class="theinmag-bm-quiz__all-done" data-bm-quiz-all-done hidden>
+    {{ all_done_message }}
+  </p>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-bm-quiz
+     Lavender (purple-pair) feature surface. Two stacked grids of
+     square photo tiles + a reveal column below. Reveal cards live as
+     real DOM with `hidden` until matched. Skip button reveals all in
+     a stacked column.
+     ================================================================ */
+
+  .theinmag-bm-quiz {
+    background-color: var(--color-lavender, #E8DEEF);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(56px, 8vw, 112px) clamp(20px, 5vw, 48px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theinmag-bm-quiz__a11y-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .theinmag-bm-quiz__head {
+    position: relative;
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 2vw, 18px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-quiz__head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: clamp(20px, 3vw, 32px);
+      align-items: end;
+    }
+    .theinmag-bm-quiz__head-copy { grid-column: 1; }
+    .theinmag-bm-quiz__skip { grid-column: 2; align-self: end; }
+  }
+
+  .theinmag-bm-quiz__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(30px, 5vw, 48px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-bm-quiz__intro {
+    margin: clamp(8px, 1vw, 12px) 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.7vw, 18px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    max-width: 56ch;
+  }
+
+  .theinmag-bm-quiz__character {
+    position: absolute;
+    top: clamp(-12px, -1vw, 0px);
+    right: clamp(8px, 3vw, 24px);
+    width: clamp(60px, 8vw, 90px);
+    pointer-events: none;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-quiz__character {
+      display: none;
+    }
+  }
+
+  /* Skip button - secondary outlined-purple per design tokens. Not
+     yellow - that would compete with the final-CTA stamps below. */
+  .theinmag-bm-quiz__skip {
+    appearance: none;
+    background-color: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(13px, 1.4vw, 14px);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: 2px solid var(--color-purple-dark, #5D3A7A);
+    border-radius: 32px;
+    padding: 11px 22px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    align-self: flex-start;
+  }
+
+  .theinmag-bm-quiz__skip:hover:not([disabled]),
+  .theinmag-bm-quiz__skip:focus-visible:not([disabled]) {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+
+  .theinmag-bm-quiz__skip[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* ================================================================
+     Board - holds the two grids + status line.
+     ================================================================ */
+  .theinmag-bm-quiz__board {
+    max-width: 1080px;
+    margin: clamp(28px, 4vw, 44px) auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(20px, 3vw, 32px);
+  }
+
+  .theinmag-bm-quiz__grid-label {
+    margin: 0 0 clamp(10px, 1.4vw, 14px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark, #5D3A7A);
+    opacity: 0.7;
+  }
+
+  .theinmag-bm-quiz__tiles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(8px, 1.4vw, 14px);
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-bm-quiz__tiles {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bm-quiz__grid--adults .theinmag-bm-quiz__tiles {
+      grid-template-columns: repeat(9, 1fr);
+    }
+    .theinmag-bm-quiz__grid--kids .theinmag-bm-quiz__tiles {
+      /* 11 kids = awkward odd count. 11-up looks fine on wide screens
+         but tightens cell size; if cells go too small, the eye fails to
+         tell tile-1 from tile-2. Cap at 11 cols and let mobile wrap. */
+      grid-template-columns: repeat(11, 1fr);
+    }
+  }
+
+  .theinmag-bm-quiz__tile-item { margin: 0; }
+
+  .theinmag-bm-quiz__tile {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s ease;
+  }
+
+  .theinmag-bm-quiz__tile:hover {
+    transform: translateY(-2px);
+  }
+
+  .theinmag-bm-quiz__tile-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 12px;
+    background-color: var(--color-wave-purple, #C9B5DB);
+    box-shadow: 0 1px 6px rgba(123, 79, 158, 0.1);
+    transition: box-shadow 0.15s ease, outline-color 0.15s ease;
+    outline: 3px solid transparent;
+  }
+
+  .theinmag-bm-quiz__tile-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-bm-quiz__tile-placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--color-wave-purple, #C9B5DB) 0%, var(--color-lavender, #E8DEEF) 100%);
+  }
+
+  .theinmag-bm-quiz__tile:hover .theinmag-bm-quiz__tile-frame {
+    box-shadow: 0 4px 14px rgba(123, 79, 158, 0.22);
+  }
+
+  .theinmag-bm-quiz__tile:focus-visible {
+    outline: none;
+  }
+  .theinmag-bm-quiz__tile:focus-visible .theinmag-bm-quiz__tile-frame {
+    outline-color: var(--color-purple-dark, #5D3A7A);
+    outline-offset: 3px;
+  }
+
+  /* Active state - tile is "primed" awaiting its match. Stage 3 toggles
+     the .is-active class on click. */
+  .theinmag-bm-quiz__tile.is-active .theinmag-bm-quiz__tile-frame {
+    outline-color: var(--color-yellow, #F9C23C);
+    outline-offset: 3px;
+    box-shadow: 0 6px 18px rgba(249, 194, 60, 0.4);
+  }
+
+  /* Resolved state - tile is locked, mostly faded out. */
+  .theinmag-bm-quiz__tile.is-resolved {
+    opacity: 0.32;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .theinmag-bm-quiz__tile.is-resolved .theinmag-bm-quiz__tile-frame {
+    box-shadow: none;
+    outline: none;
+  }
+
+  /* Optional checkmark on resolved adult tiles */
+  .theinmag-bm-quiz__tile--adult.is-resolved .theinmag-bm-quiz__tile-frame::after {
+    content: '✓';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: var(--color-sage-dark, #4A7C5C);
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theinmag-bm-quiz__tile-label {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(11px, 1.2vw, 13px);
+    line-height: 1.2;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-align: center;
+    word-break: break-word;
+  }
+
+  /* ================================================================
+     Status / hint line. Hidden when empty (Stage 3 fills text content).
+     ================================================================ */
+  .theinmag-bm-quiz__status {
+    min-height: 1.5em;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(14px, 1.5vw, 16px);
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  /* ================================================================
+     Reveal cards
+     Live as real DOM (visible to crawlers) but `hidden` until matched
+     or the user hits Skip. Stack vertically when revealed.
+     ================================================================ */
+  .theinmag-bm-quiz__reveals {
+    max-width: 880px;
+    margin: clamp(28px, 4vw, 44px) auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 2.4vw, 24px);
+  }
+
+  .theinmag-bm-quiz__reveal {
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    padding: clamp(20px, 3vw, 32px);
+    box-shadow: 0 4px 18px rgba(123, 79, 158, 0.14);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 2vw, 24px);
+    /* Subtle entrance animation - CSS only so reduced-motion users get
+       the instant version automatically. */
+    animation: theinmag-bm-quiz-reveal-in 0.35s ease both;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-quiz__reveal {
+      grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+      align-items: center;
+    }
+  }
+
+  .theinmag-bm-quiz__reveal-photos {
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 1.4vw, 14px);
+  }
+
+  .theinmag-bm-quiz__reveal-then,
+  .theinmag-bm-quiz__reveal-now {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .theinmag-bm-quiz__reveal-photos img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 12px;
+    background-color: var(--color-lavender, #E8DEEF);
+  }
+
+  .theinmag-bm-quiz__reveal-arrow {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(20px, 2.4vw, 26px);
+    color: var(--color-purple-dark, #5D3A7A);
+    flex: 0 0 auto;
+  }
+
+  .theinmag-bm-quiz__reveal-copy {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1vw, 10px);
+  }
+
+  .theinmag-bm-quiz__reveal-name {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(20px, 2.4vw, 24px);
+    line-height: 1.2;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-bm-quiz__reveal-role {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(13px, 1.3vw, 14px);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-bm-quiz__reveal-bio {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.6vw, 16px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.92;
+  }
+
+  .theinmag-bm-quiz__reveal-fun-fact {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(14px, 1.4vw, 15px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+  }
+
+  .theinmag-bm-quiz__reveal-fun-fact em {
+    font-style: italic;
+    font-weight: 600;
+  }
+
+  .theinmag-bm-quiz__all-done {
+    margin: clamp(28px, 4vw, 44px) auto 0;
+    max-width: 640px;
+    text-align: center;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(22px, 3vw, 30px);
+    line-height: 1.25;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  @keyframes theinmag-bm-quiz-reveal-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bm-quiz__tile,
+    .theinmag-bm-quiz__tile-frame {
+      transition: none;
+    }
+    .theinmag-bm-quiz__tile:hover {
+      transform: none;
+    }
+    .theinmag-bm-quiz__reveal {
+      animation: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag BM quiz",
+  "tag": "section",
+  "class": "theinmag-bm-quiz-section",
+  "settings": [
+    { "type": "header", "content": "Section copy" },
+    { "type": "text", "id": "heading", "label": "Heading (H2)" },
+    { "type": "textarea", "id": "intro_1", "label": "Intro paragraph 1" },
+    { "type": "textarea", "id": "intro_2", "label": "Intro paragraph 2" },
+    { "type": "text", "id": "skip_label", "label": "Skip button label" },
+    { "type": "text", "id": "aeo_heading", "label": "Visually-hidden H2 (question form)" },
+    { "type": "header", "content": "Quiz strings" },
+    { "type": "text", "id": "paired_hint", "label": "Hint after first paired-card kid match" },
+    { "type": "text", "id": "all_done_message", "label": "All-revealed message" }
+  ],
+  "blocks": [
+    {
+      "type": "reveal_card",
+      "name": "Reveal card",
+      "limit": 12,
+      "settings": [
+        { "type": "header", "content": "Adult tile (combined for paired cards)" },
+        { "type": "text", "id": "adult_label", "label": "Adult name(s)" },
+        { "type": "text", "id": "adult_role", "label": "Role" },
+        { "type": "image_picker", "id": "adult_image", "label": "Adult photo" },
+        { "type": "text", "id": "adult_fallback_filename", "label": "Adult photo fallback filename" },
+        { "type": "header", "content": "Kid 1" },
+        { "type": "text", "id": "kid_1_name", "label": "Kid 1 name (used in 'Nope' message)" },
+        { "type": "image_picker", "id": "kid_1_image", "label": "Kid 1 photo" },
+        { "type": "text", "id": "kid_1_fallback_filename", "label": "Kid 1 photo fallback filename" },
+        { "type": "header", "content": "Kid 2 (paired cards only)" },
+        { "type": "text", "id": "kid_2_name", "label": "Kid 2 name", "info": "Leave blank for solo cards." },
+        { "type": "image_picker", "id": "kid_2_image", "label": "Kid 2 photo" },
+        { "type": "text", "id": "kid_2_fallback_filename", "label": "Kid 2 photo fallback filename" },
+        { "type": "header", "content": "Bio" },
+        { "type": "textarea", "id": "bio", "label": "Bio (2-3 sentences)" },
+        { "type": "textarea", "id": "fun_fact", "label": "Fun fact" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag BM quiz",
+      "settings": {
+        "heading": "Match the kid to the maker",
+        "intro_1": "Every adult on this page used to be a kid. Some of them still kind of are.",
+        "intro_2": "Tap a kid photo. Tap who you reckon they grew into. We'll tell you if you got it - and a bit about them either way.",
+        "skip_label": "Skip the quiz - just show me the team",
+        "aeo_heading": "Who is on the theINmag team?",
+        "paired_hint": "Nice - now find the other kid.",
+        "all_done_message": "Nice work, you've met the whole team."
+      },
+      "blocks": [
+        {
+          "type": "reveal_card",
+          "settings": {
+            "adult_label": "Ryan & Tam",
+            "adult_role": "Co-founders",
+            "adult_fallback_filename": "behind-the-mag-quiz-adult-ryan-tam.jpg",
+            "kid_1_name": "Ryan",
+            "kid_1_fallback_filename": "behind-the-mag-quiz-kid-ryan.jpg",
+            "kid_2_name": "Tam",
+            "kid_2_fallback_filename": "behind-the-mag-quiz-kid-tam.jpg",
+            "bio": "The kid sending stuff to the local paper grew up to be one half of theINmag. Tam was the other half - sporty, social, the kind of kid who organised everyone else. Total opposites. Turns out that's the perfect combo for building a magazine.",
+            "fun_fact": "Tam once rode her bike into a creek on the way to school. She still blames the bike."
+          }
+        },
+        {
+          "type": "reveal_card",
+          "settings": {
+            "adult_label": "Lou",
+            "adult_role": "Designer",
+            "adult_fallback_filename": "behind-the-mag-quiz-adult-lou.jpg",
+            "kid_1_name": "Lou",
+            "kid_1_fallback_filename": "behind-the-mag-quiz-kid-lou.jpg",
+            "bio": "Lou's been designing magazines for over a decade. She's a night owl who's absolutely obsessed with the artwork Aussie kids send in. Two creative daughters. One studio. Endless ideas.",
+            "fun_fact": "Lou's husband Alex owns a coffee shop, but Lou doesn't drink coffee. It makes her go a little crazy."
+          }
+        },
+        {
+          "type": "reveal_card",
+          "settings": {
+            "adult_label": "Dave",
+            "adult_role": "Original designer (issues 1-4)",
+            "adult_fallback_filename": "behind-the-mag-quiz-adult-dave.jpg",
+            "kid_1_name": "Dave",
+            "kid_1_fallback_filename": "behind-the-mag-quiz-kid-dave.jpg",
+            "bio": "Ryan's cousin. Award-nominated picture book illustrator (look up The Nerdy Birdy). He laid out the first four issues of theINmag and set the visual feel for everything that came after.",
+            "fun_fact": "Dave now runs a cafe called Earlybird Espresso. Check out their logo - it's very cool."
+          }
+        },
+        {
+          "type": "reveal_card",
+          "settings": {
+            "adult_label": "Dee",
+            "adult_role": "Proofreader & former magazine editor",
+            "adult_fallback_filename": "behind-the-mag-quiz-adult-dee.jpg",
+            "kid_1_name": "Dee",
+            "kid_1_fallback_filename": "behind-the-mag-quiz-kid-dee.jpg",
+            "bio": "Dee was the kid who wrote to the local paper so often they gave her a job. Real story. She's now an author, a mum, and the editor brain that makes sure every issue reads beautifully.",
+            "fun_fact": "She was the editor of Loop magazine before theINmag existed. We got lucky."
+          }
+        },
+        {
+          "type": "reveal_card",
+          "settings": {
+            "adult_label": "Nina",
+            "adult_role": "Proofreader & classroom legend",
+            "adult_fallback_filename": "behind-the-mag-quiz-adult-nina.jpg",
+            "kid_1_name": "Nina",
+            "kid_1_fallback_filename": "behind-the-mag-quiz-kid-nina.jpg",
+            "bio": "Twenty years in the classroom. Nina's the teacher every kid remembers - the one who actually listened. She catches the typos, the missing full stops, and the things only a great teacher would notice.",
+            "fun_fact": "Nina is the kind of friend who shows up. That's not really a fun fact. It's just true."
+          }
+        },
+        {
+          "type": "reveal_card",
+          "settings": {
+            "adult_label": "Adam",
+            "adult_role": "Accountant",
+            "adult_fallback_filename": "behind-the-mag-quiz-adult-adam.jpg",
+            "kid_1_name": "Adam",
+            "kid_1_fallback_filename": "behind-the-mag-quiz-kid-adam.jpg",
+            "bio": "Adam keeps the numbers in line. Without him, we'd have had to sell the van by now. It's thanks to him we managed to print every magazine.",
+            "fun_fact": "A great guy and an okay footy player."
+          }
+        },
+        {
+          "type": "reveal_card",
+          "settings": {
+            "adult_label": "Chloe",
+            "adult_role": "Designer & image editor",
+            "adult_fallback_filename": "behind-the-mag-quiz-adult-chloe.jpg",
+            "kid_1_name": "Chloe",
+            "kid_1_fallback_filename": "behind-the-mag-quiz-kid-chloe.jpg",
+            "bio": "Chloe is the magic behind every kid creation that ends up on the page. She tweaks shadows, fixes lighting, brightens colours - so the artwork looks as good in print as it did on the kitchen table.",
+            "fun_fact": "Chloe's an animal lover and is obsessed with the pet shop section in the magazine."
+          }
+        },
+        {
+          "type": "reveal_card",
+          "settings": {
+            "adult_label": "Kylie",
+            "adult_role": "Media & marketing",
+            "adult_fallback_filename": "behind-the-mag-quiz-adult-kylie.jpg",
+            "kid_1_name": "Kylie",
+            "kid_1_fallback_filename": "behind-the-mag-quiz-kid-kylie.jpg",
+            "bio": "Kylie makes sure theINmag reaches the right eyeballs. Social-savvy, data-driven, always five steps ahead. Also a fab mum to two little legends.",
+            "fun_fact": "Find her digital studio at @halobendigo."
+          }
+        },
+        {
+          "type": "reveal_card",
+          "settings": {
+            "adult_label": "Snowy & Libby",
+            "adult_role": "Web designers",
+            "adult_fallback_filename": "behind-the-mag-quiz-adult-snowy-libby.jpg",
+            "kid_1_name": "Snowy",
+            "kid_1_fallback_filename": "behind-the-mag-quiz-kid-snowy.jpg",
+            "kid_2_name": "Libby",
+            "kid_2_fallback_filename": "behind-the-mag-quiz-kid-libby.jpg",
+            "bio": "The original site you've been looking at? These two built it. They designed it from the road, while travelling Australia in their own van. Vanlife and web design at the same time. Wild.",
+            "fun_fact": "A huge chunk of theINmag's look online started with them. We owe them big time."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

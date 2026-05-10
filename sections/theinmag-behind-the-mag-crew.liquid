@@ -1,0 +1,215 @@
+{%- comment -%}
+  theinmag-behind-the-mag-crew
+  Small warm section between the quiz and "see more of us." Three
+  named portraits (Zanda, Ned, Gus). Mint-pair surface so it feels
+  fresh and growing per the design tokens (mint = "kids' content").
+
+  Three photos as blocks so Ryan can swap one without touching the
+  others. White-on-photo names go inside a soft caption strip below
+  each portrait, not on the photo itself - the photo memory says
+  pills-on-photos read cheap; a clean caption strip reads premium.
+{%- endcomment -%}
+
+{%- liquid
+  assign portraits = section.blocks | where: 'type', 'portrait'
+  assign heading = section.settings.heading | default: "And then there's the kid crew."
+  assign body_1 = section.settings.body_1
+  assign body_2 = section.settings.body_2
+  assign body_3 = section.settings.body_3
+-%}
+
+<section
+  class="theinmag-bm-crew"
+  data-theinmag-bm-crew
+  aria-labelledby="theinmag-bm-crew-heading"
+>
+  <div class="theinmag-bm-crew__inner">
+    <div class="theinmag-bm-crew__copy">
+      <h2 id="theinmag-bm-crew-heading" class="theinmag-bm-crew__heading">{{ heading }}</h2>
+      {%- if body_1 != blank -%}<p class="theinmag-bm-crew__body">{{ body_1 }}</p>{%- endif -%}
+      {%- if body_2 != blank -%}<p class="theinmag-bm-crew__body">{{ body_2 }}</p>{%- endif -%}
+      {%- if body_3 != blank -%}<p class="theinmag-bm-crew__body theinmag-bm-crew__body--lift">{{ body_3 }}</p>{%- endif -%}
+    </div>
+
+    <ul class="theinmag-bm-crew__row" role="list">
+      {%- for block in portraits -%}
+        {%- liquid
+          assign portrait_src = ''
+          if block.settings.image != blank
+            assign portrait_src = block.settings.image | image_url: width: 1200
+          elsif block.settings.fallback_filename != blank
+            assign portrait_src = block.settings.fallback_filename | asset_url
+          endif
+        -%}
+        <li class="theinmag-bm-crew__portrait" {{ block.shopify_attributes }}>
+          <div class="theinmag-bm-crew__portrait-frame">
+            {%- if portrait_src != blank -%}
+              <img
+                src="{{ portrait_src }}"
+                alt="{{ block.settings.image_alt | default: block.settings.name | escape }}"
+                loading="lazy"
+                width="800"
+                height="1000"
+              >
+            {%- else -%}
+              <span class="theinmag-bm-crew__portrait-placeholder" aria-hidden="true"></span>
+            {%- endif -%}
+          </div>
+          {%- if block.settings.name != blank -%}
+            <p class="theinmag-bm-crew__portrait-name">{{ block.settings.name }}</p>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-bm-crew {
+    background-color: var(--color-mint, #D6EAD9);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(56px, 8vw, 104px) clamp(20px, 5vw, 48px);
+  }
+
+  .theinmag-bm-crew__inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 4vw, 40px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bm-crew__inner {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+      gap: clamp(40px, 6vw, 64px);
+      align-items: center;
+    }
+  }
+
+  .theinmag-bm-crew__copy {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.4vw, 14px);
+  }
+
+  .theinmag-bm-crew__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.5vw, 44px);
+    line-height: 1.1;
+    color: var(--color-sage-dark, #4A7C5C);
+    text-wrap: balance;
+  }
+
+  .theinmag-bm-crew__body {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.7vw, 18px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    max-width: 50ch;
+  }
+
+  /* The "Pretty cool, right?" line gets the slightest lift - same
+     family, slightly heavier weight to read as a closer. */
+  .theinmag-bm-crew__body--lift {
+    font-weight: 600;
+    font-size: clamp(17px, 1.8vw, 19px);
+    color: var(--color-sage-dark, #4A7C5C);
+  }
+
+  .theinmag-bm-crew__row {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(10px, 2vw, 18px);
+  }
+
+  .theinmag-bm-crew__portrait {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .theinmag-bm-crew__portrait-frame {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 12px;
+    background-color: var(--color-wave-mint, #B8DCC0);
+    box-shadow: 0 2px 12px rgba(74, 124, 92, 0.18);
+  }
+
+  .theinmag-bm-crew__portrait-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-bm-crew__portrait-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--color-wave-mint, #B8DCC0) 0%, var(--color-mint, #D6EAD9) 100%);
+  }
+
+  .theinmag-bm-crew__portrait-name {
+    margin: 0;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(14px, 1.4vw, 15px);
+    color: var(--color-sage-dark, #4A7C5C);
+    letter-spacing: 0.02em;
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag BM crew",
+  "tag": "section",
+  "class": "theinmag-bm-crew-section",
+  "settings": [
+    { "type": "header", "content": "Section copy" },
+    { "type": "text", "id": "heading", "label": "Heading (H2)" },
+    { "type": "textarea", "id": "body_1", "label": "Body paragraph 1" },
+    { "type": "textarea", "id": "body_2", "label": "Body paragraph 2" },
+    { "type": "textarea", "id": "body_3", "label": "Body paragraph 3 (lift)" }
+  ],
+  "blocks": [
+    {
+      "type": "portrait",
+      "name": "Portrait",
+      "limit": 6,
+      "settings": [
+        { "type": "text", "id": "name", "label": "Name" },
+        { "type": "image_picker", "id": "image", "label": "Photo" },
+        { "type": "text", "id": "fallback_filename", "label": "Fallback filename" },
+        { "type": "text", "id": "image_alt", "label": "Alt text" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag BM crew",
+      "settings": {
+        "heading": "And then there's the kid crew.",
+        "body_1": "Meet Zanda, Ned and Gus. They're Tam's nephews. They pack every single order of theINmag with serious care.",
+        "body_2": "If you look hard at the magazine, you'll spot some of their creations in there too.",
+        "body_3": "Pretty cool, right?"
+      },
+      "blocks": [
+        { "type": "portrait", "settings": { "name": "Zanda", "fallback_filename": "behind-the-mag-crew-zanda.jpg", "image_alt": "Zanda packing theINmag orders." } },
+        { "type": "portrait", "settings": { "name": "Ned", "fallback_filename": "behind-the-mag-crew-ned.jpg", "image_alt": "Ned packing theINmag orders." } },
+        { "type": "portrait", "settings": { "name": "Gus", "fallback_filename": "behind-the-mag-crew-gus.jpg", "image_alt": "Gus packing theINmag orders." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

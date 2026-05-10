@@ -1,0 +1,163 @@
+{%- comment -%}
+  theinmag-behind-the-mag-hook
+  Personal hook directly under the hero. White card on cream, signed by
+  Ryan. All Inter (no Post fatigue) - Post Regular already had its
+  moment in the hero headline above.
+
+  AEO: visually-hidden H2 in question form. Body copy is the value.
+
+  Optional kid-character pop peeking from the right edge of the card,
+  fed by the sitewide pool snippet rendered in the hero.
+{%- endcomment -%}
+
+{%- liquid
+  assign para_1 = section.settings.paragraph_1
+  assign para_2 = section.settings.paragraph_2
+  assign para_3 = section.settings.paragraph_3
+  assign byline = section.settings.byline | default: '- Ryan, Co-founder'
+  assign aeo_heading = section.settings.aeo_heading | default: 'Why does theINmag exist?'
+-%}
+
+<section
+  class="theinmag-bm-hook"
+  data-theinmag-bm-hook
+  aria-labelledby="theinmag-bm-hook-heading"
+>
+  <h2 id="theinmag-bm-hook-heading" class="theinmag-bm-hook__a11y-heading">{{ aeo_heading }}</h2>
+
+  <div class="theinmag-bm-hook__card">
+    <span class="theinmag-bm-hook__character" data-theinmag-pool-character></span>
+
+    <div class="theinmag-bm-hook__copy">
+      {%- if para_1 != blank -%}<p class="theinmag-bm-hook__para">{{ para_1 }}</p>{%- endif -%}
+      {%- if para_2 != blank -%}<p class="theinmag-bm-hook__para theinmag-bm-hook__para--emphasis">{{ para_2 }}</p>{%- endif -%}
+      {%- if para_3 != blank -%}<p class="theinmag-bm-hook__para">{{ para_3 }}</p>{%- endif -%}
+
+      {%- if byline != blank -%}
+        <p class="theinmag-bm-hook__byline">{{ byline }}</p>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-bm-hook {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(48px, 7vw, 96px) clamp(20px, 5vw, 48px);
+    position: relative;
+  }
+
+  .theinmag-bm-hook__a11y-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* White card on cream so the hook reads as the moment after the hero -
+     the founder's voice gets its own quiet stage. Generous padding,
+     no border-radius on desktop (premium reads as sharp), gentle radius
+     on mobile so the card doesn't feel boxed-in on small screens. */
+  .theinmag-bm-hook__card {
+    position: relative;
+    max-width: 760px;
+    margin: 0 auto;
+    background-color: #FFFFFF;
+    padding: clamp(36px, 6vw, 72px) clamp(24px, 5vw, 56px);
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.08);
+    border-radius: 12px;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bm-hook__card {
+      border-radius: 0;
+    }
+  }
+
+  /* Kid character peeking from the top-right corner of the card. Pinned
+     so its body sits over the card edge and tucks into the cream above
+     the card. Small enough not to compete with the copy. */
+  .theinmag-bm-hook__character {
+    position: absolute;
+    top: clamp(-48px, -5vw, -36px);
+    right: clamp(8px, 3vw, 24px);
+    width: clamp(70px, 10vw, 110px);
+    z-index: 2;
+  }
+
+  @media (max-width: 479px) {
+    .theinmag-bm-hook__character {
+      width: 64px;
+      top: -36px;
+      right: 8px;
+    }
+  }
+
+  .theinmag-bm-hook__copy {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 2vw, 22px);
+  }
+
+  .theinmag-bm-hook__para {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(17px, 1.9vw, 21px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* Middle paragraph gets a slight lift - "I still remember exactly how
+     it felt." reads as the heart of the hook. Heavier weight, no italic,
+     same family so the rhythm doesn't break. */
+  .theinmag-bm-hook__para--emphasis {
+    font-weight: 600;
+    font-size: clamp(18px, 2vw, 22px);
+  }
+
+  .theinmag-bm-hook__byline {
+    margin: clamp(8px, 1vw, 12px) 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag BM hook",
+  "tag": "section",
+  "class": "theinmag-bm-hook-section",
+  "settings": [
+    { "type": "header", "content": "Personal hook copy" },
+    { "type": "textarea", "id": "paragraph_1", "label": "Paragraph 1" },
+    { "type": "textarea", "id": "paragraph_2", "label": "Paragraph 2 (emphasis)" },
+    { "type": "textarea", "id": "paragraph_3", "label": "Paragraph 3" },
+    { "type": "text", "id": "byline", "label": "Italic byline" },
+    { "type": "header", "content": "Accessibility + AEO" },
+    { "type": "text", "id": "aeo_heading", "label": "Visually-hidden H2 (question form)" }
+  ],
+  "presets": [
+    {
+      "name": "theINmag BM hook",
+      "settings": {
+        "paragraph_1": "I was the kid who sent stuff in everywhere. Drawings to the local paper. Stories to anyone who'd take them. One day they printed something I made.",
+        "paragraph_2": "I still remember exactly how it felt.",
+        "paragraph_3": "Now I'm trying to give that feeling to every Aussie kid I can find.",
+        "byline": "- Ryan, Co-founder",
+        "aeo_heading": "Why does theINmag exist?"
+      }
+    }
+  ]
+}
+{% endschema %}
