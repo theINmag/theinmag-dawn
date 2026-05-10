@@ -1,21 +1,20 @@
 {%- comment -%}
   theinmag-behind-the-mag-hero
-  Editorial-cover hero for /pages/behind-the-mag. Full-bleed drone shot
-  of the founders + van fills the section. Headline + subhead overlay
-  bottom-left on a soft gradient scrim - white-on-scrim per house style
-  (no coloured pills on photography). Single Post Regular moment, no
-  CTA buttons (this hero earns trust, doesn't ask).
+  Field-notes-article-style split hero: drone hero image fills the
+  left column with the H1 overlaid bottom-left in white sans-serif
+  (matches the visual register of the field-notes blog post hero).
+  Right column carries a "Quick Read"-style card with Ryan's personal
+  hook copy + a hand-lettered Caveat signature.
 
-  Carries the page-level JSON-LD: BreadcrumbList + AboutPage + Person
-  for Ryan and Tam. Per the design tokens: Organisation + Person schema
-  required on the about page.
+  Absorbed the standalone hook section in the May 10 2026 redesign -
+  hook copy now lives inside the right-hand card so the eye flows
+  H1 (left, big, on image) -> personal note (right, smaller, in card)
+  -> signature, all in one viewport without a separate section break.
 
-  Pattern source: editorial-cover hero. Sibling of homepage's split-
-  screen hero but full-bleed image rather than 50/50 split. Gives the
-  drone shot the room it deserves.
+  Pattern source: theinmag-article (field-notes article hero).
 
-  Spec: ../theinmag-docs/theinmag-design-tokens.md (cream/inky pair, no em dashes,
-  white-on-scrim convention from feedback memory).
+  Carries page-level JSON-LD: BreadcrumbList + AboutPage + Person
+  for Ryan and Tam.
 {%- endcomment -%}
 
 {%- liquid
@@ -28,8 +27,15 @@
 
   assign image_alt = section.settings.image_alt | default: 'Aerial drone shot of theINmag founders Ryan and Tam standing in front of their self-converted home-on-wheels van.'
 
-  assign headline = section.settings.headline | default: 'It started with a kid sending a drawing to the local paper.'
-  assign subhead = section.settings.subhead | default: "That kid was Ryan. He's now one half of theINmag."
+  assign eyebrow = section.settings.eyebrow | default: 'Behind the mag'
+  assign headline = section.settings.headline | default: 'It started with a kid sending a drawing to the local paper'
+  assign byline_caption = section.settings.byline_caption
+
+  assign hook_para_1 = section.settings.hook_paragraph_1
+  assign hook_para_2 = section.settings.hook_paragraph_2
+  assign hook_para_3 = section.settings.hook_paragraph_3
+  assign signature = section.settings.signature | default: 'Ryan'
+  assign signature_role = section.settings.signature_role | default: 'Co-founder'
 
   assign page_origin = request.origin | default: 'https://theinmag.com.au'
   assign page_url = page_origin | append: '/pages/behind-the-mag'
@@ -42,48 +48,69 @@
 >
   {%- comment -%}
     Sitewide character pool gets rendered once per page. Top of the
-    hero is a natural place - all behind-the-mag character slots can
-    then read from the same shuffled list and stay distinct.
+    hero is the natural spot - all behind-the-mag character slots
+    then read from the same shuffled list.
   {%- endcomment -%}
   {% render 'theinmag-character-pool' %}
 
-  <div class="theinmag-bm-hero__media">
-    {%- if image_src != blank -%}
-      <img
-        class="theinmag-bm-hero__image"
-        src="{{ image_src }}"
-        alt="{{ image_alt | escape }}"
-        width="2400"
-        height="1350"
-        fetchpriority="high"
-      >
-    {%- else -%}
-      {%- comment -%}
-        Placeholder when the drone shot hasn't been uploaded yet. Solid
-        lavender so the headline still reads, no broken-image icon.
-      {%- endcomment -%}
-      <div class="theinmag-bm-hero__placeholder" aria-hidden="true"></div>
-    {%- endif -%}
+  <div class="theinmag-bm-hero__grid">
+    <div class="theinmag-bm-hero__cover-col">
+      <div class="theinmag-bm-hero__cover">
+        {%- if image_src != blank -%}
+          <img
+            class="theinmag-bm-hero__cover-image"
+            src="{{ image_src }}"
+            alt="{{ image_alt | escape }}"
+            width="2400"
+            height="1600"
+            fetchpriority="high"
+          >
+        {%- else -%}
+          <span class="theinmag-bm-hero__cover-placeholder" aria-hidden="true"></span>
+        {%- endif -%}
 
-    {%- comment -%}
-      Bottom-anchored gradient scrim - dark at the base, fading to
-      transparent. Lifts the headline contrast without darkening the
-      whole image (Ryan + Tam stay readable up top).
-    {%- endcomment -%}
-    <div class="theinmag-bm-hero__scrim" aria-hidden="true"></div>
+        {%- comment -%}
+          Bottom gradient scrim so the H1 stays legible regardless of
+          the photo's bottom-edge content. Fades to fully transparent
+          at ~55% up so the founders' faces stay un-darkened.
+        {%- endcomment -%}
+        <div class="theinmag-bm-hero__scrim" aria-hidden="true"></div>
 
-    {%- comment -%}
-      Random kid character slot - top-right corner, peeks in just
-      enough to feel populated without competing with the headline.
-    {%- endcomment -%}
-    <span class="theinmag-bm-hero__character" data-theinmag-pool-character></span>
-  </div>
+        <div class="theinmag-bm-hero__overlay">
+          {%- if eyebrow != blank -%}
+            <span class="theinmag-bm-hero__overlay-eyebrow">{{ eyebrow }}</span>
+          {%- endif -%}
+          <h1 id="theinmag-bm-hero-heading" class="theinmag-bm-hero__overlay-title">{{ headline }}</h1>
+          {%- if byline_caption != blank -%}
+            <p class="theinmag-bm-hero__overlay-caption">{{ byline_caption }}</p>
+          {%- endif -%}
+        </div>
+      </div>
 
-  <div class="theinmag-bm-hero__copy">
-    <h1 id="theinmag-bm-hero-heading" class="theinmag-bm-hero__headline">{{ headline }}</h1>
-    {%- if subhead != blank -%}
-      <p class="theinmag-bm-hero__subhead">{{ subhead }}</p>
-    {%- endif -%}
+      <span class="theinmag-bm-hero__character" data-theinmag-pool-character></span>
+    </div>
+
+    <div class="theinmag-bm-hero__body-col">
+      <div class="theinmag-bm-hero__body-inner">
+        <aside class="theinmag-bm-hero__quick-read" aria-label="Personal note from Ryan">
+          <span class="theinmag-bm-hero__quick-read-label">Personal note</span>
+          <div class="theinmag-bm-hero__quick-read-body">
+            {%- if hook_para_1 != blank -%}<p>{{ hook_para_1 }}</p>{%- endif -%}
+            {%- if hook_para_2 != blank -%}<p class="theinmag-bm-hero__quick-read-emph">{{ hook_para_2 }}</p>{%- endif -%}
+            {%- if hook_para_3 != blank -%}<p>{{ hook_para_3 }}</p>{%- endif -%}
+          </div>
+
+          {%- if signature != blank -%}
+            <div class="theinmag-bm-hero__signature">
+              <span class="theinmag-bm-hero__signature-name">{{ signature }}</span>
+              {%- if signature_role != blank -%}
+                <span class="theinmag-bm-hero__signature-role">{{ signature_role }}</span>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </aside>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -135,80 +162,148 @@
 {%- stylesheet -%}
   /* ================================================================
      theinmag-bm-hero
-     Full-bleed editorial cover. Image fills the viewport-width section,
-     headline + subhead anchored bottom-left over a gradient scrim.
+     Split-screen field-notes-style hero. Cover image on the left with
+     overlaid H1; right column carries the Quick Read card + signature.
      ================================================================ */
 
   .theinmag-bm-hero {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(20px, 3vw, 32px) clamp(16px, 4vw, 32px) clamp(48px, 6vw, 80px);
     position: relative;
-    background-color: var(--color-inky-purple-navy, #2A1F3D);
-    color: #FFFFFF;
-    overflow: hidden;
-    /* Mobile: tall enough that the drone shot reads as a moment, short
-       enough that headline + the start of the next section both peek
-       above the fold on a Pixel 6 (915px tall). */
-    min-height: clamp(540px, 80vh, 720px);
-    display: grid;
-    grid-template-areas: "stack";
   }
 
-  @media (min-width: 750px) {
-    .theinmag-bm-hero {
-      min-height: clamp(620px, 78vh, 820px);
+  .theinmag-bm-hero__grid {
+    max-width: 1320px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 4vw, 40px);
+    align-items: stretch;
+    position: relative;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bm-hero__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr);
+      gap: clamp(40px, 5vw, 64px);
     }
   }
 
-  .theinmag-bm-hero__media,
-  .theinmag-bm-hero__copy {
-    grid-area: stack;
-  }
-
-  .theinmag-bm-hero__media {
+  /* ================================================================
+     Cover column - drone image + overlaid H1.
+     ================================================================ */
+  .theinmag-bm-hero__cover-col {
     position: relative;
-    width: 100%;
-    height: 100%;
   }
 
-  .theinmag-bm-hero__image,
-  .theinmag-bm-hero__placeholder {
+  .theinmag-bm-hero__cover {
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px;
+    background-color: var(--color-inky-purple-navy, #2A1F3D);
+    aspect-ratio: 4 / 5;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-hero__cover {
+      aspect-ratio: 1 / 1;
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bm-hero__cover {
+      aspect-ratio: 4 / 5;
+      border-radius: 0;
+      min-height: 600px;
+    }
+  }
+
+  .theinmag-bm-hero__cover-image,
+  .theinmag-bm-hero__cover-placeholder {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Mobile: nudge focal point slightly low so the headline scrim
-       doesn't bury the founders. Drone shots have headroom up top. */
     object-position: 50% 35%;
   }
 
-  .theinmag-bm-hero__placeholder {
-    /* Solid lavender placeholder when no image is uploaded yet. */
+  .theinmag-bm-hero__cover-placeholder {
     background: linear-gradient(135deg, #5D3A7A 0%, #2A1F3D 100%);
   }
 
-  /* Bottom gradient scrim for headline legibility. Stronger at the base,
-     fades to fully transparent at ~60% up the section. White text-shadow
-     belt-and-braces beneath that. */
   .theinmag-bm-hero__scrim {
     position: absolute;
     inset: 0;
     pointer-events: none;
     background: linear-gradient(
       to top,
-      rgba(0, 0, 0, 0.6) 0%,
-      rgba(0, 0, 0, 0.4) 30%,
-      rgba(0, 0, 0, 0.0) 65%
+      rgba(0, 0, 0, 0.62) 0%,
+      rgba(0, 0, 0, 0.38) 30%,
+      rgba(0, 0, 0, 0.0) 60%
     );
   }
 
-  /* Kid-character pop in the top-right corner. Hidden on the smallest
-     phones to avoid eating headline real-estate. */
+  /* H1 + eyebrow + small caption overlay, anchored bottom-left. White
+     text in the same Inter 700 register as the field-notes blog hero
+     so this hero feels editorial, not corporate. */
+  .theinmag-bm-hero__overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: clamp(20px, 4vw, 40px) clamp(20px, 4vw, 40px) clamp(20px, 4vw, 32px);
+    color: #FFFFFF;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1vw, 12px);
+  }
+
+  .theinmag-bm-hero__overlay-eyebrow {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(11px, 1.1vw, 13px);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  /* Field-notes register - Inter 700, large, tight tracking. The
+     letter-spacing -0.005em is the field-notes blog post-title
+     convention from the design tokens memory. */
+  .theinmag-bm-hero__overlay-title {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(28px, 4.6vw, 52px);
+    line-height: 1.05;
+    letter-spacing: -0.005em;
+    color: #FFFFFF;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+    text-wrap: balance;
+    max-width: 18ch;
+  }
+
+  .theinmag-bm-hero__overlay-caption {
+    margin: 4px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(13px, 1.3vw, 15px);
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.86);
+    max-width: 36ch;
+  }
+
+  /* Kid character pop - top-right of the cover image. Hidden on the
+     smallest phones so the H1 keeps its room. */
   .theinmag-bm-hero__character {
     position: absolute;
-    top: clamp(16px, 4vw, 32px);
-    right: clamp(12px, 4vw, 40px);
-    width: clamp(80px, 12vw, 140px);
-    z-index: 2;
+    top: clamp(12px, 3vw, 24px);
+    right: clamp(12px, 3vw, 24px);
+    width: clamp(70px, 10vw, 120px);
+    z-index: 3;
   }
 
   @media (max-width: 479px) {
@@ -217,44 +312,87 @@
     }
   }
 
-  /* Copy block sits over the scrim, anchored bottom-left. */
-  .theinmag-bm-hero__copy {
-    position: relative;
-    z-index: 3;
-    align-self: end;
-    max-width: min(900px, 92%);
-    padding: 0 clamp(20px, 5vw, 56px) clamp(28px, 5vw, 64px);
+  /* ================================================================
+     Body column - Quick Read card + signature.
+     ================================================================ */
+  .theinmag-bm-hero__body-col {
+    display: flex;
+    align-items: center;
   }
 
-  @media (min-width: 990px) {
-    .theinmag-bm-hero__copy {
-      padding-left: clamp(40px, 6vw, 96px);
-      padding-bottom: clamp(48px, 6vw, 96px);
-    }
+  .theinmag-bm-hero__body-inner {
+    width: 100%;
   }
 
-  .theinmag-bm-hero__headline {
+  /* Quick Read card. White surface, soft purple-tinted shadow, a
+     small caps "Personal note" label up top. Body copy is smaller
+     than the hero H1 so the eye lands on the H1 first, then crosses
+     to the card. */
+  .theinmag-bm-hero__quick-read {
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    padding: clamp(20px, 2.6vw, 32px) clamp(20px, 2.6vw, 32px) clamp(24px, 3vw, 36px);
+    box-shadow: 0 4px 18px rgba(123, 79, 158, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 1.4vw, 18px);
+  }
+
+  .theinmag-bm-hero__quick-read-label {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-bm-hero__quick-read-body {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.2vw, 12px);
+  }
+
+  .theinmag-bm-hero__quick-read-body p {
     margin: 0;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(32px, 6vw, 64px);
-    line-height: 1.05;
-    letter-spacing: 0;
-    color: #FFFFFF;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
-    text-wrap: balance;
-  }
-
-  .theinmag-bm-hero__subhead {
-    margin: clamp(12px, 1.6vw, 20px) 0 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(16px, 1.8vw, 20px);
-    line-height: 1.5;
-    color: #FFFFFF;
-    opacity: 0.94;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
-    max-width: 50ch;
+    /* Smaller than a typical hero subhead - the H1 carries the volume. */
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-bm-hero__quick-read-body .theinmag-bm-hero__quick-read-emph {
+    font-weight: 600;
+  }
+
+  /* Signature row - hand-lettered Caveat for the name (matches the
+     field-notes blog author signature treatment), Inter caption
+     underneath with the role in small caps. */
+  .theinmag-bm-hero__signature {
+    margin-top: clamp(8px, 1vw, 12px);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .theinmag-bm-hero__signature-name {
+    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(28px, 3.2vw, 36px);
+    line-height: 1;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-bm-hero__signature-role {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
   }
 {%- endstylesheet -%}
 
@@ -264,40 +402,20 @@
   "tag": "section",
   "class": "theinmag-bm-hero-section",
   "settings": [
-    {
-      "type": "header",
-      "content": "Hero image"
-    },
-    {
-      "type": "image_picker",
-      "id": "image",
-      "label": "Hero image"
-    },
-    {
-      "type": "text",
-      "id": "fallback_filename",
-      "label": "Fallback filename",
-      "info": "Used when the image picker is empty. Filename of an image in /assets/. Recommended: HERO_behind-the-mag-van.jpg"
-    },
-    {
-      "type": "text",
-      "id": "image_alt",
-      "label": "Image alt text"
-    },
-    {
-      "type": "header",
-      "content": "Headline + subhead"
-    },
-    {
-      "type": "text",
-      "id": "headline",
-      "label": "Headline (H1)"
-    },
-    {
-      "type": "textarea",
-      "id": "subhead",
-      "label": "Subhead"
-    }
+    { "type": "header", "content": "Hero image (left column)" },
+    { "type": "image_picker", "id": "image", "label": "Hero image" },
+    { "type": "text", "id": "fallback_filename", "label": "Fallback filename", "info": "e.g. HERO_behind-the-mag-van.jpg" },
+    { "type": "text", "id": "image_alt", "label": "Image alt text" },
+    { "type": "header", "content": "Overlay text (on image)" },
+    { "type": "text", "id": "eyebrow", "label": "Small eyebrow" },
+    { "type": "text", "id": "headline", "label": "Headline (H1)" },
+    { "type": "text", "id": "byline_caption", "label": "Caption (small, optional)" },
+    { "type": "header", "content": "Personal note (right column)" },
+    { "type": "textarea", "id": "hook_paragraph_1", "label": "Paragraph 1" },
+    { "type": "textarea", "id": "hook_paragraph_2", "label": "Paragraph 2 (emphasis)" },
+    { "type": "textarea", "id": "hook_paragraph_3", "label": "Paragraph 3" },
+    { "type": "text", "id": "signature", "label": "Signature name" },
+    { "type": "text", "id": "signature_role", "label": "Signature role / caption" }
   ],
   "presets": [
     {
@@ -305,8 +423,14 @@
       "settings": {
         "fallback_filename": "HERO_behind-the-mag-van.jpg",
         "image_alt": "Aerial drone shot of theINmag founders Ryan and Tam standing in front of their self-converted home-on-wheels van.",
-        "headline": "It started with a kid sending a drawing to the local paper.",
-        "subhead": "That kid was Ryan. He's now one half of theINmag."
+        "eyebrow": "Behind the mag",
+        "headline": "It started with a kid sending a drawing to the local paper",
+        "byline_caption": "",
+        "hook_paragraph_1": "I was the kid who sent stuff in everywhere. Drawings to the local paper. Stories to anyone who'd take them. One day they printed something I made.",
+        "hook_paragraph_2": "I still remember exactly how it felt.",
+        "hook_paragraph_3": "Now I'm trying to give that feeling to every Aussie kid I can find.",
+        "signature": "Ryan",
+        "signature_role": "Co-founder"
       }
     }
   ]

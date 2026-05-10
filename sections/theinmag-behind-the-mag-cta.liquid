@@ -163,7 +163,8 @@
     flex-direction: column;
     gap: clamp(10px, 1.4vw, 14px);
     flex: 1;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
   }
 
   .theinmag-bm-cta__card-heading {
@@ -186,9 +187,11 @@
   }
 
   /* Yellow stamp primary button per design tokens. Both CTAs use this -
-     equal weight, since the section heading carries the lead. */
+     equal weight, since the section heading carries the lead. Centred
+     within the card body so it reads as the focal action. */
   .theinmag-bm-cta__btn {
     display: inline-block;
+    align-self: center;
     margin-top: clamp(6px, 1vw, 10px);
     background-color: var(--color-yellow, #F9C23C);
     color: var(--color-inky-purple-navy, #2A1F3D);

@@ -1,23 +1,19 @@
 {%- comment -%}
   theinmag-behind-the-mag-video
-  Standalone "Wait - why's it called theINmag?" video moment with
-  generous whitespace. YouTube facade pattern: only the poster JPG
-  loads on page entry. Click swaps the poster for an autoplaying
-  iframe. Keeps the page weight under the 1.5MB budget even with a
-  one-minute video, since the YouTube iframe (~1MB+) only loads if
-  the visitor presses play.
+  "Wait - why's it called theINmag?" moment. Split layout: copy on
+  the LEFT, portrait video on the RIGHT. Sized so the whole moment
+  fits on a Pixel 6 viewport (412x915) without scrolling - desktop
+  spreads out to a more generous side-by-side.
 
-  Schema accepts either a YouTube URL/ID OR a self-hosted MP4 URL.
-  YouTube path is the recommended one (Ryan's plan).
-
-  Lazy-load JS is small and self-contained - lives here rather than
-  in a stage-2 file because the section is meaningless without it
-  (a static thumb is just a screenshot).
+  Video accepts either a Shopify CDN MP4 URL (recommended for
+  portrait clips like this one) or a YouTube ID. MP4 path uses
+  preload="none" so the bytes only download when a visitor presses
+  play; a poster JPG paints the still-frame on first paint.
 {%- endcomment -%}
 
 {%- liquid
   assign heading = section.settings.heading | default: "Wait - why's it called theINmag?"
-  assign subhead = section.settings.subhead | default: 'Glad you asked.'
+  assign subhead = section.settings.subhead | default: 'Glad you asked'
 
   assign yt_input = section.settings.youtube_id | strip
   assign yt_id = ''
@@ -36,12 +32,12 @@
 
   assign poster_src = ''
   if section.settings.poster_image != blank
-    assign poster_src = section.settings.poster_image | image_url: width: 1920
+    assign poster_src = section.settings.poster_image | image_url: width: 1080
   elsif section.settings.poster_filename != blank
     assign poster_src = section.settings.poster_filename | asset_url
   endif
 
-  assign poster_alt = section.settings.poster_alt | default: 'Tam and Ryan smiling about the theINmag name origin.'
+  assign poster_alt = section.settings.poster_alt | default: 'Tam and Ryan in front of the van talking about why it is called theINmag.'
 -%}
 
 <section
@@ -75,9 +71,36 @@
             src="{{ poster_src }}"
             alt="{{ poster_alt | escape }}"
             loading="lazy"
-            width="1920"
-            height="1080"
+            width="1080"
+            height="1920"
           >
+          <span class="theinmag-bm-video__play" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="32" cy="32" r="32" fill="#F9C23C"/>
+              <polygon points="26 20 46 32 26 44" fill="#2A1F3D"/>
+            </svg>
+          </span>
+        </button>
+      {%- elsif mp4_url != blank -%}
+        {%- comment -%}
+          No poster but we do have an MP4. Use the video element with
+          preload="metadata" so the first frame paints without
+          downloading the whole file. Click overlay still drives play.
+        {%- endcomment -%}
+        <button
+          type="button"
+          class="theinmag-bm-video__poster theinmag-bm-video__poster--no-poster"
+          data-bm-video-trigger
+          aria-label="Play video: {{ heading | escape }}"
+        >
+          <video
+            class="theinmag-bm-video__poster-image"
+            src="{{ mp4_url }}"
+            preload="metadata"
+            muted
+            playsinline
+            aria-hidden="true"
+          ></video>
           <span class="theinmag-bm-video__play" aria-hidden="true">
             <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <circle cx="32" cy="32" r="32" fill="#F9C23C"/>
@@ -87,7 +110,7 @@
         </button>
       {%- else -%}
         <div class="theinmag-bm-video__poster theinmag-bm-video__poster--placeholder" aria-hidden="true">
-          <span class="theinmag-bm-video__placeholder-text">Video coming soon.</span>
+          <span class="theinmag-bm-video__placeholder-text">Video coming soon</span>
         </div>
       {%- endif -%}
     </div>
@@ -106,8 +129,6 @@
       var mp4Url = frame.getAttribute('data-mp4-url') || '';
 
       if (ytId) {
-        // YouTube embed - autoplay=1 only fires after a user gesture
-        // anyway, so it's safe and not blocked.
         var iframe = document.createElement('iframe');
         iframe.className = 'theinmag-bm-video__iframe';
         iframe.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(ytId)
@@ -137,64 +158,94 @@
 {%- stylesheet -%}
   /* ================================================================
      theinmag-bm-video
-     Generous whitespace standalone moment. Cream bg, centred copy +
-     16:9 video. Heading is small + Inter (the question is conversational,
-     not declarative - Post Regular would over-grand a one-liner aside).
+     Cream surface. Mobile: copy stacked above a portrait video,
+     centred. Desktop: copy left, portrait video right.
      ================================================================ */
   .theinmag-bm-video {
     background-color: var(--color-cream, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(64px, 9vw, 128px) clamp(20px, 5vw, 48px);
+    padding: clamp(56px, 8vw, 112px) clamp(20px, 5vw, 48px);
   }
 
   .theinmag-bm-video__inner {
-    max-width: 960px;
+    max-width: 1100px;
     margin: 0 auto;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: clamp(20px, 3vw, 32px);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 3vw, 40px);
+    align-items: center;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-video__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr);
+      gap: clamp(40px, 5vw, 72px);
+    }
   }
 
   .theinmag-bm-video__copy {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: clamp(6px, 0.8vw, 10px);
+    gap: clamp(8px, 1.2vw, 14px);
+    text-align: center;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-video__copy {
+      text-align: left;
+    }
   }
 
   .theinmag-bm-video__heading {
     margin: 0;
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: clamp(20px, 2.4vw, 26px);
-    line-height: 1.3;
-    letter-spacing: -0.01em;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.6vw, 48px);
+    line-height: 1.1;
+    letter-spacing: 0;
     color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
   }
 
   .theinmag-bm-video__subhead {
     margin: 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-style: italic;
-    font-size: clamp(15px, 1.6vw, 17px);
-    line-height: 1.5;
+    font-weight: 400;
+    font-size: clamp(16px, 1.7vw, 19px);
+    line-height: 1.4;
     color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.72;
+    opacity: 0.74;
   }
 
   /* ================================================================
-     Video frame - 16:9 box. Stage 1 holds the poster button; click
-     swaps it for an iframe (or <video>) in place.
+     Portrait video frame. Aspect 9/16 to match the source. Mobile
+     caps width so the section + copy fit on one Pixel 6 viewport
+     without scrolling.
      ================================================================ */
   .theinmag-bm-video__frame {
     position: relative;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    max-width: 280px;
+    aspect-ratio: 9 / 16;
+    margin: 0 auto;
     background-color: var(--color-inky-purple-navy, #2A1F3D);
-    border-radius: 16px;
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 12px 36px rgba(123, 79, 158, 0.18);
+    box-shadow: 0 14px 36px rgba(123, 79, 158, 0.22);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-video__frame {
+      max-width: 320px;
+      margin: 0 0 0 auto;
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bm-video__frame {
+      max-width: 360px;
+    }
   }
 
   .theinmag-bm-video__poster {
@@ -208,6 +259,7 @@
     cursor: pointer;
     position: relative;
     display: block;
+    overflow: hidden;
   }
   .theinmag-bm-video__poster:focus-visible {
     outline: 3px solid var(--color-yellow, #F9C23C);
@@ -220,26 +272,26 @@
     object-fit: cover;
     display: block;
     transition: transform 0.4s ease, filter 0.2s ease;
-    filter: brightness(0.85);
+    filter: brightness(0.9);
   }
   .theinmag-bm-video__poster:hover .theinmag-bm-video__poster-image {
     transform: scale(1.02);
-    filter: brightness(0.78);
+    filter: brightness(0.84);
   }
 
   .theinmag-bm-video__play {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: clamp(64px, 8vw, 96px);
-    height: clamp(64px, 8vw, 96px);
+    width: clamp(56px, 8vw, 76px);
+    height: clamp(56px, 8vw, 76px);
     transform: translate(-50%, -50%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
     transition: transform 0.2s ease;
-    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.35));
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.4));
   }
   .theinmag-bm-video__poster:hover .theinmag-bm-video__play {
     transform: translate(-50%, -50%) scale(1.06);
@@ -297,12 +349,12 @@
     { "type": "text", "id": "heading", "label": "Heading" },
     { "type": "text", "id": "subhead", "label": "Italic subhead" },
     { "type": "header", "content": "Video source" },
-    { "type": "paragraph", "content": "Paste a YouTube URL or 11-character video ID. Or upload an MP4 to Shopify Files and paste the CDN URL into MP4 URL. YouTube is recommended - keeps the theme weight tiny and Shopify's MP4 upload caps don't apply." },
+    { "type": "paragraph", "content": "Either paste a YouTube URL or 11-character video ID, OR upload an MP4 to Shopify Files (Content > Files) and paste the cdn.shopify.com URL. The portrait MP4 path is recommended for this section." },
     { "type": "text", "id": "youtube_id", "label": "YouTube URL or ID" },
-    { "type": "text", "id": "mp4_url", "label": "MP4 URL (fallback)" },
+    { "type": "text", "id": "mp4_url", "label": "MP4 URL (Shopify CDN)" },
     { "type": "header", "content": "Poster image" },
     { "type": "image_picker", "id": "poster_image", "label": "Poster image" },
-    { "type": "text", "id": "poster_filename", "label": "Poster fallback filename", "info": "e.g. behind-the-mag-video-poster.jpg" },
+    { "type": "text", "id": "poster_filename", "label": "Poster fallback filename", "info": "Portrait, 1080x1920 ideal. e.g. behind-the-mag-video-poster.jpg" },
     { "type": "text", "id": "poster_alt", "label": "Poster alt text" }
   ],
   "presets": [
@@ -310,9 +362,9 @@
       "name": "theINmag BM video",
       "settings": {
         "heading": "Wait - why's it called theINmag?",
-        "subhead": "Glad you asked.",
+        "subhead": "Glad you asked",
         "poster_filename": "behind-the-mag-video-poster.jpg",
-        "poster_alt": "Tam and Ryan smiling about the theINmag name origin."
+        "poster_alt": "Tam and Ryan in front of the van talking about why it's called theINmag."
       }
     }
   ]

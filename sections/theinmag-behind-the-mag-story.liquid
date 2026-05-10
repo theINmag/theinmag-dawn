@@ -18,13 +18,26 @@
 {%- liquid
   assign cards = section.blocks | where: 'type', 'card'
   assign aeo_heading = section.settings.aeo_heading | default: 'How did theINmag come to be?'
-  assign eyebrow = section.settings.eyebrow | default: 'the story so far.'
+  assign eyebrow = section.settings.eyebrow | default: 'the <em>story</em> so far'
+
+  assign bg_src = ''
+  if section.settings.background_image != blank
+    assign bg_src = section.settings.background_image | image_url: width: 2400
+  elsif section.settings.background_filename != blank
+    assign bg_src = section.settings.background_filename | asset_url
+  endif
+
+  assign section_style = ''
+  if bg_src != blank
+    assign section_style = "--bm-story-bg: url('" | append: bg_src | append: "');"
+  endif
 -%}
 
 <section
-  class="theinmag-bm-story"
+  class="theinmag-bm-story{% if bg_src != blank %} theinmag-bm-story--has-bg{% endif %}"
   data-theinmag-bm-story
   aria-labelledby="theinmag-bm-story-heading"
+  style="{{ section_style }}"
 >
   <h2 id="theinmag-bm-story-heading" class="theinmag-bm-story__a11y-heading">{{ aeo_heading }}</h2>
 
@@ -170,6 +183,28 @@
     overflow: hidden;
   }
 
+  /* Optional background image - editor-supplied via Liquid custom
+     property. Sits behind the cards as a section-wide texture. */
+  .theinmag-bm-story--has-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--bm-story-bg);
+    background-size: cover;
+    background-position: center;
+    pointer-events: none;
+    z-index: 0;
+    /* Soft fade so the cards still pop against the bg. Opacity drives
+       intensity - bump for stronger texture. */
+    opacity: 0.55;
+  }
+  .theinmag-bm-story--has-bg .theinmag-bm-story__intro,
+  .theinmag-bm-story--has-bg .theinmag-bm-story__rail-wrap,
+  .theinmag-bm-story--has-bg .theinmag-bm-story__indicator {
+    position: relative;
+    z-index: 1;
+  }
+
   .theinmag-bm-story__a11y-heading {
     position: absolute;
     width: 1px;
@@ -197,6 +232,14 @@
     line-height: 1.1;
     letter-spacing: 0;
     color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* Emphasised word inside the eyebrow (e.g. "story" in "the story
+     so far"). Slightly larger - same family for visual consistency. */
+  .theinmag-bm-story__eyebrow em {
+    font-style: normal;
+    font-size: 1.25em;
+    color: var(--color-purple-dark, #5D3A7A);
   }
 
   /* Kid character peeking at the right edge of the eyebrow row. */
@@ -616,8 +659,11 @@
   "class": "theinmag-bm-story-section",
   "settings": [
     { "type": "header", "content": "Section intro" },
-    { "type": "text", "id": "eyebrow", "label": "Eyebrow line above the rail" },
-    { "type": "text", "id": "aeo_heading", "label": "Visually-hidden H2 (question form)" }
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow line above the rail", "info": "Wrap a word in <em>...</em> tags to emphasise it (renders larger + dark purple)." },
+    { "type": "text", "id": "aeo_heading", "label": "Visually-hidden H2 (question form)" },
+    { "type": "header", "content": "Section background (optional)" },
+    { "type": "image_picker", "id": "background_image", "label": "Background image" },
+    { "type": "text", "id": "background_filename", "label": "Background fallback filename" }
   ],
   "blocks": [
     {

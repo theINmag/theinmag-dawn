@@ -12,18 +12,32 @@
 
 {%- liquid
   assign portraits = section.blocks | where: 'type', 'portrait'
-  assign heading = section.settings.heading | default: "And then there's the kid crew."
+  assign heading = section.settings.heading | default: "And then there's the kid crew"
   assign body_1 = section.settings.body_1
   assign body_2 = section.settings.body_2
   assign body_3 = section.settings.body_3
+
+  assign bg_src = ''
+  if section.settings.background_image != blank
+    assign bg_src = section.settings.background_image | image_url: width: 2400
+  elsif section.settings.background_filename != blank
+    assign bg_src = section.settings.background_filename | asset_url
+  endif
+
+  assign section_style = ''
+  if bg_src != blank
+    assign section_style = "--bm-crew-bg: url('" | append: bg_src | append: "');"
+  endif
 -%}
 
 <section
-  class="theinmag-bm-crew"
+  class="theinmag-bm-crew{% if bg_src != blank %} theinmag-bm-crew--has-bg{% endif %}"
   data-theinmag-bm-crew
   aria-labelledby="theinmag-bm-crew-heading"
+  style="{{ section_style }}"
 >
-  <div class="theinmag-bm-crew__inner">
+  <div class="theinmag-bm-crew__tablet">
+   <div class="theinmag-bm-crew__inner">
     <div class="theinmag-bm-crew__copy">
       <h2 id="theinmag-bm-crew-heading" class="theinmag-bm-crew__heading">{{ heading }}</h2>
       {%- if body_1 != blank -%}<p class="theinmag-bm-crew__body">{{ body_1 }}</p>{%- endif -%}
@@ -61,6 +75,7 @@
         </li>
       {%- endfor -%}
     </ul>
+   </div>
   </div>
 </section>
 
@@ -68,12 +83,42 @@
   .theinmag-bm-crew {
     background-color: var(--color-mint, #D6EAD9);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(56px, 8vw, 104px) clamp(20px, 5vw, 48px);
+    padding: clamp(48px, 7vw, 96px) clamp(16px, 4vw, 32px);
+    position: relative;
+    overflow: hidden;
+  }
+  .theinmag-bm-crew--has-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--bm-crew-bg);
+    background-size: cover;
+    background-position: center;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.55;
+  }
+
+  /* Tablet card wrapper - same 3D treatment as the quiz card so the
+     two read as a family. White surface so the mint section shows
+     through as a softly-coloured frame around the card. */
+  .theinmag-bm-crew__tablet {
+    position: relative;
+    z-index: 1;
+    max-width: 1080px;
+    margin: 0 auto;
+    background-color: #FFFFFF;
+    border-radius: 28px;
+    padding: clamp(28px, 4vw, 48px) clamp(24px, 3vw, 40px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 0 rgba(42, 31, 61, 0.04),
+      0 30px 60px rgba(74, 124, 92, 0.18),
+      0 12px 24px rgba(74, 124, 92, 0.12),
+      0 4px 8px rgba(74, 124, 92, 0.08);
   }
 
   .theinmag-bm-crew__inner {
-    max-width: 1080px;
-    margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr;
     gap: clamp(24px, 4vw, 40px);
@@ -180,7 +225,10 @@
     { "type": "text", "id": "heading", "label": "Heading (H2)" },
     { "type": "textarea", "id": "body_1", "label": "Body paragraph 1" },
     { "type": "textarea", "id": "body_2", "label": "Body paragraph 2" },
-    { "type": "textarea", "id": "body_3", "label": "Body paragraph 3 (lift)" }
+    { "type": "textarea", "id": "body_3", "label": "Body paragraph 3 (lift)" },
+    { "type": "header", "content": "Section background (optional)" },
+    { "type": "image_picker", "id": "background_image", "label": "Background image" },
+    { "type": "text", "id": "background_filename", "label": "Background fallback filename" }
   ],
   "blocks": [
     {

@@ -5,24 +5,20 @@
       "settings": {
         "fallback_filename": "HERO_behind-the-mag-van.jpg",
         "image_alt": "Aerial drone shot of theINmag founders Ryan and Tam standing in front of their self-converted home-on-wheels van.",
-        "headline": "It started with a kid sending a drawing to the local paper.",
-        "subhead": "That kid was Ryan. He's now one half of theINmag."
-      }
-    },
-    "bm_hook": {
-      "type": "theinmag-behind-the-mag-hook",
-      "settings": {
-        "paragraph_1": "I was the kid who sent stuff in everywhere. Drawings to the local paper. Stories to anyone who'd take them. One day they printed something I made.",
-        "paragraph_2": "I still remember exactly how it felt.",
-        "paragraph_3": "Now I'm trying to give that feeling to every Aussie kid I can find.",
-        "byline": "- Ryan, Co-founder",
-        "aeo_heading": "Why does theINmag exist?"
+        "eyebrow": "Behind the mag",
+        "headline": "It started with a kid sending a drawing to the local paper",
+        "byline_caption": "",
+        "hook_paragraph_1": "I was the kid who sent stuff in everywhere. Drawings to the local paper. Stories to anyone who'd take them. One day they printed something I made.",
+        "hook_paragraph_2": "I still remember exactly how it felt.",
+        "hook_paragraph_3": "Now I'm trying to give that feeling to every Aussie kid I can find.",
+        "signature": "Ryan",
+        "signature_role": "Co-founder"
       }
     },
     "bm_story": {
       "type": "theinmag-behind-the-mag-story",
       "settings": {
-        "eyebrow": "the story so far.",
+        "eyebrow": "the <em>story</em> so far",
         "aeo_heading": "How did theINmag come to be?"
       },
       "blocks": {
@@ -114,22 +110,23 @@
       "type": "theinmag-behind-the-mag-video",
       "settings": {
         "heading": "Wait - why's it called theINmag?",
-        "subhead": "Glad you asked.",
+        "subhead": "Glad you asked",
         "youtube_id": "",
-        "mp4_url": "",
+        "mp4_url": "https://cdn.shopify.com/videos/c/o/v/cfd1195c9a7d4f0b85529e5b5083f45c.mp4",
         "poster_filename": "behind-the-mag-video-poster.jpg",
-        "poster_alt": "Tam and Ryan smiling about the theINmag name origin."
+        "poster_alt": "Tam and Ryan in front of the van talking about why it's called theINmag."
       }
     },
     "bm_quiz": {
       "type": "theinmag-behind-the-mag-quiz",
       "settings": {
         "heading": "Match the kid to the maker",
-        "intro_1": "Every adult on this page used to be a kid. Some of them still kind of are.",
-        "intro_2": "Tap a kid photo. Tap who you reckon they grew into. We'll tell you if you got it - and a bit about them either way.",
-        "skip_label": "Skip the quiz - just show me the team",
+        "intro_1": "These are the friendly faces behind every issue.",
+        "intro_2": "See if you can match the image of them as a kid to them grown-up.",
+        "skip_label": "Skip the quiz · just show me the team",
         "aeo_heading": "Who is on the theINmag team?",
-        "paired_hint": "Nice - now find the other kid.",
+        "target_adult_label": "Adult",
+        "target_kid_label": "Kid",
         "all_done_message": "Nice work, you've met the whole team."
       },
       "blocks": {
@@ -251,7 +248,7 @@
     "bm_crew": {
       "type": "theinmag-behind-the-mag-crew",
       "settings": {
-        "heading": "And then there's the kid crew.",
+        "heading": "And then there's the kid crew",
         "body_1": "Meet Zanda, Ned and Gus. They're Tam's nephews. They pack every single order of theINmag with serious care.",
         "body_2": "If you look hard at the magazine, you'll spot some of their creations in there too.",
         "body_3": "Pretty cool, right?"
@@ -266,7 +263,7 @@
     "bm_see_more": {
       "type": "theinmag-behind-the-mag-see-more",
       "settings": {
-        "heading": "See more of us.",
+        "heading": "See more of us",
         "aeo_heading": "Where can you follow theINmag?"
       },
       "blocks": {
@@ -302,7 +299,7 @@
     "bm_cta": {
       "type": "theinmag-behind-the-mag-cta",
       "settings": {
-        "heading": "Your kid could be in the next issue.",
+        "heading": "Your kid could be in the next issue",
         "aeo_heading": "How can your kid be in theINmag?"
       },
       "blocks": {
@@ -334,7 +331,6 @@
   },
   "order": [
     "bm_hero",
-    "bm_hook",
     "bm_story",
     "bm_video",
     "bm_quiz",
