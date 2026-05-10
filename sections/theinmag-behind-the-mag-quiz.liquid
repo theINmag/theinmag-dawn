@@ -27,6 +27,7 @@
   assign intro_1 = section.settings.intro_1
   assign intro_2 = section.settings.intro_2
   assign skip_label = section.settings.skip_label | default: 'Skip the quiz · just show me the team'
+  assign see_team_label = section.settings.see_team_label | default: 'See the whole team'
   assign aeo_heading = section.settings.aeo_heading | default: 'Who is on the theINmag team?'
   assign all_done_message = section.settings.all_done_message | default: "Nice work, you've met the whole team."
   assign target_adult_label = section.settings.target_adult_label | default: 'Adult'
@@ -50,11 +51,43 @@
   data-theinmag-bm-quiz
   aria-labelledby="theinmag-bm-quiz-heading"
   data-all-done-message="{{ all_done_message | escape }}"
+  data-see-team-label="{{ see_team_label | escape }}"
   style="{{ section_style }}"
 >
   <h2 class="theinmag-bm-quiz__a11y-heading">{{ aeo_heading }}</h2>
 
   <div class="theinmag-bm-quiz__tablet" data-bm-quiz-tablet>
+    {%- comment -%}
+      Hand-drawn-feel dashed border, inset roughly a centimetre from
+      the card edge. SVG path with rounded dash caps + a slightly
+      irregular dash pattern (1.6 / 1) reads softer than CSS
+      `border: dashed`. Not a true hand-pencilled stroke (that would
+      need a sketched SVG asset) but closer than the geometric CSS
+      version. preserveAspectRatio="none" + vector-effect: non-scaling-
+      stroke = stretches to fit while keeping the stroke weight even.
+    {%- endcomment -%}
+    <svg
+      class="theinmag-bm-quiz__hand-border"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect
+        x="0.6"
+        y="0.6"
+        width="98.8"
+        height="98.8"
+        rx="3"
+        ry="3"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-dasharray="1.6 1"
+        stroke-linecap="round"
+        vector-effect="non-scaling-stroke"
+      />
+    </svg>
     <header class="theinmag-bm-quiz__head">
       <h2 id="theinmag-bm-quiz-heading" class="theinmag-bm-quiz__heading">{{ heading }}</h2>
       {%- if intro_1 != blank -%}
@@ -315,6 +348,32 @@
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+  }
+
+  /* Hand-drawn-feel dashed inner border. Sits a centimetre or so in
+     from the card edge so the dashes feel like a kid traced a frame
+     inside the card. Mid-purple ink at 0.5 opacity so it reads as
+     a soft accent rather than competing with the content. */
+  .theinmag-bm-quiz__hand-border {
+    position: absolute;
+    top: clamp(14px, 2.4vw, 28px);
+    right: clamp(14px, 2.4vw, 28px);
+    bottom: clamp(14px, 2.4vw, 28px);
+    left: clamp(14px, 2.4vw, 28px);
+    width: auto;
+    height: auto;
+    pointer-events: none;
+    color: var(--color-purple-dark, #5D3A7A);
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  /* Lift the actual content above the dashed border. */
+  .theinmag-bm-quiz__head,
+  .theinmag-bm-quiz__board,
+  .theinmag-bm-quiz__foot {
+    position: relative;
+    z-index: 1;
   }
 
   /* ================================================================
@@ -933,7 +992,13 @@
       });
       if (done) {
         if (board) board.style.display = 'none';
-        if (skipBtn) skipBtn.style.display = 'none';
+        // Keep the skip button visible after completion - re-labels
+        // to "See the whole team" so the user can still pop the
+        // roster open and look at all the photos again.
+        if (skipBtn) {
+          var seeTeamLabel = root.getAttribute('data-see-team-label') || 'See the whole team';
+          skipBtn.textContent = seeTeamLabel;
+        }
         if (allDoneEl) {
           allDoneEl.removeAttribute('hidden');
           allDoneEl.textContent = allDoneMessage;
@@ -1165,6 +1230,7 @@
     { "type": "textarea", "id": "intro_1", "label": "Intro paragraph 1" },
     { "type": "textarea", "id": "intro_2", "label": "Intro paragraph 2" },
     { "type": "text", "id": "skip_label", "label": "Skip / show team toggle label" },
+    { "type": "text", "id": "see_team_label", "label": "See team label (post-completion)" },
     { "type": "text", "id": "aeo_heading", "label": "Visually-hidden H2 (question form)" },
     { "type": "header", "content": "Target box labels" },
     { "type": "text", "id": "target_adult_label", "label": "Adult target label" },
@@ -1208,6 +1274,7 @@
         "intro_1": "These are the friendly faces behind every issue.",
         "intro_2": "See if you can match the image of them as a kid to them grown-up.",
         "skip_label": "Skip the quiz · just show me the team",
+        "see_team_label": "See the whole team",
         "aeo_heading": "Who is on the theINmag team?",
         "target_adult_label": "Adult",
         "target_kid_label": "Kid",

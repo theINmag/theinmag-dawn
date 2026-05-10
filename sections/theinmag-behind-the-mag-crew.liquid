@@ -140,10 +140,14 @@
 
   .theinmag-bm-crew__heading {
     margin: 0;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(28px, 4.5vw, 44px);
-    line-height: 1.1;
+    /* Inter 700 here (the editorial register) instead of Post Regular -
+       Ryan's call so the heading reads journalistic against the
+       hand-lettered names below. */
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(26px, 4vw, 38px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
     color: var(--color-sage-dark, #4A7C5C);
     text-wrap: balance;
   }
@@ -207,11 +211,16 @@
   .theinmag-bm-crew__portrait-name {
     margin: 0;
     text-align: center;
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 600;
-    font-size: clamp(14px, 1.4vw, 15px);
+    /* Post Regular hand-lettered for the names - the kid crew is the
+       warm, personal moment so the names get the brand's most
+       characterful font (where the section H2 above stays editorial
+       Inter 700 to balance). */
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(20px, 2.4vw, 26px);
+    line-height: 1;
     color: var(--color-sage-dark, #4A7C5C);
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
   }
 {%- endstylesheet -%}
 

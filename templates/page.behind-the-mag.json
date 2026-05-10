@@ -124,10 +124,11 @@
     "bm_quiz": {
       "type": "theinmag-behind-the-mag-quiz",
       "settings": {
-        "heading": "Match the kid to the maker",
+        "heading": "Facey matchy",
         "intro_1": "These are the friendly faces behind every issue.",
         "intro_2": "See if you can match the image of them as a kid to them grown-up.",
         "skip_label": "Skip the quiz · just show me the team",
+        "see_team_label": "See the whole team",
         "aeo_heading": "Who is on the theINmag team?",
         "target_adult_label": "Adult",
         "target_kid_label": "Kid",
@@ -242,7 +243,7 @@
             "kid_1_fallback_filename": "behind-the-mag-quiz-kid-snowy.jpg",
             "kid_2_name": "Libby",
             "kid_2_fallback_filename": "behind-the-mag-quiz-kid-libby.jpg",
-            "bio": "The original site you've been looking at? These two built it. They designed it from the road, while travelling Australia in their own van. Vanlife and web design at the same time. Wild.",
+            "bio": "These two designed our original website. Vanlife and web design at the same time. Wild.",
             "fun_fact": "A huge chunk of theINmag's look online started with them. We owe them big time."
           }
         }
@@ -278,8 +279,9 @@
             "heading": "Branching Out",
             "subheading": "Adventures from the road.",
             "body": "Branching Out is our YouTube channel where we share our travels, the places we land, and what Nora's up to.",
-            "button_label": "Watch on YouTube",
+            "button_label": "Visit channel on YouTube",
             "link": "https://www.youtube.com/@Branchingout-tnr",
+            "youtube_video_id": "https://www.youtube.com/watch?v=r2LK1DBuyOo",
             "fallback_filename": "behind-the-mag-branching-out.jpg",
             "image_alt": "Still from the Branching Out YouTube channel - Ryan, Tam and Nora on the road."
           }
