@@ -233,6 +233,51 @@
       {%- endif -%}
     {%- endform -%}
 
+    {%- comment -%}
+      Social-proof footer — small editorial block that nudges curious
+      stockists toward the brand's day-to-day on Instagram + Facebook.
+      Kept understated so it doesn't compete with the form.
+    {%- endcomment -%}
+    {%- if section.settings.social_text != blank -%}
+      <aside class="theinmag-stockist-apply-form__social" aria-label="Follow theINmag">
+        <p class="theinmag-stockist-apply-form__social-text">{{ section.settings.social_text }}</p>
+        <ul class="theinmag-stockist-apply-form__social-list" role="list">
+          {%- if section.settings.instagram_url != blank -%}
+            <li>
+              <a
+                class="theinmag-stockist-apply-form__social-icon theinmag-stockist-apply-form__social-icon--instagram"
+                href="{{ section.settings.instagram_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="theINmag on Instagram"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false">
+                  <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor"></circle>
+                </svg>
+              </a>
+            </li>
+          {%- endif -%}
+          {%- if section.settings.facebook_url != blank -%}
+            <li>
+              <a
+                class="theinmag-stockist-apply-form__social-icon theinmag-stockist-apply-form__social-icon--facebook"
+                href="{{ section.settings.facebook_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="theINmag on Facebook"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                  <path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.7c0-.9.3-1.5 1.6-1.5h1.7V4.3a23 23 0 0 0-2.5-.1c-2.5 0-4.2 1.5-4.2 4.3v2.4H7.4V14h2.7v8h3.4Z"></path>
+                </svg>
+              </a>
+            </li>
+          {%- endif -%}
+        </ul>
+      </aside>
+    {%- endif -%}
+
   </div>
 </section>
 
@@ -422,14 +467,15 @@
   }
 
   /* ----- Submit row: reassurance text + icon-only stamp button -----
-     "We'll be in touch." sits as a regular sentence on the left;
-     yellow circle paper-plane button anchors the right. */
+     The two read together as one beat — "We'll be in touch [send]" —
+     so they're right-aligned and paired with a tight gap rather than
+     pushed to opposite edges. */
   .theinmag-stockist-apply-form__submit-row {
     margin-top: clamp(10px, 1.4vw, 16px);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: clamp(12px, 2vw, 18px);
+    justify-content: flex-end;
+    gap: clamp(14px, 1.6vw, 20px);
     flex-wrap: wrap;
   }
 
@@ -495,6 +541,74 @@
     .theinmag-stockist-apply-form__submit-btn:focus-visible .theinmag-stockist-apply-form__submit-icon {
       transform: none;
     }
+  }
+
+  /* ----- Social-proof footer (Instagram + Facebook nudge) -----
+     Sits below the form. Quiet horizontal rule across the top to
+     separate it from the form, small editorial copy, two
+     brand-coloured icon circles. Centred so it reads as a "find us
+     also at" beat rather than another action. */
+  .theinmag-stockist-apply-form__social {
+    margin-top: clamp(28px, 4vw, 40px);
+    padding-top: clamp(20px, 2.4vw, 28px);
+    border-top: 1px solid rgba(42, 31, 61, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .theinmag-stockist-apply-form__social-text {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+    text-align: center;
+    max-width: 44ch;
+  }
+
+  .theinmag-stockist-apply-form__social-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .theinmag-stockist-apply-form__social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: #FFFFFF;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    box-shadow: 0 3px 10px rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-stockist-apply-form__social-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+  .theinmag-stockist-apply-form__social-icon--instagram { background-color: var(--color-purple-dark, #5D3A7A); }
+  .theinmag-stockist-apply-form__social-icon--facebook  { background-color: var(--color-teal-dark, #2D6878); }
+
+  .theinmag-stockist-apply-form__social-icon:hover,
+  .theinmag-stockist-apply-form__social-icon:focus-visible {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow: 0 6px 16px rgba(42, 31, 61, 0.2);
+    outline: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-stockist-apply-form__social-icon { transition: none; }
+    .theinmag-stockist-apply-form__social-icon:hover,
+    .theinmag-stockist-apply-form__social-icon:focus-visible { transform: none; }
   }
 
   /* ----- Thank-you block ----- */
@@ -640,6 +754,29 @@
       "id": "success_secondary_label",
       "label": "Secondary link label",
       "default": "← Send another application"
+    },
+    {
+      "type": "header",
+      "content": "Social-proof footer"
+    },
+    {
+      "type": "textarea",
+      "id": "social_text",
+      "label": "Footer text",
+      "default": "Curious to see what theINmag is about? Find us on Instagram and Facebook.",
+      "info": "Leave blank to hide the footer entirely."
+    },
+    {
+      "type": "text",
+      "id": "instagram_url",
+      "label": "Instagram URL",
+      "default": "https://www.instagram.com/the.inmag/"
+    },
+    {
+      "type": "text",
+      "id": "facebook_url",
+      "label": "Facebook URL",
+      "default": "https://www.facebook.com/theINmagazine"
     },
     {
       "type": "header",
