@@ -534,7 +534,12 @@
     display: none;
   }
   .theinmag-bm-quiz__tile-item {
-    flex: 0 0 22%;
+    /* FIXED 88px width (was flex-basis 22%). With 50% padding-inline
+       eating the full width of the rail, the content area resolves
+       to 0px - which made every flex-basis: 22% tile compute to 0px
+       wide and the whole rail rendered as empty space. Pixel widths
+       sidestep that math entirely. */
+    flex: 0 0 88px;
     scroll-snap-align: center;
     scroll-snap-stop: always;
     transition: transform 0.2s ease;
@@ -574,20 +579,9 @@
     }
   }
 
-  /* Mobile-only: side-by-side targets so the two pickers sit
-     between the adult rail (above) and kid rail (below). */
-  @media (max-width: 749px) {
-    .theinmag-bm-quiz__targets {
-      flex-direction: row;
-      justify-content: center;
-      gap: 16px;
-      align-items: flex-start;
-    }
-    .theinmag-bm-quiz__target {
-      flex: 1;
-      max-width: 140px;
-    }
-  }
+  /* The mobile-side-by-side rule that used to live here is now the
+     default in the .theinmag-bm-quiz__targets block above - targets
+     are side-by-side at every viewport. */
 
   .theinmag-bm-quiz__tile-item { margin: 0; }
 
@@ -659,17 +653,16 @@
 
   /* ================================================================
      Target zone (middle column): two greyed-out boxes that fill in
-     when the user picks an adult or kid.
-
-     Desktop default: stacked vertically (Grown-up on top, Kid below).
-     Mobile override (in the carousel-layout block further down):
-     side-by-side so the two targets sit between the horizontal rails.
+     when the user picks a grown-up or kid. Side-by-side at every
+     viewport now per Ryan - saves stacking-height regardless of
+     screen size.
      ================================================================ */
   .theinmag-bm-quiz__targets {
     display: flex;
-    flex-direction: column;
-    gap: clamp(12px, 1.4vw, 18px);
-    align-items: center;
+    flex-direction: row;
+    gap: clamp(10px, 1.4vw, 16px);
+    align-items: flex-start;
+    justify-content: center;
   }
 
   .theinmag-bm-quiz__target {
@@ -677,8 +670,8 @@
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    width: 100%;
-    max-width: 180px;
+    flex: 1;
+    max-width: 140px;
   }
 
   /* Crooked-stack effect on the SECONDARY KID frame when the user is
