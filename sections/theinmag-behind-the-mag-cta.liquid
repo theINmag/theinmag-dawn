@@ -191,16 +191,17 @@
     text-align: center;
   }
 
-  /* Card heading: Post Regular hand-lettered, sized down from the
-     prior round so the cards feel like product tiles not headline
-     blocks. */
+  /* Card heading: Inter 700 editorial (was Post Regular). The Post
+     stack across the page was reading as too much hand-lettering
+     by the time the reader hit the closing CTAs - Inter brings the
+     headlines back into a direct, product-tile register. */
   .theinmag-bm-cta__card-heading {
     margin: 0;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(18px, 2vw, 22px);
-    line-height: 1.1;
-    letter-spacing: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(17px, 1.9vw, 20px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
     color: var(--color-inky-purple-navy, #2A1F3D);
   }
   .theinmag-bm-cta__card--peach .theinmag-bm-cta__card-heading { color: var(--color-sandy-orange-dark, #D9783A); }

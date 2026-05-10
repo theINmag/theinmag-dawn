@@ -526,20 +526,28 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 10px;
-    /* 50% padding on each side so the first/last tiles can scroll
-       all the way into the centre of the rail. */
-    padding: 24px 50% 24px 50%;
+    /* Padding-inline was 50% to let the first/last tile scroll to
+       dead-centre. That hack appears to have collapsed the rail to
+       zero content-width on certain mobile rendering paths (Ryan
+       reported empty rails twice). Reverted to a normal 16px gutter
+       so tiles render from the left edge - the user scrolls right
+       to see more. Lose the auto-centre first/last but gain rails
+       that always paint. */
+    padding: 20px 16px;
+    /* scroll-padding-inline gives scroll-snap a centre offset
+       without affecting layout, so the centre-focus JS still works
+       when the user scrolls. */
+    scroll-padding-inline: 50%;
+    /* Defensive min-height so any future regression that collapses
+       the row still leaves a visible strip. */
+    min-height: 120px;
   }
   .theinmag-bm-quiz__tiles::-webkit-scrollbar {
     display: none;
   }
   .theinmag-bm-quiz__tile-item {
-    /* FIXED 88px width (was flex-basis 22%). With 50% padding-inline
-       eating the full width of the rail, the content area resolves
-       to 0px - which made every flex-basis: 22% tile compute to 0px
-       wide and the whole rail rendered as empty space. Pixel widths
-       sidestep that math entirely. */
     flex: 0 0 88px;
+    width: 88px;
     scroll-snap-align: center;
     scroll-snap-stop: always;
     transition: transform 0.2s ease;
@@ -653,16 +661,19 @@
 
   /* ================================================================
      Target zone (middle column): two greyed-out boxes that fill in
-     when the user picks a grown-up or kid. Side-by-side at every
-     viewport now per Ryan - saves stacking-height regardless of
-     screen size.
+     when the user picks a grown-up or kid.
+
+     Desktop default: stacked vertically (Grown-up on top, Kid below)
+     so each box can be physically bigger inside the narrow targets
+     column. Mobile (<750px): side-by-side so the two pickers fit
+     between the horizontal rails without pushing the kid rail off
+     the screen.
      ================================================================ */
   .theinmag-bm-quiz__targets {
     display: flex;
-    flex-direction: row;
-    gap: clamp(10px, 1.4vw, 16px);
-    align-items: flex-start;
-    justify-content: center;
+    flex-direction: column;
+    gap: clamp(12px, 1.4vw, 18px);
+    align-items: center;
   }
 
   .theinmag-bm-quiz__target {
@@ -670,8 +681,21 @@
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    flex: 1;
-    max-width: 140px;
+    width: 100%;
+    max-width: 180px;
+  }
+
+  @media (max-width: 749px) {
+    .theinmag-bm-quiz__targets {
+      flex-direction: row;
+      justify-content: center;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .theinmag-bm-quiz__target {
+      flex: 1;
+      max-width: 140px;
+    }
   }
 
   /* Crooked-stack effect on the SECONDARY KID frame when the user is
