@@ -637,17 +637,23 @@
     margin-top: clamp(8px, 1.4vw, 14px);
   }
 
-  /* Sharp-cornered rectangle wrapping the heading + role together
-     for the BM instance (scoped via .--heading-inter so the homepage
-     Tam version stays as-is). Encapsulates the pull-quote heading +
-     "Glad you asked" answer as one boxed unit. */
+  /* Heading + role boxed as a raised card next to the video. Sits
+     on the pink __card surface but pops off it with its own cream
+     surface + drop shadow - reads as a layered "pull-quote sticker"
+     stuck on top of the larger card. Scoped via .--heading-inter
+     so the homepage Meet Tam stays as-is. The CTA below stays
+     outside this card via __copy--bottom. */
   .theinmag-meet-tam--heading-inter .theinmag-meet-tam__copy--top {
-    border: 2px solid var(--color-inky-purple-navy, #2A1F3D);
+    background-color: var(--color-cream, #FBF6EA);
+    border: 0;
     border-radius: 0;
-    padding: clamp(20px, 2.6vw, 32px) clamp(22px, 2.8vw, 36px);
+    padding: clamp(24px, 3vw, 40px) clamp(24px, 3vw, 40px);
     align-items: flex-start;
     align-self: stretch;
     text-align: left;
+    box-shadow:
+      0 16px 36px rgba(42, 31, 61, 0.18),
+      0 6px 14px rgba(42, 31, 61, 0.12);
   }
 
   .theinmag-meet-tam__role {
