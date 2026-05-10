@@ -1,0 +1,587 @@
+{%- comment -%}
+  theinmag-stockist-apply-form
+  Section 2 of /pages/become-a-stockist. Single-column form (~640px max)
+  centred on a cream background — visually consistent with the contact
+  page's form column but without the right-column image / router /
+  socials, keeping the apply page's focus tight.
+
+  Form uses Shopify {% form 'contact' %} so submissions route to the
+  store's notification email (heyhey@theinmag.com.au). Stockist-specific
+  fields are passed as contact[<key>] — they render in the notification
+  email body labelled with the bracketed key, so the inbox copy still
+  reads cleanly.
+
+  Fields collected:
+    - Business name (required)        contact[business_name]
+    - Contact name (required)         contact[name]
+    - Email (required)                contact[email]
+    - Phone (optional)                contact[phone]
+    - Town & state (required)         contact[location]
+    - Website / Instagram (optional)  contact[web_or_social]
+    - Why a good fit (required)       contact[body]   (1 sentence)
+
+  States:
+    - Default:                        form visible
+    - form.posted_successfully?:      form REPLACED with thank-you block
+    - form.errors:                    error messages above the form,
+                                      form values preserved (Shopify
+                                      auto-preserves form.name,
+                                      form.email, form.body — extra
+                                      fields preserve via the value="
+                                      lookups below).
+
+  Honeypot bot trap is a hidden field; JS blocks submission if filled.
+  Pattern matches theinmag-contact-form for consistency.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign intro = section.settings.intro_html
+  assign submit_label = section.settings.submit_label
+
+  assign success_heading = section.settings.success_heading
+  assign success_body = section.settings.success_body
+  assign success_cta_label = section.settings.success_cta_label
+  assign success_cta_url = section.settings.success_cta_url
+  assign success_secondary_label = section.settings.success_secondary_label
+
+  assign section_style = '--saf-pt: ' | append: section.settings.padding_top | append: 'px; --saf-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-stockist-apply-form"
+  data-theinmag-stockist-apply-form
+  aria-labelledby="theinmag-stockist-apply-form-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-stockist-apply-form__inner">
+
+    {%- form 'contact', id: 'theinmag-stockist-apply-form-element', class: 'theinmag-stockist-apply-form__form' -%}
+      {%- if form.posted_successfully? -%}
+        {%- comment -%} Thank-you block - replaces the form in the same column {%- endcomment -%}
+        <div class="theinmag-stockist-apply-form__thanks" tabindex="-1" autofocus>
+          <div class="theinmag-stockist-apply-form__thanks-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" focusable="false">
+              <circle cx="32" cy="32" r="32" fill="#F9C23C"/>
+              <path d="M19 33.5 L28 42 L46 23" fill="none" stroke="#2A1F3D" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          {%- if success_heading != blank -%}
+            <h2 class="theinmag-stockist-apply-form__thanks-heading">{{ success_heading }}</h2>
+          {%- endif -%}
+          {%- if success_body != blank -%}
+            <p class="theinmag-stockist-apply-form__thanks-body">{{ success_body }}</p>
+          {%- endif -%}
+          {%- if success_cta_label != blank and success_cta_url != blank -%}
+            <a class="theinmag-btn theinmag-btn--primary theinmag-stockist-apply-form__thanks-cta" href="{{ success_cta_url }}">{{ success_cta_label }}</a>
+          {%- endif -%}
+          {%- if success_secondary_label != blank -%}
+            <a class="theinmag-stockist-apply-form__thanks-back" href="{{ page.url | default: '/pages/become-a-stockist' }}">{{ success_secondary_label }}</a>
+          {%- endif -%}
+        </div>
+      {%- else -%}
+        <header class="theinmag-stockist-apply-form__header">
+          {%- if heading != blank -%}
+            <h2 id="theinmag-stockist-apply-form-heading" class="theinmag-stockist-apply-form__heading">{{ heading }}</h2>
+          {%- endif -%}
+          {%- if intro != blank -%}
+            <div class="theinmag-stockist-apply-form__intro">{{ intro }}</div>
+          {%- endif -%}
+        </header>
+
+        {%- if form.errors -%}
+          <div class="theinmag-stockist-apply-form__errors" role="alert" tabindex="-1" autofocus>
+            <p class="theinmag-stockist-apply-form__errors-heading">We couldn't send your application just yet:</p>
+            <ul class="theinmag-stockist-apply-form__errors-list">
+              {%- for field in form.errors -%}
+                <li>
+                  {%- assign translated = form.errors.translated_fields[field] | default: field -%}
+                  {{ translated | capitalize }} {{ form.errors.messages[field] }}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+
+        <div class="theinmag-stockist-apply-form__field">
+          <label class="theinmag-stockist-apply-form__label" for="theinmag-stockist-apply-form-business">Shop or business name <span class="theinmag-stockist-apply-form__required" aria-hidden="true">*</span></label>
+          <input
+            class="theinmag-stockist-apply-form__input"
+            type="text"
+            id="theinmag-stockist-apply-form-business"
+            name="contact[business_name]"
+            autocomplete="organization"
+            required
+            value="{{ form.business_name }}"
+          >
+        </div>
+
+        <div class="theinmag-stockist-apply-form__row">
+          <div class="theinmag-stockist-apply-form__field">
+            <label class="theinmag-stockist-apply-form__label" for="theinmag-stockist-apply-form-name">Your name <span class="theinmag-stockist-apply-form__required" aria-hidden="true">*</span></label>
+            <input
+              class="theinmag-stockist-apply-form__input"
+              type="text"
+              id="theinmag-stockist-apply-form-name"
+              name="contact[name]"
+              autocomplete="name"
+              required
+              value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.first_name }}{% endif %}"
+            >
+          </div>
+
+          <div class="theinmag-stockist-apply-form__field">
+            <label class="theinmag-stockist-apply-form__label" for="theinmag-stockist-apply-form-email">Email <span class="theinmag-stockist-apply-form__required" aria-hidden="true">*</span></label>
+            <input
+              class="theinmag-stockist-apply-form__input"
+              type="email"
+              id="theinmag-stockist-apply-form-email"
+              name="contact[email]"
+              autocomplete="email"
+              spellcheck="false"
+              autocapitalize="off"
+              required
+              aria-required="true"
+              {% if form.errors contains 'email' %}aria-invalid="true"{% endif %}
+              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+            >
+          </div>
+        </div>
+
+        <div class="theinmag-stockist-apply-form__row">
+          <div class="theinmag-stockist-apply-form__field">
+            <label class="theinmag-stockist-apply-form__label" for="theinmag-stockist-apply-form-phone">Phone <span class="theinmag-stockist-apply-form__optional">(optional)</span></label>
+            <input
+              class="theinmag-stockist-apply-form__input"
+              type="tel"
+              id="theinmag-stockist-apply-form-phone"
+              name="contact[phone]"
+              autocomplete="tel"
+              inputmode="tel"
+              value="{{ form.phone }}"
+            >
+          </div>
+
+          <div class="theinmag-stockist-apply-form__field">
+            <label class="theinmag-stockist-apply-form__label" for="theinmag-stockist-apply-form-location">Town &amp; state <span class="theinmag-stockist-apply-form__required" aria-hidden="true">*</span></label>
+            <input
+              class="theinmag-stockist-apply-form__input"
+              type="text"
+              id="theinmag-stockist-apply-form-location"
+              name="contact[location]"
+              placeholder="e.g. Castlemaine, VIC"
+              autocomplete="address-level2"
+              required
+              value="{{ form.location }}"
+            >
+          </div>
+        </div>
+
+        <div class="theinmag-stockist-apply-form__field">
+          <label class="theinmag-stockist-apply-form__label" for="theinmag-stockist-apply-form-web">Website or Instagram <span class="theinmag-stockist-apply-form__optional">(optional)</span></label>
+          <input
+            class="theinmag-stockist-apply-form__input"
+            type="text"
+            id="theinmag-stockist-apply-form-web"
+            name="contact[web_or_social]"
+            placeholder="https://yourshop.com.au or @yourshop"
+            autocomplete="url"
+            value="{{ form.web_or_social }}"
+          >
+        </div>
+
+        <div class="theinmag-stockist-apply-form__field">
+          <label class="theinmag-stockist-apply-form__label" for="theinmag-stockist-apply-form-body">Why is your shop a good fit? <span class="theinmag-stockist-apply-form__required" aria-hidden="true">*</span></label>
+          <textarea
+            class="theinmag-stockist-apply-form__input theinmag-stockist-apply-form__textarea"
+            id="theinmag-stockist-apply-form-body"
+            name="contact[body]"
+            rows="3"
+            placeholder="A sentence is plenty - what kind of shop is yours, and how does it support local creativity?"
+            required
+          >{{ form.body }}</textarea>
+        </div>
+
+        {%- comment -%}
+          Honeypot. Visually-hidden + autocomplete="off" + tabindex=-1
+          so humans never reach it; bots auto-fill, JS blocks submit.
+        {%- endcomment -%}
+        <div class="theinmag-stockist-apply-form__honeypot" aria-hidden="true">
+          <label for="theinmag-stockist-apply-form-website">Leave this field empty</label>
+          <input type="text" id="theinmag-stockist-apply-form-website" name="contact[website]" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="theinmag-stockist-apply-form__submit-row">
+          <button type="submit" class="theinmag-btn theinmag-btn--primary theinmag-stockist-apply-form__submit">{{ submit_label | default: 'Send my interest' }}</button>
+        </div>
+      {%- endif -%}
+    {%- endform -%}
+
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-stockist-apply-form
+     Cream background. Single-column, max-width ~640px so the form
+     stays close to the eye on desktop without sprawling. Field rows
+     pair up at desktop (name+email, phone+location) for vertical
+     compactness; stack on mobile.
+     ================================================================ */
+
+  .theinmag-stockist-apply-form {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--saf-pt, 56px) clamp(16px, 4vw, 32px) var(--saf-pb, 56px);
+    position: relative;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-stockist-apply-form {
+      padding-top: calc(var(--saf-pt, 56px) * 1.2);
+      padding-bottom: calc(var(--saf-pb, 56px) * 1.2);
+    }
+  }
+
+  .theinmag-stockist-apply-form__inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .theinmag-stockist-apply-form__form {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+
+  .theinmag-stockist-apply-form__header {
+    margin-bottom: clamp(4px, 0.6vw, 8px);
+    text-align: center;
+  }
+
+  .theinmag-stockist-apply-form__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(26px, 3.4vw, 34px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0 0 clamp(10px, 1.2vw, 14px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-stockist-apply-form__intro {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.3vw, 16px);
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.92;
+    max-width: 56ch;
+    margin: 0 auto;
+  }
+
+  .theinmag-stockist-apply-form__intro p {
+    margin: 0 0 0.7em;
+  }
+  .theinmag-stockist-apply-form__intro p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ----- Errors ----- */
+  .theinmag-stockist-apply-form__errors {
+    background-color: #FBE0D6;
+    color: #8B2D1A;
+    border-radius: var(--radius-md, 12px);
+    padding: clamp(12px, 1.6vw, 16px) clamp(14px, 1.8vw, 18px);
+    border-left: 4px solid var(--color-coral-dark, #C9543E);
+  }
+
+  .theinmag-stockist-apply-form__errors-heading {
+    margin: 0 0 6px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .theinmag-stockist-apply-form__errors-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ----- Field rows (paired at desktop) ----- */
+  .theinmag-stockist-apply-form__row {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-stockist-apply-form__row {
+      flex-direction: row;
+      gap: clamp(14px, 1.8vw, 20px);
+    }
+    .theinmag-stockist-apply-form__row .theinmag-stockist-apply-form__field {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+
+  /* ----- Single field ----- */
+  .theinmag-stockist-apply-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .theinmag-stockist-apply-form__label {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-stockist-apply-form__required {
+    color: var(--color-coral-dark, #C9543E);
+    margin-left: 2px;
+  }
+
+  .theinmag-stockist-apply-form__optional {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.55;
+    font-weight: 400;
+    margin-left: 4px;
+  }
+
+  .theinmag-stockist-apply-form__input {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    background-color: #FFFFFF;
+    border: 1.5px solid rgba(42, 31, 61, 0.15);
+    border-radius: var(--radius-md, 12px);
+    padding: 11px 14px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color var(--transition-standard, 0.15s ease), box-shadow var(--transition-standard, 0.15s ease);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .theinmag-stockist-apply-form__input:focus,
+  .theinmag-stockist-apply-form__input:focus-visible {
+    border-color: var(--color-purple-dark, #5D3A7A);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(93, 58, 122, 0.15);
+  }
+
+  .theinmag-stockist-apply-form__input[aria-invalid="true"] {
+    border-color: var(--color-coral-dark, #C9543E);
+  }
+
+  .theinmag-stockist-apply-form__textarea {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.55;
+  }
+
+  /* ----- Honeypot ----- */
+  .theinmag-stockist-apply-form__honeypot {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* ----- Submit ----- */
+  .theinmag-stockist-apply-form__submit-row {
+    margin-top: clamp(6px, 0.8vw, 10px);
+    display: flex;
+    justify-content: center;
+  }
+
+  .theinmag-stockist-apply-form .theinmag-stockist-apply-form__submit {
+    min-width: 200px;
+  }
+
+  /* ----- Thank-you block ----- */
+  .theinmag-stockist-apply-form__thanks {
+    background-color: #FFFFFF;
+    border-radius: var(--radius-xl, 28px);
+    padding: clamp(28px, 4vw, 40px) clamp(20px, 3vw, 32px);
+    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+
+  .theinmag-stockist-apply-form__thanks-icon {
+    width: clamp(72px, 9vw, 88px);
+    height: clamp(72px, 9vw, 88px);
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .theinmag-stockist-apply-form__thanks-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: drop-shadow(0 4px 0 var(--color-yellow-shadow, #D4A02E));
+  }
+
+  .theinmag-stockist-apply-form__thanks-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.2vw, 38px);
+    line-height: 1.1;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-stockist-apply-form__thanks-body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.3vw, 16px);
+    line-height: 1.6;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    max-width: 52ch;
+  }
+
+  .theinmag-stockist-apply-form__thanks-cta {
+    margin-top: clamp(2px, 0.4vw, 6px);
+  }
+
+  .theinmag-stockist-apply-form__thanks-back {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: var(--color-link, #2D6878);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color var(--transition-standard, 0.15s ease), text-decoration-thickness var(--transition-standard, 0.15s ease);
+  }
+
+  .theinmag-stockist-apply-form__thanks-back:hover,
+  .theinmag-stockist-apply-form__thanks-back:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration-thickness: 2px;
+    outline: none;
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var form = document.getElementById('theinmag-stockist-apply-form-element');
+    if (!form) return;
+
+    form.addEventListener('submit', function (evt) {
+      var honeypot = form.querySelector('input[name="contact[website]"]');
+      if (honeypot && honeypot.value) {
+        evt.preventDefault();
+        return false;
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Stockist apply form",
+  "tag": "section",
+  "class": "theinmag-stockist-apply-form-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Form copy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Tell us about your shop"
+    },
+    {
+      "type": "richtext",
+      "id": "intro_html",
+      "label": "Intro paragraph",
+      "default": "<p>theINmag lives in the bookshops, cafes, galleries and gift shops that already champion local creativity. If your business is one of them, we'd love to hear from you.</p><p>Drop the basics below - a sentence is plenty. If your shop feels like a good fit we'll be in touch with the next steps.</p>"
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Submit button label",
+      "default": "Send my interest"
+    },
+    {
+      "type": "header",
+      "content": "Thank-you block (after a successful submission)"
+    },
+    {
+      "type": "text",
+      "id": "success_heading",
+      "label": "Heading",
+      "default": "Got it!"
+    },
+    {
+      "type": "textarea",
+      "id": "success_body",
+      "label": "Body",
+      "default": "Thanks for your interest. We read every application personally. If your shop feels like a good fit, we'll be in touch within a week with the next steps - including a follow-up form for your stockist details and a special discount code based on your order quantities."
+    },
+    {
+      "type": "text",
+      "id": "success_cta_label",
+      "label": "Primary CTA label",
+      "default": "Read field notes"
+    },
+    {
+      "type": "text",
+      "id": "success_cta_url",
+      "label": "Primary CTA URL",
+      "default": "/blogs/field-notes"
+    },
+    {
+      "type": "text",
+      "id": "success_secondary_label",
+      "label": "Secondary link label",
+      "default": "← Send another application"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    }
+  ],
+  "presets": [
+    {
+      "name": "Stockist apply form"
+    }
+  ]
+}
+{% endschema %}

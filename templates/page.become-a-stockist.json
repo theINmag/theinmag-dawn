@@ -1,0 +1,33 @@
+{
+  "sections": {
+    "hero": {
+      "type": "theinmag-stockist-apply-hero",
+      "settings": {
+        "heading": "Become a stockist",
+        "subhead": "We're looking for shops that grow creative communities. Could yours be next?",
+        "bg_filename": "theinmag-stockist-shelf.jpg",
+        "padding_top": 48,
+        "padding_bottom": 40
+      }
+    },
+    "form": {
+      "type": "theinmag-stockist-apply-form",
+      "settings": {
+        "heading": "Tell us about your shop",
+        "intro_html": "<p>theINmag lives in the bookshops, cafes, galleries and gift shops that already champion local creativity. If your business is one of them, we'd love to hear from you.</p><p>Drop the basics below - a sentence is plenty. If your shop feels like a good fit we'll be in touch with the next steps.</p>",
+        "submit_label": "Send my interest",
+        "success_heading": "Got it!",
+        "success_body": "Thanks for your interest. We read every application personally. If your shop feels like a good fit, we'll be in touch within a week with the next steps - including a follow-up form for your stockist details and a special discount code based on your order quantities.",
+        "success_cta_label": "Read field notes",
+        "success_cta_url": "/blogs/field-notes",
+        "success_secondary_label": "← Send another application",
+        "padding_top": 56,
+        "padding_bottom": 56
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "form"
+  ]
+}

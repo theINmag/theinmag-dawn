@@ -91,13 +91,12 @@
       </div>
 
       <div class="theinmag-stockists__cta-wrap">
-        <button
-          type="button"
+        <a
           class="theinmag-stockists__cta"
-          data-stockists-open-modal
+          href="/pages/become-a-stockist"
         >
           Become a stockist
-        </button>
+        </a>
       </div>
     </aside>
 
@@ -1084,14 +1083,10 @@
       applyFilters(); // re-run so renderMarkers paints onto the now-ready map
     });
 
-    // Modal bridge: CTA dispatches a global event the sibling
-    // theinmag-stockists-modal section listens for.
-    section.addEventListener('click', function (e) {
-      var target = e.target.closest('[data-stockists-open-modal]');
-      if (!target) return;
-      e.preventDefault();
-      document.dispatchEvent(new CustomEvent('theinmag-stockists:open-modal'));
-    });
+    // (The "Become a stockist" CTA is a plain <a href> to
+    // /pages/become-a-stockist now — no JS needed. The sibling
+    // theinmag-stockists-modal section is no longer used by this page
+    // but its file remains for any future modal-style use.)
   })();
 {%- endjavascript -%}
 
