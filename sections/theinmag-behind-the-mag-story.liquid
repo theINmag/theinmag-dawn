@@ -448,6 +448,14 @@
     opacity: 0.7;
   }
 
+  /* Arrow buttons are desktop-only - on mobile the swipe gesture is the
+     primary affordance and the buttons would just compete with content. */
+  @media (max-width: 749px) {
+    .theinmag-bm-story__arrow {
+      display: none !important;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .theinmag-bm-story__list {
       scroll-behavior: auto;
@@ -462,6 +470,141 @@
     }
   }
 {%- endstylesheet -%}
+
+<script>
+  /* ================================================================
+     Carousel JS - arrow paging, dot indicator, progress text,
+     keyboard arrow nav. Markup was already in place from Stage 1; this
+     script enables the disabled controls and wires up the interaction.
+     ================================================================ */
+  (function () {
+    var root = document.querySelector('[data-theinmag-bm-story]');
+    if (!root) return;
+
+    var rail = root.querySelector('[data-bm-story-list]');
+    var prevBtn = root.querySelector('[data-bm-story-prev]');
+    var nextBtn = root.querySelector('[data-bm-story-next]');
+    var dots = Array.prototype.slice.call(root.querySelectorAll('[data-bm-story-dot]'));
+    var progressEl = root.querySelector('[data-bm-story-current]');
+    var cards = Array.prototype.slice.call(root.querySelectorAll('[data-bm-story-card]'));
+
+    if (!rail || !cards.length) return;
+
+    var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var current = 1;
+
+    function getRailPaddingLeft() {
+      var pad = parseInt(getComputedStyle(rail).paddingLeft, 10);
+      return isNaN(pad) ? 0 : pad;
+    }
+
+    /* Find the card whose left edge is closest to the rail's content
+       start. Snap-aligned so this is reliable once the snap settles. */
+    function detectCurrent() {
+      var railRect = rail.getBoundingClientRect();
+      var pad = getRailPaddingLeft();
+      var bestIdx = 1;
+      var bestDist = Infinity;
+      for (var i = 0; i < cards.length; i++) {
+        var cardRect = cards[i].getBoundingClientRect();
+        var dist = Math.abs((cardRect.left - railRect.left) - pad);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = i + 1;
+        }
+      }
+      return bestIdx;
+    }
+
+    function updateUI() {
+      if (progressEl) progressEl.textContent = String(current);
+      dots.forEach(function (dot) {
+        var idx = parseInt(dot.getAttribute('data-index'), 10);
+        var active = idx === current;
+        dot.classList.toggle('is-active', active);
+        if (active) {
+          dot.setAttribute('aria-current', 'true');
+        } else {
+          dot.removeAttribute('aria-current');
+        }
+      });
+      if (prevBtn) prevBtn.disabled = current <= 1;
+      if (nextBtn) nextBtn.disabled = current >= cards.length;
+    }
+
+    function scrollToCard(idx) {
+      if (idx < 1 || idx > cards.length) return;
+      var card = cards[idx - 1];
+      var railRect = rail.getBoundingClientRect();
+      var cardRect = card.getBoundingClientRect();
+      var pad = getRailPaddingLeft();
+      var newLeft = rail.scrollLeft + (cardRect.left - railRect.left) - pad;
+      rail.scrollTo({
+        left: Math.max(0, newLeft),
+        behavior: prefersReducedMotion ? 'auto' : 'smooth'
+      });
+      current = idx;
+      updateUI();
+    }
+
+    /* Enable the controls now that JS is running. */
+    if (prevBtn) {
+      prevBtn.disabled = false;
+      prevBtn.hidden = false;
+      prevBtn.addEventListener('click', function () {
+        scrollToCard(current - 1);
+      });
+    }
+    if (nextBtn) {
+      nextBtn.disabled = false;
+      nextBtn.hidden = false;
+      nextBtn.addEventListener('click', function () {
+        scrollToCard(current + 1);
+      });
+    }
+
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function () {
+        var idx = parseInt(dot.getAttribute('data-index'), 10);
+        if (!isNaN(idx)) scrollToCard(idx);
+      });
+    });
+
+    /* Keyboard arrow nav when the rail is focused. The rail has
+       tabindex="0" so it picks up Tab focus from the eyebrow row. */
+    rail.addEventListener('keydown', function (evt) {
+      if (evt.key === 'ArrowRight') {
+        evt.preventDefault();
+        scrollToCard(current + 1);
+      } else if (evt.key === 'ArrowLeft') {
+        evt.preventDefault();
+        scrollToCard(current - 1);
+      } else if (evt.key === 'Home') {
+        evt.preventDefault();
+        scrollToCard(1);
+      } else if (evt.key === 'End') {
+        evt.preventDefault();
+        scrollToCard(cards.length);
+      }
+    });
+
+    /* Detect current card on scroll (rAF-throttled) so the dot indicator
+       stays in sync with native swipe + browser back/forward. */
+    var scrollTimer = null;
+    rail.addEventListener('scroll', function () {
+      if (scrollTimer) cancelAnimationFrame(scrollTimer);
+      scrollTimer = requestAnimationFrame(function () {
+        var detected = detectCurrent();
+        if (detected !== current) {
+          current = detected;
+          updateUI();
+        }
+      });
+    }, { passive: true });
+
+    updateUI();
+  })();
+</script>
 
 {% schema %}
 {
