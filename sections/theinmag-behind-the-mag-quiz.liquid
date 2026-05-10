@@ -26,7 +26,8 @@
   assign heading = section.settings.heading | default: 'Match the kid to the maker'
   assign intro_1 = section.settings.intro_1
   assign intro_2 = section.settings.intro_2
-  assign skip_label = section.settings.skip_label | default: 'Skip the quiz · just show me the team'
+  assign skip_label = section.settings.skip_label | default: 'See the whole team'
+  assign skip_prompt = section.settings.skip_prompt | default: 'Wanna skip the quiz?'
   assign see_team_label = section.settings.see_team_label | default: 'See the whole team'
   assign aeo_heading = section.settings.aeo_heading | default: 'Who is on the theINmag team?'
   assign all_done_message = section.settings.all_done_message | default: "Nice work, you've met the whole team."
@@ -212,6 +213,9 @@
     </div>
 
     <footer class="theinmag-bm-quiz__foot">
+      {%- if skip_prompt != blank -%}
+        <p class="theinmag-bm-quiz__skip-prompt">{{ skip_prompt }}</p>
+      {%- endif -%}
       <button
         type="button"
         class="theinmag-bm-quiz__skip"
@@ -221,6 +225,30 @@
       >
         {{ skip_label }}
       </button>
+
+      {%- comment -%}
+        Peek strip - row of all adult avatars clipped at the bottom
+        so the user sees a hint of "more below if you click." Sits
+        immediately under the skip button so the cut-off feels like
+        the team is peeking from behind a drawer.
+      {%- endcomment -%}
+      <div class="theinmag-bm-quiz__peek" data-bm-quiz-peek aria-hidden="true">
+        <div class="theinmag-bm-quiz__peek-row">
+          {%- for block in reveal_blocks -%}
+            {%- liquid
+              assign peek_src = ''
+              if block.settings.adult_image != blank
+                assign peek_src = block.settings.adult_image | image_url: width: 200
+              elsif block.settings.adult_fallback_filename != blank
+                assign peek_src = block.settings.adult_fallback_filename | asset_url
+              endif
+            -%}
+            {%- if peek_src != blank -%}
+              <img class="theinmag-bm-quiz__peek-avatar" src="{{ peek_src }}" alt="" loading="lazy">
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
     </footer>
   </div>
 
@@ -464,20 +492,81 @@
   }
 
   /* ================================================================
-     Tiles - the photos in each grid.
+     Tiles - the photos in each rail.
+     Mobile: horizontal scroll rail with scroll-snap, scaled-center
+     focus (the tile closest to the centre of the rail gets a slight
+     scale-up via JS-applied .is-centered class). Lets the whole quiz
+     fit on one Pixel 6 viewport without scrolling past it.
+     Desktop (>=750px): switches to the previous grid layout.
      ================================================================ */
   .theinmag-bm-quiz__tiles {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(8px, 1.2vw, 12px);
+    /* Default = mobile carousel */
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 10px;
+    /* 50% padding on each side so the first/last tiles can scroll
+       all the way into the centre of the rail. */
+    padding: 24px 50% 24px 50%;
+  }
+  .theinmag-bm-quiz__tiles::-webkit-scrollbar {
+    display: none;
+  }
+  .theinmag-bm-quiz__tile-item {
+    flex: 0 0 22%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    transition: transform 0.2s ease;
+  }
+  .theinmag-bm-quiz__tile-item.is-centered {
+    transform: scale(1.18);
+  }
+  .theinmag-bm-quiz__tile-item.is-centered .theinmag-bm-quiz__tile-frame {
+    box-shadow: 0 6px 18px rgba(42, 31, 61, 0.24);
   }
 
   @media (min-width: 750px) {
+    /* Tablet+: back to grid layout (desktop default). */
+    .theinmag-bm-quiz__tiles {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: clamp(8px, 1.2vw, 12px);
+      padding: 0;
+      overflow: visible;
+      scroll-snap-type: none;
+    }
+    .theinmag-bm-quiz__tile-item {
+      flex: unset;
+      scroll-snap-align: none;
+      transform: none;
+    }
+    .theinmag-bm-quiz__tile-item.is-centered {
+      transform: none;
+    }
     .theinmag-bm-quiz__column--kids .theinmag-bm-quiz__tiles {
       grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* Mobile-only: side-by-side targets so the two pickers sit
+     between the adult rail (above) and kid rail (below). */
+  @media (max-width: 749px) {
+    .theinmag-bm-quiz__targets {
+      flex-direction: row;
+      justify-content: center;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .theinmag-bm-quiz__target {
+      flex: 1;
+      max-width: 140px;
     }
   }
 
@@ -552,6 +641,10 @@
   /* ================================================================
      Target zone (middle column): two greyed-out boxes that fill in
      when the user picks an adult or kid.
+
+     Desktop default: stacked vertically (Grown-up on top, Kid below).
+     Mobile override (in the carousel-layout block further down):
+     side-by-side so the two targets sit between the horizontal rails.
      ================================================================ */
   .theinmag-bm-quiz__targets {
     display: flex;
@@ -567,6 +660,32 @@
     gap: 6px;
     width: 100%;
     max-width: 180px;
+  }
+
+  /* Crooked-stack effect on the SECONDARY KID frame when the user is
+     working a paired card (Ryan+Tam, Snowy+Libby). The second kid
+     image overlays the first, rotated and offset, so it visually
+     reads as "two stacked photos" rather than "two boxes in a column."
+     Only applies to the kid stack - the grown-up stack keeps the
+     clean vertical layout. */
+  .theinmag-bm-quiz__target--kid .theinmag-bm-quiz__target-stack {
+    position: relative;
+  }
+  .theinmag-bm-quiz__target--kid .theinmag-bm-quiz__target-frame--secondary {
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    width: 100%;
+    transform: rotate(-5deg);
+    z-index: 2;
+    box-shadow: 0 8px 18px rgba(42, 31, 61, 0.22);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bm-quiz__target--kid .theinmag-bm-quiz__target-frame--secondary {
+      transform: none;
+      top: 0;
+      left: 8px;
+    }
   }
 
   .theinmag-bm-quiz__target-label {
@@ -655,8 +774,22 @@
 
   .theinmag-bm-quiz__foot {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(6px, 1vw, 10px);
     padding-top: clamp(8px, 1.4vw, 16px);
+  }
+
+  /* "Wanna skip the quiz?" prompt sits above the skip button. Post
+     Regular for the playful brand voice. */
+  .theinmag-bm-quiz__skip-prompt {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(18px, 2.2vw, 22px);
+    line-height: 1.1;
+    color: var(--color-purple-dark, #5D3A7A);
+    text-align: center;
   }
 
   .theinmag-bm-quiz__skip {
@@ -672,7 +805,8 @@
     border-radius: 32px;
     padding: 10px 22px;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    transform-origin: center;
   }
   .theinmag-bm-quiz__skip:hover {
     background-color: var(--color-purple-dark, #5D3A7A);
@@ -685,6 +819,71 @@
   .theinmag-bm-quiz__skip[aria-expanded="true"] {
     background-color: var(--color-purple-dark, #5D3A7A);
     color: #FFFFFF;
+  }
+
+  /* Wiggle + zoom animation that kicks in via .is-wiggling class.
+     Added by JS when the user has scrolled past the quiz section
+     without completing it, signalling "hey, you can skip this."
+     Intermittent (30% of the 3s cycle is the actual wiggle, rest
+     is rest) so it nags without being annoying. */
+  @keyframes theinmag-bm-quiz-skip-wiggle {
+    0%, 70%, 100% { transform: rotate(0deg) scale(1); }
+    74%           { transform: rotate(-4deg) scale(1.08); }
+    78%           { transform: rotate(4deg) scale(1.08); }
+    82%           { transform: rotate(-3deg) scale(1.05); }
+    86%           { transform: rotate(3deg) scale(1.05); }
+    90%           { transform: rotate(-2deg) scale(1.04); }
+    94%           { transform: rotate(0deg) scale(1.02); }
+  }
+  .theinmag-bm-quiz__skip.is-wiggling {
+    animation: theinmag-bm-quiz-skip-wiggle 3s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bm-quiz__skip.is-wiggling {
+      animation: none;
+    }
+  }
+
+  /* Peek strip - clipped row of adult avatars below the skip button.
+     Visible only the top portion of each avatar so the user reads
+     it as "team peeking from behind a drawer." Fades out at the
+     bottom into the section bg. Hidden when the roster is open. */
+  .theinmag-bm-quiz__peek {
+    position: relative;
+    width: 100%;
+    max-width: 760px;
+    margin-top: clamp(8px, 1.4vw, 16px);
+    max-height: 56px;
+    overflow: hidden;
+    pointer-events: none;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+  }
+  .theinmag-bm-quiz__peek[data-collapsed="true"] {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+  }
+  .theinmag-bm-quiz__peek-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .theinmag-bm-quiz__peek-avatar {
+    width: clamp(48px, 7vw, 72px);
+    height: clamp(48px, 7vw, 72px);
+    border-radius: 50%;
+    object-fit: cover;
+    flex: 0 0 auto;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 2px 6px rgba(42, 31, 61, 0.18);
+  }
+  .theinmag-bm-quiz__peek::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 24px;
+    background: linear-gradient(to bottom, transparent, #FFFFFF);
   }
 
   /* ================================================================
@@ -1248,22 +1447,105 @@
       k.addEventListener('click', function (evt) { onKidClick(k, evt); });
     });
 
-    /* Skip-to-team toggles the roster accordion. */
+    /* Skip-to-team toggles the roster accordion. Also collapses the
+       peek strip (avatars below the button) when the full roster is
+       open, and stops the wiggle once the user has engaged with it. */
+    var peek = root.querySelector('[data-bm-quiz-peek]');
     if (skipBtn && roster) {
       skipBtn.addEventListener('click', function (evt) {
         evt.stopPropagation();
         var expanded = skipBtn.getAttribute('aria-expanded') === 'true';
         skipBtn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        // Stop wiggling once the user clicks - they've engaged.
+        skipBtn.classList.remove('is-wiggling');
         if (expanded) {
           roster.hidden = true;
+          if (peek) peek.setAttribute('data-collapsed', 'false');
         } else {
           roster.hidden = false;
+          if (peek) peek.setAttribute('data-collapsed', 'true');
           if (!prefersReducedMotion) {
             roster.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }
       });
     }
+
+    /* Wiggle the skip button when the user scrolls past the quiz
+       section without completing it - signals "you can skip this if
+       you want." IntersectionObserver: once the quiz section's
+       intersection ratio drops below threshold (i.e. it's scrolled
+       out of view downward) and the quiz isn't done, add the wiggle
+       class. Removed when the user clicks skip, completes the quiz,
+       or the section returns to view. */
+    function isQuizComplete() {
+      return adults.every(function (a) {
+        return resolvedBlockIds[a.getAttribute('data-block-id')];
+      });
+    }
+    if (skipBtn && 'IntersectionObserver' in window && !prefersReducedMotion) {
+      var hasWiggled = false;
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          // Trigger wiggle when the section is mostly past the
+          // viewport (intersection ratio < 0.2) AND user is scrolled
+          // past the section (boundingClientRect.bottom < window
+          // height / 2 means we're below it).
+          if (!entry.isIntersecting && entry.boundingClientRect.bottom < window.innerHeight * 0.6) {
+            if (!isQuizComplete()) {
+              skipBtn.classList.add('is-wiggling');
+              hasWiggled = true;
+            }
+          } else if (entry.isIntersecting && hasWiggled) {
+            skipBtn.classList.remove('is-wiggling');
+          }
+        });
+      }, { threshold: [0, 0.2] });
+      io.observe(root);
+    }
+
+    /* Mobile carousel center-focus: track which tile is closest to
+       the centre of its rail and add .is-centered. Only the visual
+       reads larger; tapping any visible tile still selects it. JS
+       runs unconditionally; the CSS gates the visual via media
+       query (>=750px resets the transform). */
+    function setupCenterFocus(rail) {
+      if (!rail) return;
+      var items = rail.querySelectorAll('.theinmag-bm-quiz__tile-item');
+      if (!items.length) return;
+      function update() {
+        var railRect = rail.getBoundingClientRect();
+        var centerX = railRect.left + railRect.width / 2;
+        var bestItem = null;
+        var bestDist = Infinity;
+        Array.prototype.forEach.call(items, function (item) {
+          var rect = item.getBoundingClientRect();
+          var itemCenter = rect.left + rect.width / 2;
+          var dist = Math.abs(itemCenter - centerX);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestItem = item;
+          }
+        });
+        Array.prototype.forEach.call(items, function (item) {
+          item.classList.toggle('is-centered', item === bestItem);
+        });
+      }
+      var rafScheduled = false;
+      rail.addEventListener('scroll', function () {
+        if (rafScheduled) return;
+        rafScheduled = true;
+        requestAnimationFrame(function () {
+          rafScheduled = false;
+          update();
+        });
+      }, { passive: true });
+      update();
+    }
+    var adultsRail = root.querySelector('[data-bm-quiz-adults]');
+    var kidsRail = root.querySelector('[data-bm-quiz-kids]');
+    setupCenterFocus(adultsRail);
+    setupCenterFocus(kidsRail);
 
     /* Stop click-anywhere-dismiss from firing on quiz-tablet inner
        interactions. Without this, every tile click would also dismiss
@@ -1283,8 +1565,9 @@
     { "type": "text", "id": "heading", "label": "Heading (H2)" },
     { "type": "textarea", "id": "intro_1", "label": "Intro paragraph 1" },
     { "type": "textarea", "id": "intro_2", "label": "Intro paragraph 2" },
-    { "type": "text", "id": "skip_label", "label": "Skip / show team toggle label" },
-    { "type": "text", "id": "see_team_label", "label": "See team label (post-completion)" },
+    { "type": "text", "id": "skip_prompt", "label": "Pre-skip prompt", "info": "Default: 'Wanna skip the quiz?'" },
+    { "type": "text", "id": "skip_label", "label": "Skip button label", "info": "Default: 'See the whole team'" },
+    { "type": "text", "id": "see_team_label", "label": "Post-completion button label", "info": "Default: 'See the whole team'" },
     { "type": "text", "id": "aeo_heading", "label": "Visually-hidden H2 (question form)" },
     { "type": "header", "content": "Column + target labels" },
     { "type": "text", "id": "adults_column_label", "label": "Adults column heading", "info": "Default: Grown-ups" },
