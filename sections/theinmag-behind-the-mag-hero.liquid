@@ -169,29 +169,41 @@
   .theinmag-bm-hero {
     background-color: var(--color-cream, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(20px, 3vw, 32px) clamp(16px, 4vw, 32px) clamp(48px, 6vw, 80px);
+    padding: 0 0 clamp(40px, 5vw, 64px);
     position: relative;
   }
 
+  /* Full-bleed grid: image runs viewport-edge to viewport-edge with
+     no gutter on the left or top. Body column has internal padding so
+     the personal-note card breathes against the section background. */
   .theinmag-bm-hero__grid {
-    max-width: 1320px;
-    margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr;
-    gap: clamp(24px, 4vw, 40px);
     align-items: stretch;
     position: relative;
   }
 
   @media (min-width: 990px) {
+    .theinmag-bm-hero {
+      /* Section fills the first desktop viewport - image + card both
+         visible without scrolling, next section peeks at the bottom
+         when scrolled. */
+      min-height: 100vh;
+      padding-bottom: 0;
+    }
     .theinmag-bm-hero__grid {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr);
-      gap: clamp(40px, 5vw, 64px);
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 0;
+      min-height: 100vh;
+      align-items: center;
     }
   }
 
   /* ================================================================
-     Cover column - drone image + overlaid H1.
+     Cover column - drone image + H1 overlaid in the SKY (top-left).
+     Image runs full-bleed to the section edges; on desktop the
+     column fills 100vh so the entire hero moment lives in one
+     viewport.
      ================================================================ */
   .theinmag-bm-hero__cover-col {
     position: relative;
@@ -200,7 +212,7 @@
   .theinmag-bm-hero__cover {
     position: relative;
     overflow: hidden;
-    border-radius: 14px;
+    border-radius: 0;
     background-color: var(--color-inky-purple-navy, #2A1F3D);
     aspect-ratio: 4 / 5;
   }
@@ -213,9 +225,9 @@
 
   @media (min-width: 990px) {
     .theinmag-bm-hero__cover {
-      aspect-ratio: 4 / 5;
-      border-radius: 0;
-      min-height: 600px;
+      aspect-ratio: auto;
+      height: 100vh;
+      min-height: 560px;
     }
   }
 
@@ -226,34 +238,31 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 50% 35%;
+    /* Anchor toward the upper-third of the photo so the sky stays in
+       view (the H1 needs that real estate). */
+    object-position: 50% 30%;
   }
 
   .theinmag-bm-hero__cover-placeholder {
     background: linear-gradient(135deg, #5D3A7A 0%, #2A1F3D 100%);
   }
 
+  /* No scrim on the photo - per Ryan's call. The H1 carries its own
+     glow halo (text-shadow) for legibility against the sky. */
   .theinmag-bm-hero__scrim {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.62) 0%,
-      rgba(0, 0, 0, 0.38) 30%,
-      rgba(0, 0, 0, 0.0) 60%
-    );
+    display: none;
   }
 
-  /* H1 + eyebrow + small caption overlay, anchored bottom-left. White
-     text in the same Inter 700 register as the field-notes blog hero
-     so this hero feels editorial, not corporate. */
+  /* H1 anchored at the TOP of the image (sits in the sky portion of
+     the drone shot). White Inter 700 with a soft glow halo - layered
+     dark text-shadows so the white reads cleanly on bright sky. */
   .theinmag-bm-hero__overlay {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
-    padding: clamp(20px, 4vw, 40px) clamp(20px, 4vw, 40px) clamp(20px, 4vw, 32px);
+    top: 0;
+    bottom: auto;
+    padding: clamp(20px, 4vw, 40px);
     color: #FFFFFF;
     z-index: 2;
     display: flex;
@@ -267,12 +276,15 @@
     font-size: clamp(11px, 1.1vw, 13px);
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.86);
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow:
+      0 0 12px rgba(0, 0, 0, 0.5),
+      0 2px 6px rgba(0, 0, 0, 0.35);
   }
 
-  /* Field-notes register - Inter 700, large, tight tracking. The
-     letter-spacing -0.005em is the field-notes blog post-title
-     convention from the design tokens memory. */
+  /* Field-notes register - Inter 700, large, tight tracking. Glow
+     halo via layered text-shadows so the white H1 reads clean on
+     a pale sky. */
   .theinmag-bm-hero__overlay-title {
     margin: 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
@@ -281,7 +293,14 @@
     line-height: 1.05;
     letter-spacing: -0.005em;
     color: #FFFFFF;
-    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+    /* Glow halo: layered dark text-shadows blur out from the type so
+       the white characters always have a soft contrasting backdrop
+       regardless of where exactly they sit on the sky. */
+    text-shadow:
+      0 0 18px rgba(0, 0, 0, 0.48),
+      0 0 36px rgba(0, 0, 0, 0.32),
+      0 0 60px rgba(0, 0, 0, 0.22),
+      0 2px 8px rgba(0, 0, 0, 0.4);
     text-wrap: balance;
     max-width: 18ch;
   }
@@ -292,7 +311,8 @@
     font-weight: 400;
     font-size: clamp(13px, 1.3vw, 15px);
     line-height: 1.4;
-    color: rgba(255, 255, 255, 0.86);
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 0 12px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
     max-width: 36ch;
   }
 
@@ -313,11 +333,20 @@
   }
 
   /* ================================================================
-     Body column - Quick Read card + signature.
+     Body column - Quick Read card + signature. Vertically centred
+     against the cover image on desktop so it sits in the middle of
+     the first viewport when the page loads.
      ================================================================ */
   .theinmag-bm-hero__body-col {
     display: flex;
     align-items: center;
+    padding: clamp(24px, 4vw, 40px) clamp(20px, 4vw, 40px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bm-hero__body-col {
+      padding: clamp(32px, 4vw, 56px) clamp(40px, 5vw, 72px);
+    }
   }
 
   .theinmag-bm-hero__body-inner {
@@ -357,8 +386,10 @@
     margin: 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    /* Smaller than a typical hero subhead - the H1 carries the volume. */
-    font-size: clamp(15px, 1.5vw, 17px);
+    /* Smaller than a typical hero subhead - the H1 carries the volume.
+       Dropped one tier from the round-2 size per Ryan's feedback that
+       the note was reading too loud. */
+    font-size: clamp(13px, 1.2vw, 15px);
     line-height: 1.6;
     color: var(--color-inky-purple-navy, #2A1F3D);
   }
