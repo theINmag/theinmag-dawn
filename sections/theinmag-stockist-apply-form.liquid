@@ -212,7 +212,17 @@
         </div>
 
         <div class="theinmag-stockist-apply-form__submit-row">
-          <button type="submit" class="theinmag-btn theinmag-btn--primary theinmag-stockist-apply-form__submit">{{ submit_label | default: 'Send my interest' }}</button>
+          <button type="submit" class="theinmag-btn theinmag-btn--primary theinmag-stockist-apply-form__submit">
+            <span>{{ submit_label | default: "We'll be in touch" }}</span>
+            {%- comment -%}
+              Paper-plane icon — same SVG path the FREE e-mag flyout
+              uses on its submit button, so the two "we'll respond"
+              moments share visual lineage.
+            {%- endcomment -%}
+            <svg class="theinmag-stockist-apply-form__submit-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 11.5 21 3l-6 18-3.6-7.4L3 11.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
       {%- endif -%}
     {%- endform -%}
@@ -414,6 +424,27 @@
 
   .theinmag-stockist-apply-form .theinmag-stockist-apply-form__submit {
     min-width: 220px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .theinmag-stockist-apply-form__submit-icon {
+    flex-shrink: 0;
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+  }
+  .theinmag-stockist-apply-form__submit:hover .theinmag-stockist-apply-form__submit-icon,
+  .theinmag-stockist-apply-form__submit:focus-visible .theinmag-stockist-apply-form__submit-icon {
+    transform: translate(2px, -2px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-stockist-apply-form__submit-icon { transition: none; }
+    .theinmag-stockist-apply-form__submit:hover .theinmag-stockist-apply-form__submit-icon,
+    .theinmag-stockist-apply-form__submit:focus-visible .theinmag-stockist-apply-form__submit-icon {
+      transform: translateY(-1px);
+    }
   }
 
   /* ----- Thank-you block ----- */
@@ -518,13 +549,13 @@
       "type": "richtext",
       "id": "intro_html",
       "label": "Intro paragraph",
-      "default": "<p>We're looking for shops keen to bring more creativity into their community. If that sounds like yours, we'd love to hear from you.</p><p>We'll be in touch.</p>"
+      "default": "<p>We're looking for shops keen to bring more creativity into their community. If that sounds like yours, we'd love to hear from you.</p>"
     },
     {
       "type": "text",
       "id": "submit_label",
       "label": "Submit button label",
-      "default": "Send my interest"
+      "default": "We'll be in touch"
     },
     {
       "type": "header",
