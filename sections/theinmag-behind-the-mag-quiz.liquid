@@ -66,11 +66,11 @@
   <div class="theinmag-bm-quiz__tablet" data-bm-quiz-tablet>
     <header class="theinmag-bm-quiz__head">
       <h2 id="theinmag-bm-quiz-heading" class="theinmag-bm-quiz__heading">{{ heading }}</h2>
-      {%- if intro_1 != blank -%}
-        <p class="theinmag-bm-quiz__intro">{{ intro_1 }}</p>
-      {%- endif -%}
-      {%- if intro_2 != blank -%}
-        <p class="theinmag-bm-quiz__intro">{{ intro_2 }}</p>
+      {%- if intro_1 != blank or intro_2 != blank -%}
+        <div class="theinmag-bm-quiz__head-intro">
+          {%- if intro_1 != blank -%}<p class="theinmag-bm-quiz__intro">{{ intro_1 }}</p>{%- endif -%}
+          {%- if intro_2 != blank -%}<p class="theinmag-bm-quiz__intro">{{ intro_2 }}</p>{%- endif -%}
+        </div>
       {%- endif -%}
     </header>
 
@@ -119,13 +119,8 @@
         <div class="theinmag-bm-quiz__targets" data-bm-quiz-targets>
           <div class="theinmag-bm-quiz__target theinmag-bm-quiz__target--adult" data-bm-quiz-target-adult>
             <span class="theinmag-bm-quiz__target-label">{{ target_adult_label }}</span>
-            <div class="theinmag-bm-quiz__target-stack" data-bm-quiz-target-adult-stack>
-              <div class="theinmag-bm-quiz__target-frame" data-bm-quiz-target-adult-frame data-slot="0">
-                <span class="theinmag-bm-quiz__target-hint" data-bm-quiz-target-hint>{{ target_adult_hint }}</span>
-              </div>
-              <div class="theinmag-bm-quiz__target-frame theinmag-bm-quiz__target-frame--secondary" data-bm-quiz-target-adult-frame data-slot="1" hidden>
-                <span class="theinmag-bm-quiz__target-hint" data-bm-quiz-target-hint>{{ target_adult_hint }}</span>
-              </div>
+            <div class="theinmag-bm-quiz__target-frame" data-bm-quiz-target-adult-frame>
+              <span class="theinmag-bm-quiz__target-hint" data-bm-quiz-target-hint>{{ target_adult_hint }}</span>
             </div>
           </div>
 
@@ -286,21 +281,13 @@
         data-bm-quiz-reveal
         data-block-id="{{ block.id }}"
       >
-        <div class="theinmag-bm-quiz__reveal-photos">
-          <div class="theinmag-bm-quiz__reveal-then">
-            {%- if kid_1_src != blank -%}
-              <img src="{{ kid_1_src }}" alt="{{ block.settings.kid_1_name | escape }} as a kid.">
-            {%- endif -%}
-            {%- if kid_2_src != blank -%}
-              <img src="{{ kid_2_src }}" alt="{{ block.settings.kid_2_name | escape }} as a kid.">
-            {%- endif -%}
-          </div>
-          <div class="theinmag-bm-quiz__reveal-arrow" aria-hidden="true">→</div>
-          <div class="theinmag-bm-quiz__reveal-now">
-            {%- if adult_src != blank -%}
-              <img src="{{ adult_src }}" alt="{{ block.settings.adult_label | escape }} now.">
-            {%- endif -%}
-          </div>
+        <div class="theinmag-bm-quiz__reveal-then">
+          {%- if kid_1_src != blank -%}
+            <img src="{{ kid_1_src }}" alt="{{ block.settings.kid_1_name | escape }} as a kid.">
+          {%- endif -%}
+          {%- if kid_2_src != blank -%}
+            <img src="{{ kid_2_src }}" alt="{{ block.settings.kid_2_name | escape }} as a kid.">
+          {%- endif -%}
         </div>
         <div class="theinmag-bm-quiz__reveal-copy">
           <h3 class="theinmag-bm-quiz__reveal-name">{{ block.settings.adult_label }}</h3>
@@ -312,6 +299,11 @@
           {%- endif -%}
           {%- if block.settings.fun_fact != blank -%}
             <p class="theinmag-bm-quiz__reveal-fun-fact"><em>Fun fact:</em> {{ block.settings.fun_fact }}</p>
+          {%- endif -%}
+        </div>
+        <div class="theinmag-bm-quiz__reveal-now">
+          {%- if adult_src != blank -%}
+            <img src="{{ adult_src }}" alt="{{ block.settings.adult_label | escape }} now.">
           {%- endif -%}
         </div>
       </article>
@@ -337,7 +329,9 @@
   .theinmag-bm-quiz {
     background-color: var(--color-lavender, #E8DEEF);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(40px, 6vw, 80px) clamp(16px, 4vw, 32px);
+    /* Padding tightened so the whole quiz fits a typical desktop
+       viewport (~900px) without scrolling. */
+    padding: clamp(24px, 3.5vw, 48px) clamp(16px, 4vw, 32px);
     position: relative;
     overflow: hidden;
   }
@@ -376,7 +370,10 @@
     margin: 0 auto;
     background-color: #FFFFFF;
     border-radius: 28px;
-    padding: clamp(28px, 4vw, 48px) clamp(20px, 3vw, 40px);
+    /* Tightened from 28-48 / 20-40 -> 20-36 / 18-32 + the gap
+       between head/board/foot dropped one tier so the whole tablet
+       fits one viewport. */
+    padding: clamp(20px, 3vw, 36px) clamp(18px, 2.6vw, 32px);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.9),
       inset 0 -1px 0 rgba(42, 31, 61, 0.04),
@@ -385,7 +382,7 @@
       0 4px 8px rgba(42, 31, 61, 0.08);
     display: flex;
     flex-direction: column;
-    gap: clamp(24px, 3vw, 36px);
+    gap: clamp(16px, 2vw, 24px);
     overflow: hidden;
   }
   /* Kid-art collage overlay - section_background_competitions2.jpg,
@@ -412,22 +409,41 @@
     z-index: 1;
   }
 
+  /* Head: heading on the left, intro on the right at tablet+ widths.
+     Saves vertical real-estate compared to the previous stacked
+     centred layout. Mobile keeps the vertical stack. */
   .theinmag-bm-quiz__head {
-    text-align: center;
     display: flex;
     flex-direction: column;
-    gap: clamp(8px, 1vw, 12px);
+    gap: clamp(6px, 1vw, 10px);
+    text-align: center;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-quiz__head {
+      flex-direction: row;
+      align-items: center;
+      gap: clamp(24px, 4vw, 56px);
+      text-align: left;
+    }
+    .theinmag-bm-quiz__heading {
+      flex: 0 0 auto;
+      max-width: 40%;
+    }
+    .theinmag-bm-quiz__head-intro {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
   }
 
   .theinmag-bm-quiz__heading {
     margin: 0;
-    /* Editorial Inter 700 (was Post Regular). The card-as-tablet
-       design carries enough handwritten personality already; the
-       heading sits cleaner in the editorial register. */
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
-    font-size: clamp(28px, 4.4vw, 44px);
-    line-height: 1.1;
+    font-size: clamp(28px, 4.2vw, 40px);
+    line-height: 1.05;
     letter-spacing: -0.01em;
     color: var(--color-purple-dark, #5D3A7A);
   }
@@ -436,12 +452,9 @@
     margin: 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(15px, 1.6vw, 17px);
-    line-height: 1.55;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.5;
     color: var(--color-inky-purple-navy, #2A1F3D);
-    max-width: 60ch;
-    margin-left: auto;
-    margin-right: auto;
   }
 
   /* ================================================================
@@ -533,10 +546,15 @@
   }
 
   @media (min-width: 750px) {
-    /* Tablet+: back to grid layout (desktop default). */
+    /* Tablet+: back to grid layout. Adults grid is 3-cols so 9 tiles
+       lay out as a clean 3x3 block - tiles read as big tap targets,
+       no orphan last-row tile. Kids grid is 4-cols for the 11 kid
+       tiles (4+4+3) so each kid tile sizes proportionally smaller
+       than the grown-up tiles, which matches Ryan's call to give the
+       grown-up images more visual weight. */
     .theinmag-bm-quiz__tiles {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: clamp(8px, 1.2vw, 12px);
       padding: 0;
       overflow: visible;
@@ -726,6 +744,14 @@
     justify-content: center;
     box-shadow: 0 1px 4px rgba(42, 31, 61, 0.08);
   }
+  /* Honour the [hidden] attribute - my display:flex default above
+     beats the UA's [hidden] { display:none } on specificity, so I
+     need this override. Without it the kid secondary frame paints
+     as a stacked square on every solo-adult selection (and even on
+     initial empty state) which is exactly what Ryan flagged. */
+  .theinmag-bm-quiz__target-frame[hidden] {
+    display: none;
+  }
   .theinmag-bm-quiz__target-frame.is-filled {
     border-style: solid;
     border-color: var(--color-purple-dark, #5D3A7A);
@@ -906,51 +932,55 @@
     display: none;
   }
 
+  /* Reveal card - 3-column layout per Ryan: kid photo(s) bleed
+     to the LEFT edge, copy sits in the MIDDLE, adult photo bleeds
+     to the RIGHT edge. No rounded corners. Photos take the full
+     vertical height of the card. Mobile stacks then/copy/now in
+     order. */
   .theinmag-bm-quiz__reveal {
     background-color: #FFFFFF;
-    border-radius: 16px;
-    padding: clamp(20px, 3vw, 28px);
+    border-radius: 0;
+    overflow: hidden;
+    padding: 0;
     box-shadow: 0 4px 18px rgba(123, 79, 158, 0.12);
     display: grid;
     grid-template-columns: 1fr;
-    gap: clamp(14px, 1.8vw, 20px);
   }
   @media (min-width: 750px) {
     .theinmag-bm-quiz__reveal {
-      grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
-      align-items: center;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+      align-items: stretch;
     }
-  }
-  .theinmag-bm-quiz__reveal-photos {
-    display: flex;
-    align-items: center;
-    gap: clamp(8px, 1.2vw, 12px);
   }
   .theinmag-bm-quiz__reveal-then,
   .theinmag-bm-quiz__reveal-now {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    flex: 1;
-  }
-  .theinmag-bm-quiz__reveal-photos img {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: 12px;
     background-color: var(--color-lavender, #E8DEEF);
+    min-height: 220px;
   }
-  .theinmag-bm-quiz__reveal-arrow {
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: clamp(20px, 2.4vw, 26px);
-    color: var(--color-purple-dark, #5D3A7A);
-    flex: 0 0 auto;
+  /* Mobile: photos default to 16:10 letterbox so the card doesn't
+     get absurdly tall when the photos load. Desktop: photos fill
+     the full height of the centre column. */
+  .theinmag-bm-quiz__reveal-then img,
+  .theinmag-bm-quiz__reveal-now img {
+    width: 100%;
+    height: 100%;
+    flex: 1 1 auto;
+    object-fit: cover;
+    display: block;
+  }
+  /* Paired (Ryan+Tam, Snowy+Libby) - kid_1 + kid_2 split the left
+     column 50/50 vertically. */
+  .theinmag-bm-quiz__reveal-then img + img {
+    border-top: 4px solid #FFFFFF;
   }
   .theinmag-bm-quiz__reveal-copy {
+    padding: clamp(20px, 3vw, 32px);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    justify-content: center;
+    gap: clamp(8px, 1.4vw, 12px);
   }
   .theinmag-bm-quiz__reveal-name {
     margin: 0;
@@ -1018,9 +1048,12 @@
 
   .theinmag-bm-quiz__fact-card {
     background-color: #FFFFFF;
-    border-radius: 20px;
-    padding: clamp(24px, 3vw, 36px);
-    max-width: 720px;
+    /* No padding + no border-radius so the inner reveal card's
+       LEFT and RIGHT photo columns bleed to the actual card edges,
+       as Ryan asked. */
+    border-radius: 0;
+    padding: 0;
+    max-width: 860px;
     width: 100%;
     max-height: 86vh;
     overflow-y: auto;
@@ -1034,11 +1067,10 @@
     to   { transform: scale(1); opacity: 1; }
   }
 
-  /* The fact card hosts a clone of the matching reveal card, so it
-     reuses the reveal styles. */
+  /* Reveal card hosted inside the overlay: drop the standalone shadow
+     since the overlay carries its own. */
   .theinmag-bm-quiz__fact-card .theinmag-bm-quiz__reveal {
     box-shadow: none;
-    padding: 0;
     background-color: transparent;
   }
 
@@ -1109,7 +1141,7 @@
     var allDoneEl = root.querySelector('[data-bm-quiz-all-done]');
     var factOverlay = root.querySelector('[data-bm-quiz-fact-overlay]');
     var factCard = root.querySelector('[data-bm-quiz-fact-card]');
-    var targetAdultFrames = root.querySelectorAll('[data-bm-quiz-target-adult-frame]');
+    var targetAdultFrame = root.querySelector('[data-bm-quiz-target-adult-frame]');
     var targetKidFrames = root.querySelectorAll('[data-bm-quiz-target-kid-frame]');
 
     var adults = Array.prototype.slice.call(root.querySelectorAll('[data-bm-quiz-adult]'));
@@ -1173,30 +1205,14 @@
       }
     }
 
-    /* Same pattern for the grown-up target: paired adult tiles
-       (Ryan+Tam, Snowy+Libby) split the target zone into two
-       stacked squares so the visual says "this counts as two
-       grown-ups." Both squares fill with the same combined photo. */
-    function showSecondAdultFrame(show) {
-      if (targetAdultFrames.length < 2) return;
-      var second = targetAdultFrames[1];
-      if (show) {
-        second.hidden = false;
-      } else {
-        second.hidden = true;
-        clearTargetFrame(second);
-      }
-    }
-
     function resetSelection() {
       selectedAdult = null;
       selectedKids = [];
       requiredKids = 1;
       adults.forEach(function (a) { a.classList.remove('is-active'); });
       kids.forEach(function (k) { k.classList.remove('is-active'); });
-      Array.prototype.forEach.call(targetAdultFrames, clearTargetFrame);
+      clearTargetFrame(targetAdultFrame);
       Array.prototype.forEach.call(targetKidFrames, clearTargetFrame);
-      showSecondAdultFrame(false);
       showSecondKidFrame(false);
       setStatus('');
     }
@@ -1323,8 +1339,7 @@
       if (selectedAdult === adult) {
         adult.classList.remove('is-active');
         selectedAdult = null;
-        Array.prototype.forEach.call(targetAdultFrames, clearTargetFrame);
-        showSecondAdultFrame(false);
+        clearTargetFrame(targetAdultFrame);
         showSecondKidFrame(false);
         // Re-evaluate kid required count back to 1.
         requiredKids = 1;
@@ -1335,19 +1350,8 @@
       adults.forEach(function (a) { a.classList.remove('is-active'); });
       adult.classList.add('is-active');
       selectedAdult = adult;
-      var photoSrc = adult.getAttribute('data-photo-src');
-      var isPaired = adult.getAttribute('data-paired') === 'true';
-
-      // Fill the primary grown-up frame always. For paired adults,
-      // also reveal the secondary frame + fill it with the same
-      // combined photo so the visual says "two grown-ups."
-      fillTargetFrame(targetAdultFrames[0], photoSrc);
-      showSecondAdultFrame(isPaired);
-      if (isPaired && targetAdultFrames[1]) {
-        fillTargetFrame(targetAdultFrames[1], photoSrc);
-      }
-
-      requiredKids = isPaired ? 2 : 1;
+      fillTargetFrame(targetAdultFrame, adult.getAttribute('data-photo-src'));
+      requiredKids = adult.getAttribute('data-paired') === 'true' ? 2 : 1;
       showSecondKidFrame(requiredKids === 2);
 
       // Trim kid selections to required count if we now need fewer.
@@ -1418,7 +1422,7 @@
 
       if (allMatch) {
         // Correct match. Lock the block, confetti, show fact card.
-        var rect = targetAdultFrames[0].getBoundingClientRect();
+        var rect = targetAdultFrame.getBoundingClientRect();
         var cx = rect.left + rect.width / 2;
         var cy = rect.top + rect.height / 2;
         burstConfetti(cx, cy);
@@ -1430,8 +1434,8 @@
         // resetSelection(), which clears target frames + active states.
       } else {
         // Wrong - silent reset per spec. Brief shake on the adult target.
-        if (!prefersReducedMotion && targetAdultFrames[0]) {
-          targetAdultFrames[0].animate(
+        if (!prefersReducedMotion && targetAdultFrame) {
+          targetAdultFrame.animate(
             [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }],
             { duration: 240, easing: 'ease-in-out' }
           );
