@@ -1,13 +1,20 @@
 {%- comment -%}
   theinmag-behind-the-mag-see-more
-  Two-card row pointing visitors to Branching Out (YouTube) and the
-  @the.inmag Instagram. Cream section so it sits calmly between the
-  mint kid-crew above and the peach final-CTA below.
+  Two-card row pointing to Branching Out (YouTube) and the @the.inmag
+  Instagram. Asymmetric 2/3 + 1/3 split on desktop so each card matches
+  its platform's native aspect: Branching Out fills the wider tile with
+  a 16:9 YouTube facade (click to play inline); Instagram sits in the
+  narrower tile with a 4:5 portrait image and a link button.
 
-  Cards are blocks - editor can re-order or swap one if the social
-  list ever changes. Buttons use secondary outlined-purple style so
-  they don't compete with the yellow stamp CTAs in the Final CTA
-  section directly below.
+  Cards live as blocks; the schema's youtube_video_id setting flips a
+  card from "image link" to "click-to-play video facade." When set,
+  the card renders the YouTube poster + play overlay; clicking swaps
+  in an autoplaying iframe in place. The "Visit channel" button stays
+  visible underneath as a separate, secondary action.
+
+  Asset specs:
+    - YouTube facade card image: 1920x1080 (16:9), <300KB
+    - Instagram card image: 1080x1350 (4:5 portrait), <250KB
 {%- endcomment -%}
 
 {%- liquid
@@ -32,80 +39,208 @@
         {%- liquid
           assign card_src = ''
           if block.settings.image != blank
-            assign card_src = block.settings.image | image_url: width: 1600
+            assign card_src = block.settings.image | image_url: width: 1920
           elsif block.settings.fallback_filename != blank
             assign card_src = block.settings.fallback_filename | asset_url
           endif
 
+          assign yt_input = block.settings.youtube_video_id | strip
+          assign yt_id = ''
+          if yt_input contains 'youtu'
+            assign url_after_v = yt_input | split: 'v=' | last | split: '&' | first
+            if url_after_v != yt_input
+              assign yt_id = url_after_v
+            else
+              assign yt_id = yt_input | split: 'youtu.be/' | last | split: '?' | first
+            endif
+          else
+            assign yt_id = yt_input
+          endif
+
+          assign is_video_card = false
+          if yt_id != blank
+            assign is_video_card = true
+          endif
+
           assign platform_class = ''
+          assign aspect_class = 'theinmag-bm-see-more__card--landscape'
           case block.settings.platform
             when 'youtube'
               assign platform_class = 'theinmag-bm-see-more__card--youtube'
+              assign aspect_class = 'theinmag-bm-see-more__card--landscape'
             when 'instagram'
               assign platform_class = 'theinmag-bm-see-more__card--instagram'
+              assign aspect_class = 'theinmag-bm-see-more__card--portrait'
           endcase
         -%}
-        <li class="theinmag-bm-see-more__card-item" {{ block.shopify_attributes }}>
-          <article class="theinmag-bm-see-more__card {{ platform_class }}">
-            <a
-              class="theinmag-bm-see-more__card-link"
-              href="{{ block.settings.link }}"
-              rel="noopener"
-              target="_blank"
-              aria-label="{{ block.settings.button_label | default: 'View profile' }}: {{ block.settings.heading | escape }}"
-            ></a>
+        <li class="theinmag-bm-see-more__card-item theinmag-bm-see-more__card-item--{{ block.settings.size | default: 'wide' }}" {{ block.shopify_attributes }}>
+          <article class="theinmag-bm-see-more__card {{ platform_class }} {{ aspect_class }}">
 
-            <div class="theinmag-bm-see-more__card-media">
-              {%- if card_src != blank -%}
-                <img
-                  src="{{ card_src }}"
-                  alt="{{ block.settings.image_alt | default: block.settings.heading | escape }}"
-                  loading="lazy"
-                  width="1200"
-                  height="900"
+            {%- if is_video_card -%}
+              {%- comment -%}
+                Video facade card. The poster is a button that swaps in
+                an autoplaying YouTube iframe on click. The "Visit
+                channel" link sits below as a separate secondary
+                action (no wrapper anchor on the whole card here).
+              {%- endcomment -%}
+              <div
+                class="theinmag-bm-see-more__card-media"
+                data-bm-see-more-video
+                data-yt-id="{{ yt_id | escape }}"
+              >
+                <button
+                  type="button"
+                  class="theinmag-bm-see-more__poster"
+                  data-bm-see-more-trigger
+                  aria-label="Play video: {{ block.settings.heading | escape }}"
                 >
-              {%- else -%}
-                <div class="theinmag-bm-see-more__card-placeholder" aria-hidden="true"></div>
-              {%- endif -%}
+                  {%- if card_src != blank -%}
+                    <img
+                      src="{{ card_src }}"
+                      alt="{{ block.settings.image_alt | default: block.settings.heading | escape }}"
+                      loading="lazy"
+                      width="1920"
+                      height="1080"
+                    >
+                  {%- else -%}
+                    <span class="theinmag-bm-see-more__card-placeholder" aria-hidden="true"></span>
+                  {%- endif -%}
+                  <span class="theinmag-bm-see-more__play" aria-hidden="true">
+                    <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <circle cx="32" cy="32" r="32" fill="#F9C23C"/>
+                      <polygon points="26 20 46 32 26 44" fill="#2A1F3D"/>
+                    </svg>
+                  </span>
+                  {%- if block.settings.platform != blank -%}
+                    <span class="theinmag-bm-see-more__platform" aria-hidden="true">
+                      {%- case block.settings.platform -%}
+                        {%- when 'youtube' -%}
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.8.5-5.8.5-5.8s0-4-.5-5.8zM9.6 15.6V8.4l6.4 3.6-6.4 3.6z" fill="currentColor"/>
+                          </svg>
+                        {%- when 'instagram' -%}
+                          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+                            <path d="M16 11.4a4 4 0 1 1-7.9 1.2 4 4 0 0 1 7.9-1.2z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                          </svg>
+                      {%- endcase -%}
+                    </span>
+                  {%- endif -%}
+                </button>
+              </div>
 
-              {%- if block.settings.platform != blank -%}
-                <span class="theinmag-bm-see-more__platform" aria-hidden="true">
-                  {%- case block.settings.platform -%}
-                    {%- when 'youtube' -%}
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.8.5-5.8.5-5.8s0-4-.5-5.8zM9.6 15.6V8.4l6.4 3.6-6.4 3.6z" fill="currentColor"/>
-                      </svg>
-                    {%- when 'instagram' -%}
-                      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
-                        <path d="M16 11.4a4 4 0 1 1-7.9 1.2 4 4 0 0 1 7.9-1.2z"></path>
-                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                      </svg>
-                  {%- endcase -%}
-                </span>
-              {%- endif -%}
-            </div>
+              <div class="theinmag-bm-see-more__card-body">
+                {%- if block.settings.heading != blank -%}
+                  <h3 class="theinmag-bm-see-more__card-heading">{{ block.settings.heading }}</h3>
+                {%- endif -%}
+                {%- if block.settings.subheading != blank -%}
+                  <p class="theinmag-bm-see-more__card-subheading">{{ block.settings.subheading }}</p>
+                {%- endif -%}
+                {%- if block.settings.body != blank -%}
+                  <p class="theinmag-bm-see-more__card-text">{{ block.settings.body }}</p>
+                {%- endif -%}
+                {%- if block.settings.link != blank and block.settings.button_label != blank -%}
+                  <a
+                    class="theinmag-bm-see-more__btn theinmag-bm-see-more__btn--solo"
+                    href="{{ block.settings.link }}"
+                    rel="noopener"
+                    target="_blank"
+                  >{{ block.settings.button_label }}</a>
+                {%- endif -%}
+              </div>
 
-            <div class="theinmag-bm-see-more__card-body">
-              {%- if block.settings.heading != blank -%}
-                <h3 class="theinmag-bm-see-more__card-heading">{{ block.settings.heading }}</h3>
-              {%- endif -%}
-              {%- if block.settings.subheading != blank -%}
-                <p class="theinmag-bm-see-more__card-subheading">{{ block.settings.subheading }}</p>
-              {%- endif -%}
-              {%- if block.settings.body != blank -%}
-                <p class="theinmag-bm-see-more__card-text">{{ block.settings.body }}</p>
-              {%- endif -%}
-              {%- if block.settings.button_label != blank -%}
-                <span class="theinmag-bm-see-more__btn">{{ block.settings.button_label }}</span>
-              {%- endif -%}
-            </div>
+            {%- else -%}
+              {%- comment -%}
+                Static image-link card. Whole card is a click target via
+                an absolute-positioned anchor; aria-label combines
+                button text + heading.
+              {%- endcomment -%}
+              <a
+                class="theinmag-bm-see-more__card-link"
+                href="{{ block.settings.link }}"
+                rel="noopener"
+                target="_blank"
+                aria-label="{{ block.settings.button_label | default: 'View profile' }}: {{ block.settings.heading | escape }}"
+              ></a>
+
+              <div class="theinmag-bm-see-more__card-media">
+                {%- if card_src != blank -%}
+                  <img
+                    src="{{ card_src }}"
+                    alt="{{ block.settings.image_alt | default: block.settings.heading | escape }}"
+                    loading="lazy"
+                    width="1080"
+                    height="1350"
+                  >
+                {%- else -%}
+                  <div class="theinmag-bm-see-more__card-placeholder" aria-hidden="true"></div>
+                {%- endif -%}
+
+                {%- if block.settings.platform != blank -%}
+                  <span class="theinmag-bm-see-more__platform" aria-hidden="true">
+                    {%- case block.settings.platform -%}
+                      {%- when 'youtube' -%}
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.8.5-5.8.5-5.8s0-4-.5-5.8zM9.6 15.6V8.4l6.4 3.6-6.4 3.6z" fill="currentColor"/>
+                        </svg>
+                      {%- when 'instagram' -%}
+                        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+                          <path d="M16 11.4a4 4 0 1 1-7.9 1.2 4 4 0 0 1 7.9-1.2z"></path>
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    {%- endcase -%}
+                  </span>
+                {%- endif -%}
+              </div>
+
+              <div class="theinmag-bm-see-more__card-body">
+                {%- if block.settings.heading != blank -%}
+                  <h3 class="theinmag-bm-see-more__card-heading">{{ block.settings.heading }}</h3>
+                {%- endif -%}
+                {%- if block.settings.subheading != blank -%}
+                  <p class="theinmag-bm-see-more__card-subheading">{{ block.settings.subheading }}</p>
+                {%- endif -%}
+                {%- if block.settings.body != blank -%}
+                  <p class="theinmag-bm-see-more__card-text">{{ block.settings.body }}</p>
+                {%- endif -%}
+                {%- if block.settings.button_label != blank -%}
+                  <span class="theinmag-bm-see-more__btn">{{ block.settings.button_label }}</span>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+
           </article>
         </li>
       {%- endfor -%}
     </ul>
   </div>
 </section>
+
+<script>
+  (function () {
+    var frames = document.querySelectorAll('[data-bm-see-more-video]');
+    if (!frames.length) return;
+    Array.prototype.forEach.call(frames, function (frame) {
+      var trigger = frame.querySelector('[data-bm-see-more-trigger]');
+      if (!trigger) return;
+      trigger.addEventListener('click', function () {
+        var ytId = frame.getAttribute('data-yt-id') || '';
+        if (!ytId) return;
+        var iframe = document.createElement('iframe');
+        iframe.className = 'theinmag-bm-see-more__iframe';
+        iframe.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(ytId)
+          + '?autoplay=1&rel=0&modestbranding=1&playsinline=1';
+        iframe.title = trigger.getAttribute('aria-label') || 'theINmag video';
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', '');
+        frame.replaceChild(iframe, trigger);
+      });
+    });
+  })();
+</script>
 
 {%- stylesheet -%}
   .theinmag-bm-see-more {
@@ -127,7 +262,7 @@
   }
 
   .theinmag-bm-see-more__inner {
-    max-width: 1080px;
+    max-width: 1200px;
     margin: 0 auto;
   }
 
@@ -145,6 +280,9 @@
     color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
+  /* Mobile: stacked. Desktop: 2/3 + 1/3 split. align-items:start so a
+     shorter Instagram card doesn't stretch to match the taller video
+     card. */
   .theinmag-bm-see-more__cards {
     list-style: none;
     margin: 0;
@@ -152,11 +290,12 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: clamp(16px, 2.5vw, 28px);
+    align-items: start;
   }
 
   @media (min-width: 750px) {
     .theinmag-bm-see-more__cards {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 2fr 1fr;
     }
   }
 
@@ -165,9 +304,6 @@
     display: flex;
   }
 
-  /* Whole-card link uses an absolute-positioned anchor on top of the
-     entire card. Keeps real links indexable but means the card's body
-     and image surface all click through. */
   .theinmag-bm-see-more__card {
     position: relative;
     display: flex;
@@ -186,10 +322,7 @@
     box-shadow: 0 8px 22px rgba(123, 79, 158, 0.18);
   }
 
-  /* The whole-card link is an empty <a> stretched over the article via
-     absolute positioning. aria-label carries the accessible name (set
-     in markup as "{button label}: {heading}") so screen readers
-     announce both the destination action and the card subject. */
+  /* Card-link only renders on non-video cards. */
   .theinmag-bm-see-more__card-link {
     position: absolute;
     inset: 0;
@@ -201,11 +334,21 @@
     border-radius: 16px;
   }
 
+  /* ================================================================
+     Card media. Aspect varies by platform: landscape 16:9 (YouTube),
+     portrait 4:5 (Instagram). Class set in Liquid based on platform.
+     ================================================================ */
   .theinmag-bm-see-more__card-media {
     position: relative;
-    aspect-ratio: 4 / 3;
     overflow: hidden;
     background-color: var(--color-lavender, #E8DEEF);
+  }
+
+  .theinmag-bm-see-more__card--landscape .theinmag-bm-see-more__card-media {
+    aspect-ratio: 16 / 9;
+  }
+  .theinmag-bm-see-more__card--portrait .theinmag-bm-see-more__card-media {
+    aspect-ratio: 4 / 5;
   }
 
   .theinmag-bm-see-more__card-media img {
@@ -223,10 +366,64 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, var(--color-lavender, #E8DEEF) 0%, var(--color-wave-purple, #C9B5DB) 100%);
+    display: block;
   }
 
-  /* Platform stamp - small round badge top-left of the image. Uses
-     the platform's own brand colour as a stamp accent. */
+  /* ================================================================
+     Video facade poster (Branching Out card)
+     ================================================================ */
+  .theinmag-bm-see-more__poster {
+    appearance: none;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background: none;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    position: relative;
+    display: block;
+  }
+  .theinmag-bm-see-more__poster:focus-visible {
+    outline: 3px solid var(--color-yellow, #F9C23C);
+    outline-offset: -3px;
+  }
+  .theinmag-bm-see-more__poster img {
+    filter: brightness(0.9);
+  }
+  .theinmag-bm-see-more__poster:hover img {
+    filter: brightness(0.82);
+    transform: scale(1.02);
+  }
+  .theinmag-bm-see-more__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: clamp(56px, 7vw, 80px);
+    height: clamp(56px, 7vw, 80px);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.35));
+  }
+  .theinmag-bm-see-more__poster:hover .theinmag-bm-see-more__play {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  .theinmag-bm-see-more__play svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .theinmag-bm-see-more__iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  /* ================================================================
+     Platform stamp + body
+     ================================================================ */
   .theinmag-bm-see-more__platform {
     position: absolute;
     top: 12px;
@@ -239,6 +436,8 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    z-index: 3;
+    pointer-events: none;
   }
   .theinmag-bm-see-more__platform svg {
     width: 20px;
@@ -283,8 +482,8 @@
     opacity: 0.9;
   }
 
-  /* "Button" is a span that styles as the secondary outlined-purple
-     button. The whole card is the link - this is the visible affordance. */
+  /* Button: span on non-video cards (whole-card-link triggers it),
+     real <a> on video cards (separate from the play action). */
   .theinmag-bm-see-more__btn {
     display: inline-block;
     align-self: flex-start;
@@ -299,6 +498,7 @@
     border: 2px solid var(--color-purple-dark, #5D3A7A);
     border-radius: 32px;
     padding: 10px 22px;
+    text-decoration: none;
     transition: background-color 0.2s ease, color 0.2s ease;
   }
   .theinmag-bm-see-more__card:hover .theinmag-bm-see-more__btn,
@@ -306,18 +506,32 @@
     background-color: var(--color-purple-dark, #5D3A7A);
     color: #FFFFFF;
   }
+  /* Solo button (on video cards) needs its own focus styling since the
+     card-level focus-within doesn't apply (no wrapper anchor). */
+  .theinmag-bm-see-more__btn--solo:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: 3px solid var(--color-yellow, #F9C23C);
+    outline-offset: 2px;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .theinmag-bm-see-more__card,
     .theinmag-bm-see-more__card-media img,
+    .theinmag-bm-see-more__poster img,
+    .theinmag-bm-see-more__play,
     .theinmag-bm-see-more__btn {
       transition: none;
     }
     .theinmag-bm-see-more__card:hover {
       transform: none;
     }
-    .theinmag-bm-see-more__card:hover .theinmag-bm-see-more__card-media img {
+    .theinmag-bm-see-more__card:hover .theinmag-bm-see-more__card-media img,
+    .theinmag-bm-see-more__poster:hover img {
       transform: none;
+    }
+    .theinmag-bm-see-more__poster:hover .theinmag-bm-see-more__play {
+      transform: translate(-50%, -50%);
     }
   }
 {%- endstylesheet -%}
@@ -353,8 +567,24 @@
         { "type": "textarea", "id": "body", "label": "Body" },
         { "type": "text", "id": "button_label", "label": "Button label" },
         { "type": "url", "id": "link", "label": "Link" },
+        {
+          "type": "header",
+          "content": "Inline video (YouTube only)"
+        },
+        {
+          "type": "text",
+          "id": "youtube_video_id",
+          "label": "YouTube URL or video ID",
+          "info": "Optional. When set, the card becomes a click-to-play YouTube facade. Leave blank to render as a static image link."
+        },
+        { "type": "header", "content": "Card image" },
         { "type": "image_picker", "id": "image", "label": "Card image" },
-        { "type": "text", "id": "fallback_filename", "label": "Fallback filename" },
+        {
+          "type": "text",
+          "id": "fallback_filename",
+          "label": "Fallback filename",
+          "info": "YouTube cards: 1920x1080 (16:9, <300KB). Instagram cards: 1080x1350 (4:5 portrait, <250KB)."
+        },
         { "type": "text", "id": "image_alt", "label": "Image alt text" }
       ]
     }
@@ -374,8 +604,9 @@
             "heading": "Branching Out",
             "subheading": "Adventures from the road.",
             "body": "Branching Out is our YouTube channel where we share our travels, the places we land, and what Nora's up to.",
-            "button_label": "Watch on YouTube",
+            "button_label": "Visit channel on YouTube",
             "link": "https://www.youtube.com/@Branchingout-tnr",
+            "youtube_video_id": "",
             "fallback_filename": "behind-the-mag-branching-out.jpg",
             "image_alt": "Still from the Branching Out YouTube channel - Ryan, Tam and Nora on the road."
           }
