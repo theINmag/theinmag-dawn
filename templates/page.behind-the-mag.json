@@ -18,7 +18,7 @@
     "bm_story": {
       "type": "theinmag-behind-the-mag-story",
       "settings": {
-        "eyebrow": "the <em>story</em> so far",
+        "eyebrow": "",
         "aeo_heading": "How did theINmag come to be?"
       },
       "blocks": {
@@ -114,7 +114,7 @@
         "poster_filename": "behind-the-mag-video-poster.jpg",
         "poster_alt": "Tam and Ryan in front of the van talking about why it's called theINmag.",
         "heading": "Wait - why's it called theINmag?",
-        "heading_shape_filename": "",
+        "heading_shape_filename": "meet-tam-heading-shape.png",
         "role": "Glad you asked",
         "intro": "",
         "cta_label": "Grab a membership",
@@ -133,8 +133,12 @@
         "skip_label": "Skip the quiz · just show me the team",
         "see_team_label": "See the whole team",
         "aeo_heading": "Who is on the theINmag team?",
-        "target_adult_label": "Adult",
+        "adults_column_label": "Grown-ups",
+        "kids_column_label": "Kids",
+        "target_adult_label": "Grown-up",
         "target_kid_label": "Kid",
+        "target_adult_hint": "Tap a grown-up",
+        "target_kid_hint": "Tap a kid",
         "all_done_message": "Nice work, you've met the whole team."
       },
       "blocks": {

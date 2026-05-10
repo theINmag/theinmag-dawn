@@ -624,13 +624,22 @@
   }
 
   /* Heading font modifier: Inter 700 register (editorial) for
-     instances where Post Regular reads too kiddy. Default stays Post. */
+     instances where Post Regular reads too kiddy. Default stays Post.
+     When this modifier is on, the role line below the heading also
+     gets bumped close to heading-size so the Post Regular role reads
+     as the second-loudest moment in the card (BM "Glad you asked"
+     wants this register; homepage Tam role stays small). */
   .theinmag-meet-tam--heading-inter .theinmag-meet-tam__heading {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
     font-size: clamp(30px, 5vw, 48px);
     line-height: 1.1;
     letter-spacing: -0.005em;
+  }
+  .theinmag-meet-tam--heading-inter .theinmag-meet-tam__role {
+    font-size: clamp(26px, 4.4vw, 42px);
+    line-height: 1.05;
+    opacity: 1;
   }
 
   .theinmag-meet-tam__role {

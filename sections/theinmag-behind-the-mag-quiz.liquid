@@ -30,8 +30,14 @@
   assign see_team_label = section.settings.see_team_label | default: 'See the whole team'
   assign aeo_heading = section.settings.aeo_heading | default: 'Who is on the theINmag team?'
   assign all_done_message = section.settings.all_done_message | default: "Nice work, you've met the whole team."
-  assign target_adult_label = section.settings.target_adult_label | default: 'Adult'
+  assign target_adult_label = section.settings.target_adult_label | default: 'Grown-up'
   assign target_kid_label = section.settings.target_kid_label | default: 'Kid'
+  assign target_adult_hint = section.settings.target_adult_hint | default: 'Tap a grown-up'
+  assign target_kid_hint = section.settings.target_kid_hint | default: 'Tap a kid'
+  assign adults_column_label = section.settings.adults_column_label | default: 'Grown-ups'
+  assign kids_column_label = section.settings.kids_column_label | default: 'Kids'
+
+  assign tablet_pattern_src = 'dotsforbehindtam.png' | asset_url
 
   assign bg_src = ''
   if section.settings.background_image != blank
@@ -52,42 +58,11 @@
   aria-labelledby="theinmag-bm-quiz-heading"
   data-all-done-message="{{ all_done_message | escape }}"
   data-see-team-label="{{ see_team_label | escape }}"
-  style="{{ section_style }}"
+  style="{{ section_style }} --bm-quiz-tablet-pattern: url('{{ tablet_pattern_src }}');"
 >
   <h2 class="theinmag-bm-quiz__a11y-heading">{{ aeo_heading }}</h2>
 
   <div class="theinmag-bm-quiz__tablet" data-bm-quiz-tablet>
-    {%- comment -%}
-      Hand-drawn-feel dashed border, inset roughly a centimetre from
-      the card edge. SVG path with rounded dash caps + a slightly
-      irregular dash pattern (1.6 / 1) reads softer than CSS
-      `border: dashed`. Not a true hand-pencilled stroke (that would
-      need a sketched SVG asset) but closer than the geometric CSS
-      version. preserveAspectRatio="none" + vector-effect: non-scaling-
-      stroke = stretches to fit while keeping the stroke weight even.
-    {%- endcomment -%}
-    <svg
-      class="theinmag-bm-quiz__hand-border"
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <rect
-        x="0.6"
-        y="0.6"
-        width="98.8"
-        height="98.8"
-        rx="3"
-        ry="3"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-dasharray="1.6 1"
-        stroke-linecap="round"
-        vector-effect="non-scaling-stroke"
-      />
-    </svg>
     <header class="theinmag-bm-quiz__head">
       <h2 id="theinmag-bm-quiz-heading" class="theinmag-bm-quiz__heading">{{ heading }}</h2>
       {%- if intro_1 != blank -%}
@@ -100,7 +75,7 @@
 
     <div class="theinmag-bm-quiz__board" data-bm-quiz-board>
       <div class="theinmag-bm-quiz__column theinmag-bm-quiz__column--adults">
-        <p class="theinmag-bm-quiz__col-label">Adults</p>
+        <p class="theinmag-bm-quiz__col-label">{{ adults_column_label }}</p>
         <ul class="theinmag-bm-quiz__tiles" role="list" data-bm-quiz-adults>
           {%- for block in reveal_blocks -%}
             {%- liquid
@@ -143,14 +118,20 @@
         <div class="theinmag-bm-quiz__targets" data-bm-quiz-targets>
           <div class="theinmag-bm-quiz__target theinmag-bm-quiz__target--adult" data-bm-quiz-target-adult>
             <span class="theinmag-bm-quiz__target-label">{{ target_adult_label }}</span>
-            <div class="theinmag-bm-quiz__target-frame" data-bm-quiz-target-adult-frame></div>
+            <div class="theinmag-bm-quiz__target-frame" data-bm-quiz-target-adult-frame>
+              <span class="theinmag-bm-quiz__target-hint" data-bm-quiz-target-hint>{{ target_adult_hint }}</span>
+            </div>
           </div>
 
           <div class="theinmag-bm-quiz__target theinmag-bm-quiz__target--kid" data-bm-quiz-target-kid>
             <span class="theinmag-bm-quiz__target-label">{{ target_kid_label }}</span>
             <div class="theinmag-bm-quiz__target-stack" data-bm-quiz-target-kid-stack>
-              <div class="theinmag-bm-quiz__target-frame" data-bm-quiz-target-kid-frame data-slot="0"></div>
-              <div class="theinmag-bm-quiz__target-frame theinmag-bm-quiz__target-frame--secondary" data-bm-quiz-target-kid-frame data-slot="1" hidden></div>
+              <div class="theinmag-bm-quiz__target-frame" data-bm-quiz-target-kid-frame data-slot="0">
+                <span class="theinmag-bm-quiz__target-hint" data-bm-quiz-target-hint>{{ target_kid_hint }}</span>
+              </div>
+              <div class="theinmag-bm-quiz__target-frame theinmag-bm-quiz__target-frame--secondary" data-bm-quiz-target-kid-frame data-slot="1" hidden>
+                <span class="theinmag-bm-quiz__target-hint" data-bm-quiz-target-hint>{{ target_kid_hint }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -159,7 +140,7 @@
       </div>
 
       <div class="theinmag-bm-quiz__column theinmag-bm-quiz__column--kids">
-        <p class="theinmag-bm-quiz__col-label">Kids</p>
+        <p class="theinmag-bm-quiz__col-label">{{ kids_column_label }}</p>
         <ul class="theinmag-bm-quiz__tiles" role="list" data-bm-quiz-kids>
           {%- for block in reveal_blocks -%}
             {%- liquid
@@ -350,37 +331,10 @@
     border: 0;
   }
 
-  /* Hand-drawn-feel dashed inner border. Sits a centimetre or so in
-     from the card edge so the dashes feel like a kid traced a frame
-     inside the card. Mid-purple ink at 0.5 opacity so it reads as
-     a soft accent rather than competing with the content. */
-  .theinmag-bm-quiz__hand-border {
-    position: absolute;
-    top: clamp(14px, 2.4vw, 28px);
-    right: clamp(14px, 2.4vw, 28px);
-    bottom: clamp(14px, 2.4vw, 28px);
-    left: clamp(14px, 2.4vw, 28px);
-    width: auto;
-    height: auto;
-    pointer-events: none;
-    color: var(--color-purple-dark, #5D3A7A);
-    opacity: 0.5;
-    z-index: 0;
-  }
-
-  /* Lift the actual content above the dashed border. */
-  .theinmag-bm-quiz__head,
-  .theinmag-bm-quiz__board,
-  .theinmag-bm-quiz__foot {
-    position: relative;
-    z-index: 1;
-  }
-
   /* ================================================================
-     The 3D tablet. Layered shadow stack gives the lifted feel - large
-     soft shadow underneath, tighter near shadow, plus a subtle inset
-     bevel highlight on the top edge. Cream surface so the photos
-     pop.
+     The 3D tablet. Cream surface + a tiled dot pattern overlaid for
+     the playful "made by kids" feel Ryan asked for. Layered shadow
+     stack for the lifted look.
      ================================================================ */
   .theinmag-bm-quiz__tablet {
     position: relative;
@@ -399,6 +353,28 @@
     display: flex;
     flex-direction: column;
     gap: clamp(24px, 3vw, 36px);
+    overflow: hidden;
+  }
+  /* Tiled dot pattern overlay - the "background of the eyeballs"
+     reused from the meet-tam / reviews dotsforbehindtam.png. Sits at
+     low opacity so the pattern reads as texture rather than noise;
+     pointer-events: none so it never blocks tile clicks. */
+  .theinmag-bm-quiz__tablet::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--bm-quiz-tablet-pattern);
+    background-repeat: repeat;
+    background-size: 320px auto;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .theinmag-bm-quiz__head,
+  .theinmag-bm-quiz__board,
+  .theinmag-bm-quiz__foot {
+    position: relative;
+    z-index: 1;
   }
 
   .theinmag-bm-quiz__head {
@@ -410,10 +386,14 @@
 
   .theinmag-bm-quiz__heading {
     margin: 0;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
+    /* Editorial Inter 700 (was Post Regular). The card-as-tablet
+       design carries enough handwritten personality already; the
+       heading sits cleaner in the editorial register. */
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
     font-size: clamp(28px, 4.4vw, 44px);
     line-height: 1.1;
+    letter-spacing: -0.01em;
     color: var(--color-purple-dark, #5D3A7A);
   }
 
@@ -464,11 +444,14 @@
 
   .theinmag-bm-quiz__col-label {
     margin: 0;
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    /* Post Regular hand-lettered for the column labels (was Inter
+       small-caps). Reads as a hand-stuck label on the tablet. */
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(20px, 2.4vw, 26px);
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: none;
     color: var(--color-purple-dark, #5D3A7A);
     text-align: center;
   }
@@ -515,7 +498,12 @@
     overflow: hidden;
     border-radius: 12px;
     background-color: var(--color-wave-purple, #C9B5DB);
-    box-shadow: 0 1px 6px rgba(123, 79, 158, 0.12);
+    /* Stronger lift now that the tablet has a patterned bg behind
+       the tiles - the previous shadow read flat against the dotted
+       wash. */
+    box-shadow:
+      0 2px 8px rgba(42, 31, 61, 0.14),
+      0 6px 16px rgba(42, 31, 61, 0.10);
     outline: 3px solid transparent;
     transition: outline-color 0.15s ease, box-shadow 0.18s ease;
   }
@@ -575,11 +563,14 @@
   }
 
   .theinmag-bm-quiz__target-label {
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    /* Post Regular hand-lettered (was Inter small-caps) so the
+       Adult / Kid labels match the column headers above. */
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(22px, 2.6vw, 28px);
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: none;
     color: var(--color-purple-dark, #5D3A7A);
   }
 
@@ -590,20 +581,30 @@
     gap: 6px;
   }
 
+  /* Empty target frames now read as obvious "drop zone" placeholders -
+     stronger dashed border, hint text inside ("Tap a grown-up" /
+     "Tap a kid") so kids can see where the photo will land before
+     they start clicking. Hint hides once the frame is filled with a
+     selection. */
   .theinmag-bm-quiz__target-frame {
     position: relative;
     width: 100%;
     aspect-ratio: 1 / 1;
     border-radius: 14px;
-    background-color: var(--color-lavender, #E8DEEF);
-    border: 2px dashed rgba(93, 58, 122, 0.35);
+    background-color: rgba(232, 222, 239, 0.55);
+    border: 3px dashed var(--color-purple-dark, #5D3A7A);
     overflow: hidden;
-    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.18s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(42, 31, 61, 0.08);
   }
   .theinmag-bm-quiz__target-frame.is-filled {
     border-style: solid;
     border-color: var(--color-purple-dark, #5D3A7A);
     background-color: #FFFFFF;
+    box-shadow: 0 6px 16px rgba(42, 31, 61, 0.18);
   }
   .theinmag-bm-quiz__target-frame img {
     position: absolute;
@@ -612,6 +613,21 @@
     height: 100%;
     object-fit: cover;
     animation: theinmag-bm-quiz-target-pop 0.22s ease both;
+  }
+  .theinmag-bm-quiz__target-hint {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(11px, 1.2vw, 13px);
+    line-height: 1.25;
+    color: var(--color-purple-dark, #5D3A7A);
+    opacity: 0.7;
+    text-align: center;
+    padding: 0 6px;
+    pointer-events: none;
+    user-select: none;
+  }
+  .theinmag-bm-quiz__target-frame.is-filled .theinmag-bm-quiz__target-hint {
+    display: none;
   }
   @keyframes theinmag-bm-quiz-target-pop {
     from { transform: scale(0.7); opacity: 0; }
@@ -922,7 +938,10 @@
 
     function clearTargetFrame(frame) {
       if (!frame) return;
-      while (frame.firstChild) frame.removeChild(frame.firstChild);
+      // Remove only <img> children - the hint <span> stays so it
+      // shows again when the frame goes back to empty state.
+      var imgs = frame.querySelectorAll('img');
+      Array.prototype.forEach.call(imgs, function (img) { frame.removeChild(img); });
       frame.classList.remove('is-filled');
     }
 
@@ -1232,9 +1251,13 @@
     { "type": "text", "id": "skip_label", "label": "Skip / show team toggle label" },
     { "type": "text", "id": "see_team_label", "label": "See team label (post-completion)" },
     { "type": "text", "id": "aeo_heading", "label": "Visually-hidden H2 (question form)" },
-    { "type": "header", "content": "Target box labels" },
-    { "type": "text", "id": "target_adult_label", "label": "Adult target label" },
-    { "type": "text", "id": "target_kid_label", "label": "Kid target label" },
+    { "type": "header", "content": "Column + target labels" },
+    { "type": "text", "id": "adults_column_label", "label": "Adults column heading", "info": "Default: Grown-ups" },
+    { "type": "text", "id": "kids_column_label", "label": "Kids column heading", "info": "Default: Kids" },
+    { "type": "text", "id": "target_adult_label", "label": "Adult target label", "info": "Default: Grown-up" },
+    { "type": "text", "id": "target_kid_label", "label": "Kid target label", "info": "Default: Kid" },
+    { "type": "text", "id": "target_adult_hint", "label": "Adult target hint (empty state)", "info": "Default: Tap a grown-up" },
+    { "type": "text", "id": "target_kid_hint", "label": "Kid target hint (empty state)", "info": "Default: Tap a kid" },
     { "type": "header", "content": "Quiz strings" },
     { "type": "text", "id": "all_done_message", "label": "All-revealed message" },
     { "type": "header", "content": "Section background (optional)" },

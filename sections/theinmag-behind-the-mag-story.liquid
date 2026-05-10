@@ -178,7 +178,11 @@
   .theinmag-bm-story {
     background-color: var(--color-cream, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(48px, 7vw, 96px) 0;
+    /* Tightened from 48-96 -> 24-56 after the eyebrow heading was
+       dropped (the cards explain themselves; the section doesn't
+       need a label moment + breathing room). Adjacent sections
+       above and below now sit closer. */
+    padding: clamp(24px, 4vw, 56px) 0;
     position: relative;
     overflow: hidden;
   }
@@ -220,7 +224,10 @@
   .theinmag-bm-story__intro {
     position: relative;
     max-width: 1280px;
-    margin: 0 auto clamp(20px, 3vw, 32px);
+    /* Bottom margin only kicks in when the eyebrow is rendered;
+       blank eyebrow + character pop leave this near-flush with the
+       rail. */
+    margin: 0 auto;
     padding: 0 clamp(20px, 5vw, 64px);
   }
 
