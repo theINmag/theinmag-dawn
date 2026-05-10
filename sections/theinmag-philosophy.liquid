@@ -37,15 +37,6 @@
 
   assign rainbow_src = 'rainbow.png' | asset_url
 
-  assign character_count = 0
-  for i in (1..3)
-    assign img_key = 'character_' | append: i
-    assign filename_key = 'character_' | append: i | append: '_filename'
-    if section.settings[img_key] != blank or section.settings[filename_key] != blank
-      assign character_count = character_count | plus: 1
-    endif
-  endfor
-
   assign founder_one_name = section.settings.founder_one_name | default: 'Ryan'
   assign founder_one_role = section.settings.founder_one_role | default: 'Co-founder'
   assign founder_two_name = section.settings.founder_two_name | default: 'Tam'
@@ -106,30 +97,15 @@
         {%- endif -%}
       </div>
 
-      {%- if character_count > 0 -%}
-        {%- liquid
-          assign char_attrs = ''
-          for i in (1..3)
-            assign img_key = 'character_' | append: i
-            assign filename_key = 'character_' | append: i | append: '_filename'
-            assign alt_key = 'character_' | append: i | append: '_alt'
-            assign char_img = section.settings[img_key]
-            assign char_filename = section.settings[filename_key]
-            assign src = ''
-            if char_img != blank
-              assign src = char_img | image_url: width: 400
-            elsif char_filename != blank
-              assign src = char_filename | asset_url
-            endif
-            if src != blank
-              assign alt_val = section.settings[alt_key] | default: '' | escape
-              assign char_attrs = char_attrs | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
-              assign char_attrs = char_attrs | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
-            endif
-          endfor
-        -%}
-        <div class="theinmag-philosophy__character" data-theinmag-philosophy-character{{ char_attrs }}></div>
-      {%- endif -%}
+      {%- comment -%}
+        Character is now sourced from the sitewide kid-character pool.
+        Render snippet here (one render per page is enough; the snippet
+        de-dupes if other sections also render it). Wrapper class stays
+        the same so the existing slide-from-behind-photo CSS is
+        preserved - the pool snippet just fills in the <img>.
+      {%- endcomment -%}
+      {% render 'theinmag-character-pool' %}
+      <span class="theinmag-philosophy__character" data-theinmag-pool-character></span>
     </div>
   </div>
 </section>
@@ -424,6 +400,15 @@
     height: auto;
   }
 
+  /* Sitewide character-pool snippet adds .theinmag-pool-character__img
+     (and animates it). Philosophy already animates the wrapper, so we
+     silence the pool's img-level bob here to keep a single animation. */
+  .theinmag-philosophy__character .theinmag-pool-character__img {
+    animation: none;
+    width: 100%;
+    height: auto;
+  }
+
   @keyframes theinmag-philosophy-character-bob {
     0%, 100% { transform: translateY(0) rotate(-2deg); }
     50% { transform: translateY(-5px) rotate(2deg); }
@@ -651,37 +636,14 @@
     /* ----------------------------------------------------------------
        Random character sticker. Up to three options are stored as
        data-src-1/2/3 (with paired alt). One is chosen at random on
-       load and rendered into the container. Note the dataset['src-1']
-       form - data-src-1 maps via a hyphen-digit key, NOT the camelCase
-       dataset.src1.
-       ---------------------------------------------------------------- */
-    const characterContainer = root.querySelector('[data-theinmag-philosophy-character]');
-    if (characterContainer) {
-      const sources = [];
-      for (let i = 1; i <= 3; i++) {
-        const src = characterContainer.dataset['src-' + i];
-        if (src) {
-          sources.push({
-            src: src,
-            alt: characterContainer.dataset['alt-' + i] || ''
-          });
-        }
-      }
-      if (sources.length) {
-        const chosen = sources[Math.floor(Math.random() * sources.length)];
-        const img = document.createElement('img');
-        img.className = 'theinmag-philosophy__character-img';
-        img.src = chosen.src;
-        img.alt = chosen.alt;
-        characterContainer.appendChild(img);
-      }
-    }
+       Character image fill + scroll-pop now handled by the sitewide
+       theinmag-character-pool snippet (rendered above). Removed in
+       the May 10 2026 sitewide retrofit. */
 
     /* ----------------------------------------------------------------
-       Scroll-triggered section reveal + first-view pulse hint +
-       character pop. Scroll listener (rather than IntersectionObserver)
-       for parity with the other theinmag- sections - some embedded
-       contexts skip IO. One-shot: removes its own listener after firing.
+       Scroll-triggered first-view pulse hint on the first anchor. The
+       character's is-popped class is now added by the pool snippet's
+       scroll listener, so we only handle the anchor pulse here.
        ---------------------------------------------------------------- */
     const firstAnchor = triggers[0];
 
@@ -690,9 +652,6 @@
       if (rect.top < window.innerHeight * 0.8) {
         if (firstAnchor && !reducedMotion) {
           firstAnchor.classList.add('is-pulsing');
-        }
-        if (characterContainer && !reducedMotion) {
-          characterContainer.classList.add('is-popped');
         }
         window.removeEventListener('scroll', onScroll);
       }
@@ -759,17 +718,8 @@
     },
     {
       "type": "paragraph",
-      "content": "Up to three kid-creation characters can be uploaded. One is picked at random per page load and pops out from behind the founders photo on scroll. Drop transparent PNGs into /assets/ and reference them by filename, or use the image picker."
-    },
-    { "type": "image_picker", "id": "character_1", "label": "Character 1 image" },
-    { "type": "text", "id": "character_1_filename", "label": "Character 1 fallback filename" },
-    { "type": "text", "id": "character_1_alt", "label": "Character 1 alt text" },
-    { "type": "image_picker", "id": "character_2", "label": "Character 2 image" },
-    { "type": "text", "id": "character_2_filename", "label": "Character 2 fallback filename" },
-    { "type": "text", "id": "character_2_alt", "label": "Character 2 alt text" },
-    { "type": "image_picker", "id": "character_3", "label": "Character 3 image" },
-    { "type": "text", "id": "character_3_filename", "label": "Character 3 fallback filename" },
-    { "type": "text", "id": "character_3_alt", "label": "Character 3 alt text" }
+      "content": "Kid character is picked at random from the sitewide pool (assets/character-1.png ... character-N.png). To add more characters, drop new files into /assets/ and bump pool_size in snippets/theinmag-character-pool.liquid."
+    }
   ],
   "blocks": [
     {
@@ -805,13 +755,7 @@
         "founder_two_name": "Tam",
         "founder_two_role": "Co-founder, theINmag",
         "org_name": "theINmag",
-        "org_url": "https://theinmag.com.au",
-        "character_1_filename": "character-philosophy-1.png",
-        "character_1_alt": "A theINmag reader's drawing.",
-        "character_2_filename": "character-philosophy-2.png",
-        "character_2_alt": "A theINmag reader's drawing.",
-        "character_3_filename": "character-philosophy-3.png",
-        "character_3_alt": "A theINmag reader's drawing."
+        "org_url": "https://theinmag.com.au"
       },
       "blocks": [
         {
@@ -839,7 +783,7 @@
           "type": "anchor",
           "settings": {
             "label": "our story",
-            "paragraph": "Two former teachers with a small idea that wouldn't quit. Ryan and Tam sold the house to fund theINmag, and they're now travelling Australia in their self-converted van with their baby Nora - meeting kids, schools and families face to face, and reminding every Aussie kid their voice belongs in print."
+            "paragraph": "Two teachers with a small idea that wouldn't quit. Ryan and Tam sold the house to fund theINmag, and they're now travelling Australia in their self-converted van with their baby Nora - meeting kids, schools and families face to face, and reminding every Aussie kid their voice belongs in print."
           }
         }
       ]

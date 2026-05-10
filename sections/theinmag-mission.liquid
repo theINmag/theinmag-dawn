@@ -25,16 +25,15 @@
   assign default_message = section.settings.default_message | default: 'Our mission is to empower kids and support parents and teachers.'
   assign feature_blocks = section.blocks | where: 'type', 'feature'
   assign product_blocks = section.blocks | where: 'type', 'product_link'
-
-  assign character_count = 0
-  for i in (1..3)
-    assign img_key = 'character_' | append: i
-    assign filename_key = 'character_' | append: i | append: '_filename'
-    if section.settings[img_key] != blank or section.settings[filename_key] != blank
-      assign character_count = character_count | plus: 1
-    endif
-  endfor
 -%}
+
+{%- comment -%}
+  Character is now sourced from the sitewide kid-character pool. The
+  per-section character_1/2/3 schema settings were removed in the
+  May 10 2026 retrofit - drop new files into /assets/character-N.png
+  and bump pool_size in snippets/theinmag-character-pool.liquid.
+{%- endcomment -%}
+{% render 'theinmag-character-pool' %}
 
 <section class="theinmag-mission" data-theinmag-mission aria-labelledby="theinmag-mission-heading">
   <h2 id="theinmag-mission-heading" class="theinmag-mission__a11y-heading">What makes theINmag different?</h2>
@@ -71,33 +70,7 @@
 
   {%- if product_blocks.size > 0 -%}
     <div class="theinmag-mission__products-wrap">
-      {%- if character_count > 0 -%}
-        {%- liquid
-          assign char_attrs = ''
-          for i in (1..3)
-            assign img_key = 'character_' | append: i
-            assign filename_key = 'character_' | append: i | append: '_filename'
-            assign alt_key = 'character_' | append: i | append: '_alt'
-            assign attr_key = 'character_' | append: i | append: '_attribution'
-            assign char_img = section.settings[img_key]
-            assign char_filename = section.settings[filename_key]
-            assign src = ''
-            if char_img != blank
-              assign src = char_img | image_url: width: 400
-            elsif char_filename != blank
-              assign src = char_filename | asset_url
-            endif
-            if src != blank
-              assign alt_val = section.settings[alt_key] | default: '' | escape
-              assign attr_val = section.settings[attr_key] | default: '' | escape
-              assign char_attrs = char_attrs | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
-              assign char_attrs = char_attrs | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
-              assign char_attrs = char_attrs | append: ' data-attribution-' | append: i | append: '="' | append: attr_val | append: '"'
-            endif
-          endfor
-        -%}
-        <div class="theinmag-mission__character" data-theinmag-character{{ char_attrs }}></div>
-      {%- endif -%}
+      <span class="theinmag-mission__character" data-theinmag-pool-character></span>
 
     <ul class="theinmag-mission__products" role="list">
       {%- for block in product_blocks -%}
@@ -699,6 +672,14 @@
     height: auto;
   }
 
+  /* The sitewide character-pool snippet adds .theinmag-pool-character__img
+     with its own bob animation. Mission already has a wrapper-level bob
+     animation on .theinmag-mission__character, so we silence the pool's
+     img-level bob here to avoid the two animations compounding. */
+  .theinmag-mission__character .theinmag-pool-character__img {
+    animation: none;
+  }
+
   .theinmag-mission__character-attribution {
     display: block;
     margin-top: 4px;
@@ -794,77 +775,11 @@
     }
 
     /* ----------------------------------------------------------------
-       Random character sticker. Up to three options are stored as
-       data-src-1/2/3 (with paired alt + attribution). One is chosen at
-       random on load and rendered into the container.
-       ---------------------------------------------------------------- */
-    const characterContainer = root.querySelector('[data-theinmag-character]');
-    if (characterContainer) {
-      const sources = [];
-      for (let i = 1; i <= 3; i++) {
-        // Note: data-src-1 maps to dataset['src-1'] (digits don't trigger
-        // the camelCase conversion), not dataset.src1.
-        const src = characterContainer.dataset['src-' + i];
-        if (src) {
-          sources.push({
-            src: src,
-            alt: characterContainer.dataset['alt-' + i] || '',
-            attribution: characterContainer.dataset['attribution-' + i] || ''
-          });
-        }
-      }
-
-      if (sources.length) {
-        const chosen = sources[Math.floor(Math.random() * sources.length)];
-        const img = document.createElement('img');
-        img.className = 'theinmag-mission__character-img';
-        img.src = chosen.src;
-        img.alt = chosen.alt;
-        // No loading="lazy" - the bob animation needs the natural
-        // dimensions resolved upfront so the absolute-positioned parent
-        // sizes correctly. PNGs are small.
-        characterContainer.appendChild(img);
-
-        if (chosen.attribution) {
-          const caption = document.createElement('span');
-          caption.className = 'theinmag-mission__character-attribution';
-          caption.textContent = chosen.attribution;
-          characterContainer.appendChild(caption);
-        }
-      }
-
-      /* Scroll-triggered "pop". Character starts behind the membership
-         card; once the user has scrolled the products area into view,
-         the .is-popped class lifts the character up to sit beside the
-         slogans. One-shot - it doesn't reset on scroll back up.
-
-         Plain scroll listener rather than IntersectionObserver so the
-         trigger is reliable in every environment (some embedded /
-         automation contexts skip IO callbacks). Listener removes
-         itself after firing. */
-      const productsList = root.querySelector('.theinmag-mission__products');
-      if (productsList) {
-        var popped = false;
-        var checkPop = function () {
-          if (popped) return;
-          var rect = productsList.getBoundingClientRect();
-          // Trigger when the products area's top has risen above 80%
-          // of the viewport - i.e. the user has scrolled the section
-          // into the visible reading zone.
-          if (rect.top < window.innerHeight * 0.8) {
-            popped = true;
-            characterContainer.classList.add('is-popped');
-            window.removeEventListener('scroll', onScroll);
-          }
-        };
-        var onScroll = function () {
-          window.requestAnimationFrame(checkPop);
-        };
-        window.addEventListener('scroll', onScroll, { passive: true });
-        // Run once immediately in case the page already loaded scrolled.
-        checkPop();
-      }
-    }
+       Character image fill + scroll-pop now handled by the sitewide
+       theinmag-character-pool snippet (rendered at the top of this
+       section). Removed in the May 10 2026 sitewide retrofit so all
+       on-site kid-character pops draw from the same /assets/character-N
+       pool rather than per-section image_picker settings. */
   })();
 </script>
 
@@ -894,24 +809,12 @@
     },
     {
       "type": "header",
-      "content": "Character sticker (random)"
+      "content": "Character sticker"
     },
     {
       "type": "paragraph",
-      "content": "Up to three kid-creation characters can be uploaded. One is picked at random per page load. Drop transparent PNGs into /assets/ and reference them by filename, or use the image picker."
-    },
-    { "type": "image_picker", "id": "character_1", "label": "Character 1 image" },
-    { "type": "text", "id": "character_1_filename", "label": "Character 1 fallback filename" },
-    { "type": "text", "id": "character_1_alt", "label": "Character 1 alt text" },
-    { "type": "text", "id": "character_1_attribution", "label": "Character 1 attribution", "info": "e.g. \"Pepe B., age 10, Epsom VIC\"" },
-    { "type": "image_picker", "id": "character_2", "label": "Character 2 image" },
-    { "type": "text", "id": "character_2_filename", "label": "Character 2 fallback filename" },
-    { "type": "text", "id": "character_2_alt", "label": "Character 2 alt text" },
-    { "type": "text", "id": "character_2_attribution", "label": "Character 2 attribution" },
-    { "type": "image_picker", "id": "character_3", "label": "Character 3 image" },
-    { "type": "text", "id": "character_3_filename", "label": "Character 3 fallback filename" },
-    { "type": "text", "id": "character_3_alt", "label": "Character 3 alt text" },
-    { "type": "text", "id": "character_3_attribution", "label": "Character 3 attribution" }
+      "content": "Kid character is picked at random from the sitewide pool (assets/character-1.png ... character-N.png). To add more characters, drop new files into /assets/ and bump pool_size in snippets/theinmag-character-pool.liquid."
+    }
   ],
   "blocks": [
     {

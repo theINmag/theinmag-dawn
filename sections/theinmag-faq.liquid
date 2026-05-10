@@ -30,17 +30,15 @@
 
   assign faq_blocks = section.blocks | where: 'type', 'faq_item'
 
-  assign character_count = 0
-  for i in (1..3)
-    assign img_key = 'character_' | append: i
-    assign filename_key = 'character_' | append: i | append: '_filename'
-    if section.settings[img_key] != blank or section.settings[filename_key] != blank
-      assign character_count = character_count | plus: 1
-    endif
-  endfor
-
   assign section_style = '--faq-pt: ' | append: section.settings.padding_top | append: 'px; --faq-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
+
+{%- comment -%}
+  Character is now sourced from the sitewide pool. The wrapper class
+  stays the same so the existing FAQ-specific positioning and
+  animations are preserved; only the image-fill mechanism changed.
+{%- endcomment -%}
+{% render 'theinmag-character-pool' %}
 
 <section
   class="theinmag-faq"
@@ -79,31 +77,7 @@
 
         {%- if show_cta and cta_label != blank and cta_link != blank -%}
           <div class="theinmag-faq__cta-wrap">
-            {%- if character_count > 0 -%}
-              {%- liquid
-                assign char_attrs = ''
-                for i in (1..3)
-                  assign img_key = 'character_' | append: i
-                  assign filename_key = 'character_' | append: i | append: '_filename'
-                  assign alt_key = 'character_' | append: i | append: '_alt'
-                  assign char_img = section.settings[img_key]
-                  assign char_filename = section.settings[filename_key]
-                  assign src = ''
-                  if char_img != blank
-                    assign src = char_img | image_url: width: 600
-                  elsif char_filename != blank
-                    assign src = char_filename | asset_url
-                  endif
-                  if src != blank
-                    assign alt_val = section.settings[alt_key] | default: '' | escape
-                    assign char_attrs = char_attrs | append: ' data-src-' | append: i | append: '="' | append: src | append: '"'
-                    assign char_attrs = char_attrs | append: ' data-alt-' | append: i | append: '="' | append: alt_val | append: '"'
-                  endif
-                endfor
-              -%}
-              <div class="theinmag-faq__character" data-theinmag-faq-character{{ char_attrs }}></div>
-            {%- endif -%}
-
+            <span class="theinmag-faq__character" data-theinmag-pool-character></span>
             <a class="theinmag-faq__cta" href="{{ cta_link }}">{{ cta_label }}</a>
           </div>
         {%- endif -%}
@@ -559,6 +533,15 @@
     height: auto;
   }
 
+  /* Sitewide pool snippet adds .theinmag-pool-character__img with its
+     own bob. FAQ already animates the wrapper (slide-in + bob), so we
+     silence the pool's img-level bob here. */
+  .theinmag-faq__character .theinmag-pool-character__img {
+    animation: none;
+    width: 100%;
+    height: auto;
+  }
+
   /* Bob keyframes preserve the -50% Y translate so the bob layers on
      top of the slide-in's final position without resetting it. */
   @keyframes theinmag-faq-bob {
@@ -618,62 +601,9 @@
       });
     });
 
-    /* ----------------------------------------------------------------
-       Random kid character. Up to three options are stored as
-       data-src-1/2/3 (with paired alt). One is chosen at random on
-       load and rendered into the container. Mirrors the mission /
-       reviews pattern. dataset['src-' + i] not dataset.src1 - digits
-       don't trigger camelCase conversion (per memory note).
-       ---------------------------------------------------------------- */
-    var characterContainer = root.querySelector('[data-theinmag-faq-character]');
-    if (!characterContainer) return;
-
-    var sources = [];
-    for (var i = 1; i <= 3; i++) {
-      var src = characterContainer.dataset['src-' + i];
-      if (src) {
-        sources.push({
-          src: src,
-          alt: characterContainer.dataset['alt-' + i] || ''
-        });
-      }
-    }
-
-    if (!sources.length) return;
-
-    var chosen = sources[Math.floor(Math.random() * sources.length)];
-    var img = document.createElement('img');
-    img.className = 'theinmag-faq__character-img';
-    img.src = chosen.src;
-    img.alt = chosen.alt;
-    /* No loading="lazy" - lazy below-the-fold images don't resolve
-       dimensions in this layout, which collapses the absolute-
-       positioned parent (per kid-character pattern memory). */
-    characterContainer.appendChild(img);
-
-    /* Scroll-triggered pop. Anchored to the CTA wrap - the character
-       lifts in once the user has scrolled the bottom of the FAQ
-       section into the upper 80% of the viewport. One-shot - doesn't
-       reset on scroll back up. Plain scroll listener (not Intersection
-       Observer) per the kid-character pattern memory. */
-    var ctaWrap = root.querySelector('.theinmag-faq__cta-wrap');
-    if (!ctaWrap) return;
-
-    var popped = false;
-    var checkPop = function () {
-      if (popped) return;
-      var rect = ctaWrap.getBoundingClientRect();
-      if (rect.top < window.innerHeight * 0.85) {
-        popped = true;
-        characterContainer.classList.add('is-popped');
-        window.removeEventListener('scroll', onScroll);
-      }
-    };
-    var onScroll = function () {
-      window.requestAnimationFrame(checkPop);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    checkPop();
+    /* Per-section character handling (image pick + scroll-pop) was
+       removed in the May 10 2026 sitewide retrofit. Sitewide pool
+       snippet (rendered above) handles both. */
   })();
 </script>
 
@@ -724,21 +654,12 @@
     },
     {
       "type": "header",
-      "content": "Character sticker (random)"
+      "content": "Character sticker"
     },
     {
       "type": "paragraph",
-      "content": "Up to three kid-creation characters can be uploaded. One is picked at random per page load and lifts in next to the contact CTA on desktop+."
+      "content": "Kid character is picked at random from the sitewide pool (assets/character-1.png ... character-N.png). To add more characters, drop new files into /assets/ and bump pool_size in snippets/theinmag-character-pool.liquid."
     },
-    { "type": "image_picker", "id": "character_1", "label": "Character 1 image" },
-    { "type": "text", "id": "character_1_filename", "label": "Character 1 fallback filename" },
-    { "type": "text", "id": "character_1_alt", "label": "Character 1 alt text" },
-    { "type": "image_picker", "id": "character_2", "label": "Character 2 image" },
-    { "type": "text", "id": "character_2_filename", "label": "Character 2 fallback filename" },
-    { "type": "text", "id": "character_2_alt", "label": "Character 2 alt text" },
-    { "type": "image_picker", "id": "character_3", "label": "Character 3 image" },
-    { "type": "text", "id": "character_3_filename", "label": "Character 3 fallback filename" },
-    { "type": "text", "id": "character_3_alt", "label": "Character 3 alt text" },
     {
       "type": "header",
       "content": "Spacing"
