@@ -367,14 +367,15 @@
   .theinmag-bm-quiz__tablet {
     position: relative;
     z-index: 1;
-    max-width: 1200px;
+    /* Bumped max-width 1200 -> 1320 so the 3x3 grown-up grid has
+       more horizontal room to grow into. */
+    max-width: 1320px;
     margin: 0 auto;
     background-color: #FFFFFF;
     border-radius: 28px;
-    /* Tightened from 28-48 / 20-40 -> 20-36 / 18-32 + the gap
-       between head/board/foot dropped one tier so the whole tablet
-       fits one viewport. */
-    padding: clamp(20px, 3vw, 36px) clamp(18px, 2.6vw, 32px);
+    /* Horizontal padding tightened (was 18-32) so the inner board
+       content takes more of the tablet width. */
+    padding: clamp(20px, 3vw, 36px) clamp(16px, 2.2vw, 28px);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.9),
       inset 0 -1px 0 rgba(42, 31, 61, 0.04),
@@ -470,8 +471,12 @@
 
   @media (min-width: 750px) {
     .theinmag-bm-quiz__board {
-      grid-template-columns: minmax(0, 1fr) minmax(180px, 0.55fr) minmax(0, 1fr);
-      gap: clamp(20px, 2.4vw, 32px);
+      /* Adults column gets the largest share (1.4fr) so the 3x3
+         grown-up tiles fill more of the row width - Ryan's "lot of
+         dead space around them" call. Targets column is now a fixed
+         narrower band; kids column gets 1.1fr. */
+      grid-template-columns: minmax(0, 1.4fr) 160px minmax(0, 1.1fr);
+      gap: clamp(16px, 2vw, 28px);
     }
   }
 
@@ -569,7 +574,9 @@
     .theinmag-bm-quiz__tiles {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: clamp(8px, 1.2vw, 12px);
+      /* Tighter gap so the tiles pack closer and read as a single
+         photo-grid rather than nine separate islands. */
+      gap: clamp(6px, 0.8vw, 10px);
       padding: 0;
       overflow: visible;
       scroll-snap-type: none;
