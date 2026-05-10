@@ -119,6 +119,25 @@
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+    isolation: isolate; /* contains the ::before stacking context */
+  }
+
+  /* White-on-scrim treatment when a hero photo is present (per the
+     premium-photo-text rule — no coloured pills on photography). Top-
+     anchored dark gradient gives the heading legibility against any
+     image, fades to transparent so the lower portion stays photo. */
+  .theinmag-stockist-apply-hero--has-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(20, 14, 30, 0.6) 0%,
+      rgba(20, 14, 30, 0.32) 45%,
+      rgba(20, 14, 30, 0.05) 100%
+    );
+    pointer-events: none;
+    z-index: 1;
   }
 
   @media (min-width: 750px) {
@@ -137,6 +156,8 @@
     flex-direction: column;
     align-items: center;
     gap: clamp(10px, 1.4vw, 16px);
+    position: relative;
+    z-index: 2; /* sits above the scrim ::before */
   }
 
   .theinmag-stockist-apply-hero__heading {
@@ -166,6 +187,20 @@
     opacity: 0.9;
     max-width: none;
     margin: 0;
+  }
+
+  /* Photography variant: white type with a soft text-shadow scrim,
+     matched to the article-template overlay (rgba 20,14,30,0.35). */
+  .theinmag-stockist-apply-hero--has-bg .theinmag-stockist-apply-hero__heading {
+    color: #FFFFFF;
+    text-shadow: 0 1px 12px rgba(20, 14, 30, 0.45),
+                 0 1px 3px rgba(20, 14, 30, 0.35);
+  }
+  .theinmag-stockist-apply-hero--has-bg .theinmag-stockist-apply-hero__subhead {
+    color: #FFFFFF;
+    opacity: 1;
+    text-shadow: 0 1px 8px rgba(20, 14, 30, 0.45),
+                 0 1px 3px rgba(20, 14, 30, 0.35);
   }
 {%- endstylesheet -%}
 
