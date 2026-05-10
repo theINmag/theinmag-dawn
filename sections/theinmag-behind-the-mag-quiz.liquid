@@ -208,24 +208,10 @@
     </div>
 
     <footer class="theinmag-bm-quiz__foot">
-      {%- if skip_prompt != blank -%}
-        <p class="theinmag-bm-quiz__skip-prompt">{{ skip_prompt }}</p>
-      {%- endif -%}
-      <button
-        type="button"
-        class="theinmag-bm-quiz__skip"
-        data-bm-quiz-skip
-        aria-expanded="false"
-        aria-controls="theinmag-bm-quiz-roster"
-      >
-        {{ skip_label }}
-      </button>
-
       {%- comment -%}
-        Peek strip - row of all adult avatars clipped at the bottom
-        so the user sees a hint of "more below if you click." Sits
-        immediately under the skip button so the cut-off feels like
-        the team is peeking from behind a drawer.
+        Peek strip on the LEFT (tablet+), prompt + button on the
+        RIGHT - so the foot reads as one horizontal row rather than
+        a tall stacked block. Cuts the tablet height down a chunk.
       {%- endcomment -%}
       <div class="theinmag-bm-quiz__peek" data-bm-quiz-peek aria-hidden="true">
         <div class="theinmag-bm-quiz__peek-row">
@@ -243,6 +229,21 @@
             {%- endif -%}
           {%- endfor -%}
         </div>
+      </div>
+
+      <div class="theinmag-bm-quiz__foot-cta">
+        {%- if skip_prompt != blank -%}
+          <p class="theinmag-bm-quiz__skip-prompt">{{ skip_prompt }}</p>
+        {%- endif -%}
+        <button
+          type="button"
+          class="theinmag-bm-quiz__skip"
+          data-bm-quiz-skip
+          aria-expanded="false"
+          aria-controls="theinmag-bm-quiz-roster"
+        >
+          {{ skip_label }}
+        </button>
       </div>
     </footer>
   </div>
@@ -798,12 +799,33 @@
     color: var(--color-purple-dark, #5D3A7A);
   }
 
+  /* Foot row: peek strip on the LEFT, CTA stack on the RIGHT at
+     tablet+ widths so the whole skip moment lives in a single
+     horizontal row rather than a tall stacked block. Mobile keeps
+     the centred stack. */
   .theinmag-bm-quiz__foot {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(6px, 1vw, 10px);
+    gap: clamp(10px, 1.4vw, 14px);
     padding-top: clamp(8px, 1.4vw, 16px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-quiz__foot {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(20px, 3vw, 40px);
+    }
+  }
+
+  .theinmag-bm-quiz__foot-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(6px, 1vw, 10px);
+    flex: 0 0 auto;
   }
 
   /* "Wanna skip the quiz?" prompt sits above the skip button. Post
@@ -870,19 +892,28 @@
     }
   }
 
-  /* Peek strip - clipped row of adult avatars below the skip button.
-     Visible only the top portion of each avatar so the user reads
-     it as "team peeking from behind a drawer." Fades out at the
-     bottom into the section bg. Hidden when the roster is open. */
+  /* Peek strip - clipped row of adult avatars. Visible only the top
+     portion of each avatar so the user reads it as "team peeking
+     from behind a drawer." Fades out at the bottom into the tablet
+     bg. Hidden when the roster is open. At tablet+, sits LEFT of
+     the CTA stack and takes whatever width the flex row allows. */
   .theinmag-bm-quiz__peek {
     position: relative;
     width: 100%;
     max-width: 760px;
-    margin-top: clamp(8px, 1.4vw, 16px);
+    margin: 0 auto;
     max-height: 56px;
     overflow: hidden;
     pointer-events: none;
     transition: max-height 0.3s ease, opacity 0.3s ease;
+  }
+  @media (min-width: 750px) {
+    .theinmag-bm-quiz__peek {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      max-height: 48px;
+    }
   }
   .theinmag-bm-quiz__peek[data-collapsed="true"] {
     max-height: 0;
@@ -895,6 +926,12 @@
     justify-content: center;
     flex-wrap: wrap;
   }
+  @media (min-width: 750px) {
+    .theinmag-bm-quiz__peek-row {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+    }
+  }
   .theinmag-bm-quiz__peek-avatar {
     width: clamp(48px, 7vw, 72px);
     height: clamp(48px, 7vw, 72px);
@@ -904,11 +941,19 @@
     border: 2px solid #FFFFFF;
     box-shadow: 0 2px 6px rgba(42, 31, 61, 0.18);
   }
+  @media (min-width: 750px) {
+    /* Slightly smaller in the row layout so the 9 avatars fit in
+       the left column without overflowing. */
+    .theinmag-bm-quiz__peek-avatar {
+      width: 56px;
+      height: 56px;
+    }
+  }
   .theinmag-bm-quiz__peek::after {
     content: '';
     position: absolute;
     inset: auto 0 0 0;
-    height: 24px;
+    height: 20px;
     background: linear-gradient(to bottom, transparent, #FFFFFF);
   }
 

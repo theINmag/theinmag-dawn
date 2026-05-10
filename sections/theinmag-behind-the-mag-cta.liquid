@@ -41,6 +41,7 @@
             endif
           -%}
           {%- assign card_color = block.settings.color | default: 'peach' -%}
+          {%- assign btn_style = block.settings.button_style | default: 'yellow_stamp' -%}
           <li class="theinmag-bm-cta__card-item" {{ block.shopify_attributes }}>
             <article class="theinmag-bm-cta__card theinmag-bm-cta__card--{{ card_color }}">
               <div class="theinmag-bm-cta__card-media">
@@ -65,7 +66,7 @@
                   <p class="theinmag-bm-cta__card-text">{{ block.settings.body }}</p>
                 {%- endif -%}
                 {%- if block.settings.button_label != blank -%}
-                  <a class="theinmag-bm-cta__btn" href="{{ block.settings.link | default: '#' }}">
+                  <a class="theinmag-bm-cta__btn theinmag-bm-cta__btn--{{ btn_style }}" href="{{ block.settings.link | default: '#' }}">
                     {{ block.settings.button_label }}
                   </a>
                 {%- endif -%}
@@ -80,18 +81,19 @@
 
 {%- stylesheet -%}
   .theinmag-bm-cta {
-    /* Section background was peach; flipped to cream so the cream
-       frames the coloured cards inside (each card now picks its own
-       pair colour via the .--peach / .--lavender / etc modifiers). */
     background-color: var(--color-cream, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(48px, 7vw, 96px) clamp(20px, 5vw, 48px);
+    /* Section padding tightened so the CTAs read as a compact
+       closing moment, not a tall final block. */
+    padding: clamp(28px, 4.5vw, 56px) clamp(20px, 5vw, 48px);
     position: relative;
     overflow: hidden;
   }
 
   .theinmag-bm-cta__inner {
-    max-width: 1080px;
+    /* Capped at 720 so the two cards sit at ~340px each and read
+       as product tiles, not banner blocks. */
+    max-width: 720px;
     margin: 0 auto;
   }
 
@@ -217,39 +219,71 @@
     max-width: 36ch;
   }
 
-  /* Yellow stamp button - tightened to match the smaller card. */
+  /* Shared button base - both yellow_stamp and outlined_purple share
+     identical padding/font-size/line-height so the two cards' buttons
+     render at exactly the same height. Variant modifiers below swap
+     colour, font, and shadow.
+
+     The outlined variant uses an inset box-shadow for the "border" so
+     the 2px outline doesn't add to the box height (a real `border`
+     property would have made the outlined button 4px taller than the
+     yellow). */
   .theinmag-bm-cta__btn {
     display: inline-block;
     align-self: center;
     margin-top: clamp(4px, 0.8vw, 8px);
+    font-size: 14px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    padding: 12px 22px;
+    border: 0;
+    border-radius: var(--radius-button, 32px);
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  /* Yellow stamp (primary). Post Regular per design tokens. The
+     offset shadow extends below the box but doesn't change the box
+     height, so the outlined sibling still matches. */
+  .theinmag-bm-cta__btn--yellow_stamp {
     background-color: var(--color-yellow, #F9C23C);
     color: var(--color-inky-purple-navy, #2A1F3D);
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
-    font-size: clamp(13px, 1.5vw, 15px);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    text-decoration: none;
-    padding: 10px 20px;
-    border-radius: var(--radius-button, 32px);
     box-shadow: 0 3px 0 var(--color-yellow-shadow, #D4A02E);
-    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .theinmag-bm-cta__btn--yellow_stamp:hover {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #4A2D62;
+  }
+  .theinmag-bm-cta__btn--yellow_stamp:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    box-shadow: 0 3px 0 #4A2D62, 0 0 0 3px var(--color-yellow, #F9C23C);
+    outline: none;
   }
 
-  .theinmag-bm-cta__btn:hover {
-    background-color: var(--color-purple-dark, #5D3A7A);
-    color: #FFFFFF;
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #4A2D62;
+  /* Outlined-purple (secondary) per design tokens. Inter 600 + inset
+     "border" so the box height matches the yellow stamp exactly. */
+  .theinmag-bm-cta__btn--outlined_purple {
+    background-color: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    box-shadow: inset 0 0 0 2px var(--color-purple-dark, #5D3A7A);
   }
-  /* Focus-visible adds a yellow outline ON TOP of the hover-state fill so
-     keyboard users get an obvious "this is focused" cue distinct from
-     mouse hover. */
-  .theinmag-bm-cta__btn:focus-visible {
+  .theinmag-bm-cta__btn--outlined_purple:hover {
     background-color: var(--color-purple-dark, #5D3A7A);
     color: #FFFFFF;
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #4A2D62, 0 0 0 3px var(--color-yellow, #F9C23C);
+    box-shadow: inset 0 0 0 2px var(--color-purple-dark, #5D3A7A);
+  }
+  .theinmag-bm-cta__btn--outlined_purple:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    box-shadow: inset 0 0 0 2px var(--color-purple-dark, #5D3A7A), 0 0 0 3px var(--color-yellow, #F9C23C);
     outline: none;
   }
 
@@ -318,6 +352,16 @@
         { "type": "textarea", "id": "body", "label": "Body" },
         { "type": "text", "id": "button_label", "label": "Button label" },
         { "type": "url", "id": "link", "label": "Link" },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Button style",
+          "options": [
+            { "value": "yellow_stamp", "label": "Yellow stamp (primary)" },
+            { "value": "outlined_purple", "label": "Outlined purple (secondary)" }
+          ],
+          "default": "yellow_stamp"
+        },
         {
           "type": "select",
           "id": "color",
