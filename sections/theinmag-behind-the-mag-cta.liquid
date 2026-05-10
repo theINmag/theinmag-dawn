@@ -11,14 +11,31 @@
 
 {%- liquid
   assign cards = section.blocks | where: 'type', 'cta_card'
-  assign heading = section.settings.heading | default: 'Your kid could be in the next issue.'
+  # No `| default:` on heading. Liquid treats an empty string as
+  # blank, so the default would re-populate it from a template-blank
+  # value and defeat the `{% if heading != blank %}` guard around
+  # the H2. Template now controls this directly; blank means hidden.
+  assign heading = section.settings.heading
   assign aeo_heading = section.settings.aeo_heading | default: 'How can your kid be in theINmag?'
+
+  assign bg_src = ''
+  if section.settings.background_image != blank
+    assign bg_src = section.settings.background_image | image_url: width: 2400
+  elsif section.settings.background_filename != blank
+    assign bg_src = section.settings.background_filename | asset_url
+  endif
+
+  assign section_style = ''
+  if bg_src != blank
+    assign section_style = "--bm-cta-bg: url('" | append: bg_src | append: "');"
+  endif
 -%}
 
 <section
-  class="theinmag-bm-cta"
+  class="theinmag-bm-cta{% if bg_src != blank %} theinmag-bm-cta--has-bg{% endif %}"
   data-theinmag-bm-cta
   aria-labelledby="theinmag-bm-cta-heading"
+  style="{{ section_style }}"
 >
   <span class="visually-hidden">{{ aeo_heading }}</span>
 
@@ -83,11 +100,25 @@
   .theinmag-bm-cta {
     background-color: var(--color-cream, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    /* Section padding tightened so the CTAs read as a compact
-       closing moment, not a tall final block. */
     padding: clamp(28px, 4.5vw, 56px) clamp(20px, 5vw, 48px);
     position: relative;
     overflow: hidden;
+  }
+  /* Optional editor-supplied section background image. Mirrors the
+     pattern already used on the story, quiz and crew sections. */
+  .theinmag-bm-cta--has-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--bm-cta-bg);
+    background-size: cover;
+    background-position: center;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .theinmag-bm-cta__inner {
+    position: relative;
+    z-index: 1;
   }
 
   .theinmag-bm-cta__inner {
@@ -340,8 +371,11 @@
   "tag": "section",
   "class": "theinmag-bm-cta-section",
   "settings": [
-    { "type": "text", "id": "heading", "label": "Overarching heading (H2)" },
-    { "type": "text", "id": "aeo_heading", "label": "Visually-hidden secondary H2 (question form)" }
+    { "type": "text", "id": "heading", "label": "Overarching heading (H2)", "info": "Leave blank to hide the H2 entirely." },
+    { "type": "text", "id": "aeo_heading", "label": "Visually-hidden secondary H2 (question form)" },
+    { "type": "header", "content": "Section background (optional)" },
+    { "type": "image_picker", "id": "background_image", "label": "Background image" },
+    { "type": "text", "id": "background_filename", "label": "Background fallback filename" }
   ],
   "blocks": [
     {
