@@ -38,8 +38,9 @@
               assign card_src = block.settings.fallback_filename | asset_url
             endif
           -%}
+          {%- assign card_color = block.settings.color | default: 'peach' -%}
           <li class="theinmag-bm-cta__card-item" {{ block.shopify_attributes }}>
-            <article class="theinmag-bm-cta__card">
+            <article class="theinmag-bm-cta__card theinmag-bm-cta__card--{{ card_color }}">
               <div class="theinmag-bm-cta__card-media">
                 {%- if card_src != blank -%}
                   <img
@@ -77,9 +78,12 @@
 
 {%- stylesheet -%}
   .theinmag-bm-cta {
-    background-color: var(--color-peach, #FCDDB8);
+    /* Section background was peach; flipped to cream so the cream
+       frames the coloured cards inside (each card now picks its own
+       pair colour via the .--peach / .--lavender / etc modifiers). */
+    background-color: var(--color-cream, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(64px, 9vw, 128px) clamp(20px, 5vw, 48px);
+    padding: clamp(48px, 7vw, 96px) clamp(20px, 5vw, 48px);
     position: relative;
     overflow: hidden;
   }
@@ -90,11 +94,11 @@
   }
 
   .theinmag-bm-cta__heading {
-    margin: 0 0 clamp(28px, 4vw, 44px);
+    margin: 0 0 clamp(20px, 3vw, 32px);
     text-align: center;
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
-    font-size: clamp(32px, 5.6vw, 56px);
+    font-size: clamp(28px, 4.6vw, 44px);
     line-height: 1.05;
     letter-spacing: 0;
     color: var(--color-sandy-orange-dark, #D9783A);
@@ -122,26 +126,43 @@
 
   .theinmag-bm-cta__card-item { margin: 0; display: flex; }
 
+  /* Card defaults. Each card picks its own pair colour via the
+     .theinmag-bm-cta__card--peach / --lavender / --mint / --sky
+     modifier classes below. The card's body half (heading + text +
+     button) sits on the pair's light bg; the photo at the top stays
+     as photo. Buttons stay yellow stamp on every card - their job
+     is the conversion, the colour wash is just for personality. */
   .theinmag-bm-cta__card {
     display: flex;
     flex-direction: column;
     flex: 1;
-    background-color: #FFFFFF;
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 4px 18px rgba(217, 120, 58, 0.18);
+    box-shadow: 0 4px 18px rgba(42, 31, 61, 0.14);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: #FFFFFF;
   }
-
   .theinmag-bm-cta__card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 26px rgba(217, 120, 58, 0.28);
+    box-shadow: 0 10px 26px rgba(42, 31, 61, 0.22);
   }
 
+  /* Pair-colour card variants. Each modifier sets the body bg and the
+     placeholder gradient. Headings + text adopt the pair's dark
+     companion via per-modifier overrides below. */
+  .theinmag-bm-cta__card--peach { background-color: var(--color-peach, #FCDDB8); }
+  .theinmag-bm-cta__card--lavender { background-color: var(--color-lavender, #E8DEEF); }
+  .theinmag-bm-cta__card--mint { background-color: var(--color-mint, #D6EAD9); }
+  .theinmag-bm-cta__card--sky { background-color: var(--color-sky, #C9E5E8); }
+  .theinmag-bm-cta__card--coral { background-color: var(--color-salmon, #FBE0D6); }
+  .theinmag-bm-cta__card--cream { background-color: var(--color-cream, #FBF6EA); }
+
   .theinmag-bm-cta__card-media {
-    aspect-ratio: 4 / 3;
+    /* Reduced from 4/3 to 16/10 (more compact) so the heading +
+       button below stay above the fold alongside the section H2. */
+    aspect-ratio: 16 / 10;
     overflow: hidden;
-    background-color: var(--color-wave-peach, #F8C99E);
+    background-color: rgba(255, 255, 255, 0.4);
   }
 
   .theinmag-bm-cta__card-media img {
@@ -151,39 +172,49 @@
     display: block;
   }
 
+  /* Placeholder gradient picks up the card's own colour pair. */
   .theinmag-bm-cta__card-placeholder {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, var(--color-wave-peach, #F8C99E) 0%, var(--color-peach, #FCDDB8) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.15) 100%);
   }
 
   .theinmag-bm-cta__card-body {
-    padding: clamp(20px, 2.6vw, 32px);
+    padding: clamp(18px, 2.2vw, 26px) clamp(20px, 2.4vw, 28px) clamp(20px, 2.6vw, 30px);
     display: flex;
     flex-direction: column;
-    gap: clamp(10px, 1.4vw, 14px);
+    gap: clamp(8px, 1.1vw, 12px);
     flex: 1;
     align-items: center;
     text-align: center;
   }
 
+  /* Card heading is now Post Regular (the brand's hand-lettered
+     register) - per Ryan's call so the cards feel less corporate
+     and more on-brand. Each card gets its pair's dark companion
+     for ink colour. */
   .theinmag-bm-cta__card-heading {
     margin: 0;
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: clamp(22px, 2.4vw, 26px);
-    line-height: 1.25;
-    letter-spacing: -0.01em;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(22px, 2.6vw, 28px);
+    line-height: 1.1;
+    letter-spacing: 0;
     color: var(--color-inky-purple-navy, #2A1F3D);
   }
+  .theinmag-bm-cta__card--peach .theinmag-bm-cta__card-heading { color: var(--color-sandy-orange-dark, #D9783A); }
+  .theinmag-bm-cta__card--lavender .theinmag-bm-cta__card-heading { color: var(--color-purple-dark, #5D3A7A); }
+  .theinmag-bm-cta__card--mint .theinmag-bm-cta__card-heading { color: var(--color-sage-dark, #4A7C5C); }
+  .theinmag-bm-cta__card--sky .theinmag-bm-cta__card-heading { color: var(--color-teal-dark, #2D6878); }
+  .theinmag-bm-cta__card--coral .theinmag-bm-cta__card-heading { color: var(--color-coral-dark, #C9543E); }
 
   .theinmag-bm-cta__card-text {
     margin: 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-size: clamp(15px, 1.6vw, 16px);
-    line-height: 1.6;
+    font-size: clamp(14px, 1.5vw, 15px);
+    line-height: 1.55;
     color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.92;
+    opacity: 0.88;
   }
 
   /* Yellow stamp primary button per design tokens. Both CTAs use this -
@@ -289,6 +320,20 @@
         { "type": "textarea", "id": "body", "label": "Body" },
         { "type": "text", "id": "button_label", "label": "Button label" },
         { "type": "url", "id": "link", "label": "Link" },
+        {
+          "type": "select",
+          "id": "color",
+          "label": "Card colour pair",
+          "options": [
+            { "value": "peach", "label": "Peach (have-a-go orange)" },
+            { "value": "lavender", "label": "Lavender (primary purple)" },
+            { "value": "mint", "label": "Mint (kids / fresh)" },
+            { "value": "sky", "label": "Sky (callout teal)" },
+            { "value": "coral", "label": "Coral (warmth)" },
+            { "value": "cream", "label": "Cream (universal)" }
+          ],
+          "default": "peach"
+        },
         { "type": "image_picker", "id": "image", "label": "Card image" },
         { "type": "text", "id": "fallback_filename", "label": "Fallback filename" },
         { "type": "text", "id": "image_alt", "label": "Image alt text" }

@@ -114,11 +114,14 @@
         "poster_filename": "behind-the-mag-video-poster.jpg",
         "poster_alt": "Tam and Ryan in front of the van talking about why it's called theINmag.",
         "heading": "Wait - why's it called theINmag?",
-        "heading_shape_filename": "meet-tam-heading-shape.png",
+        "heading_shape_filename": "",
         "role": "Glad you asked",
         "intro": "",
-        "cta_label": "",
-        "cta_link": ""
+        "cta_label": "Grab a membership",
+        "cta_link": "/products/theinmag-membership",
+        "heading_font_style": "inter",
+        "cta_style": "outlined_purple",
+        "video_aspect_desktop": "9 / 14"
       }
     },
     "bm_quiz": {
@@ -316,6 +319,7 @@
             "body": "Drawings, stories, photos, jokes, maths puzzles, anything. If they made it and they're proud of it, send it IN.",
             "button_label": "Send IN a creation",
             "link": "/pages/send-in",
+            "color": "peach",
             "fallback_filename": "behind-the-mag-cta-send-in.jpg",
             "image_alt": "A pile of kid creations ready to be sent in to theINmag."
           }
@@ -327,6 +331,7 @@
             "body": "Three issues a year, straight to your letterbox. Never miss one.",
             "button_label": "Get a Membership",
             "link": "/products/theinmag-membership",
+            "color": "lavender",
             "fallback_filename": "behind-the-mag-cta-membership.jpg",
             "image_alt": "A theINmag membership pack landing in an Aussie letterbox."
           }

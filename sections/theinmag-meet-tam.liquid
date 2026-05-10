@@ -41,15 +41,32 @@
 
   assign leaves_src = 'whiteleaves.png' | asset_url
 
-  assign shape_filename = section.settings.heading_shape_filename | default: 'meet-tam-heading-shape.png'
-  assign shape_src = shape_filename | asset_url
+  {%- comment -%}
+    Defaults stripped from heading_shape_filename, cta_label and
+    cta_link in the May 11 2026 BM-page reuse: those defaults were
+    homepage-specific ("Grab the latest issue" -> /products/mag10,
+    plus the meet-tam-heading-shape.png) and they over-rode any
+    blank-string suppression on the BM page instance, so the BM
+    page kept rendering Tam's CTA + her shape behind the heading.
+    Homepage's index.json sets all three explicitly so removing
+    the defaults here is safe.
+  {%- endcomment -%}
+  assign shape_filename = section.settings.heading_shape_filename
+  assign shape_src = ''
+  if shape_filename != blank
+    assign shape_src = shape_filename | asset_url
+  endif
 
   assign heading = section.settings.heading | default: 'Meet Tam'
   assign role = section.settings.role | default: 'Co-founder of theINmag'
   assign intro = section.settings.intro
-  assign cta_label = section.settings.cta_label | default: 'Grab the latest issue'
-  assign cta_link = section.settings.cta_link | default: '/products/mag10'
+  assign cta_label = section.settings.cta_label
+  assign cta_link = section.settings.cta_link
   assign poster_alt = section.settings.poster_alt | default: 'Tam holding the latest theINmag issue, mid sentence with a smile.'
+
+  assign heading_font_style = section.settings.heading_font_style | default: 'post'
+  assign cta_style = section.settings.cta_style | default: 'yellow_stamp'
+  assign video_aspect_desktop = section.settings.video_aspect_desktop | default: '9 / 11'
 
   capture brand_html
     echo '<span class="theinmag-brand">the<span class="theinmag-brand__in">IN</span>mag</span>'
@@ -59,8 +76,9 @@
 -%}
 
 <section
-  class="theinmag-meet-tam"
+  class="theinmag-meet-tam theinmag-meet-tam--heading-{{ heading_font_style }} theinmag-meet-tam--cta-{{ cta_style }}"
   aria-labelledby="theinmag-meet-tam-heading"
+  style="--meet-tam-video-aspect-desktop: {{ video_aspect_desktop }};"
 >
   {%- comment -%}
     Decorative dots layer on the section's lavender bg, matching the
@@ -457,10 +475,12 @@
     .theinmag-meet-tam__video {
       /* Desktop sizing tuned so the whole card fits one ~900px-tall
          viewport on a standard laptop. Video file is internally 9/16,
-         but object-fit cover crops the top/bottom to a shorter 9/11
-         frame so the card stays compact next to the copy column. */
+         but object-fit cover crops the top/bottom to a shorter ratio
+         (default 9/11) so the card stays compact next to the copy
+         column. Per-instance override via --meet-tam-video-aspect-
+         desktop CSS variable on the section element. */
       max-width: 360px;
-      aspect-ratio: 9 / 11;
+      aspect-ratio: var(--meet-tam-video-aspect-desktop, 9 / 11);
       border-width: 10px;
       border-radius: 22px;
     }
@@ -603,6 +623,16 @@
     color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
+  /* Heading font modifier: Inter 700 register (editorial) for
+     instances where Post Regular reads too kiddy. Default stays Post. */
+  .theinmag-meet-tam--heading-inter .theinmag-meet-tam__heading {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(30px, 5vw, 48px);
+    line-height: 1.1;
+    letter-spacing: -0.005em;
+  }
+
   .theinmag-meet-tam__role {
     margin: 0;
     /* Hand-lettered Post Regular for the role line - matches the live
@@ -685,6 +715,31 @@
     color: #FFFFFF;
     transform: translateY(2px);
     box-shadow: 0 2px 0 #4A2D62;
+    outline: none;
+  }
+
+  /* CTA style modifier: outlined-purple secondary per the design
+     tokens. Used when the section's CTA is a quieter "explore more"
+     call (BM page why's-it-called video) rather than the homepage's
+     primary "Grab the latest issue" stamp. */
+  .theinmag-meet-tam--cta-outlined_purple .theinmag-meet-tam__cta {
+    background-color: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(13px, 1.4vw, 14px);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: 2px solid var(--color-purple-dark, #5D3A7A);
+    box-shadow: none;
+    padding: 11px 22px;
+  }
+  .theinmag-meet-tam--cta-outlined_purple .theinmag-meet-tam__cta:hover,
+  .theinmag-meet-tam--cta-outlined_purple .theinmag-meet-tam__cta:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    transform: none;
+    box-shadow: none;
     outline: none;
   }
 
@@ -862,6 +917,34 @@
       "type": "url",
       "id": "cta_link",
       "label": "Button link"
+    },
+    { "type": "header", "content": "Per-instance style overrides" },
+    {
+      "type": "select",
+      "id": "heading_font_style",
+      "label": "Heading font",
+      "options": [
+        { "value": "post", "label": "Post Regular (default)" },
+        { "value": "inter", "label": "Inter 700 (editorial)" }
+      ],
+      "default": "post"
+    },
+    {
+      "type": "select",
+      "id": "cta_style",
+      "label": "Button style",
+      "options": [
+        { "value": "yellow_stamp", "label": "Yellow stamp (default)" },
+        { "value": "outlined_purple", "label": "Outlined purple (secondary)" }
+      ],
+      "default": "yellow_stamp"
+    },
+    {
+      "type": "text",
+      "id": "video_aspect_desktop",
+      "label": "Desktop video aspect ratio",
+      "info": "CSS aspect-ratio value, e.g. '9 / 11' (default, more square) or '9 / 14' (taller / more portrait).",
+      "default": "9 / 11"
     }
   ],
   "presets": [
