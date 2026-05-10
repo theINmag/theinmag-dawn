@@ -526,25 +526,19 @@
     display: flex;
     flex-direction: row;
     overflow-x: auto;
-    overflow-y: visible;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+    /* Explicit pan-x so touch/trackpad horizontal swipes are
+       captured by the rail and not interpreted as a vertical page
+       scroll. Without this, Chrome's responsive-mobile emulator
+       sometimes refuses to slide the rail. */
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
     scrollbar-width: none;
     gap: 10px;
-    /* Padding-inline was 50% to let the first/last tile scroll to
-       dead-centre. That hack appears to have collapsed the rail to
-       zero content-width on certain mobile rendering paths (Ryan
-       reported empty rails twice). Reverted to a normal 16px gutter
-       so tiles render from the left edge - the user scrolls right
-       to see more. Lose the auto-centre first/last but gain rails
-       that always paint. */
     padding: 20px 16px;
-    /* scroll-padding-inline gives scroll-snap a centre offset
-       without affecting layout, so the centre-focus JS still works
-       when the user scrolls. */
     scroll-padding-inline: 50%;
-    /* Defensive min-height so any future regression that collapses
-       the row still leaves a visible strip. */
     min-height: 120px;
   }
   .theinmag-bm-quiz__tiles::-webkit-scrollbar {
@@ -693,15 +687,33 @@
   }
 
   @media (max-width: 749px) {
+    .theinmag-bm-quiz__column--targets {
+      /* Defensive min-height so the targets column always renders a
+         visible strip even if a future regression collapses its
+         contents. Ryan flagged the targets going invisible between
+         the rails on mobile - this guarantees they at least take
+         layout space. */
+      min-height: 170px;
+    }
     .theinmag-bm-quiz__targets {
       flex-direction: row;
       justify-content: center;
       gap: 14px;
       align-items: flex-start;
+      width: 100%;
     }
     .theinmag-bm-quiz__target {
       flex: 1;
       max-width: 140px;
+      min-width: 110px;
+    }
+    /* Bolder visual on mobile so the empty placeholder squares
+       can't be missed - more opaque lavender fill, thicker dashed
+       border, locked min-height. */
+    .theinmag-bm-quiz__target-frame {
+      background-color: rgba(232, 222, 239, 0.85);
+      border-width: 3px;
+      min-height: 110px;
     }
   }
 
