@@ -36,16 +36,8 @@
   aria-labelledby="theinmag-bm-crew-heading"
   style="{{ section_style }}"
 >
-  <div class="theinmag-bm-crew__tablet">
-   <div class="theinmag-bm-crew__inner">
-    <div class="theinmag-bm-crew__copy">
-      <h2 id="theinmag-bm-crew-heading" class="theinmag-bm-crew__heading">{{ heading }}</h2>
-      {%- if body_1 != blank -%}<p class="theinmag-bm-crew__body">{{ body_1 }}</p>{%- endif -%}
-      {%- if body_2 != blank -%}<p class="theinmag-bm-crew__body">{{ body_2 }}</p>{%- endif -%}
-      {%- if body_3 != blank -%}<p class="theinmag-bm-crew__body theinmag-bm-crew__body--lift">{{ body_3 }}</p>{%- endif -%}
-    </div>
-
-    <ul class="theinmag-bm-crew__row" role="list">
+  <div class="theinmag-bm-crew__card">
+    <ul class="theinmag-bm-crew__mosaic" role="list">
       {%- for block in portraits -%}
         {%- liquid
           assign portrait_src = ''
@@ -55,27 +47,34 @@
             assign portrait_src = block.settings.fallback_filename | asset_url
           endif
         -%}
-        <li class="theinmag-bm-crew__portrait" {{ block.shopify_attributes }}>
-          <div class="theinmag-bm-crew__portrait-frame">
+        <li class="theinmag-bm-crew__cell" {{ block.shopify_attributes }}>
+          <figure class="theinmag-bm-crew__cell-figure">
             {%- if portrait_src != blank -%}
               <img
+                class="theinmag-bm-crew__cell-image"
                 src="{{ portrait_src }}"
                 alt="{{ block.settings.image_alt | default: block.settings.name | escape }}"
                 loading="lazy"
-                width="800"
-                height="1000"
+                width="1200"
+                height="1500"
               >
             {%- else -%}
-              <span class="theinmag-bm-crew__portrait-placeholder" aria-hidden="true"></span>
+              <span class="theinmag-bm-crew__cell-placeholder" aria-hidden="true"></span>
             {%- endif -%}
-          </div>
-          {%- if block.settings.name != blank -%}
-            <p class="theinmag-bm-crew__portrait-name">{{ block.settings.name }}</p>
-          {%- endif -%}
+            {%- if block.settings.name != blank -%}
+              <figcaption class="theinmag-bm-crew__cell-name">{{ block.settings.name }}</figcaption>
+            {%- endif -%}
+          </figure>
         </li>
       {%- endfor -%}
     </ul>
-   </div>
+
+    <div class="theinmag-bm-crew__copy">
+      <h2 id="theinmag-bm-crew-heading" class="theinmag-bm-crew__heading">{{ heading }}</h2>
+      {%- if body_1 != blank -%}<p class="theinmag-bm-crew__body">{{ body_1 }}</p>{%- endif -%}
+      {%- if body_2 != blank -%}<p class="theinmag-bm-crew__body">{{ body_2 }}</p>{%- endif -%}
+      {%- if body_3 != blank -%}<p class="theinmag-bm-crew__body theinmag-bm-crew__body--lift">{{ body_3 }}</p>{%- endif -%}
+    </div>
   </div>
 </section>
 
@@ -99,53 +98,135 @@
     opacity: 0.55;
   }
 
-  /* Tablet card wrapper - same 3D treatment as the quiz card so the
-     two read as a family. White surface so the mint section shows
-     through as a softly-coloured frame around the card. */
-  .theinmag-bm-crew__tablet {
+  /* Sharp-cornered card so the kid-crew moment reads as a family
+     with the quiz reveal cards (info boxes about the rest of the
+     team). Mosaic on the LEFT bleeds photos to the card edges;
+     copy on the RIGHT sits in padded space.
+
+     Photos overlap a 4px white grout between cells so they read as
+     a tiled scrapbook spread rather than a single image. */
+  .theinmag-bm-crew__card {
     position: relative;
     z-index: 1;
     max-width: 1080px;
     margin: 0 auto;
     background-color: #FFFFFF;
-    border-radius: 28px;
-    padding: clamp(28px, 4vw, 48px) clamp(24px, 3vw, 40px);
+    border-radius: 0;
+    overflow: hidden;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -1px 0 rgba(42, 31, 61, 0.04),
       0 30px 60px rgba(74, 124, 92, 0.18),
-      0 12px 24px rgba(74, 124, 92, 0.12),
-      0 4px 8px rgba(74, 124, 92, 0.08);
-  }
-
-  .theinmag-bm-crew__inner {
+      0 12px 24px rgba(74, 124, 92, 0.12);
     display: grid;
     grid-template-columns: 1fr;
-    gap: clamp(24px, 4vw, 40px);
   }
 
-  @media (min-width: 990px) {
-    .theinmag-bm-crew__inner {
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
-      gap: clamp(40px, 6vw, 64px);
-      align-items: center;
+  @media (min-width: 750px) {
+    .theinmag-bm-crew__card {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      align-items: stretch;
     }
   }
 
+  /* Mosaic: 3 cells in a 2-column grid. First cell (Zanda) spans
+     both rows on the left for visual hierarchy. Cells 2 and 3 (Ned,
+     Gus) stack on the right. */
+  .theinmag-bm-crew__mosaic {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 4px;
+    background-color: #FFFFFF;
+    min-height: 360px;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bm-crew__mosaic {
+      min-height: 460px;
+    }
+  }
+
+  .theinmag-bm-crew__cell {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    background-color: var(--color-wave-mint, #B8DCC0);
+  }
+
+  /* Hero cell - first portrait spans the full height of the left
+     column. */
+  .theinmag-bm-crew__cell:nth-child(1) {
+    grid-row: 1 / 3;
+    grid-column: 1;
+  }
+  .theinmag-bm-crew__cell:nth-child(2) {
+    grid-row: 1;
+    grid-column: 2;
+  }
+  .theinmag-bm-crew__cell:nth-child(3) {
+    grid-row: 2;
+    grid-column: 2;
+  }
+
+  .theinmag-bm-crew__cell-figure {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  .theinmag-bm-crew__cell-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-bm-crew__cell-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--color-wave-mint, #B8DCC0) 0%, var(--color-mint, #D6EAD9) 100%);
+  }
+
+  /* Name overlay - bottom-left of each photo, white Post Regular
+     with a dark text-shadow halo so the lettering reads on any
+     photo background. */
+  .theinmag-bm-crew__cell-name {
+    position: absolute;
+    bottom: clamp(8px, 1.4vw, 14px);
+    left: clamp(10px, 1.6vw, 16px);
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(20px, 2.6vw, 30px);
+    line-height: 1;
+    letter-spacing: 0;
+    color: #FFFFFF;
+    text-shadow:
+      0 0 12px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+
+  /* Copy column. Padded content sits in the right half on desktop,
+     stacks under the mosaic on mobile. */
   .theinmag-bm-crew__copy {
+    padding: clamp(24px, 3vw, 36px);
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: clamp(10px, 1.4vw, 14px);
   }
 
   .theinmag-bm-crew__heading {
     margin: 0;
-    /* Inter 700 here (the editorial register) instead of Post Regular -
-       Ryan's call so the heading reads journalistic against the
-       hand-lettered names below. */
+    /* Inter 700 editorial register matches the quiz reveal cards. */
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
-    font-size: clamp(26px, 4vw, 38px);
+    font-size: clamp(24px, 3.4vw, 34px);
     line-height: 1.15;
     letter-spacing: -0.01em;
     color: var(--color-sage-dark, #4A7C5C);
@@ -156,71 +237,16 @@
     margin: 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(16px, 1.7vw, 18px);
+    font-size: clamp(15px, 1.6vw, 17px);
     line-height: 1.6;
     color: var(--color-inky-purple-navy, #2A1F3D);
-    max-width: 50ch;
+    max-width: 48ch;
   }
 
-  /* The "Pretty cool, right?" line gets the slightest lift - same
-     family, slightly heavier weight to read as a closer. */
+  /* The "Pretty cool, right?" line gets the slightest lift. */
   .theinmag-bm-crew__body--lift {
     font-weight: 600;
-    font-size: clamp(17px, 1.8vw, 19px);
     color: var(--color-sage-dark, #4A7C5C);
-  }
-
-  .theinmag-bm-crew__row {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(10px, 2vw, 18px);
-  }
-
-  .theinmag-bm-crew__portrait {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .theinmag-bm-crew__portrait-frame {
-    aspect-ratio: 4 / 5;
-    overflow: hidden;
-    border-radius: 12px;
-    background-color: var(--color-wave-mint, #B8DCC0);
-    box-shadow: 0 2px 12px rgba(74, 124, 92, 0.18);
-  }
-
-  .theinmag-bm-crew__portrait-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .theinmag-bm-crew__portrait-placeholder {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--color-wave-mint, #B8DCC0) 0%, var(--color-mint, #D6EAD9) 100%);
-  }
-
-  .theinmag-bm-crew__portrait-name {
-    margin: 0;
-    text-align: center;
-    /* Post Regular hand-lettered for the names - the kid crew is the
-       warm, personal moment so the names get the brand's most
-       characterful font (where the section H2 above stays editorial
-       Inter 700 to balance). */
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(20px, 2.4vw, 26px);
-    line-height: 1;
-    color: var(--color-sage-dark, #4A7C5C);
-    letter-spacing: 0;
   }
 {%- endstylesheet -%}
 
