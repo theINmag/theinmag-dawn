@@ -81,6 +81,8 @@
         </select>
       </div>
 
+      <p class="theinmag-stockists__radius-info" data-stockists-radius-info hidden></p>
+
       <div class="theinmag-stockists__list-wrap">
         <ul class="theinmag-stockists__list" data-stockists-list aria-live="polite"></ul>
         <p class="theinmag-stockists__list-empty" data-stockists-empty hidden>
@@ -316,8 +318,8 @@
   .theinmag-stockists__panel {
     display: flex;
     flex-direction: column;
-    gap: clamp(12px, 1.4vw, 18px);
-    padding: clamp(20px, 3vw, 32px) clamp(16px, 3vw, 28px);
+    gap: clamp(8px, 1vw, 12px);
+    padding: clamp(16px, 2.4vw, 24px) clamp(14px, 2.4vw, 22px);
     background-color: var(--st-cream);
     min-height: 0;
   }
@@ -326,21 +328,21 @@
     .theinmag-stockists__panel {
       height: 100%;
       overflow: hidden;
-      padding: clamp(20px, 1.8vw, 32px) clamp(20px, 1.8vw, 32px) clamp(20px, 1.8vw, 28px);
+      padding: clamp(14px, 1.4vw, 22px) clamp(16px, 1.4vw, 22px) clamp(12px, 1.2vw, 18px);
     }
   }
 
   .theinmag-stockists__panel-head {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
 
   .theinmag-stockists__heading {
     margin: 0;
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
-    font-size: clamp(26px, 3vw, 36px);
+    font-size: clamp(22px, 2.4vw, 30px);
     line-height: 1.15;
     letter-spacing: 0;
     color: var(--st-cream-dark);
@@ -349,11 +351,23 @@
   .theinmag-stockists__sub {
     margin: 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-size: clamp(14px, 1.05vw, 15.5px);
-    line-height: 1.55;
+    font-size: clamp(13px, 0.95vw, 14.5px);
+    line-height: 1.45;
     color: var(--st-cream-dark);
     opacity: 0.78;
   }
+
+  .theinmag-stockists__radius-info {
+    margin: 0;
+    padding: 6px 10px;
+    background-color: var(--st-purple-light);
+    color: var(--st-purple-dark);
+    font-size: 12px;
+    line-height: 1.35;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+  .theinmag-stockists__radius-info[hidden] { display: none; }
 
   /* ----- Filters: search input + state dropdown ----- */
   .theinmag-stockists__filters {
@@ -384,7 +398,7 @@
   .theinmag-stockists__search,
   .theinmag-stockists__select {
     width: 100%;
-    height: 44px;
+    height: 38px;
     padding: 0 14px;
     border: 1.5px solid rgba(42, 31, 61, 0.16);
     background-color: #FFFFFF;
@@ -430,10 +444,10 @@
   .theinmag-stockists__list {
     list-style: none;
     margin: 0;
-    padding: 4px 4px 12px 4px;
+    padding: 4px 4px 8px 4px;
     display: flex;
     flex-direction: column;
-    gap: clamp(10px, 1vw, 14px);
+    gap: clamp(8px, 0.8vw, 10px);
     min-height: 0;
   }
 
@@ -468,11 +482,11 @@
   .theinmag-stockists__card {
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: clamp(10px, 1vw, 14px);
+    gap: clamp(8px, 0.9vw, 12px);
     background-color: var(--st-cream);
     border: 1px solid rgba(42, 31, 61, 0.06);
-    border-radius: 18px;
-    padding: clamp(12px, 1.2vw, 16px) clamp(14px, 1.4vw, 18px);
+    border-radius: 16px;
+    padding: clamp(10px, 1vw, 13px) clamp(12px, 1.2vw, 15px);
     box-shadow: 0 2px 12px rgba(123, 79, 158, 0.08);
     transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     cursor: pointer;
@@ -611,7 +625,7 @@
   /* ----- "Become a stockist" CTA - yellow stamp button (design tokens) ----- */
   .theinmag-stockists__cta-wrap {
     margin-top: auto;
-    padding-top: clamp(12px, 1.6vw, 18px);
+    padding-top: clamp(8px, 1vw, 12px);
   }
 
   .theinmag-stockists__cta {
@@ -622,22 +636,22 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 14px 28px;
+    padding: 11px 24px;
     background-color: var(--st-yellow);
     color: var(--st-cream-dark);
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
-    font-size: clamp(20px, 1.6vw, 24px);
+    font-size: clamp(17px, 1.3vw, 21px);
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    border-radius: 32px;
+    border-radius: 28px;
     box-shadow: 0 4px 0 var(--st-yellow-shadow);
     transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease;
   }
 
   @media (min-width: 750px) {
     .theinmag-stockists__cta {
-      padding: 16px 32px;
+      padding: 12px 28px;
     }
   }
 
@@ -671,10 +685,35 @@
     var stateFilter = section.querySelector('[data-stockists-state-filter]');
     var searchInput = section.querySelector('[data-stockists-search]');
     var mapEl = section.querySelector('[data-stockists-map]');
+    var radiusInfoNode = section.querySelector('[data-stockists-radius-info]');
 
     var map = null;
     var markerByStockistId = {};
+    var radiusOverlay = null;
     var AU_BOUNDS = [[-44.0, 113.0], [-10.0, 154.0]];
+    var RADIUS_KM = 80;
+    var geocodeCache = {};
+    var searchDebounce = null;
+
+    // Sync the panel height to the actual rendered top header (announcement
+    // bar + main header). Without this the panel uses calc(100vh - 80px)
+    // which doesn't account for the announcement bar — CTA gets clipped.
+    // Query every section in the header group rather than naming them by
+    // class — section classes are theme-author-controlled (see schema)
+    // and brittle. The group class is set by Shopify and stable.
+    function syncHeaderHeight() {
+      var groupSections = document.querySelectorAll('.shopify-section-group-header-group');
+      var h = 0;
+      groupSections.forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight) h += r.height;
+      });
+      if (h > 0) section.style.setProperty('--st-header-h', h + 'px');
+    }
+    syncHeaderHeight();
+    window.addEventListener('resize', syncHeaderHeight);
+    window.addEventListener('load', syncHeaderHeight);
+    setTimeout(syncHeaderHeight, 250);
 
     var stockists = [];
     if (dataNode) {
@@ -766,28 +805,125 @@
       listNode.innerHTML = list.map(renderCard).join('');
     }
 
-    // Step-2 baseline: alphabetical by shop name. Real proximity sort
-    // lands in step 5 with the postcode lookup.
     function sortAlpha(a, b) {
       return a.shop_name.localeCompare(b.shop_name);
     }
 
-    // Step-2 filter: state dropdown only. Search input is wired but
-    // does a basic name/suburb/postcode contains-match for now -
-    // proper geo-aware proximity ranking is step 5.
+    // Great-circle distance between two lat/lng points, kilometres.
+    function haversineKm(lat1, lng1, lat2, lng2) {
+      var R = 6371;
+      var dLat = (lat2 - lat1) * Math.PI / 180;
+      var dLng = (lng2 - lng1) * Math.PI / 180;
+      var a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+            + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180)
+            * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+    }
+
+    // Geocode an Australian 4-digit postcode to lat/lng via Nominatim
+    // (OpenStreetMap). Cached in memory so repeat searches are instant.
+    // Falls back to null on failure — caller treats null as "fall back to
+    // text contains-match".
+    function geocodePostcode(pc) {
+      if (geocodeCache[pc] !== undefined) return Promise.resolve(geocodeCache[pc]);
+      var url = 'https://nominatim.openstreetmap.org/search?country=Australia&postalcode='
+              + encodeURIComponent(pc) + '&format=json&limit=1';
+      return fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (arr) {
+          var coords = (arr && arr[0])
+            ? { lat: parseFloat(arr[0].lat), lng: parseFloat(arr[0].lon), label: arr[0].display_name }
+            : null;
+          geocodeCache[pc] = coords;
+          return coords;
+        })
+        .catch(function () { geocodeCache[pc] = null; return null; });
+    }
+
+    function clearRadiusOverlay() {
+      if (radiusOverlay && map) { map.removeLayer(radiusOverlay); }
+      radiusOverlay = null;
+    }
+    function drawRadiusOverlay(center, radiusKm) {
+      if (!map || !window.L) return;
+      clearRadiusOverlay();
+      radiusOverlay = L.circle([center.lat, center.lng], {
+        radius: radiusKm * 1000,
+        color: '#5D3A7A',
+        weight: 1.5,
+        dashArray: '4 4',
+        fillColor: '#E8DEEF',
+        fillOpacity: 0.15,
+        interactive: false,
+      }).addTo(map);
+    }
+
+    function setRadiusInfo(text) {
+      if (!radiusInfoNode) return;
+      if (text) {
+        radiusInfoNode.textContent = text;
+        radiusInfoNode.hidden = false;
+      } else {
+        radiusInfoNode.textContent = '';
+        radiusInfoNode.hidden = true;
+      }
+    }
+
+    // Routing: if the query is exactly 4 digits we treat it as a postcode
+    // and do a radius search (geocode + 80km Haversine filter, sorted by
+    // distance ascending). Anything else falls through to a name/suburb/
+    // postcode contains-match.
     function applyFilters() {
       var st = stateFilter ? stateFilter.value : 'all';
-      var q = (searchInput && searchInput.value || '').trim().toLowerCase();
+      var q = (searchInput && searchInput.value || '').trim();
 
+      if (/^\d{4}$/.test(q)) {
+        geocodePostcode(q).then(function (center) {
+          if (!center) {
+            applyTextFilter(st, q.toLowerCase());
+            return;
+          }
+          applyRadiusFilter(st, center, RADIUS_KM, q);
+        });
+        return;
+      }
+
+      applyTextFilter(st, q.toLowerCase());
+    }
+
+    function applyTextFilter(st, qLower) {
+      clearRadiusOverlay();
+      setRadiusInfo('');
       var filtered = stockists.filter(function (s) {
         if (st !== 'all' && s.state !== st) return false;
-        if (q) {
+        if (qLower) {
           var hay = (s.shop_name + ' ' + s.suburb + ' ' + s.postcode).toLowerCase();
-          if (hay.indexOf(q) === -1) return false;
+          if (hay.indexOf(qLower) === -1) return false;
         }
         return true;
       });
       filtered.sort(sortAlpha);
+      render(filtered);
+      renderMarkers(filtered);
+    }
+
+    function applyRadiusFilter(st, center, radiusKm, postcodeLabel) {
+      drawRadiusOverlay(center, radiusKm);
+      var withDist = stockists
+        .filter(function (s) { return st === 'all' || s.state === st; })
+        .map(function (s) {
+          var lat = parseFloat(s.latitude), lng = parseFloat(s.longitude);
+          if (!isFinite(lat) || !isFinite(lng)) return null;
+          return { s: s, d: haversineKm(center.lat, center.lng, lat, lng) };
+        })
+        .filter(function (x) { return x && x.d <= radiusKm; })
+        .sort(function (a, b) { return a.d - b.d; });
+      var filtered = withDist.map(function (x) { return x.s; });
+      var n = filtered.length;
+      var msg = n === 0
+        ? 'No stockists within ' + radiusKm + ' km of postcode ' + postcodeLabel + '.'
+        : 'Showing ' + n + ' stockist' + (n === 1 ? '' : 's') + ' within ' + radiusKm + ' km of postcode ' + postcodeLabel + '.';
+      setRadiusInfo(msg);
       render(filtered);
       renderMarkers(filtered);
     }
@@ -913,7 +1049,13 @@
     }
 
     if (stateFilter) stateFilter.addEventListener('change', applyFilters);
-    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (searchInput) searchInput.addEventListener('input', function () {
+      // Debounce to keep us under Nominatim's 1-req/sec policy when the
+      // user types a postcode digit-by-digit, and to avoid jittery UI on
+      // text searches.
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(applyFilters, 300);
+    });
 
     applyFilters();
 
