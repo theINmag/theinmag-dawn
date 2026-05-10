@@ -37,7 +37,7 @@
   assign adults_column_label = section.settings.adults_column_label | default: 'Grown-ups'
   assign kids_column_label = section.settings.kids_column_label | default: 'Kids'
 
-  assign tablet_pattern_src = 'dotsforbehindtam.png' | asset_url
+  assign tablet_pattern_src = 'section_background_competitions2.jpg' | asset_url
 
   assign bg_src = ''
   if section.settings.background_image != blank
@@ -118,8 +118,13 @@
         <div class="theinmag-bm-quiz__targets" data-bm-quiz-targets>
           <div class="theinmag-bm-quiz__target theinmag-bm-quiz__target--adult" data-bm-quiz-target-adult>
             <span class="theinmag-bm-quiz__target-label">{{ target_adult_label }}</span>
-            <div class="theinmag-bm-quiz__target-frame" data-bm-quiz-target-adult-frame>
-              <span class="theinmag-bm-quiz__target-hint" data-bm-quiz-target-hint>{{ target_adult_hint }}</span>
+            <div class="theinmag-bm-quiz__target-stack" data-bm-quiz-target-adult-stack>
+              <div class="theinmag-bm-quiz__target-frame" data-bm-quiz-target-adult-frame data-slot="0">
+                <span class="theinmag-bm-quiz__target-hint" data-bm-quiz-target-hint>{{ target_adult_hint }}</span>
+              </div>
+              <div class="theinmag-bm-quiz__target-frame theinmag-bm-quiz__target-frame--secondary" data-bm-quiz-target-adult-frame data-slot="1" hidden>
+                <span class="theinmag-bm-quiz__target-hint" data-bm-quiz-target-hint>{{ target_adult_hint }}</span>
+              </div>
             </div>
           </div>
 
@@ -355,18 +360,20 @@
     gap: clamp(24px, 3vw, 36px);
     overflow: hidden;
   }
-  /* Tiled dot pattern overlay - the "background of the eyeballs"
-     reused from the meet-tam / reviews dotsforbehindtam.png. Sits at
-     low opacity so the pattern reads as texture rather than noise;
+  /* Kid-art collage overlay - section_background_competitions2.jpg,
+     the pattern reused from the competitions section. Cover-sized so
+     the collage fills the card, very light opacity (0.12) so the
+     face photos on top stay readable. Sits at z-index 0 with
      pointer-events: none so it never blocks tile clicks. */
   .theinmag-bm-quiz__tablet::before {
     content: '';
     position: absolute;
     inset: 0;
     background-image: var(--bm-quiz-tablet-pattern);
-    background-repeat: repeat;
-    background-size: 320px auto;
-    opacity: 0.18;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.12;
     pointer-events: none;
     z-index: 0;
   }
@@ -903,7 +910,7 @@
     var allDoneEl = root.querySelector('[data-bm-quiz-all-done]');
     var factOverlay = root.querySelector('[data-bm-quiz-fact-overlay]');
     var factCard = root.querySelector('[data-bm-quiz-fact-card]');
-    var targetAdultFrame = root.querySelector('[data-bm-quiz-target-adult-frame]');
+    var targetAdultFrames = root.querySelectorAll('[data-bm-quiz-target-adult-frame]');
     var targetKidFrames = root.querySelectorAll('[data-bm-quiz-target-kid-frame]');
 
     var adults = Array.prototype.slice.call(root.querySelectorAll('[data-bm-quiz-adult]'));
@@ -967,14 +974,30 @@
       }
     }
 
+    /* Same pattern for the grown-up target: paired adult tiles
+       (Ryan+Tam, Snowy+Libby) split the target zone into two
+       stacked squares so the visual says "this counts as two
+       grown-ups." Both squares fill with the same combined photo. */
+    function showSecondAdultFrame(show) {
+      if (targetAdultFrames.length < 2) return;
+      var second = targetAdultFrames[1];
+      if (show) {
+        second.hidden = false;
+      } else {
+        second.hidden = true;
+        clearTargetFrame(second);
+      }
+    }
+
     function resetSelection() {
       selectedAdult = null;
       selectedKids = [];
       requiredKids = 1;
       adults.forEach(function (a) { a.classList.remove('is-active'); });
       kids.forEach(function (k) { k.classList.remove('is-active'); });
-      clearTargetFrame(targetAdultFrame);
+      Array.prototype.forEach.call(targetAdultFrames, clearTargetFrame);
       Array.prototype.forEach.call(targetKidFrames, clearTargetFrame);
+      showSecondAdultFrame(false);
       showSecondKidFrame(false);
       setStatus('');
     }
@@ -1101,7 +1124,8 @@
       if (selectedAdult === adult) {
         adult.classList.remove('is-active');
         selectedAdult = null;
-        clearTargetFrame(targetAdultFrame);
+        Array.prototype.forEach.call(targetAdultFrames, clearTargetFrame);
+        showSecondAdultFrame(false);
         showSecondKidFrame(false);
         // Re-evaluate kid required count back to 1.
         requiredKids = 1;
@@ -1112,8 +1136,19 @@
       adults.forEach(function (a) { a.classList.remove('is-active'); });
       adult.classList.add('is-active');
       selectedAdult = adult;
-      fillTargetFrame(targetAdultFrame, adult.getAttribute('data-photo-src'));
-      requiredKids = adult.getAttribute('data-paired') === 'true' ? 2 : 1;
+      var photoSrc = adult.getAttribute('data-photo-src');
+      var isPaired = adult.getAttribute('data-paired') === 'true';
+
+      // Fill the primary grown-up frame always. For paired adults,
+      // also reveal the secondary frame + fill it with the same
+      // combined photo so the visual says "two grown-ups."
+      fillTargetFrame(targetAdultFrames[0], photoSrc);
+      showSecondAdultFrame(isPaired);
+      if (isPaired && targetAdultFrames[1]) {
+        fillTargetFrame(targetAdultFrames[1], photoSrc);
+      }
+
+      requiredKids = isPaired ? 2 : 1;
       showSecondKidFrame(requiredKids === 2);
 
       // Trim kid selections to required count if we now need fewer.
@@ -1184,7 +1219,7 @@
 
       if (allMatch) {
         // Correct match. Lock the block, confetti, show fact card.
-        var rect = targetAdultFrame.getBoundingClientRect();
+        var rect = targetAdultFrames[0].getBoundingClientRect();
         var cx = rect.left + rect.width / 2;
         var cy = rect.top + rect.height / 2;
         burstConfetti(cx, cy);
@@ -1196,8 +1231,8 @@
         // resetSelection(), which clears target frames + active states.
       } else {
         // Wrong - silent reset per spec. Brief shake on the adult target.
-        if (!prefersReducedMotion && targetAdultFrame) {
-          targetAdultFrame.animate(
+        if (!prefersReducedMotion && targetAdultFrames[0]) {
+          targetAdultFrames[0].animate(
             [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }],
             { duration: 240, easing: 'ease-in-out' }
           );
