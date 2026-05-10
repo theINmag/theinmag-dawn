@@ -820,24 +820,33 @@
       return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
     }
 
-    // Geocode an Australian 4-digit postcode to lat/lng via Nominatim
-    // (OpenStreetMap). Cached in memory so repeat searches are instant.
-    // Falls back to null on failure — caller treats null as "fall back to
-    // text contains-match".
-    function geocodePostcode(pc) {
-      if (geocodeCache[pc] !== undefined) return Promise.resolve(geocodeCache[pc]);
-      var url = 'https://nominatim.openstreetmap.org/search?country=Australia&postalcode='
-              + encodeURIComponent(pc) + '&format=json&limit=1';
+    // Geocode any Australian-anchored query (postcode, suburb, town) to
+    // lat/lng + a short display label via Nominatim (OpenStreetMap).
+    // Cached in memory so repeat searches are instant. Falls back to
+    // null on failure — caller treats null as "fall back to text
+    // contains-match".
+    function geocodeQuery(q) {
+      var key = q.toLowerCase().trim();
+      if (geocodeCache[key] !== undefined) return Promise.resolve(geocodeCache[key]);
+      // countrycodes=au is the documented Nominatim way to constrain by
+      // country (ISO 3166-1 alpha-2). The country=Australia param turns
+      // out to be unreliable — returns empty for "bendigo" alone.
+      var url = 'https://nominatim.openstreetmap.org/search?countrycodes=au&q='
+              + encodeURIComponent(q) + '&format=json&limit=1';
       return fetch(url, { headers: { 'Accept': 'application/json' } })
         .then(function (r) { return r.ok ? r.json() : []; })
         .then(function (arr) {
-          var coords = (arr && arr[0])
-            ? { lat: parseFloat(arr[0].lat), lng: parseFloat(arr[0].lon), label: arr[0].display_name }
-            : null;
-          geocodeCache[pc] = coords;
-          return coords;
+          if (!arr || !arr[0]) { geocodeCache[key] = null; return null; }
+          var first = arr[0];
+          var label = String(first.display_name || '').split(',')[0].trim() || q;
+          var result = {
+            center: { lat: parseFloat(first.lat), lng: parseFloat(first.lon) },
+            label: label,
+          };
+          geocodeCache[key] = result;
+          return result;
         })
-        .catch(function () { geocodeCache[pc] = null; return null; });
+        .catch(function () { geocodeCache[key] = null; return null; });
     }
 
     function clearRadiusOverlay() {
@@ -869,21 +878,24 @@
       }
     }
 
-    // Routing: if the query is exactly 4 digits we treat it as a postcode
-    // and do a radius search (geocode + 80km Haversine filter, sorted by
-    // distance ascending). Anything else falls through to a name/suburb/
-    // postcode contains-match.
+    // Routing: any query of 3+ characters tries Nominatim geocode first
+    // (works for postcodes AND town/suburb names — the input placeholder
+    // promises both). On a hit we radius-search 80 km from the geocoded
+    // point, sorted by distance ascending. On a miss we fall back to a
+    // text contains-match against shop name / suburb / postcode. Empty
+    // and very short queries (1-2 chars) skip geocoding to avoid noisy
+    // matches and keep us under Nominatim's 1-req/sec policy.
     function applyFilters() {
       var st = stateFilter ? stateFilter.value : 'all';
       var q = (searchInput && searchInput.value || '').trim();
 
-      if (/^\d{4}$/.test(q)) {
-        geocodePostcode(q).then(function (center) {
-          if (!center) {
+      if (q.length >= 3) {
+        geocodeQuery(q).then(function (geo) {
+          if (geo && geo.center) {
+            applyRadiusFilter(st, geo.center, RADIUS_KM, geo.label || q);
+          } else {
             applyTextFilter(st, q.toLowerCase());
-            return;
           }
-          applyRadiusFilter(st, center, RADIUS_KM, q);
         });
         return;
       }
@@ -907,7 +919,7 @@
       renderMarkers(filtered);
     }
 
-    function applyRadiusFilter(st, center, radiusKm, postcodeLabel) {
+    function applyRadiusFilter(st, center, radiusKm, label) {
       drawRadiusOverlay(center, radiusKm);
       var withDist = stockists
         .filter(function (s) { return st === 'all' || s.state === st; })
@@ -921,11 +933,17 @@
       var filtered = withDist.map(function (x) { return x.s; });
       var n = filtered.length;
       var msg = n === 0
-        ? 'No stockists within ' + radiusKm + ' km of postcode ' + postcodeLabel + '.'
-        : 'Showing ' + n + ' stockist' + (n === 1 ? '' : 's') + ' within ' + radiusKm + ' km of postcode ' + postcodeLabel + '.';
+        ? 'No stockists within ' + radiusKm + ' km of ' + label + '.'
+        : 'Showing ' + n + ' stockist' + (n === 1 ? '' : 's') + ' within ' + radiusKm + ' km of ' + label + '.';
       setRadiusInfo(msg);
       render(filtered);
-      renderMarkers(filtered);
+      // In radius mode we suppress renderMarkers' own auto-fly and frame
+      // the map to the full radius circle instead — that way the user
+      // sees the search-area scale, not just the matched markers.
+      renderMarkers(filtered, { skipFly: true });
+      if (map && radiusOverlay) {
+        map.flyToBounds(radiusOverlay.getBounds(), { padding: [30, 30], duration: 0.6 });
+      }
     }
 
     // ===== Leaflet map =====
@@ -983,8 +1001,9 @@
       });
     }
 
-    function renderMarkers(list) {
+    function renderMarkers(list, opts) {
       if (!map) return; // first call may run before Leaflet is ready
+      opts = opts || {};
       clearMarkers();
       var bounds = [];
       list.forEach(function (s) {
@@ -997,6 +1016,7 @@
         markerByStockistId[s.id] = m;
         bounds.push([lat, lng]);
       });
+      if (opts.skipFly) return;
       if (!bounds.length) return; // filter cleared everything; keep prior view
       if (bounds.length === 1) {
         map.flyTo(bounds[0], Math.max(map.getZoom(), 9), { duration: 0.6 });
