@@ -1,26 +1,27 @@
 {%- comment -%}
-  theinmag-stockists-hero (v1.1 - 2026-05-09)
+  theinmag-stockists-hero
   The /pages/stockists hub. Two-column split:
     Left 2/3: full-bleed Leaflet map of Australia (left edge bleeds
               past the cream background to the viewport edge on desktop).
     Right 1/3: header + search + state filter + scrollable stockist
                list + "Become a stockist" CTA.
 
-  v1 (this build): hardcoded placeholder stockists in JS, no live data
-  pipeline. Map and search are added in later steps. Mobile uses an
-  Airbnb-style map/list toggle (added later); desktop is two columns
-  filling 100vh with no page scroll.
+  Data: a JSON <script> block in the markup. v1 hardcoded; later swapped
+  for a Liquid loop over shop.metaobjects.stockist (synced daily from a
+  Google Sheet by the theinmag-stockists-sync repo). Field names match
+  the metaobject schema exactly so the swap is one-for-one.
 
   Modal lives in the sibling section theinmag-stockists-modal. The
   "become a stockist" button here dispatches a global CustomEvent
   ('theinmag-stockists:open-modal') that the modal section listens for.
 
-  Code conventions:
-    - theinmag- prefix on filenames + CSS classes
-    - CSS custom properties only (design tokens), no hardcoded colours
-      apart from the design-token hex codes themselves
-    - Mobile-first, prefers-reduced-motion respected throughout
+  Leaflet is vendored locally at /assets/leaflet.{js,css} (v1.9.4) so
+  there is no third-party CDN fetch on every page view. Tiles come from
+  CartoDB Voyager (warm cream palette matching the theinmag bg).
 {%- endcomment -%}
+
+<link rel="stylesheet" href="{{ 'leaflet.css' | asset_url }}">
+<script src="{{ 'leaflet.js' | asset_url }}" defer></script>
 
 <section
   class="theinmag-stockists"
@@ -33,11 +34,15 @@
 
   <div class="theinmag-stockists__stage">
 
-    {%- comment -%} ----- Left: full-bleed map column (placeholder until step 3) ----- {%- endcomment -%}
+    {%- comment -%} ----- Left: full-bleed Leaflet map column ----- {%- endcomment -%}
     <div class="theinmag-stockists__map-col">
-      <div class="theinmag-stockists__map" data-stockists-map aria-label="Map of theINmag stockists across Australia">
-        <p class="theinmag-stockists__map-placeholder">map loads here</p>
-      </div>
+      <div
+        class="theinmag-stockists__map"
+        data-stockists-map
+        id="theinmag-stockists-map"
+        role="application"
+        aria-label="Map of theINmag stockists across Australia"
+      ></div>
     </div>
 
     {%- comment -%} ----- Right: header + filters + list + CTA ----- {%- endcomment -%}
@@ -97,148 +102,32 @@
   </div>
 
   {%- comment -%}
-    v1 placeholder data. Swap-out point: replace this whole script tag
-    with a Liquid loop over Shopify metaobjects (stockist definition)
-    once the Make.com pipeline is in place. Field names match the
-    metaobject schema exactly so the swap is one-for-one.
+    Live stockist data sourced from Shopify metaobjects (type: stockist).
+    The metaobjects are populated daily at 6am by the theinmag-stockists-sync
+    repo (Google Sheet → Shopify Admin API). The Sheet at GOOGLE_SHEET_ID
+    is the editable source of truth. Field names here match the metaobject
+    schema so this loop is the only swap point if data shape changes.
   {%- endcomment -%}
   <script type="application/json" data-stockists-data>
   [
-    {
-      "id": "the-little-bookshop",
-      "shop_name": "The Little Bookshop",
-      "type": "bookshop",
-      "street_address": "12 High Street",
-      "suburb": "Castlemaine",
-      "state": "VIC",
-      "postcode": "3450",
-      "latitude": -37.0667,
-      "longitude": 144.2167,
-      "contact_name": "Sarah Mills",
-      "contact_phone": "0354721234",
-      "instagram_handle": "littlebookshop_castlemaine",
-      "website_url": "https://thelittlebookshop.com.au"
-    },
-    {
-      "id": "birdwood-newsagency",
-      "shop_name": "Birdwood Newsagency",
-      "type": "newsagent",
-      "street_address": "234 High Street",
-      "suburb": "Eaglehawk",
-      "state": "VIC",
-      "postcode": "3556",
-      "latitude": -36.7167,
-      "longitude": 144.2667,
-      "contact_name": "Dave Pollard",
-      "contact_phone": "0354461823",
-      "instagram_handle": "birdwoodnews",
-      "website_url": ""
-    },
-    {
-      "id": "sun-studios-gallery",
-      "shop_name": "Sun Studios Gallery",
-      "type": "gallery",
-      "street_address": "8 South Terrace",
-      "suburb": "Fremantle",
-      "state": "WA",
-      "postcode": "6160",
-      "latitude": -32.0566,
-      "longitude": 115.7464,
-      "contact_name": "Priya Anand",
-      "contact_phone": "0893351100",
-      "instagram_handle": "sunstudios.fremantle",
-      "website_url": "https://sunstudiosgallery.com.au"
-    },
-    {
-      "id": "salt-cafe-byron",
-      "shop_name": "Salt Cafe",
-      "type": "cafe",
-      "street_address": "4 Lawson Street",
-      "suburb": "Byron Bay",
-      "state": "NSW",
-      "postcode": "2481",
-      "latitude": -28.6474,
-      "longitude": 153.6020,
-      "contact_name": "Mia Hawthorne",
-      "contact_phone": "0266856712",
-      "instagram_handle": "saltbyron",
-      "website_url": "https://saltcafebyron.com.au"
-    },
-    {
-      "id": "tillys-treasure",
-      "shop_name": "Tilly's Treasure",
-      "type": "gift_shop",
-      "street_address": "62 Main Street",
-      "suburb": "Hahndorf",
-      "state": "SA",
-      "postcode": "5245",
-      "latitude": -35.0294,
-      "longitude": 138.8132,
-      "contact_name": "Tilly Becker",
-      "contact_phone": "0883881409",
-      "instagram_handle": "tillystreasure_hahndorf",
-      "website_url": "https://tillystreasure.com.au"
-    },
-    {
-      "id": "the-reading-nook-hobart",
-      "shop_name": "The Reading Nook",
-      "type": "bookshop",
-      "street_address": "118 Elizabeth Street",
-      "suburb": "Hobart",
-      "state": "TAS",
-      "postcode": "7000",
-      "latitude": -42.8821,
-      "longitude": 147.3272,
-      "contact_name": "James Carrington",
-      "contact_phone": "0362312788",
-      "instagram_handle": "readingnookhobart",
-      "website_url": "https://readingnookhobart.com.au"
-    },
-    {
-      "id": "bowerbird-gifts",
-      "shop_name": "Bowerbird Gifts",
-      "type": "gift_shop",
-      "street_address": "287 Margaret Street",
-      "suburb": "Toowoomba",
-      "state": "QLD",
-      "postcode": "4350",
-      "latitude": -27.5598,
-      "longitude": 151.9507,
-      "contact_name": "",
-      "contact_phone": "0746392001",
-      "instagram_handle": "bowerbirdtoowoomba",
-      "website_url": "https://bowerbirdgifts.com.au"
-    },
-    {
-      "id": "daintree-books",
-      "shop_name": "Daintree Books",
-      "type": "bookshop",
-      "street_address": "16 Macrossan Street",
-      "suburb": "Port Douglas",
-      "state": "QLD",
-      "postcode": "4877",
-      "latitude": -16.4842,
-      "longitude": 145.4596,
-      "contact_name": "Olivia Tran",
-      "contact_phone": "0740995422",
-      "instagram_handle": "daintreebooks",
-      "website_url": "https://daintreebooks.com.au"
-    },
-    {
-      "id": "newtown-newsagency",
-      "shop_name": "Newtown Newsagency",
-      "type": "newsagent",
-      "street_address": "320 King Street",
-      "suburb": "Newtown",
-      "state": "NSW",
-      "postcode": "2042",
-      "latitude": -33.8970,
-      "longitude": 151.1789,
-      "contact_name": "Rachel Doukas",
-      "contact_phone": "0295573344",
-      "instagram_handle": "newtownnews",
-      "website_url": ""
-    }
+    {%- for s in shop.metaobjects.stockist.values -%}
+      {%- unless forloop.first -%},{%- endunless -%}
+      {
+        "id": {{ s.system.handle | json }},
+        "shop_name": {{ s.shop_name.value | default: '' | json }},
+        "type": {{ s.type.value | default: '' | json }},
+        "street_address": {{ s.street_address.value | default: '' | json }},
+        "suburb": {{ s.suburb.value | default: '' | json }},
+        "state": {{ s.state.value | default: '' | json }},
+        "postcode": {{ s.postcode.value | default: '' | json }},
+        "latitude": {{ s.latitude.value | default: 0 }},
+        "longitude": {{ s.longitude.value | default: 0 }},
+        "contact_name": {{ s.contact_name.value | default: '' | json }},
+        "contact_phone": {{ s.contact_phone.value | default: '' | json }},
+        "instagram_handle": {{ s.instagram_handle.value | default: '' | json }},
+        "website_url": {{ s.website_url.value | default: '' | json }}
+      }
+    {%- endfor -%}
   ]
   </script>
 </section>
@@ -342,19 +231,85 @@
   .theinmag-stockists__map {
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background-color: var(--st-purple-light);
+  }
+  /* Leaflet's tile pane sits on top of the bg-color above, so this is
+     just a fallback while tiles load. */
+  .theinmag-stockists__map.leaflet-container {
+    background-color: var(--st-purple-light);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
   }
 
-  .theinmag-stockists__map-placeholder {
-    margin: 0;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-size: clamp(20px, 3vw, 32px);
-    color: var(--st-purple-dark);
-    opacity: 0.6;
-    text-transform: lowercase;
-    letter-spacing: 0.04em;
+  /* ----- Custom map markers (Leaflet divIcon) ----- */
+  .theinmag-stockists__marker {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2.5px solid #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    background-color: var(--st-purple-dark);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+  }
+  .theinmag-stockists__marker[data-type="bookshop"]  { background-color: var(--st-purple-dark); }
+  .theinmag-stockists__marker[data-type="newsagent"] { background-color: var(--st-coral-dark); }
+  .theinmag-stockists__marker[data-type="gallery"]   { background-color: var(--st-mint-dark); }
+  .theinmag-stockists__marker[data-type="cafe"]      { background-color: var(--st-peach-dark); }
+  .theinmag-stockists__marker[data-type="gift_shop"] { background-color: var(--st-sky-dark); }
+  .theinmag-stockists__marker.is-active,
+  .theinmag-stockists__marker:hover {
+    transform: scale(1.25);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    border-color: var(--st-yellow);
+  }
+
+  /* Leaflet popup styling — match the cream/dark palette */
+  .leaflet-popup-content-wrapper {
+    background-color: var(--st-cream);
+    color: var(--st-cream-dark);
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(123, 79, 158, 0.18);
+  }
+  .leaflet-popup-tip { background-color: var(--st-cream); }
+  .leaflet-popup-content {
+    margin: 12px 14px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13.5px;
+    line-height: 1.45;
+  }
+  .leaflet-popup-content .theinmag-popup__name {
+    display: block;
+    font-weight: 700;
+    font-size: 14.5px;
+    margin-bottom: 2px;
+    color: var(--st-cream-dark);
+  }
+  .leaflet-popup-content .theinmag-popup__addr {
+    color: var(--st-cream-dark);
+    opacity: 0.78;
+  }
+  .leaflet-control-attribution {
+    background: rgba(251, 246, 234, 0.8) !important;
+    color: var(--st-cream-dark) !important;
+    font-size: 10.5px !important;
+  }
+  .leaflet-control-attribution a {
+    color: var(--st-purple-dark) !important;
+  }
+  .leaflet-control-zoom a {
+    background-color: var(--st-cream) !important;
+    color: var(--st-cream-dark) !important;
+    border-color: rgba(42, 31, 61, 0.16) !important;
+  }
+  .leaflet-control-zoom a:hover {
+    background-color: var(--st-purple-light) !important;
+    color: var(--st-purple-dark) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-stockists__marker { transition: none; }
+    .theinmag-stockists__marker.is-active,
+    .theinmag-stockists__marker:hover { transform: none; }
   }
 
   /* ----- Right column: panel ----- */
@@ -715,6 +670,11 @@
     var emptyNode = section.querySelector('[data-stockists-empty]');
     var stateFilter = section.querySelector('[data-stockists-state-filter]');
     var searchInput = section.querySelector('[data-stockists-search]');
+    var mapEl = section.querySelector('[data-stockists-map]');
+
+    var map = null;
+    var markerByStockistId = {};
+    var AU_BOUNDS = [[-44.0, 113.0], [-10.0, 154.0]];
 
     var stockists = [];
     if (dataNode) {
@@ -829,12 +789,138 @@
       });
       filtered.sort(sortAlpha);
       render(filtered);
+      renderMarkers(filtered);
+    }
+
+    // ===== Leaflet map =====
+
+    // Wait for the deferred /assets/leaflet.js to expose window.L. Polling
+    // beats DOMContentLoaded here because Dawn concatenates section JS into
+    // a bundle whose execution order vs. <script defer> tags is brittle.
+    function ensureLeaflet(cb) {
+      if (window.L) { cb(); return; }
+      var n = 0, max = 100; // 5s at 50ms
+      var t = setInterval(function () {
+        if (window.L) { clearInterval(t); cb(); return; }
+        if (++n > max) { clearInterval(t); console.warn('[stockists] Leaflet failed to load'); }
+      }, 50);
+    }
+
+    function buildMarkerIcon(type) {
+      return L.divIcon({
+        className: '',
+        html: '<div class="theinmag-stockists__marker" data-type="' + escapeHtml(type) + '"></div>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -14],
+      });
+    }
+
+    function popupHtml(s) {
+      var line2 = [s.suburb, s.state, s.postcode].filter(Boolean).map(escapeHtml).join(' ');
+      var lines = [escapeHtml(s.street_address || ''), line2].filter(Boolean);
+      return (
+        '<span class="theinmag-popup__name">' + escapeHtml(s.shop_name) + '</span>' +
+        '<span class="theinmag-popup__addr">' + lines.join('<br>') + '</span>'
+      );
+    }
+
+    function initMap() {
+      if (map || !mapEl) return;
+      map = L.map(mapEl, {
+        zoomControl: true,
+        scrollWheelZoom: true,
+        attributionControl: true,
+      }).fitBounds(AU_BOUNDS);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19,
+      }).addTo(map);
+    }
+
+    function clearMarkers() {
+      Object.keys(markerByStockistId).forEach(function (id) {
+        var m = markerByStockistId[id];
+        if (m && map) map.removeLayer(m);
+        delete markerByStockistId[id];
+      });
+    }
+
+    function renderMarkers(list) {
+      if (!map) return; // first call may run before Leaflet is ready
+      clearMarkers();
+      var bounds = [];
+      list.forEach(function (s) {
+        var lat = parseFloat(s.latitude);
+        var lng = parseFloat(s.longitude);
+        if (!isFinite(lat) || !isFinite(lng)) return;
+        var m = L.marker([lat, lng], { icon: buildMarkerIcon(s.type) }).addTo(map);
+        m.bindPopup(popupHtml(s));
+        m.on('click', function () { activateStockist(s.id, { fromMap: true }); });
+        markerByStockistId[s.id] = m;
+        bounds.push([lat, lng]);
+      });
+      if (!bounds.length) return; // filter cleared everything; keep prior view
+      if (bounds.length === 1) {
+        map.flyTo(bounds[0], Math.max(map.getZoom(), 9), { duration: 0.6 });
+      } else {
+        map.flyToBounds(bounds, { padding: [40, 40], maxZoom: 12, duration: 0.6 });
+      }
+    }
+
+    function activateStockist(id, opts) {
+      opts = opts || {};
+      // Highlight card
+      if (listNode) {
+        var cards = listNode.querySelectorAll('.theinmag-stockists__card');
+        cards.forEach(function (c) {
+          c.classList.toggle('is-active', c.getAttribute('data-stockist-id') === id);
+        });
+        var activeCard = listNode.querySelector('[data-stockist-id="' + id + '"]');
+        if (activeCard && !opts.fromCard) {
+          activeCard.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+      // Highlight marker dot
+      Object.keys(markerByStockistId).forEach(function (mid) {
+        var m = markerByStockistId[mid];
+        var iconEl = m && m.getElement && m.getElement();
+        var dot = iconEl && iconEl.querySelector('.theinmag-stockists__marker');
+        if (dot) dot.classList.toggle('is-active', mid === id);
+      });
+      // From-card click flies + opens popup; from-map click only highlights
+      // (popup opens via Leaflet's own click handler).
+      if (opts.fromCard) {
+        var marker = markerByStockistId[id];
+        if (marker && map) {
+          map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), 9), { duration: 0.6 });
+          marker.openPopup();
+        }
+      }
+    }
+
+    // Card click → activate (skip inner link/button clicks so Maps/IG/etc.
+    // still work)
+    if (listNode) {
+      listNode.addEventListener('click', function (e) {
+        if (e.target.closest('a, button')) return;
+        var card = e.target.closest('.theinmag-stockists__card');
+        if (!card) return;
+        var id = card.getAttribute('data-stockist-id');
+        if (id) activateStockist(id, { fromCard: true });
+      });
     }
 
     if (stateFilter) stateFilter.addEventListener('change', applyFilters);
     if (searchInput) searchInput.addEventListener('input', applyFilters);
 
     applyFilters();
+
+    ensureLeaflet(function () {
+      initMap();
+      applyFilters(); // re-run so renderMarkers paints onto the now-ready map
+    });
 
     // Modal bridge: CTA dispatches a global event the sibling
     // theinmag-stockists-modal section listens for.
