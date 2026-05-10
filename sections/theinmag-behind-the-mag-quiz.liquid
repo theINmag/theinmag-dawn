@@ -618,6 +618,12 @@
     flex-direction: column;
     gap: clamp(16px, 2.4vw, 24px);
   }
+  /* Same display-override fix as the fact overlay - without this, the
+     roster ignores its [hidden] attribute and stacks all 9 bios under
+     the quiz card on first paint. */
+  .theinmag-bm-quiz__roster[hidden] {
+    display: none;
+  }
 
   .theinmag-bm-quiz__reveal {
     background-color: #FFFFFF;
@@ -703,7 +709,12 @@
   }
 
   /* ================================================================
-     Fact card overlay - shown on a correct match.
+     Fact card overlay - shown on a correct match. The [hidden]
+     selector below MUST stay - without it, my display:flex declaration
+     wins specificity over the user-agent's [hidden] { display: none }
+     and the overlay paints a 50% dark layer over the entire page on
+     every load, which both dims the page AND intercepts every click
+     (i.e. nothing on the page is clickable). Learned the hard way.
      ================================================================ */
   .theinmag-bm-quiz__fact-overlay {
     position: fixed;
@@ -715,6 +726,9 @@
     justify-content: center;
     padding: clamp(16px, 4vw, 32px);
     animation: theinmag-bm-quiz-fact-fade 0.18s ease both;
+  }
+  .theinmag-bm-quiz__fact-overlay[hidden] {
+    display: none;
   }
   @keyframes theinmag-bm-quiz-fact-fade {
     from { opacity: 0; }

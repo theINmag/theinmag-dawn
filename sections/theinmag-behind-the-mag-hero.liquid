@@ -345,7 +345,13 @@
 
   @media (min-width: 990px) {
     .theinmag-bm-hero__body-col {
-      padding: clamp(32px, 4vw, 56px) clamp(40px, 5vw, 72px);
+      /* Asymmetric padding shifts the centred card upward in the
+         viewport - more bottom than top so align-items:center lands
+         the card above the geometric middle. */
+      padding-top: clamp(24px, 3vw, 40px);
+      padding-right: clamp(40px, 5vw, 72px);
+      padding-bottom: clamp(96px, 12vw, 160px);
+      padding-left: clamp(40px, 5vw, 72px);
     }
   }
 

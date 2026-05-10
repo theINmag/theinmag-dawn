@@ -266,7 +266,10 @@
     max-width: 100%;
   }
 
-  /* Arrow buttons (hidden in Stage 1, Stage 2 reveals them on desktop). */
+  /* Arrow buttons (hidden in Stage 1, Stage 2 reveals them on desktop).
+     [hidden] override required because display:inline-flex would
+     otherwise win specificity over the UA's [hidden]{display:none}
+     rule and paint the buttons before JS removes the hidden attr. */
   .theinmag-bm-story__arrow {
     appearance: none;
     background-color: #FFFFFF;
@@ -285,6 +288,9 @@
     align-items: center;
     justify-content: center;
     transition: background-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  }
+  .theinmag-bm-story__arrow[hidden] {
+    display: none;
   }
   .theinmag-bm-story__arrow svg {
     width: 22px;
