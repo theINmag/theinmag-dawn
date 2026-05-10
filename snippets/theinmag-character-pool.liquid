@@ -1,74 +1,115 @@
 {%- comment -%}
   theinmag-character-pool
   Sitewide random kid-character pool. Drop one render of this snippet
-  on a page (top of the first behind-the-mag section), then drop bare
+  on a page (top of any always-rendered section), then drop bare
   <span data-theinmag-pool-character> markers wherever you want a
-  character to pop in. JS picks one URL from the pool per marker, with
-  Fisher-Yates shuffle so the picks are distinct per page until the
-  pool is exhausted. New characters: drop character-N.png into /assets/
-  and bump pool_size below.
+  character to pop in. JS picks one URL per marker, with Fisher-Yates
+  shuffle so the picks are distinct per page until the pool is
+  exhausted.
 
-  Distinct from the per-section data-theinmag-character pattern used in
-  mission/philosophy/etc - those carry their own three filenames in
-  block settings. This pool is universal and doesn't need editor
-  configuration. Fewer config knobs = future-proof for Ryan dropping
-  in new kid creations every release.
+  ----------------------------------------------------------------
+  WHEN YOU UPLOAD MORE CHARACTERS
+  ----------------------------------------------------------------
+  Files live in /assets/ as character-1.png ... character-N.png.
+  Bump pool_size below to N (the number of files you've uploaded).
 
-  Slot styling (positioning, size, scroll-pop) lives on each section's
-  CSS. This snippet only handles the random-fill + the "is-popped"
-  scroll trigger that sections opt into via [data-pop-on-scroll].
+  Why does pool_size matter? The snippet emits a tiny inline JSON
+  ({"size": N, "firstUrl": "..."}) and JS builds character-N URLs
+  by replacing the "1" in firstUrl. So pool_size doesn't change the
+  inline weight - even 500 emits ~150 bytes. What it controls is
+  the random pick range. Set it to 500 if you only have 26 files
+  and most slots will 404 (the JS retries by walking the shuffled
+  indices, but with 26/500 valid, nearly every retry would still
+  fail). Set it to 26 today, bump to 500 the day you actually have
+  500. The retry handler covers GAPS in the sequence (file 7 missing
+  while 1-6 and 8-26 exist), not pools that are mostly empty.
 
-  Pool: character-1.png through character-N.png in /assets/. Missing
-  files 404 silently and the slot hides itself (img.onerror handler).
+  Scaling note: the picks are TOTALLY RANDOM. Math.random() per page
+  load + Fisher-Yates shuffle = a fresh permutation every visit. No
+  deterministic algorithm.
+  ----------------------------------------------------------------
 {%- endcomment -%}
 
 {%- liquid
-  assign pool_size = 12
+  assign pool_size = 26
+  assign first_url = 'character-1.png' | asset_url
 -%}
 
 <script type="application/json" data-theinmag-character-pool>
-[{% for i in (1..pool_size) %}{%- assign filename = 'character-' | append: i | append: '.png' -%}{{ filename | asset_url | json }}{% if forloop.last == false %},{% endif %}{% endfor %}]
+{"size":{{ pool_size }},"firstUrl":{{ first_url | json }}}
 </script>
 
 <script>
   (function () {
+    /* Multiple sections may render this snippet on the same page (so any
+       page that has character slots is self-sufficient). The guard
+       ensures only the first instance does work; subsequent renders
+       early-return so we don't fight over the slots or double-bind
+       scroll listeners. */
+    if (window.__theinmagCharacterPoolInit) return;
+    window.__theinmagCharacterPoolInit = true;
+
     var poolEl = document.querySelector('[data-theinmag-character-pool]');
     if (!poolEl) return;
-    var pool;
-    try { pool = JSON.parse(poolEl.textContent); } catch (e) { return; }
-    if (!pool || !pool.length) return;
+    var data;
+    try { data = JSON.parse(poolEl.textContent); } catch (e) { return; }
+    if (!data || !data.size || !data.firstUrl) return;
 
     var slots = document.querySelectorAll('[data-theinmag-pool-character]');
     if (!slots.length) return;
 
-    // Fisher-Yates shuffle so picks are distinct per page until the pool
-    // is exhausted. Once exhausted (more slots than pool entries), modulo
-    // wraps around - acceptable for our 4-slot page against a 12 pool.
-    var shuffled = pool.slice();
-    for (var i = shuffled.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = shuffled[i];
-      shuffled[i] = shuffled[j];
-      shuffled[j] = tmp;
+    /* Build shuffled list of indices 1..size. Fisher-Yates so the
+       distribution is uniform per page load. Each slot reads from its
+       own offset into this shared list so multi-slot pages get
+       distinct picks (until the pool is exhausted). */
+    var indices = [];
+    for (var i = 1; i <= data.size; i++) indices.push(i);
+    for (var k = indices.length - 1; k > 0; k--) {
+      var j = Math.floor(Math.random() * (k + 1));
+      var tmp = indices[k]; indices[k] = indices[j]; indices[j] = tmp;
+    }
+
+    function urlForIndex(n) {
+      return data.firstUrl.replace('character-1.png', 'character-' + n + '.png');
+    }
+
+    /* Walk the shuffled indices starting from a per-slot offset until
+       we find one that loads. Covers gaps in the sequence (file 7
+       missing while 1-6 and 8-26 exist). Each attempt creates a fresh
+       Image so onerror fires reliably. Once we exhaust the indices,
+       hide the slot. */
+    function fillSlot(slot, startOffset, attempt) {
+      if (attempt >= indices.length) {
+        slot.style.display = 'none';
+        return;
+      }
+      var n = indices[(startOffset + attempt) % indices.length];
+      var url = urlForIndex(n);
+      var probe = new Image();
+      probe.onload = function () {
+        if (slot.querySelector('img')) return;
+        var finalImg = document.createElement('img');
+        finalImg.className = 'theinmag-pool-character__img';
+        finalImg.src = url;
+        finalImg.alt = '';
+        finalImg.setAttribute('aria-hidden', 'true');
+        slot.appendChild(finalImg);
+      };
+      probe.onerror = function () {
+        fillSlot(slot, startOffset, attempt + 1);
+      };
+      probe.src = url;
     }
 
     Array.prototype.forEach.call(slots, function (slot, idx) {
       if (slot.querySelector('img')) return;
-      var url = shuffled[idx % shuffled.length];
-      var img = document.createElement('img');
-      img.className = 'theinmag-pool-character__img';
-      img.src = url;
-      img.alt = '';
-      img.setAttribute('aria-hidden', 'true');
-      // Hide the slot if the file is missing - Ryan can drop in fewer
-      // than pool_size character files without code changes.
-      img.onerror = function () { slot.style.display = 'none'; };
-      slot.appendChild(img);
+      fillSlot(slot, idx, 0);
     });
 
-    // One-shot scroll-pop. Plain scroll listener (not IO) for parity
-    // with the rest of the theinmag- sections. Removes itself once
-    // every slot has popped.
+    /* One-shot scroll-pop. Sections supply their own .is-popped CSS;
+       this snippet just adds the class when each slot scrolls into
+       view. Plain scroll listener (not IntersectionObserver) for
+       parity with the other theinmag- sections. */
     var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduced) {
       Array.prototype.forEach.call(slots, function (s) { s.classList.add('is-popped'); });
@@ -94,8 +135,11 @@
 </script>
 
 {%- comment -%}
-  Base styling for every pool slot. Sections position the slot
-  absolutely; this snippet handles the bob + pop transition only.
+  Base styling. Sections that already have their own character CSS
+  (mission, philosophy, reviews, FAQ) keep their wrapper-level
+  positioning + animations and override the pool's bob to avoid
+  double-animating. Sections without bespoke styling get the default
+  pop + bob from below.
 {%- endcomment -%}
 {% stylesheet %}
 [data-theinmag-pool-character] {
