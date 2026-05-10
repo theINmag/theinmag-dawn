@@ -64,7 +64,6 @@
       class="theinmag-bm-story__list"
       data-bm-story-list
       tabindex="0"
-      aria-live="polite"
     >
       {%- for block in cards -%}
         {%- liquid
@@ -250,11 +249,15 @@
   }
   .theinmag-bm-story__arrow--prev { left: clamp(8px, 2vw, 24px); }
   .theinmag-bm-story__arrow--next { right: clamp(8px, 2vw, 24px); }
-  .theinmag-bm-story__arrow:hover,
+  .theinmag-bm-story__arrow:hover {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+  }
   .theinmag-bm-story__arrow:focus-visible {
     background-color: var(--color-purple-dark, #5D3A7A);
     color: #FFFFFF;
-    outline: none;
+    outline: 3px solid var(--color-yellow, #F9C23C);
+    outline-offset: 2px;
   }
   .theinmag-bm-story__arrow[disabled] {
     opacity: 0.35;

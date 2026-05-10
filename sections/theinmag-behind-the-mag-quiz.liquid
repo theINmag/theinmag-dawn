@@ -360,11 +360,15 @@
     align-self: flex-start;
   }
 
-  .theinmag-bm-quiz__skip:hover:not([disabled]),
+  .theinmag-bm-quiz__skip:hover:not([disabled]) {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+  }
   .theinmag-bm-quiz__skip:focus-visible:not([disabled]) {
     background-color: var(--color-purple-dark, #5D3A7A);
     color: #FFFFFF;
-    outline: none;
+    outline: 3px solid var(--color-yellow, #F9C23C);
+    outline-offset: 2px;
   }
 
   .theinmag-bm-quiz__skip[disabled] {
@@ -884,6 +888,7 @@
 
       var container = document.createElement('div');
       container.className = 'theinmag-bm-quiz__confetti';
+      container.setAttribute('aria-hidden', 'true');
       container.style.left = cx + 'px';
       container.style.top = cy + 'px';
       document.body.appendChild(container);

@@ -47,9 +47,13 @@
         -%}
         <li class="theinmag-bm-see-more__card-item" {{ block.shopify_attributes }}>
           <article class="theinmag-bm-see-more__card {{ platform_class }}">
-            <a class="theinmag-bm-see-more__card-link" href="{{ block.settings.link }}" rel="noopener" target="_blank">
-              <span class="visually-hidden">{{ block.settings.button_label | default: 'View profile' }}</span>
-            </a>
+            <a
+              class="theinmag-bm-see-more__card-link"
+              href="{{ block.settings.link }}"
+              rel="noopener"
+              target="_blank"
+              aria-label="{{ block.settings.button_label | default: 'View profile' }}: {{ block.settings.heading | escape }}"
+            ></a>
 
             <div class="theinmag-bm-see-more__card-media">
               {%- if card_src != blank -%}
@@ -182,12 +186,14 @@
     box-shadow: 0 8px 22px rgba(123, 79, 158, 0.18);
   }
 
+  /* The whole-card link is an empty <a> stretched over the article via
+     absolute positioning. aria-label carries the accessible name (set
+     in markup as "{button label}: {heading}") so screen readers
+     announce both the destination action and the card subject. */
   .theinmag-bm-see-more__card-link {
     position: absolute;
     inset: 0;
     z-index: 2;
-    text-indent: -9999px;
-    overflow: hidden;
   }
   .theinmag-bm-see-more__card-link:focus-visible {
     outline: 3px solid var(--color-purple-dark, #5D3A7A);

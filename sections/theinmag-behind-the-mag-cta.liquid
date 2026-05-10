@@ -204,12 +204,20 @@
     transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .theinmag-bm-cta__btn:hover,
-  .theinmag-bm-cta__btn:focus-visible {
+  .theinmag-bm-cta__btn:hover {
     background-color: var(--color-purple-dark, #5D3A7A);
     color: #FFFFFF;
     transform: translateY(2px);
     box-shadow: 0 2px 0 #4A2D62;
+  }
+  /* Focus-visible adds a yellow outline ON TOP of the hover-state fill so
+     keyboard users get an obvious "this is focused" cue distinct from
+     mouse hover. */
+  .theinmag-bm-cta__btn:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #4A2D62, 0 0 0 3px var(--color-yellow, #F9C23C);
     outline: none;
   }
 
