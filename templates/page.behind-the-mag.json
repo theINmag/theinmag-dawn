@@ -107,14 +107,18 @@
       "block_order": ["card-1", "card-2", "card-3", "card-4", "card-5", "card-6", "card-7", "card-8", "card-9"]
     },
     "bm_video": {
-      "type": "theinmag-behind-the-mag-video",
+      "type": "theinmag-meet-tam",
       "settings": {
-        "heading": "Wait - why's it called theINmag?",
-        "subhead": "Glad you asked",
-        "youtube_id": "",
-        "mp4_url": "https://cdn.shopify.com/videos/c/o/v/cfd1195c9a7d4f0b85529e5b5083f45c.mp4",
+        "video_url": "https://cdn.shopify.com/videos/c/o/v/cfd1195c9a7d4f0b85529e5b5083f45c.mp4",
+        "video_filename": "",
         "poster_filename": "behind-the-mag-video-poster.jpg",
-        "poster_alt": "Tam and Ryan in front of the van talking about why it's called theINmag."
+        "poster_alt": "Tam and Ryan in front of the van talking about why it's called theINmag.",
+        "heading": "Wait - why's it called theINmag?",
+        "heading_shape_filename": "meet-tam-heading-shape.png",
+        "role": "Glad you asked",
+        "intro": "",
+        "cta_label": "",
+        "cta_link": ""
       }
     },
     "bm_quiz": {
