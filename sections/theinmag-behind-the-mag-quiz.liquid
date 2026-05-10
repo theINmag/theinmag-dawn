@@ -666,6 +666,55 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
+  /* Adult tile in "pair in progress" state - one of two kids has been
+     found correctly. Visual nudge to draw the eye to "find the other
+     kid." Subtle pulse, not a parade. */
+  .theinmag-bm-quiz__tile.is-pair-progress .theinmag-bm-quiz__tile-frame {
+    outline-color: var(--color-yellow, #F9C23C);
+    outline-offset: 3px;
+    animation: theinmag-bm-quiz-pair-pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes theinmag-bm-quiz-pair-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(249, 194, 60, 0.5); }
+    50%      { box-shadow: 0 0 0 10px rgba(249, 194, 60, 0); }
+  }
+
+  /* ================================================================
+     Confetti burst on correct match. Vanilla CSS keyframe, no JS lib.
+     Each bit gets random --dx/--dy/--rot via inline style; the keyframe
+     interpolates to those values. Six to eight bits per burst.
+     ================================================================ */
+  .theinmag-bm-quiz__confetti {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    width: 0;
+    height: 0;
+  }
+
+  .theinmag-bm-quiz__confetti-bit {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 12px;
+    border-radius: 2px;
+    transform-origin: center;
+    animation: theinmag-bm-quiz-confetti 700ms cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+  }
+
+  @keyframes theinmag-bm-quiz-confetti {
+    0% {
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--dx, 0), var(--dy, 0)) rotate(var(--rot, 540deg));
+      opacity: 0;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .theinmag-bm-quiz__tile,
     .theinmag-bm-quiz__tile-frame {
@@ -677,8 +726,311 @@
     .theinmag-bm-quiz__reveal {
       animation: none;
     }
+    .theinmag-bm-quiz__tile.is-pair-progress .theinmag-bm-quiz__tile-frame {
+      animation: none;
+    }
   }
 {%- endstylesheet -%}
+
+<script>
+  /* ================================================================
+     Quiz state machine - kid-first selection, paired/solo logic,
+     correct + wrong reveals, skip-to-team, confetti burst.
+     ================================================================ */
+  (function () {
+    var root = document.querySelector('[data-theinmag-bm-quiz]');
+    if (!root) return;
+
+    var board = root.querySelector('[data-bm-quiz-board]');
+    var statusEl = root.querySelector('[data-bm-quiz-status]');
+    var skipBtn = root.querySelector('[data-bm-quiz-skip]');
+    var revealsContainer = root.querySelector('[data-bm-quiz-reveals]');
+    var allDoneEl = root.querySelector('[data-bm-quiz-all-done]');
+    var kidGrid = root.querySelector('[data-bm-quiz-kids]');
+
+    var adults = Array.prototype.slice.call(root.querySelectorAll('[data-bm-quiz-adult]'));
+    var kids = Array.prototype.slice.call(root.querySelectorAll('[data-bm-quiz-kid]'));
+    var reveals = Array.prototype.slice.call(root.querySelectorAll('[data-bm-quiz-reveal]'));
+
+    if (!adults.length || !kids.length) return;
+
+    var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var pairedHint = root.getAttribute('data-paired-hint') || 'Nice - now find the other kid.';
+    var allDoneMessage = root.getAttribute('data-all-done-message') || "Nice work, you've met the whole team.";
+
+    /* State */
+    var primedKid = null;
+    var pairsInProgress = {};            // adult blockId -> [kid el, kid el]
+    var resolvedBlockIds = {};           // blockId -> true once revealed
+
+    /* ----------------------------------------------------------------
+       Shuffle the kid grid via CSS `order` so the quiz isn't trivial.
+       Real DOM stays in block order (helpful for screen readers reading
+       in source order); only the visual layout is randomised.
+       ---------------------------------------------------------------- */
+    if (kidGrid) {
+      var indices = kids.map(function (_, i) { return i; });
+      for (var s = indices.length - 1; s > 0; s--) {
+        var t = Math.floor(Math.random() * (s + 1));
+        var tmp = indices[s]; indices[s] = indices[t]; indices[t] = tmp;
+      }
+      kids.forEach(function (kid, i) {
+        var li = kid.parentElement;
+        if (li) li.style.order = indices[i];
+      });
+    }
+
+    /* Enable the skip button now that JS is running. */
+    if (skipBtn) skipBtn.disabled = false;
+
+    function setStatus(text) {
+      if (!statusEl) return;
+      statusEl.textContent = text || '';
+    }
+
+    function unprimeKid() {
+      if (primedKid) {
+        primedKid.classList.remove('is-active');
+        primedKid.setAttribute('aria-pressed', 'false');
+      }
+      primedKid = null;
+    }
+
+    function unprimeAllAdultActive() {
+      adults.forEach(function (a) {
+        a.classList.remove('is-active');
+        a.setAttribute('aria-pressed', 'false');
+      });
+    }
+
+    function primeKid(kid) {
+      unprimeKid();
+      primedKid = kid;
+      kid.classList.add('is-active');
+      kid.setAttribute('aria-pressed', 'true');
+      setStatus('Now tap who you reckon they grew into.');
+    }
+
+    function getRevealCard(blockId) {
+      for (var i = 0; i < reveals.length; i++) {
+        if (reveals[i].getAttribute('data-block-id') === blockId) return reveals[i];
+      }
+      return null;
+    }
+
+    function getAdultByBlockId(blockId) {
+      for (var i = 0; i < adults.length; i++) {
+        if (adults[i].getAttribute('data-block-id') === blockId) return adults[i];
+      }
+      return null;
+    }
+
+    function getKidsByBlockId(blockId) {
+      return kids.filter(function (k) { return k.getAttribute('data-block-id') === blockId; });
+    }
+
+    function revealCard(card) {
+      if (!card) return;
+      card.removeAttribute('hidden');
+      if (!prefersReducedMotion) {
+        try {
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (e) { /* older browsers ignore options */ }
+      }
+    }
+
+    function lockBlock(blockId) {
+      resolvedBlockIds[blockId] = true;
+      var blockKids = getKidsByBlockId(blockId);
+      blockKids.forEach(function (k) {
+        k.classList.add('is-resolved');
+        k.classList.remove('is-active');
+        k.setAttribute('aria-disabled', 'true');
+      });
+      var adult = getAdultByBlockId(blockId);
+      if (adult) {
+        adult.classList.add('is-resolved');
+        adult.classList.remove('is-active');
+        adult.classList.remove('is-pair-progress');
+        adult.setAttribute('aria-disabled', 'true');
+      }
+      delete pairsInProgress[blockId];
+    }
+
+    function checkAllDone() {
+      var done = adults.every(function (a) {
+        return resolvedBlockIds[a.getAttribute('data-block-id')];
+      });
+      if (done) {
+        if (board) board.style.display = 'none';
+        if (skipBtn) skipBtn.style.display = 'none';
+        if (allDoneEl) {
+          allDoneEl.removeAttribute('hidden');
+          allDoneEl.textContent = allDoneMessage;
+        }
+      }
+    }
+
+    /* ----------------------------------------------------------------
+       Confetti burst at the centre of the matched adult tile.
+       ---------------------------------------------------------------- */
+    var confettiColors = ['#F9C23C', '#E8DEEF', '#FCDDB8', '#5D3A7A', '#FBE0D6'];
+
+    function burstConfetti(anchor) {
+      if (prefersReducedMotion || !anchor) return;
+      var rect = anchor.getBoundingClientRect();
+      var cx = rect.left + rect.width / 2;
+      var cy = rect.top + rect.height / 2;
+
+      var container = document.createElement('div');
+      container.className = 'theinmag-bm-quiz__confetti';
+      container.style.left = cx + 'px';
+      container.style.top = cy + 'px';
+      document.body.appendChild(container);
+
+      var n = 8;
+      for (var i = 0; i < n; i++) {
+        var bit = document.createElement('span');
+        bit.className = 'theinmag-bm-quiz__confetti-bit';
+        var angle = (Math.PI * 2 * i) / n + (Math.random() - 0.5) * 0.6;
+        var dist = 50 + Math.random() * 40;
+        var dx = Math.cos(angle) * dist;
+        var dy = Math.sin(angle) * dist - 26; // upward bias
+        bit.style.setProperty('--dx', dx + 'px');
+        bit.style.setProperty('--dy', dy + 'px');
+        bit.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+        bit.style.background = confettiColors[i % confettiColors.length];
+        container.appendChild(bit);
+      }
+
+      setTimeout(function () {
+        if (container.parentNode) container.parentNode.removeChild(container);
+      }, 900);
+    }
+
+    /* ----------------------------------------------------------------
+       Click handlers
+       ---------------------------------------------------------------- */
+    function onKidClick(kid) {
+      var blockId = kid.getAttribute('data-block-id');
+      if (resolvedBlockIds[blockId]) return;
+      if (kid.classList.contains('is-resolved')) return;
+
+      if (primedKid === kid) {
+        // Tapping a primed kid again unprimes it.
+        unprimeKid();
+        setStatus('');
+        return;
+      }
+      primeKid(kid);
+    }
+
+    function onAdultClick(adult) {
+      var adultBlockId = adult.getAttribute('data-block-id');
+      if (resolvedBlockIds[adultBlockId]) return;
+
+      if (!primedKid) {
+        setStatus('Tap a kid first.');
+        return;
+      }
+
+      var kidBlockId = primedKid.getAttribute('data-block-id');
+      var kidEl = primedKid;
+      var kidName = kidEl.getAttribute('data-kid-name') || '';
+      unprimeKid();
+
+      if (kidBlockId === adultBlockId) {
+        /* CORRECT match for this adult */
+        var isPaired = adult.getAttribute('data-paired') === 'true';
+
+        if (!isPaired) {
+          // Solo - immediate full reveal.
+          lockBlock(adultBlockId);
+          revealCard(getRevealCard(adultBlockId));
+          burstConfetti(adult);
+          setStatus("Yes - that's the one.");
+          checkAllDone();
+          return;
+        }
+
+        // Paired - track progress.
+        var found = pairsInProgress[adultBlockId] || [];
+        found.push(kidEl);
+        pairsInProgress[adultBlockId] = found;
+        kidEl.classList.add('is-resolved');
+        kidEl.setAttribute('aria-disabled', 'true');
+
+        if (found.length >= 2) {
+          // Pair complete.
+          lockBlock(adultBlockId);
+          revealCard(getRevealCard(adultBlockId));
+          burstConfetti(adult);
+          setStatus("Yes - that's both of them.");
+          checkAllDone();
+        } else {
+          // First of two found.
+          adult.classList.add('is-pair-progress');
+          adult.setAttribute('aria-pressed', 'true');
+          burstConfetti(adult);
+          setStatus(pairedHint);
+        }
+        return;
+      }
+
+      /* WRONG: kid belongs to a different block. Reveal the kid's
+         actual block (so the user learns who that kid grew into).
+         Lock the kid's whole block. The wrong adult stays available. */
+      var correctBlockId = kidBlockId;
+      var correctRevealCard = getRevealCard(correctBlockId);
+      var correctName = '';
+      if (correctRevealCard) {
+        var nameEl = correctRevealCard.querySelector('.theinmag-bm-quiz__reveal-name');
+        if (nameEl) correctName = nameEl.textContent.trim();
+      }
+
+      lockBlock(correctBlockId);
+      revealCard(correctRevealCard);
+      // The wrong adult might have been mid-pair from a previous match;
+      // that progress survives the wrong attempt.
+      adult.classList.remove('is-active');
+
+      setStatus("Nope - that's actually " + correctName + '.');
+      checkAllDone();
+    }
+
+    adults.forEach(function (a) {
+      a.setAttribute('aria-pressed', 'false');
+      a.addEventListener('click', function () { onAdultClick(a); });
+    });
+    kids.forEach(function (k) {
+      k.setAttribute('aria-pressed', 'false');
+      k.addEventListener('click', function () { onKidClick(k); });
+    });
+
+    /* ----------------------------------------------------------------
+       Skip-to-team: reveal everything, hide the board.
+       ---------------------------------------------------------------- */
+    function skipQuiz() {
+      adults.forEach(function (a) {
+        var bid = a.getAttribute('data-block-id');
+        if (!resolvedBlockIds[bid]) {
+          lockBlock(bid);
+        }
+      });
+      reveals.forEach(function (r) { r.removeAttribute('hidden'); });
+      if (board) board.style.display = 'none';
+      if (skipBtn) skipBtn.style.display = 'none';
+      if (allDoneEl) {
+        allDoneEl.removeAttribute('hidden');
+        allDoneEl.textContent = allDoneMessage;
+      }
+    }
+
+    if (skipBtn) {
+      skipBtn.addEventListener('click', skipQuiz);
+    }
+  })();
+</script>
 
 {% schema %}
 {
