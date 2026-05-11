@@ -31,7 +31,7 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign pool_size = 100
+  assign pool_size = 26
   assign first_url = 'character-1.png' | asset_url
 -%}
 
@@ -49,6 +49,20 @@
     if (window.__theinmagCharacterPoolInit) return;
     window.__theinmagCharacterPoolInit = true;
 
+    /* Defer until the full DOM is parsed. Without this, when the
+       snippet renders at the top of a section, the slot
+       querySelectorAll returns 0 elements - the spans don't exist
+       in DOM yet because the HTML parser hasn't reached them. The
+       init guard then blocks any retry. Waiting for
+       DOMContentLoaded ensures every span on the page is visible
+       to the query. */
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+    function init() {
     var poolEl = document.querySelector('[data-theinmag-character-pool]');
     if (!poolEl) return;
     var data;
@@ -73,21 +87,44 @@
       return data.firstUrl.replace('character-1.png', 'character-' + n + '.png');
     }
 
+    /* Shared "taken" set so each character index can only fill one
+       slot on the page. Without this, two slots whose initial
+       offsets land on 404'd files can both walk forward and land on
+       the same valid index - which is the duplicate Ryan flagged
+       on 2026-05-11. Set is shared across all slots' fillSlot
+       calls; the check fires both before probing and after onload
+       (covers the race where two slots are probing the same index
+       concurrently). */
+    var taken = (typeof window.Set === 'function') ? new Set() : null;
+    function isTaken(n) { return taken ? taken.has(n) : false; }
+    function markTaken(n) { if (taken) taken.add(n); }
+
     /* Walk the shuffled indices starting from a per-slot offset until
-       we find one that loads. Covers gaps in the sequence (file 7
-       missing while 1-6 and 8-26 exist). Each attempt creates a fresh
-       Image so onerror fires reliably. Once we exhaust the indices,
-       hide the slot. */
+       we find one that loads AND isn't already taken by another slot.
+       Covers gaps in the sequence (file 7 missing while 1-6 and 8-26
+       exist). Each attempt creates a fresh Image so onerror fires
+       reliably. Once we exhaust the indices, hide the slot. */
     function fillSlot(slot, startOffset, attempt) {
       if (attempt >= indices.length) {
         slot.style.display = 'none';
         return;
       }
       var n = indices[(startOffset + attempt) % indices.length];
+      if (isTaken(n)) {
+        fillSlot(slot, startOffset, attempt + 1);
+        return;
+      }
       var url = urlForIndex(n);
       var probe = new Image();
       probe.onload = function () {
         if (slot.querySelector('img')) return;
+        /* Race guard: another slot may have claimed this index while
+           our probe was in flight. If so, walk forward. */
+        if (isTaken(n)) {
+          fillSlot(slot, startOffset, attempt + 1);
+          return;
+        }
+        markTaken(n);
         var finalImg = document.createElement('img');
         finalImg.className = 'theinmag-pool-character__img';
         finalImg.src = url;
@@ -131,6 +168,7 @@
     function onScroll() { window.requestAnimationFrame(check); }
     window.addEventListener('scroll', onScroll, { passive: true });
     check();
+    } /* end init() */
   })();
 </script>
 
@@ -142,14 +180,20 @@
   pop + bob from below.
 {%- endcomment -%}
 {% stylesheet %}
-[data-theinmag-pool-character] {
+/* :where() drops the pool's base rules to specificity 0,0,0 so any
+   section-level rule on .theinmag-<section>__character wins. Without
+   this, the pool's display:block was tying with section
+   display:none on mobile (both at 0,1,0) and the load order
+   sometimes flipped the winner - sections that should have hidden
+   the character on mobile rendered it at huge sizes instead. */
+:where([data-theinmag-pool-character]) {
   display: block;
   pointer-events: none;
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
-[data-theinmag-pool-character].is-popped {
+:where([data-theinmag-pool-character].is-popped) {
   opacity: 1;
   transform: translateY(0);
 }

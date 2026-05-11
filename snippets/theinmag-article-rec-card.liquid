@@ -5,8 +5,7 @@
   archive_card so the two surfaces feel like one design system.
 
   Inputs:
-    rec    (Article object, required)
-    blurb  (string, optional - one-line italic connective sentence)
+    rec  (Article object, required)
 {%- endcomment -%}
 
 {%- liquid
@@ -54,9 +53,6 @@
       <span class="theinmag-article__rec-topic">{{ rec_topic }}</span>
     {%- endif -%}
     <span class="theinmag-article__rec-title">{{ rec_title }}</span>
-    {%- if blurb != blank -%}
-      <span class="theinmag-article__rec-blurb">{{ blurb }}</span>
-    {%- endif -%}
   </span>
 </a>
 
@@ -143,16 +139,6 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-
-  .theinmag-article__rec-blurb {
-    margin-top: 6px;
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 400;
-    font-size: 13.5px;
-    line-height: 1.5;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.78;
   }
 
   @media (prefers-reduced-motion: reduce) {

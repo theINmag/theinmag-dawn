@@ -14,6 +14,10 @@
   intentionally ignores the all/kids/adults audience toggle that the
   editorial + feature banner sections respond to. The search box is
   the primary filter here.
+
+  Order: rendered newest-first by Liquid (so crawlers see chronological
+  order for SEO), then Fisher-Yates shuffled in JS on every page load
+  so repeat visitors discover different posts each visit.
 {%- endcomment -%}
 
 {%- liquid
@@ -823,6 +827,22 @@
     if (!input || !rail) return;
 
     var cards = Array.prototype.slice.call(rail.querySelectorAll('[data-archive-card]'));
+
+    /* Shuffle the rail on every page load so repeat visitors discover
+       different posts each time. Liquid renders newest-first; we
+       Fisher-Yates the DOM order before paint. SEO is unaffected
+       because crawlers see the server-rendered (chronological) order. */
+    if (cards.length > 1) {
+      var frag = document.createDocumentFragment();
+      for (var i = cards.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = cards[i];
+        cards[i] = cards[j];
+        cards[j] = tmp;
+      }
+      cards.forEach(function (card) { frag.appendChild(card); });
+      rail.appendChild(frag);
+    }
 
     function applyFilter(query) {
       query = (query || '').trim().toLowerCase();

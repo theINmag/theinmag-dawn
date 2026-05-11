@@ -611,6 +611,22 @@
     z-index: 9999;
   }
 
+  /* Invisible bridge spanning the gap between the trigger button and
+     the panel's visible top edge. Without this, dragging the mouse
+     down from the trigger to a link briefly leaves the parent <li>
+     hover state, which collapses the panel before the user can
+     click. The pseudo is a child of the panel (which is a child of
+     the <li>) so hovering it still triggers :hover on the <li>. */
+  .theinmag-header__dropdown::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(-1 * var(--space-sm) - 4px);
+    height: calc(var(--space-sm) + 8px);
+    background: transparent;
+  }
+
   /* Show on hover OR keyboard focus OR explicit aria-expanded.
      :focus-within keeps the panel open while a child link is focused. */
   .theinmag-header__nav-item--has-dropdown:hover .theinmag-header__dropdown,

@@ -111,17 +111,19 @@
       "settings": {
         "video_url": "https://cdn.shopify.com/videos/c/o/v/cfd1195c9a7d4f0b85529e5b5083f45c.mp4",
         "video_filename": "",
-        "poster_filename": "behind-the-mag-video-poster.jpg",
+        "poster_filename": "whysitcalledtheINmag_poster.jpg",
         "poster_alt": "Tam and Ryan in front of the van talking about why it's called theINmag.",
         "heading": "\"Wait - why's it<br>called theINmag?\"",
         "heading_shape_filename": "",
-        "role": "Glad you asked",
+        "role": "...Glad you asked",
         "intro": "",
         "cta_label": "Grab a membership",
         "cta_link": "/products/theinmag-membership",
         "heading_font_style": "inter",
         "cta_style": "outlined_purple",
-        "video_aspect_desktop": "9 / 14"
+        "video_aspect_desktop": "9 / 14",
+        "video_autoplay": false,
+        "video_starts_muted": false
       }
     },
     "bm_quiz": {
@@ -272,12 +274,12 @@
         "ned": { "type": "portrait", "settings": { "name": "Ned", "fallback_filename": "behind-the-mag-crew-ned.jpg", "image_alt": "Ned packing theINmag orders." } },
         "gus": { "type": "portrait", "settings": { "name": "Gus", "fallback_filename": "behind-the-mag-crew-gus.jpg", "image_alt": "Gus packing theINmag orders." } }
       },
-      "block_order": ["zanda", "ned", "gus"]
+      "block_order": ["ned", "zanda", "gus"]
     },
     "bm_see_more": {
       "type": "theinmag-behind-the-mag-see-more",
       "settings": {
-        "heading": "See more of us",
+        "heading": "come <span class=\"theinmag-bm-see-more__heading-pop\">hang</span> with us",
         "aeo_heading": "Where can you follow theINmag?"
       },
       "blocks": {
@@ -287,7 +289,7 @@
             "platform": "youtube",
             "heading": "branching out",
             "subheading": "Adventures from the road.",
-            "body": "Branching Out is our YouTube channel where we share our travels, the places we land, and what Nora's up to.",
+            "body": "branching out is our YouTube channel where we share our travels, the places we land, and what Nora's up to.",
             "button_label": "Visit channel on YouTube",
             "link": "https://www.youtube.com/@Branchingout-tnr",
             "youtube_video_id": "https://www.youtube.com/watch?v=r2LK1DBuyOo",
@@ -327,7 +329,7 @@
             "button_label": "Send IN a creation",
             "link": "/pages/send-in",
             "button_style": "yellow_stamp",
-            "color": "peach",
+            "color": "cream",
             "fallback_filename": "behind-the-mag-cta-send-in.jpg",
             "image_alt": "A pile of kid creations ready to be sent in to theINmag."
           }
@@ -340,7 +342,7 @@
             "button_label": "Get a Membership",
             "link": "/products/theinmag-membership",
             "button_style": "outlined_purple",
-            "color": "lavender",
+            "color": "cream",
             "fallback_filename": "behind-the-mag-cta-membership.jpg",
             "image_alt": "A theINmag membership pack landing in an Aussie letterbox."
           }

@@ -4,7 +4,9 @@
   left column with the H1 overlaid bottom-left in white sans-serif
   (matches the visual register of the field-notes blog post hero).
   Right column carries a "Quick Read"-style card with Ryan's personal
-  hook copy + a hand-lettered Caveat signature.
+  hook copy + a hand-lettered Caveat signature. Kid character pops
+  above the personal note - sized so it reads as a friendly tag
+  rather than dominating the card. (2026-05-11 sizing pass.)
 
   Absorbed the standalone hook section in the May 10 2026 redesign -
   hook copy now lives inside the right-hand card so the eye flows
@@ -87,11 +89,11 @@
         </div>
       </div>
 
-      <span class="theinmag-bm-hero__character" data-theinmag-pool-character></span>
     </div>
 
     <div class="theinmag-bm-hero__body-col">
       <div class="theinmag-bm-hero__body-inner">
+        <span class="theinmag-bm-hero__character" data-theinmag-pool-character></span>
         <aside class="theinmag-bm-hero__quick-read" aria-label="Personal note from Ryan">
           <span class="theinmag-bm-hero__quick-read-label">Personal note</span>
           <div class="theinmag-bm-hero__quick-read-body">
@@ -316,14 +318,31 @@
     max-width: 36ch;
   }
 
-  /* Kid character pop - top-right of the cover image. Hidden on the
-     smallest phones so the H1 keeps its room. */
+  /* ================================================================
+     Kid character pop
+     ================================================================
+     Sits above the personal note's top edge, peeking down into the
+     Quick Read card. Anchored to the body-inner wrapper (set
+     position:relative below) so it follows the personal note's
+     position rather than the section padding.
+
+     Sizing history (2026-05-11):
+       1. Original launch: clamp(70px, 10vw, 120px)
+       2. Bumped +40% per Ryan: clamp(98px, 14vw, 170px)
+       3. Trimmed -30% per Ryan: clamp(69px, 9.8vw, 119px) - the
+          current setting. Reads as a friendly tag near the card
+          edge rather than a dominant element on the page.
+
+     Top offset is negative so the character pops UP above the
+     body-inner top edge - the section bg picks up the visible
+     part above the white card.
+     ================================================================ */
   .theinmag-bm-hero__character {
     position: absolute;
-    top: clamp(12px, 3vw, 24px);
-    right: clamp(12px, 3vw, 24px);
-    width: clamp(70px, 10vw, 120px);
-    z-index: 3;
+    top: clamp(-120px, -10vw, -80px);
+    right: clamp(8px, 3vw, 28px);
+    width: clamp(69px, 9.8vw, 119px);
+    z-index: 4;
   }
 
   @media (max-width: 479px) {
@@ -357,6 +376,9 @@
 
   .theinmag-bm-hero__body-inner {
     width: 100%;
+    /* Anchor for the absolutely-positioned kid character that pops
+       up above the personal note. */
+    position: relative;
   }
 
   /* Quick Read card. White surface, soft purple-tinted shadow, a

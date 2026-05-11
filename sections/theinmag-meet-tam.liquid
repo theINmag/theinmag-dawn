@@ -62,6 +62,20 @@
   assign cta_style = section.settings.cta_style | default: 'yellow_stamp'
   assign video_aspect_desktop = section.settings.video_aspect_desktop | default: '9 / 11'
 
+  # Default video_autoplay + video_starts_muted to TRUE so the
+  # homepage Meet Tam instance keeps its social-media-style muted
+  # autoplay behaviour. The BM page sets both to false so the
+  # "why's it called theINmag?" video shows the poster, requires a
+  # click to start, and plays with sound on.
+  assign video_autoplay = section.settings.video_autoplay
+  if video_autoplay == nil
+    assign video_autoplay = true
+  endif
+  assign video_starts_muted = section.settings.video_starts_muted
+  if video_starts_muted == nil
+    assign video_starts_muted = true
+  endif
+
   capture brand_html
     echo '<span class="theinmag-brand">the<span class="theinmag-brand__in">IN</span>mag</span>'
   endcapture
@@ -98,15 +112,30 @@
           <video
             class="theinmag-meet-tam__video"
             {% if poster_src != blank %}poster="{{ poster_src }}"{% endif %}
-            autoplay
-            muted
+            {% if video_autoplay %}autoplay{% endif %}
+            {% if video_starts_muted %}muted{% endif %}
             loop
             playsinline
             preload="metadata"
+            data-autoplay="{{ video_autoplay }}"
             aria-label="{{ poster_alt | escape }}"
           >
             <source src="{{ video_src }}" type="video/mp4">
           </video>
+          {%- unless video_autoplay -%}
+            <button
+              type="button"
+              class="theinmag-meet-tam__play-overlay"
+              data-meet-tam-play-overlay
+              aria-label="Play video"
+            >
+              <span class="theinmag-meet-tam__play-overlay-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="7 4 21 12 7 20 7 4"></polygon>
+                </svg>
+              </span>
+            </button>
+          {%- endunless -%}
           <div class="theinmag-meet-tam__controls" data-meet-tam-controls>
             {%- comment -%}
               Pause/play + mute/unmute pair, bottom-right of the video.
@@ -172,6 +201,11 @@
         (intro + CTA) so on mobile the headings can sit ABOVE the video
         while the write-up and button stay below. On desktop both halves
         sit in the right column via grid placement.
+
+        BM variant (heading_font_style == 'inter'): the CTA moves INSIDE
+        __copy--top so the heading + role + button all sit on the same
+        cream pull-quote card. Avoids the two-half-card trick that was
+        getting overridden by Shopify's section CSS cache.
       {%- endcomment -%}
       <div class="theinmag-meet-tam__copy theinmag-meet-tam__copy--top">
         <div class="theinmag-meet-tam__heading-wrap">
@@ -189,13 +223,16 @@
         {%- if role != blank -%}
           <p class="theinmag-meet-tam__role">{{ role_html }}</p>
         {%- endif -%}
+        {%- if heading_font_style == 'inter' and cta_label != blank -%}
+          <a class="theinmag-meet-tam__cta" href="{{ cta_link }}">{{ cta_label }}</a>
+        {%- endif -%}
       </div>
 
       <div class="theinmag-meet-tam__copy theinmag-meet-tam__copy--bottom">
         {%- if intro != blank -%}
           <p class="theinmag-meet-tam__intro">{{ intro_html }}</p>
         {%- endif -%}
-        {%- if cta_label != blank -%}
+        {%- if heading_font_style != 'inter' and cta_label != blank -%}
           <a class="theinmag-meet-tam__cta" href="{{ cta_link }}">{{ cta_label }}</a>
         {%- endif -%}
       </div>
@@ -545,6 +582,76 @@
     display: none;
   }
 
+  /* Play overlay - only rendered when video_autoplay is false (BM
+     page's "why's it called theINmag?" video). Sits over the poster
+     until the user clicks; click triggers play() (which works with
+     sound on because it's a user gesture, unlike autoplay), then
+     fades away. Round, large, white play triangle - clearly the
+     primary action on the section. */
+  .theinmag-meet-tam__play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(42, 31, 61, 0.28);
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 4;
+    border-radius: 18px;
+    transition: background-color 0.2s ease, opacity 0.3s ease;
+  }
+  @media (min-width: 990px) {
+    .theinmag-meet-tam__play-overlay {
+      border-radius: 22px;
+    }
+  }
+  .theinmag-meet-tam__play-overlay:hover,
+  .theinmag-meet-tam__play-overlay:focus-visible {
+    background: rgba(42, 31, 61, 0.42);
+    outline: none;
+  }
+  .theinmag-meet-tam__play-overlay-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--color-purple-dark, #5D3A7A);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    transition: transform 0.18s ease, background-color 0.18s ease;
+  }
+  .theinmag-meet-tam__play-overlay:hover .theinmag-meet-tam__play-overlay-icon,
+  .theinmag-meet-tam__play-overlay:focus-visible .theinmag-meet-tam__play-overlay-icon {
+    transform: scale(1.06);
+    background: #FFFFFF;
+  }
+  .theinmag-meet-tam__play-overlay-icon svg {
+    width: 36px;
+    height: 36px;
+    /* Optical centring - the play triangle's visual centre sits ~3px
+       right of its geometric centre. Nudge left so it looks centred
+       inside the round button. */
+    transform: translateX(2px);
+  }
+  .theinmag-meet-tam__play-overlay.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-meet-tam__play-overlay,
+    .theinmag-meet-tam__play-overlay-icon {
+      transition: none;
+    }
+    .theinmag-meet-tam__play-overlay:hover .theinmag-meet-tam__play-overlay-icon {
+      transform: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .theinmag-meet-tam__control {
       transition: none;
@@ -637,23 +744,52 @@
     margin-top: clamp(8px, 1.4vw, 14px);
   }
 
-  /* Heading + role boxed as a raised card next to the video. Sits
-     on the pink __card surface but pops off it with its own cream
-     surface + drop shadow - reads as a layered "pull-quote sticker"
-     stuck on top of the larger card. Scoped via .--heading-inter
-     so the homepage Meet Tam stays as-is. The CTA below stays
-     outside this card via __copy--bottom. */
+  /* BM video moment: heading + role + CTA all sit inside the
+     __copy--top cream pull-quote card (the CTA is rendered inside
+     __copy--top when heading_font_style == 'inter' - see the
+     section's Liquid markup). Scoped via .--heading-inter so the
+     homepage Meet Tam stays as-is.
+     Mobile: full-width cream card stacked above the video.
+     Desktop: width-capped to hug the heading, vertically centred in
+     the right column alongside the video. __copy--bottom is empty
+     in this variant and gets hidden so it doesn't reserve space. */
   .theinmag-meet-tam--heading-inter .theinmag-meet-tam__copy--top {
     background-color: var(--color-cream, #FBF6EA);
-    border: 0;
-    border-radius: 0;
-    padding: clamp(24px, 3vw, 40px) clamp(24px, 3vw, 40px);
+    padding: clamp(24px, 3vw, 40px);
     align-items: flex-start;
-    align-self: stretch;
     text-align: left;
+    gap: clamp(14px, 1.6vw, 22px);
     box-shadow:
-      0 16px 36px rgba(42, 31, 61, 0.18),
+      0 18px 40px rgba(42, 31, 61, 0.20),
       0 6px 14px rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-meet-tam--heading-inter .theinmag-meet-tam__copy--bottom {
+    /* Empty container in the BM variant - hide it so the desktop
+       grid collapses to one row in column 2, and the cream card
+       sits centred against the video instead of being pushed up by
+       a reserved second row. */
+    display: none;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-meet-tam--heading-inter .theinmag-meet-tam__copy--top {
+      /* Hug the heading rather than sprawl. */
+      justify-self: start;
+      width: 100%;
+      max-width: 460px;
+      /* Span both grid rows in column 2 so the card sits vertically
+         centred alongside the video (the video spans rows 1-2 in
+         column 1; matching that here centres the card). */
+      grid-row: 1 / 3;
+      align-self: center;
+    }
+  }
+
+  /* CTA inside the cream card sits flush-left with the heading; the
+     __copy--top gap owns the spacing above it. */
+  .theinmag-meet-tam--heading-inter .theinmag-meet-tam__copy--top .theinmag-meet-tam__cta {
+    margin-top: 0;
   }
 
   .theinmag-meet-tam__role {
@@ -791,10 +927,20 @@
     const playIcon = pauseBtn.querySelector('[data-icon="play"]');
     const pauseIcon = pauseBtn.querySelector('[data-icon="pause"]');
 
+    // Whether the section is configured for muted-autoplay-on-scroll
+    // (homepage Meet Tam) or click-to-play (BM video). Gates the IO
+    // logic below and changes the userPaused initial state so a
+    // click-to-play video doesn't get nudged to play by the IO on
+    // first viewport-enter.
+    const autoplayEnabled = video.dataset.autoplay !== 'false';
+    const playOverlay = wrap.querySelector('[data-meet-tam-play-overlay]');
+
     // Track explicit user pause separately from incidental pauses (IO
     // scrolling the video out of view) so the autoplay-on-scroll-in
-    // doesn't override an intentional pause.
-    let userPaused = false;
+    // doesn't override an intentional pause. For click-to-play
+    // videos, treat the initial state as "user-paused" so the IO
+    // doesn't auto-start playback when the section scrolls in.
+    let userPaused = !autoplayEnabled;
 
     function syncSoundUI() {
       const isMuted = video.muted;
@@ -842,14 +988,29 @@
     syncSoundUI();
     syncPauseUI();
 
+    // Play overlay (click-to-play mode only). Clicking starts the
+    // video; because this is a user gesture, browsers allow play
+    // with sound on (autoplay would have been blocked otherwise).
+    // After first play the overlay fades and never returns.
+    if (playOverlay) {
+      playOverlay.addEventListener('click', function () {
+        userPaused = false;
+        const p = video.play();
+        if (p && typeof p.catch === 'function') p.catch(function () {});
+        playOverlay.classList.add('is-hidden');
+      });
+    }
+
     // Social-media-style autoplay: muted video plays when the section
-    // enters the viewport, pauses when it scrolls out. Skipped if the
-    // visitor explicitly paused. Respects prefers-reduced-motion.
+    // enters the viewport, pauses when it scrolls out. Only runs when
+    // autoplayEnabled (homepage Meet Tam). For click-to-play videos,
+    // still pause on scroll-out (resource saving) but never auto-
+    // start. Respects prefers-reduced-motion.
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!reducedMotion && 'IntersectionObserver' in window) {
       const io = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting && !userPaused) {
+          if (entry.isIntersecting && autoplayEnabled && !userPaused) {
             const p = video.play();
             if (p && typeof p.catch === 'function') p.catch(function () {});
           } else if (!entry.isIntersecting) {
@@ -968,6 +1129,20 @@
       "label": "Desktop video aspect ratio",
       "info": "CSS aspect-ratio value, e.g. '9 / 11' (default, more square) or '9 / 14' (taller / more portrait).",
       "default": "9 / 11"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_autoplay",
+      "label": "Autoplay video",
+      "info": "ON: muted video starts when section enters the viewport (homepage Meet Tam). OFF: poster shows with a big play button; visitor clicks to start.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "video_starts_muted",
+      "label": "Start muted",
+      "info": "ON: video starts muted (required for autoplay). OFF: video starts with sound on - only works when autoplay is OFF.",
+      "default": true
     }
   ],
   "presets": [

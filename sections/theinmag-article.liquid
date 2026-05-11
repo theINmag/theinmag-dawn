@@ -14,9 +14,9 @@
     field_notes.kid_age                 (integer, if author_type=kid)
     field_notes.kid_region              (single line text, e.g. "Fremantle WA")
     field_notes.recommendation_1_handle (single line text, post handle no slash)
-    field_notes.recommendation_1_blurb  (single line text, italic connective)
-    field_notes.recommendation_2_handle / _blurb
-    field_notes.recommendation_3_handle / _blurb
+    field_notes.recommendation_2_handle (single line text, post handle no slash)
+    field_notes.recommendation_3_handle (single line text, post handle no slash)
+    field_notes.read_audience           (single line text: kids | parents | mixed)
 
   Series-republish metafields (Real Jobs, Real People etc):
 
@@ -77,8 +77,23 @@
     assign author_type = 'ryan'
   endif
 
+  comment
+    Audience-aware read time. The default Shopify ~225/250 wpm assumes
+    adult skim speed and badly under-counts kid-facing posts (a 950-word
+    Real Jobs post should read ~7 min, not ~2). read_audience is an
+    optional metafield — kids | parents | mixed — defaulting to mixed.
+    Word count divided by the wpm for that audience, rounded up.
+  endcomment
+  assign read_audience = article.metafields.field_notes.read_audience | downcase
+  if read_audience == 'kids'
+    assign read_wpm = 125
+  elsif read_audience == 'parents'
+    assign read_wpm = 220
+  else
+    assign read_wpm = 170
+  endif
   assign words = article.content | strip_html | split: ' ' | size
-  assign read_minutes = words | divided_by: 225 | at_least: 1
+  assign read_minutes = words | times: 1.0 | divided_by: read_wpm | ceil | at_least: 1
   assign read_time_label = read_minutes | append: ' min read'
 
   if author_type == 'tam'
@@ -169,9 +184,6 @@
   assign rec_1_handle = article.metafields.field_notes.recommendation_1_handle
   assign rec_2_handle = article.metafields.field_notes.recommendation_2_handle
   assign rec_3_handle = article.metafields.field_notes.recommendation_3_handle
-  assign rec_1_blurb  = article.metafields.field_notes.recommendation_1_blurb
-  assign rec_2_blurb  = article.metafields.field_notes.recommendation_2_blurb
-  assign rec_3_blurb  = article.metafields.field_notes.recommendation_3_blurb
 
   assign rec_1 = blank
   assign rec_2 = blank
@@ -215,14 +227,24 @@
   assign hero_darken = section.settings.hero_darken | default: 30
   assign hero_darken_decimal = hero_darken | times: 1.0 | divided_by: 100.0
 
-  assign kid_character_count = 0
-  for i in (1..3)
-    assign img_key = 'kid_character_' | append: i
-    assign filename_key = 'kid_character_' | append: i | append: '_filename'
-    if section.settings[img_key] != blank or section.settings[filename_key] != blank
-      assign kid_character_count = kid_character_count | plus: 1
-    endif
-  endfor
+  # Kid contributor avatar: pulls from the sitewide character pool
+  # (/assets/character-1.png .. character-N.png - same files the
+  # homepage uses). Schema lets the count + prefix be tuned per
+  # article; defaults match the sitewide pool size.
+  assign kid_character_count = section.settings.kid_character_count | default: 26
+  assign kid_character_prefix = section.settings.kid_character_prefix | default: 'character-'
+  assign kid_character_ext = section.settings.kid_character_ext | default: '.png'
+  capture kid_character_attrs
+    for i in (1..kid_character_count)
+      assign char_filename = kid_character_prefix | append: i | append: kid_character_ext
+      assign char_url = char_filename | asset_url
+      echo ' data-character-'
+      echo i
+      echo '="'
+      echo char_url
+      echo '"'
+    endfor
+  endcapture
 -%}
 
 <article
@@ -468,22 +490,7 @@
                   class="theinmag-article__kid-character theinmag-article__kid-character--lg"
                   data-theinmag-kid-character
                   data-character-count="{{ kid_character_count }}"
-                  {% for i in (1..3) %}
-                    {%- liquid
-                      assign img_key = 'kid_character_' | append: i
-                      assign filename_key = 'kid_character_' | append: i | append: '_filename'
-                      assign data_key = 'data-character-' | append: i
-                      assign url_value = ''
-                      if section.settings[img_key] != blank
-                        assign url_value = section.settings[img_key] | image_url: width: 320
-                      elsif section.settings[filename_key] != blank
-                        assign url_value = section.settings[filename_key] | asset_url
-                      endif
-                    -%}
-                    {%- if url_value != blank -%}
-                      {{ data_key }}="{{ url_value }}"
-                    {%- endif -%}
-                  {% endfor %}
+                  {{ kid_character_attrs }}
                   aria-hidden="true"
                 ></span>
               </div>
@@ -518,30 +525,61 @@
       </header>
       <div class="theinmag-article__recommend-grid">
         {%- liquid
-          assign target = 4
+          comment
+            Three-slot recommendation grid. Each slot is independently
+            curatable via field_notes.recommendation_{1,2,3}_handle.
+            Blank slots auto-fill: same primary_topic newest-first, then
+            any recent post. The current article is always excluded.
+
+            Dedupe by article ID — every rendered card's id is appended
+            to rendered_ids (comma-delimited, comma-padded so substring
+            matches catch only complete entries). No card can appear
+            twice, whether the dupe came from a typo in the curated
+            handles or a logic gap in the auto-fill.
+          endcomment
+          assign target = 3
           assign filled_count = 0
+          assign rendered_ids = ','
         -%}
 
-        {%- comment -%} Step 1: curated picks (up to 3 metafield slots) {%- endcomment -%}
-        {%- if rec_1 != blank and filled_count < target -%}
-          {%- render 'theinmag-article-rec-card', rec: rec_1, blurb: rec_1_blurb -%}
-          {%- assign filled_count = filled_count | plus: 1 -%}
-        {%- endif -%}
-        {%- if rec_2 != blank and filled_count < target -%}
-          {%- render 'theinmag-article-rec-card', rec: rec_2, blurb: rec_2_blurb -%}
-          {%- assign filled_count = filled_count | plus: 1 -%}
-        {%- endif -%}
-        {%- if rec_3 != blank and filled_count < target -%}
-          {%- render 'theinmag-article-rec-card', rec: rec_3, blurb: rec_3_blurb -%}
-          {%- assign filled_count = filled_count | plus: 1 -%}
+        {%- comment -%} Slot 1 — curated {%- endcomment -%}
+        {%- if rec_1 != blank -%}
+          {%- capture id_check -%},{{ rec_1.id }},{%- endcapture -%}
+          {%- unless rendered_ids contains id_check -%}
+            {%- render 'theinmag-article-rec-card', rec: rec_1 -%}
+            {%- assign rendered_ids = rendered_ids | append: rec_1.id | append: ',' -%}
+            {%- assign filled_count = filled_count | plus: 1 -%}
+          {%- endunless -%}
         {%- endif -%}
 
-        {%- comment -%} Step 2: algorithmic - same primary_topic, exclude
-          current article and curated handles. {%- endcomment -%}
+        {%- comment -%} Slot 2 — curated {%- endcomment -%}
+        {%- if rec_2 != blank -%}
+          {%- capture id_check -%},{{ rec_2.id }},{%- endcapture -%}
+          {%- unless rendered_ids contains id_check -%}
+            {%- render 'theinmag-article-rec-card', rec: rec_2 -%}
+            {%- assign rendered_ids = rendered_ids | append: rec_2.id | append: ',' -%}
+            {%- assign filled_count = filled_count | plus: 1 -%}
+          {%- endunless -%}
+        {%- endif -%}
+
+        {%- comment -%} Slot 3 — curated {%- endcomment -%}
+        {%- if rec_3 != blank -%}
+          {%- capture id_check -%},{{ rec_3.id }},{%- endcapture -%}
+          {%- unless rendered_ids contains id_check -%}
+            {%- render 'theinmag-article-rec-card', rec: rec_3 -%}
+            {%- assign rendered_ids = rendered_ids | append: rec_3.id | append: ',' -%}
+            {%- assign filled_count = filled_count | plus: 1 -%}
+          {%- endunless -%}
+        {%- endif -%}
+
+        {%- comment -%} Auto-fill step A: same primary_topic, newest-first
+          (blog.articles iterates published_at DESC by default). {%- endcomment -%}
         {%- if filled_count < target -%}
           {%- for related in blog.articles -%}
             {%- if filled_count >= target -%}{%- break -%}{%- endif -%}
             {%- if related.id == article.id -%}{%- continue -%}{%- endif -%}
+            {%- capture id_check -%},{{ related.id }},{%- endcapture -%}
+            {%- if rendered_ids contains id_check -%}{%- continue -%}{%- endif -%}
             {%- liquid
               assign related_topic = related.metafields.field_notes.primary_topic
               if related_topic == blank
@@ -551,69 +589,40 @@
               if primary_topic != blank and related_topic == primary_topic
                 assign topic_match = true
               endif
-              assign already_curated = false
-              if rec_1_handle != blank and related.handle == rec_1_handle
-                assign already_curated = true
-              endif
-              if rec_2_handle != blank and related.handle == rec_2_handle
-                assign already_curated = true
-              endif
-              if rec_3_handle != blank and related.handle == rec_3_handle
-                assign already_curated = true
-              endif
             -%}
-            {%- if topic_match and already_curated == false -%}
-              {%- render 'theinmag-article-rec-card', rec: related, blurb: blank -%}
+            {%- if topic_match -%}
+              {%- render 'theinmag-article-rec-card', rec: related -%}
+              {%- assign rendered_ids = rendered_ids | append: related.id | append: ',' -%}
               {%- assign filled_count = filled_count | plus: 1 -%}
             {%- endif -%}
           {%- endfor -%}
         {%- endif -%}
 
-        {%- comment -%} Step 3: algorithmic - any recent post,
-          exclude current, curated, and topic-matched already shown. {%- endcomment -%}
+        {%- comment -%} Auto-fill step B: any recent post, ID-deduped
+          against everything rendered so far. {%- endcomment -%}
         {%- if filled_count < target -%}
           {%- for related in blog.articles -%}
             {%- if filled_count >= target -%}{%- break -%}{%- endif -%}
             {%- if related.id == article.id -%}{%- continue -%}{%- endif -%}
-            {%- liquid
-              assign related_topic = related.metafields.field_notes.primary_topic
-              if related_topic == blank
-                assign related_topic = related.tags.first
-              endif
-              assign already_shown = false
-              if primary_topic != blank and related_topic == primary_topic
-                assign already_shown = true
-              endif
-              if rec_1_handle != blank and related.handle == rec_1_handle
-                assign already_shown = true
-              endif
-              if rec_2_handle != blank and related.handle == rec_2_handle
-                assign already_shown = true
-              endif
-              if rec_3_handle != blank and related.handle == rec_3_handle
-                assign already_shown = true
-              endif
-            -%}
-            {%- unless already_shown -%}
-              {%- render 'theinmag-article-rec-card', rec: related, blurb: blank -%}
-              {%- assign filled_count = filled_count | plus: 1 -%}
-            {%- endunless -%}
+            {%- capture id_check -%},{{ related.id }},{%- endcapture -%}
+            {%- if rendered_ids contains id_check -%}{%- continue -%}{%- endif -%}
+            {%- render 'theinmag-article-rec-card', rec: related -%}
+            {%- assign rendered_ids = rendered_ids | append: related.id | append: ',' -%}
+            {%- assign filled_count = filled_count | plus: 1 -%}
           {%- endfor -%}
         {%- endif -%}
 
-        {%- comment -%} Step 4: visual placeholder if grid is still
-          empty. Sits as a teaser of what the section will look like
-          once more posts exist. Each card links back to field notes. {%- endcomment -%}
+        {%- comment -%} Visual placeholder if the grid is still empty
+          (no curated picks AND no other posts in the blog). Three cards
+          to match the new target; each links to the field-notes index. {%- endcomment -%}
         {%- if filled_count == 0 -%}
-          {%- assign placeholder_topics = 'Wellbeing|Creativity|Behind the mag|Numeracy' | split: '|' -%}
-          {%- assign placeholder_titles = "the case for boredom|things to draw when you're stuck|behind mag10|the open numeracy task" | split: '|' -%}
-          {%- assign placeholder_blurbs = "Screens-and-YouTube isn't the cause of the dip - it's the symptom.|Five prompts for the kid who just told you they're 'bad at art.'|The messy truth of how an issue actually comes together.|Where to start if you've never run an open task before." | split: '|' -%}
-          {%- assign placeholder_images = 'blog-image-universal-05.jpg|blog-image-universal-04.jpg|blog-image-universal-08.jpg|blog-image-universal-02.jpg' | split: '|' -%}
-          {%- for slot in (0..3) -%}
+          {%- assign placeholder_topics = 'Wellbeing|Creativity|Behind the mag' | split: '|' -%}
+          {%- assign placeholder_titles = "the case for boredom|things to draw when you're stuck|behind mag10" | split: '|' -%}
+          {%- assign placeholder_images = 'blog-image-universal-05.jpg|blog-image-universal-04.jpg|blog-image-universal-08.jpg' | split: '|' -%}
+          {%- for slot in (0..2) -%}
             {%- liquid
               assign p_topic = placeholder_topics[slot]
               assign p_title = placeholder_titles[slot]
-              assign p_blurb = placeholder_blurbs[slot]
               assign p_image = placeholder_images[slot]
             -%}
             <a class="theinmag-article__rec-card" href="/blogs/field-notes" aria-label="Browse all field notes">
@@ -623,7 +632,6 @@
               <span class="theinmag-article__rec-body">
                 <span class="theinmag-article__rec-topic">{{ p_topic }}</span>
                 <span class="theinmag-article__rec-title">{{ p_title }}</span>
-                <span class="theinmag-article__rec-blurb">{{ p_blurb }}</span>
               </span>
             </a>
           {%- endfor -%}
@@ -1821,22 +1829,34 @@
       update();
     }
 
-    /* Random kid character. Pool of up to 3 images shipped via section
-       settings; one is picked at page load. Pattern matches
-       sections/theinmag-mission.liquid (reference_kid_character_pattern
-       memory). No scroll-pop here - just static. */
+    /* Random kid character. Pulls from the sitewide character pool
+       (/assets/character-1.png .. character-N.png) via data-character-N
+       attributes emitted by Liquid. JS shuffles, walks the list, and
+       probes each URL until one loads - so gaps in the sequence
+       (file 7 missing while 1-6 + 8-26 exist) self-heal. No scroll-pop
+       here - just static. */
     var characters = article.querySelectorAll('[data-theinmag-kid-character]');
     characters.forEach(function (el) {
       var count = parseInt(el.getAttribute('data-character-count') || '0', 10);
       if (!count) return;
       var pool = [];
-      for (var i = 1; i <= 3; i++) {
+      for (var i = 1; i <= count; i++) {
         var url = el.getAttribute('data-character-' + i);
         if (url) pool.push(url);
       }
       if (!pool.length) return;
-      var pick = pool[Math.floor(Math.random() * pool.length)];
-      el.style.backgroundImage = "url('" + pick + "')";
+      for (var k = pool.length - 1; k > 0; k--) {
+        var j = Math.floor(Math.random() * (k + 1));
+        var tmp = pool[k]; pool[k] = pool[j]; pool[j] = tmp;
+      }
+      function tryPick(idx) {
+        if (idx >= pool.length) return;
+        var probe = new Image();
+        probe.onload = function () { el.style.backgroundImage = "url('" + pool[idx] + "')"; };
+        probe.onerror = function () { tryPick(idx + 1); };
+        probe.src = pool[idx];
+      }
+      tryPick(0);
     });
 
     /* FAQ accordion. Each trigger toggles its own answer panel via
@@ -1898,7 +1918,7 @@
     },
     {
       "type": "paragraph",
-      "content": "Curated picks come from per-post metafields (recommendation_1_handle / _blurb, _2, _3). When all three are blank we fall back to recent posts in the same primary topic."
+      "content": "Three slots, each independently curatable via per-post metafields (recommendation_1_handle, _2, _3). Any blank slot is auto-filled — same primary_topic first, then most recent."
     },
     {
       "type": "header",
@@ -2042,37 +2062,28 @@
     },
     {
       "type": "paragraph",
-      "content": "Kid posts use a kid-character illustration instead of a photo (locked brand-safety rule). Up to three characters in the pool; one is picked at random per page load."
+      "content": "Kid posts use a kid-character illustration instead of a photo (locked brand-safety rule). Pulls from the sitewide pool in /assets/ as character-1.png .. character-N.png. One is picked at random per page load; JS retries on 404 so gaps in the sequence self-heal."
     },
     {
-      "type": "image_picker",
-      "id": "kid_character_1",
-      "label": "Kid character 1"
-    },
-    {
-      "type": "text",
-      "id": "kid_character_1_filename",
-      "label": "Kid character 1 fallback filename"
-    },
-    {
-      "type": "image_picker",
-      "id": "kid_character_2",
-      "label": "Kid character 2"
+      "type": "range",
+      "id": "kid_character_count",
+      "label": "Character count",
+      "min": 3,
+      "max": 100,
+      "step": 1,
+      "default": 26
     },
     {
       "type": "text",
-      "id": "kid_character_2_filename",
-      "label": "Kid character 2 fallback filename"
-    },
-    {
-      "type": "image_picker",
-      "id": "kid_character_3",
-      "label": "Kid character 3"
+      "id": "kid_character_prefix",
+      "label": "Filename prefix",
+      "default": "character-"
     },
     {
       "type": "text",
-      "id": "kid_character_3_filename",
-      "label": "Kid character 3 fallback filename"
+      "id": "kid_character_ext",
+      "label": "Filename extension",
+      "default": ".png"
     },
     {
       "type": "header",

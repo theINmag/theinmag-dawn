@@ -9,12 +9,15 @@
   with a kid character peeking between the cards on desktop.
 {%- endcomment -%}
 
+{%- comment -%}
+  Heading has no default filter on purpose. Liquid treats an empty
+  string as blank, so a default would re-populate it from a
+  template-blank value and defeat the if-blank guard around the H2.
+  Template now controls this directly; blank means hidden.
+{%- endcomment -%}
+
 {%- liquid
   assign cards = section.blocks | where: 'type', 'cta_card'
-  # No `| default:` on heading. Liquid treats an empty string as
-  # blank, so the default would re-populate it from a template-blank
-  # value and defeat the `{% if heading != blank %}` guard around
-  # the H2. Template now controls this directly; blank means hidden.
   assign heading = section.settings.heading
   assign aeo_heading = section.settings.aeo_heading | default: 'How can your kid be in theINmag?'
 
@@ -45,8 +48,6 @@
     {%- endif -%}
 
     <div class="theinmag-bm-cta__row">
-      <span class="theinmag-bm-cta__character" data-theinmag-pool-character></span>
-
       <ul class="theinmag-bm-cta__cards" role="list">
         {%- for block in cards -%}
           {%- liquid
@@ -115,6 +116,10 @@
     background-position: center;
     pointer-events: none;
     z-index: 0;
+    /* Faded so the kid-drawn pattern reads as a soft watermark
+       rather than a competing full-strength surface. Cream section
+       bg shows through. */
+    opacity: 0.32;
   }
   .theinmag-bm-cta__inner {
     position: relative;
@@ -240,6 +245,7 @@
   .theinmag-bm-cta__card--mint .theinmag-bm-cta__card-heading { color: var(--color-sage-dark, #4A7C5C); }
   .theinmag-bm-cta__card--sky .theinmag-bm-cta__card-heading { color: var(--color-teal-dark, #2D6878); }
   .theinmag-bm-cta__card--coral .theinmag-bm-cta__card-heading { color: var(--color-coral-dark, #C9543E); }
+  .theinmag-bm-cta__card--cream .theinmag-bm-cta__card-heading { color: var(--color-purple-dark, #5D3A7A); }
 
   .theinmag-bm-cta__card-text {
     margin: 0;
@@ -263,7 +269,11 @@
   .theinmag-bm-cta__btn {
     display: inline-block;
     align-self: center;
-    margin-top: clamp(4px, 0.8vw, 8px);
+    /* margin-top: auto pushes the button to the bottom of the
+       flex-column card body, so paired cards (e.g. Send IN + Grab a
+       Membership) align their buttons at the same y position even
+       when their body text wraps to different line counts. */
+    margin-top: auto;
     font-size: 14px;
     line-height: 1.2;
     text-transform: uppercase;
@@ -277,12 +287,19 @@
 
   /* Yellow stamp (primary). Post Regular per design tokens. The
      offset shadow extends below the box but doesn't change the box
-     height, so the outlined sibling still matches. */
+     height, so the outlined sibling still matches.
+
+     Font size is bumped above the 14px shared base so the primary
+     button text feels chunkier without enlarging the button itself -
+     padding tightens vertically to compensate, keeping the overall
+     button height in line with the outlined-purple sibling. */
   .theinmag-bm-cta__btn--yellow_stamp {
     background-color: var(--color-yellow, #F9C23C);
     color: var(--color-inky-purple-navy, #2A1F3D);
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
+    font-size: 18px;
+    padding: 9px 22px;
     box-shadow: 0 3px 0 var(--color-yellow-shadow, #D4A02E);
   }
   .theinmag-bm-cta__btn--yellow_stamp:hover {
@@ -332,7 +349,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -55%);
-      width: clamp(80px, 8vw, 110px);
+      width: clamp(112px, 11.2vw, 155px);
       z-index: 2;
       pointer-events: none;
     }

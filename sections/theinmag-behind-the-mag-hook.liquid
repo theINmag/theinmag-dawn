@@ -83,11 +83,13 @@
   /* Kid character peeking from the top-right corner of the card. Pinned
      so its body sits over the card edge and tucks into the cream above
      the card. Small enough not to compete with the copy. */
+  /* Bumped ~40% (was clamp(70px, 10vw, 110px)) so the kid character
+     reads as a deliberate presence rather than a tiny garnish. */
   .theinmag-bm-hook__character {
     position: absolute;
-    top: clamp(-48px, -5vw, -36px);
+    top: clamp(-66px, -7vw, -50px);
     right: clamp(8px, 3vw, 24px);
-    width: clamp(70px, 10vw, 110px);
+    width: clamp(98px, 14vw, 155px);
     z-index: 2;
   }
 

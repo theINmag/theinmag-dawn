@@ -332,7 +332,7 @@
     color: var(--color-inky-purple-navy, #2A1F3D);
     /* Padding tightened so the whole quiz fits a typical desktop
        viewport (~900px) without scrolling. */
-    padding: clamp(24px, 3.5vw, 48px) clamp(16px, 4vw, 32px);
+    padding: clamp(16px, 2.4vw, 32px) clamp(16px, 4vw, 32px);
     position: relative;
     overflow: hidden;
   }
@@ -367,15 +367,16 @@
   .theinmag-bm-quiz__tablet {
     position: relative;
     z-index: 1;
-    /* Bumped max-width 1200 -> 1320 so the 3x3 grown-up grid has
-       more horizontal room to grow into. */
-    max-width: 1320px;
+    /* Tightened to 1340 so the card doesn't sprawl - tiles need to
+       sit closer together with less dead space around them. */
+    max-width: 1340px;
     margin: 0 auto;
     background-color: #FFFFFF;
     border-radius: 28px;
     /* Horizontal padding tightened (was 18-32) so the inner board
-       content takes more of the tablet width. */
-    padding: clamp(20px, 3vw, 36px) clamp(16px, 2.2vw, 28px);
+       content takes more of the tablet width. Vertical padding
+       tightened too so the whole card sits in one viewport. */
+    padding: clamp(14px, 2vw, 24px) clamp(16px, 2.2vw, 28px);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.9),
       inset 0 -1px 0 rgba(42, 31, 61, 0.04),
@@ -423,17 +424,24 @@
 
   @media (min-width: 750px) {
     .theinmag-bm-quiz__head {
+      /* Side-by-side: heading on the left, subtext on the right, but
+         the WHOLE BLOCK is centred horizontally in the card via
+         justify-content (gap is the only space between them; nothing
+         pushes them to opposite edges). Text alignment stays left so
+         the heading and subtext read naturally, just the pair sits
+         in the middle of the card. */
       flex-direction: row;
       align-items: center;
-      gap: clamp(24px, 4vw, 56px);
+      justify-content: center;
+      gap: clamp(20px, 3vw, 40px);
       text-align: left;
     }
     .theinmag-bm-quiz__heading {
       flex: 0 0 auto;
-      max-width: 40%;
+      max-width: none;
     }
     .theinmag-bm-quiz__head-intro {
-      flex: 1;
+      flex: 0 0 auto;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -464,18 +472,29 @@
      ================================================================ */
   .theinmag-bm-quiz__board {
     display: grid;
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr) NOT 1fr - bare 1fr is shorthand for
+       minmax(auto, 1fr), and `auto` lets the track expand to fit
+       min-content of its children. The mobile tile rails have a
+       MASSIVE intrinsic width (9-11 tiles inline) which was pushing
+       the single grid track to 1100px wide, overflowing the
+       viewport and shoving the targets column off-screen. The
+       minmax(0, ...) form forces the track to honour the container
+       width and let the rails use their scrollable overflow.
+       (Diagnosed via Chrome DevTools on the live page 2026-05-11.) */
+    grid-template-columns: minmax(0, 1fr);
     gap: clamp(20px, 3vw, 32px);
     align-items: start;
   }
 
   @media (min-width: 750px) {
     .theinmag-bm-quiz__board {
-      /* Adults column gets the largest share (1.4fr) so the 3x3
-         grown-up tiles fill more of the row width - Ryan's "lot of
-         dead space around them" call. Targets column is now a fixed
-         narrower band; kids column gets 1.1fr. */
-      grid-template-columns: minmax(0, 1.4fr) 160px minmax(0, 1.1fr);
+      /* Symmetric side columns so the targets band sits EXACTLY in
+         the centre of the card. The previous 1.4fr-vs-1.1fr split
+         pushed targets visibly right of centre. Adults still read
+         as bigger tiles than kids because the adults column is a
+         3-col grid vs kids' 4-col grid in the same width, so each
+         adult tile is naturally ~33% wider. */
+      grid-template-columns: minmax(0, 1.1fr) 160px minmax(0, 1.1fr);
       gap: clamp(16px, 2vw, 28px);
     }
   }
@@ -483,7 +502,9 @@
   .theinmag-bm-quiz__column {
     display: flex;
     flex-direction: column;
-    gap: clamp(10px, 1.4vw, 14px);
+    /* Tight gap between the col label and the tile grid so they
+       read as a single labelled cluster. */
+    gap: clamp(6px, 0.9vw, 10px);
   }
 
   /* On mobile, force the order: adults > targets > kids. */
@@ -527,12 +548,16 @@
     flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
-    scroll-snap-type: x mandatory;
+    /* Proximity snap (was mandatory). Mandatory makes iOS Safari
+       fight every gentle swipe back to the nearest tile, which
+       reads as "swipe doesn't work" - proximity only snaps when
+       the swipe is close to a tile centre, so partial scrolls are
+       allowed and the rail feels responsive. */
+    scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
-    /* Explicit pan-x so touch/trackpad horizontal swipes are
-       captured by the rail and not interpreted as a vertical page
-       scroll. Without this, Chrome's responsive-mobile emulator
-       sometimes refuses to slide the rail. */
+    /* pan-x lets horizontal swipes scroll the rail; vertical
+       gestures bubble up to the page (so users can scroll the page
+       even when touching the rail). */
     touch-action: pan-x;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
@@ -540,6 +565,12 @@
     padding: 20px 16px;
     scroll-padding-inline: 50%;
     min-height: 120px;
+    /* Hint cursor for desktop/trackpad users that this rail drags
+       horizontally; ignored on touch. */
+    cursor: grab;
+  }
+  .theinmag-bm-quiz__tiles:active {
+    cursor: grabbing;
   }
   .theinmag-bm-quiz__tiles::-webkit-scrollbar {
     display: none;
@@ -568,9 +599,9 @@
     .theinmag-bm-quiz__tiles {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      /* Tighter gap so the tiles pack closer and read as a single
-         photo-grid rather than nine separate islands. */
-      gap: clamp(6px, 0.8vw, 10px);
+      /* Tight gap so the tiles read as one packed photo grid rather
+         than nine separate islands. */
+      gap: clamp(4px, 0.6vw, 8px);
       padding: 0;
       overflow: visible;
       scroll-snap-type: none;
@@ -579,12 +610,31 @@
       flex: unset;
       scroll-snap-align: none;
       transform: none;
+      /* Centre each tile within its grid cell so the kid column's
+         capped tiles cluster together (the cap is below) instead of
+         hugging the cell left edge. */
+      justify-self: center;
+      width: 100%;
     }
     .theinmag-bm-quiz__tile-item.is-centered {
       transform: none;
     }
+    /* Kids column: 4 tiles per row, each capped smaller than the
+       adult tile size. The cap is on the tile-item so the grid cell
+       can shrink-wrap and the cluster reads as a tight 4-col block,
+       visibly smaller than the adults. */
     .theinmag-bm-quiz__column--kids .theinmag-bm-quiz__tiles {
       grid-template-columns: repeat(4, 1fr);
+    }
+    .theinmag-bm-quiz__column--kids .theinmag-bm-quiz__tile-item {
+      max-width: 120px;
+    }
+    /* Adults column: cap the tiles too so the 3x3 grid stays
+       physically smaller and the whole quiz card fits in a single
+       laptop-height viewport. Still visibly bigger than the kid
+       tiles (155 vs 120). */
+    .theinmag-bm-quiz__column--adults .theinmag-bm-quiz__tile-item {
+      max-width: 155px;
     }
   }
 
@@ -687,33 +737,69 @@
   }
 
   @media (max-width: 749px) {
+    /* Bulletproof mobile targets - no negative margins or fancy
+       column-level bg (those got hidden by some cascade quirk on
+       real devices). Just BIG, HIGH-CONTRAST drop zones laid out
+       directly inside the targets column. Lavender solid fill on
+       the frames makes them visible against the card bg without
+       relying on a parent band rendering. */
     .theinmag-bm-quiz__column--targets {
-      /* Defensive min-height so the targets column always renders a
-         visible strip even if a future regression collapses its
-         contents. Ryan flagged the targets going invisible between
-         the rails on mobile - this guarantees they at least take
-         layout space. */
-      min-height: 170px;
+      min-height: 220px;
+      padding: 16px 0;
+      gap: 0;
     }
     .theinmag-bm-quiz__targets {
-      flex-direction: row;
-      justify-content: center;
-      gap: 14px;
-      align-items: flex-start;
-      width: 100%;
+      flex-direction: row !important;
+      justify-content: center !important;
+      align-items: flex-start !important;
+      gap: 20px !important;
+      width: 100% !important;
+      padding: 0 8px;
     }
     .theinmag-bm-quiz__target {
-      flex: 1;
-      max-width: 140px;
-      min-width: 110px;
+      flex: 1 1 auto !important;
+      width: auto !important;
+      max-width: 150px !important;
+      min-width: 120px !important;
+      gap: 8px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
     }
-    /* Bolder visual on mobile so the empty placeholder squares
-       can't be missed - more opaque lavender fill, thicker dashed
-       border, locked min-height. */
     .theinmag-bm-quiz__target-frame {
-      background-color: rgba(232, 222, 239, 0.85);
-      border-width: 3px;
-      min-height: 110px;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      aspect-ratio: 1 / 1;
+      min-height: 130px !important;
+      background-color: #E8DEEF !important;
+      border: 3px dashed #5D3A7A !important;
+      border-radius: 14px !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    /* Honour the [hidden] attribute - the bulletproof display:flex
+       !important above was beating the base [hidden] { display:none }
+       rule, which made the secondary kid frame render on every
+       single-adult selection (it stacked rotated behind the primary,
+       barely-visible but layout-affecting). Same !important here
+       restores the hide-when-hidden behaviour for the paired-only
+       second slot. */
+    .theinmag-bm-quiz__target-frame[hidden] {
+      display: none !important;
+    }
+    .theinmag-bm-quiz__target-label {
+      display: block !important;
+      font-size: 20px !important;
+      color: #5D3A7A !important;
+      opacity: 1 !important;
+    }
+    .theinmag-bm-quiz__target-hint {
+      display: block !important;
+      color: #5D3A7A !important;
+      opacity: 0.8 !important;
+      font-size: 12px !important;
     }
   }
 
@@ -851,8 +937,12 @@
     .theinmag-bm-quiz__foot {
       flex-direction: row;
       align-items: center;
-      justify-content: space-between;
-      gap: clamp(20px, 3vw, 40px);
+      /* Tight centred cluster: avatars + skip CTA sit as one unit
+         with minimal space between them. Avatars are smaller and
+         the gap is tighter (was 16-32, now 10-18) so the peek strip
+         doesn't sprawl. */
+      justify-content: center;
+      gap: clamp(10px, 1.4vw, 18px);
     }
   }
 
@@ -945,7 +1035,14 @@
   }
   @media (min-width: 750px) {
     .theinmag-bm-quiz__peek {
-      flex: 1;
+      /* flex:0 0 auto + width:auto so peek shrinks to its
+         avatar-row content instead of stretching the white strip
+         to 100% of the flex slot. Pairs with the foot's
+         justify-content:center to put avatars + CTA in a tight
+         centred cluster. */
+      flex: 0 0 auto;
+      width: auto;
+      max-width: none;
       min-width: 0;
       margin: 0;
       max-height: 48px;
@@ -958,7 +1055,7 @@
   }
   .theinmag-bm-quiz__peek-row {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     justify-content: center;
     flex-wrap: wrap;
   }
@@ -966,6 +1063,7 @@
     .theinmag-bm-quiz__peek-row {
       justify-content: flex-start;
       flex-wrap: nowrap;
+      gap: 4px;
     }
   }
   .theinmag-bm-quiz__peek-avatar {
@@ -978,11 +1076,14 @@
     box-shadow: 0 2px 6px rgba(42, 31, 61, 0.18);
   }
   @media (min-width: 750px) {
-    /* Slightly smaller in the row layout so the 9 avatars fit in
-       the left column without overflowing. */
+    /* Smaller in the row layout so 9 avatars + skip CTA sit as a
+       tight centred cluster rather than a long strip. Was 56px, now
+       42px. Combined with the tighter gap, the peek band shrinks by
+       ~25% horizontally. */
     .theinmag-bm-quiz__peek-avatar {
-      width: 56px;
-      height: 56px;
+      width: 42px;
+      height: 42px;
+      border-width: 2px;
     }
   }
   .theinmag-bm-quiz__peek::after {
@@ -1153,6 +1254,70 @@
   .theinmag-bm-quiz__fact-card .theinmag-bm-quiz__reveal {
     box-shadow: none;
     background-color: transparent;
+  }
+
+  /* Mobile: restructure the reveal card to put BOTH photos at the
+     top (kid left + adult right, square, edge-to-edge), with the
+     copy block underneath spanning the full width. CSS grid areas
+     reorder the visual placement without touching the DOM (which
+     stays then/copy/now for crawlers + screen readers). */
+  @media (max-width: 749px) {
+    .theinmag-bm-quiz__reveal {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "then now"
+        "copy copy";
+    }
+    .theinmag-bm-quiz__reveal-then { grid-area: then; }
+    .theinmag-bm-quiz__reveal-now { grid-area: now; }
+    .theinmag-bm-quiz__reveal-copy { grid-area: copy; }
+
+    .theinmag-bm-quiz__reveal-then,
+    .theinmag-bm-quiz__reveal-now {
+      min-height: 0;
+      aspect-ratio: 1 / 1;
+      height: auto;
+      overflow: hidden;
+    }
+    .theinmag-bm-quiz__reveal-then img,
+    .theinmag-bm-quiz__reveal-now img {
+      width: 100%;
+      height: 100%;
+      max-height: none;
+      object-fit: cover;
+    }
+    /* Paired kid block (Ryan + Tam, Snowy + Libby): two kid imgs
+       split the square 50/50 vertically. flex:1 + min-height:0 lets
+       each img claim half of the parent's square height. */
+    .theinmag-bm-quiz__reveal-then img + img {
+      border-top-width: 2px;
+    }
+    .theinmag-bm-quiz__reveal-then:has(img + img) img {
+      flex: 1 1 0;
+      height: auto;
+      min-height: 0;
+      max-height: none;
+    }
+
+    .theinmag-bm-quiz__reveal-copy {
+      padding: 14px 16px;
+      gap: 6px;
+    }
+    .theinmag-bm-quiz__reveal-name {
+      font-size: 18px;
+      line-height: 1.15;
+    }
+    .theinmag-bm-quiz__reveal-role {
+      font-size: 12px;
+    }
+    .theinmag-bm-quiz__reveal-bio {
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .theinmag-bm-quiz__reveal-fun-fact {
+      font-size: 13px;
+      line-height: 1.4;
+    }
   }
 
   .theinmag-bm-quiz__all-done {

@@ -68,14 +68,15 @@
   assign last_updated = section.settings.last_updated | default: 'May 2026'
 
   comment
-    Character pool: 13 characters live in /assets/ as character-comp-1.png ..
-    character-comp-13.png. We emit all 13 URLs as data attributes on the
-    section root; JS picks 4 random ones at runtime (one per choice tile +
-    one when the suggest-comp modal opens). Pure JS-driven random per
-    visit per Ryan's spec - not daily-stable.
+    Character pool: pulls from the sitewide /assets/character-1.png ..
+    character-N.png pool (same files the homepage uses). We emit all N
+    URLs as data attributes on the section root; JS picks 4 random ones
+    at runtime (one per choice tile + one when the suggest-comp modal
+    opens). Pure JS-driven random per visit per Ryan's spec - not
+    daily-stable. Schema defaults: prefix 'character-', count 26.
   endcomment
-  assign character_count = section.settings.character_count | default: 13
-  assign character_prefix = section.settings.character_prefix | default: 'character-comp-'
+  assign character_count = section.settings.character_count | default: 26
+  assign character_prefix = section.settings.character_prefix | default: 'character-'
   assign character_ext = section.settings.character_ext | default: '.png'
   capture character_attrs
     for i in (1..character_count)
@@ -784,8 +785,8 @@
   }
 
   /* The character - large, fills most of the tile.
-     Random pick from /assets/character-comp-1.png .. character-comp-13.png
-     happens in JS on page load. */
+     Random pick from the sitewide /assets/character-1.png .. character-N.png
+     pool happens in JS on page load. */
   .theinmag-comps__choice-btn-character {
     display: block;
     width: 100%;
@@ -1875,9 +1876,10 @@
 
     /* ------------------------------------------------------------------
        Character pool - reads data-character-1..N off the section root.
-       Liquid emits these from the /assets/character-comp-N.png filename
-       convention. Per Ryan's spec: totally random per visit, not
-       daily-stable, used in 3 choice tiles + the suggest-comp modal.
+       Liquid emits these from the sitewide /assets/character-N.png pool
+       (same files the homepage pool uses). Per Ryan's spec: totally
+       random per visit, not daily-stable, used in 3 choice tiles + the
+       suggest-comp modal.
        ------------------------------------------------------------------ */
     function getCharacterPool() {
       var pool = [];
@@ -2133,22 +2135,22 @@
     },
     {
       "type": "paragraph",
-      "content": "Characters live in /assets/ as character-comp-1.png .. character-comp-N.png. JS picks 4 at runtime per page load (one per choice tile + one when the suggest-comp modal opens). Drop new PNGs in /assets/ and bump the count below."
+      "content": "Pulls from the sitewide character pool in /assets/ as character-1.png .. character-N.png. JS picks 4 at runtime per page load (one per choice tile + one when the suggest-comp modal opens). Drop new PNGs in /assets/ and bump the count to match the total number of files."
     },
     {
       "type": "range",
       "id": "character_count",
       "label": "Character count",
       "min": 3,
-      "max": 30,
+      "max": 100,
       "step": 1,
-      "default": 13
+      "default": 26
     },
     {
       "type": "text",
       "id": "character_prefix",
       "label": "Filename prefix",
-      "default": "character-comp-"
+      "default": "character-"
     },
     {
       "type": "text",
