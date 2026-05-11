@@ -4,45 +4,49 @@
   on a page (top of any always-rendered section), then drop bare
   <span data-theinmag-pool-character> markers wherever you want a
   character to pop in. JS picks one URL per marker, with Fisher-Yates
-  shuffle so the picks are distinct per page until the pool is
-  exhausted.
+  shuffle so picks are distinct per page until the pool is exhausted.
 
   ----------------------------------------------------------------
-  WHEN YOU UPLOAD MORE CHARACTERS
+  AUTO-DISCOVERY (rewired 2026-05-12)
   ----------------------------------------------------------------
-  Files live in /assets/ as character-1.png ... character-N.png.
-  Bump pool_size below to N (the number of files you've uploaded).
+  Files live in /assets/ as character-1.png .. character-N.png. On
+  page load, JS parallel-probes character-1 through character-{max}
+  (max = 100, hardcoded below) and discovers which exist. Valid
+  indices get cached in sessionStorage with a 1-hour TTL so subsequent
+  page loads in the same tab don't re-probe.
 
-  Why does pool_size matter? The snippet emits a tiny inline JSON
-  ({"size": N, "firstUrl": "..."}) and JS builds character-N URLs
-  by replacing the "1" in firstUrl. So pool_size doesn't change the
-  inline weight - even 500 emits ~150 bytes. What it controls is
-  the random pick range. Set it to 500 if you only have 26 files
-  and most slots will 404 (the JS retries by walking the shuffled
-  indices, but with 26/500 valid, nearly every retry would still
-  fail). Set it to 26 today, bump to 500 the day you actually have
-  500. The retry handler covers GAPS in the sequence (file 7 missing
-  while 1-6 and 8-26 exist), not pools that are mostly empty.
+  When you upload more characters (e.g. character-38.png), they're
+  picked up automatically. No code edit needed unless you cross 100
+  (decades away at 3 issues per year). To cross 100, bump pool_max
+  below; the cache invalidates next time TTL expires or tab closes.
 
-  Scaling note: the picks are TOTALLY RANDOM. Math.random() per page
-  load + Fisher-Yates shuffle = a fresh permutation every visit. No
-  deterministic algorithm.
+  Expected network noise: the first page load in a tab fires up to
+  100 parallel image requests, and the indices beyond the actual file
+  count return 404. That looks alarming in DevTools Network tab but
+  it's expected - Shopify CDN serves 404s in <50ms and the probes
+  don't block render. Slots stay opacity:0 until probes settle.
+
+  Cache invalidation: sessionStorage clears with the tab. If you add
+  files mid-session and want to see them immediately, open a new tab.
+
+  Scaling note: Math.random() per page load + Fisher-Yates shuffle on
+  the discovered indices = a fresh permutation every visit.
   ----------------------------------------------------------------
 {%- endcomment -%}
 
 {%- liquid
-  assign pool_size = 26
+  assign pool_max = 100
   assign first_url = 'character-1.png' | asset_url
 -%}
 
 <script type="application/json" data-theinmag-character-pool>
-{"size":{{ pool_size }},"firstUrl":{{ first_url | json }}}
+{"max":{{ pool_max }},"firstUrl":{{ first_url | json }}}
 </script>
 
 <script>
   (function () {
-    /* Multiple sections may render this snippet on the same page (so any
-       page that has character slots is self-sufficient). The guard
+    /* Multiple sections may render this snippet on the same page (so
+       any page that has character slots is self-sufficient). The guard
        ensures only the first instance does work; subsequent renders
        early-return so we don't fight over the slots or double-bind
        scroll listeners. */
@@ -52,10 +56,7 @@
     /* Defer until the full DOM is parsed. Without this, when the
        snippet renders at the top of a section, the slot
        querySelectorAll returns 0 elements - the spans don't exist
-       in DOM yet because the HTML parser hasn't reached them. The
-       init guard then blocks any retry. Waiting for
-       DOMContentLoaded ensures every span on the page is visible
-       to the query. */
+       in DOM yet because the HTML parser hasn't reached them. */
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -63,112 +64,149 @@
     }
 
     function init() {
-    var poolEl = document.querySelector('[data-theinmag-character-pool]');
-    if (!poolEl) return;
-    var data;
-    try { data = JSON.parse(poolEl.textContent); } catch (e) { return; }
-    if (!data || !data.size || !data.firstUrl) return;
+      var poolEl = document.querySelector('[data-theinmag-character-pool]');
+      if (!poolEl) return;
+      var data;
+      try { data = JSON.parse(poolEl.textContent); } catch (e) { return; }
+      if (!data || !data.firstUrl) return;
 
-    var slots = document.querySelectorAll('[data-theinmag-pool-character]');
-    if (!slots.length) return;
+      var slots = document.querySelectorAll('[data-theinmag-pool-character]');
+      if (!slots.length) return;
 
-    /* Build shuffled list of indices 1..size. Fisher-Yates so the
-       distribution is uniform per page load. Each slot reads from its
-       own offset into this shared list so multi-slot pages get
-       distinct picks (until the pool is exhausted). */
-    var indices = [];
-    for (var i = 1; i <= data.size; i++) indices.push(i);
-    for (var k = indices.length - 1; k > 0; k--) {
-      var j = Math.floor(Math.random() * (k + 1));
-      var tmp = indices[k]; indices[k] = indices[j]; indices[j] = tmp;
-    }
+      var max = data.max || 100;
+      var firstUrl = data.firstUrl;
+      var cacheKey = 'theinmagCharacterPool';
+      var ttl = 60 * 60 * 1000; /* 1 hour */
 
-    function urlForIndex(n) {
-      return data.firstUrl.replace('character-1.png', 'character-' + n + '.png');
-    }
-
-    /* Shared "taken" set so each character index can only fill one
-       slot on the page. Without this, two slots whose initial
-       offsets land on 404'd files can both walk forward and land on
-       the same valid index - which is the duplicate Ryan flagged
-       on 2026-05-11. Set is shared across all slots' fillSlot
-       calls; the check fires both before probing and after onload
-       (covers the race where two slots are probing the same index
-       concurrently). */
-    var taken = (typeof window.Set === 'function') ? new Set() : null;
-    function isTaken(n) { return taken ? taken.has(n) : false; }
-    function markTaken(n) { if (taken) taken.add(n); }
-
-    /* Walk the shuffled indices starting from a per-slot offset until
-       we find one that loads AND isn't already taken by another slot.
-       Covers gaps in the sequence (file 7 missing while 1-6 and 8-26
-       exist). Each attempt creates a fresh Image so onerror fires
-       reliably. Once we exhaust the indices, hide the slot. */
-    function fillSlot(slot, startOffset, attempt) {
-      if (attempt >= indices.length) {
-        slot.style.display = 'none';
-        return;
+      var cached = readCache();
+      if (cached) {
+        run(cached);
+      } else {
+        probe(function (valid) {
+          writeCache(valid);
+          run(valid);
+        });
       }
-      var n = indices[(startOffset + attempt) % indices.length];
-      if (isTaken(n)) {
-        fillSlot(slot, startOffset, attempt + 1);
-        return;
+
+      function urlForIndex(n) {
+        return firstUrl.replace('character-1.png', 'character-' + n + '.png');
       }
-      var url = urlForIndex(n);
-      var probe = new Image();
-      probe.onload = function () {
-        if (slot.querySelector('img')) return;
-        /* Race guard: another slot may have claimed this index while
-           our probe was in flight. If so, walk forward. */
-        if (isTaken(n)) {
-          fillSlot(slot, startOffset, attempt + 1);
+
+      function readCache() {
+        try {
+          var raw = sessionStorage.getItem(cacheKey);
+          if (!raw) return null;
+          var parsed = JSON.parse(raw);
+          if (!parsed || !parsed.ts || !parsed.indices) return null;
+          if (Date.now() - parsed.ts > ttl) return null;
+          if (!parsed.indices.length) return null;
+          return parsed.indices.slice();
+        } catch (e) { return null; }
+      }
+
+      function writeCache(indices) {
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify({
+            ts: Date.now(),
+            indices: indices
+          }));
+        } catch (e) {}
+      }
+
+      function probe(callback) {
+        /* Parallel-probe characters 1..max. Each new Image() either
+           fires onload (file exists) or onerror (404). When all have
+           settled, call back with the sorted list of valid indices. */
+        var pending = max;
+        var valid = [];
+        for (var i = 1; i <= max; i++) {
+          (function (idx) {
+            var img = new Image();
+            img.onload = function () {
+              valid.push(idx);
+              if (--pending === 0) finish();
+            };
+            img.onerror = function () {
+              if (--pending === 0) finish();
+            };
+            img.src = urlForIndex(idx);
+          })(i);
+        }
+        function finish() {
+          valid.sort(function (a, b) { return a - b; });
+          callback(valid);
+        }
+      }
+
+      function run(validIndices) {
+        if (!validIndices.length) return;
+
+        /* Fisher-Yates shuffle over the discovered valid indices. */
+        var indices = validIndices.slice();
+        for (var k = indices.length - 1; k > 0; k--) {
+          var j = Math.floor(Math.random() * (k + 1));
+          var tmp = indices[k]; indices[k] = indices[j]; indices[j] = tmp;
+        }
+
+        /* Shared "taken" set so each index can only fill one slot per
+           page. Without this, two slots can land on the same valid
+           index (the duplicate Ryan flagged 2026-05-11). */
+        var taken = (typeof window.Set === 'function') ? new Set() : null;
+        function isTaken(n) { return taken ? taken.has(n) : false; }
+        function markTaken(n) { if (taken) taken.add(n); }
+
+        /* Indices are pre-validated by the probe step so no per-slot
+           probe-and-retry-on-404 is needed. We only walk forward if
+           an index is already taken by another slot. */
+        function fillSlot(slot, startOffset) {
+          for (var attempt = 0; attempt < indices.length; attempt++) {
+            var n = indices[(startOffset + attempt) % indices.length];
+            if (isTaken(n)) continue;
+            markTaken(n);
+            var img = document.createElement('img');
+            img.className = 'theinmag-pool-character__img';
+            img.src = urlForIndex(n);
+            img.alt = '';
+            img.setAttribute('aria-hidden', 'true');
+            slot.appendChild(img);
+            return;
+          }
+          /* All indices taken - hide this slot. */
+          slot.style.display = 'none';
+        }
+
+        Array.prototype.forEach.call(slots, function (slot, idx) {
+          if (slot.querySelector('img')) return;
+          fillSlot(slot, idx);
+        });
+
+        /* One-shot scroll-pop. Sections supply their own .is-popped
+           CSS; this snippet just adds the class when each slot
+           scrolls into view. Plain scroll listener for parity with
+           the other theinmag- sections. */
+        var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduced) {
+          Array.prototype.forEach.call(slots, function (s) { s.classList.add('is-popped'); });
           return;
         }
-        markTaken(n);
-        var finalImg = document.createElement('img');
-        finalImg.className = 'theinmag-pool-character__img';
-        finalImg.src = url;
-        finalImg.alt = '';
-        finalImg.setAttribute('aria-hidden', 'true');
-        slot.appendChild(finalImg);
-      };
-      probe.onerror = function () {
-        fillSlot(slot, startOffset, attempt + 1);
-      };
-      probe.src = url;
-    }
 
-    Array.prototype.forEach.call(slots, function (slot, idx) {
-      if (slot.querySelector('img')) return;
-      fillSlot(slot, idx, 0);
-    });
-
-    /* One-shot scroll-pop. Sections supply their own .is-popped CSS;
-       this snippet just adds the class when each slot scrolls into
-       view. Plain scroll listener (not IntersectionObserver) for
-       parity with the other theinmag- sections. */
-    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) {
-      Array.prototype.forEach.call(slots, function (s) { s.classList.add('is-popped'); });
-      return;
-    }
-
-    var pending = Array.prototype.slice.call(slots);
-    function check() {
-      pending = pending.filter(function (slot) {
-        var rect = slot.getBoundingClientRect();
-        if (rect.top < window.innerHeight * 0.85) {
-          slot.classList.add('is-popped');
-          return false;
+        var pending = Array.prototype.slice.call(slots);
+        function check() {
+          pending = pending.filter(function (slot) {
+            var rect = slot.getBoundingClientRect();
+            if (rect.top < window.innerHeight * 0.85) {
+              slot.classList.add('is-popped');
+              return false;
+            }
+            return true;
+          });
+          if (!pending.length) window.removeEventListener('scroll', onScroll);
         }
-        return true;
-      });
-      if (!pending.length) window.removeEventListener('scroll', onScroll);
+        function onScroll() { window.requestAnimationFrame(check); }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        check();
+      }
     }
-    function onScroll() { window.requestAnimationFrame(check); }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    check();
-    } /* end init() */
   })();
 </script>
 
@@ -176,16 +214,11 @@
   Base styling. Sections that already have their own character CSS
   (mission, philosophy, reviews, FAQ) keep their wrapper-level
   positioning + animations and override the pool's bob to avoid
-  double-animating. Sections without bespoke styling get the default
-  pop + bob from below.
+  double-animating.
 {%- endcomment -%}
 {% stylesheet %}
-/* :where() drops the pool's base rules to specificity 0,0,0 so any
-   section-level rule on .theinmag-<section>__character wins. Without
-   this, the pool's display:block was tying with section
-   display:none on mobile (both at 0,1,0) and the load order
-   sometimes flipped the winner - sections that should have hidden
-   the character on mobile rendered it at huge sizes instead. */
+/* :where() drops these base rules to specificity 0,0,0 so any
+   section-level rule on .theinmag-<section>__character wins. */
 :where([data-theinmag-pool-character]) {
   display: block;
   pointer-events: none;

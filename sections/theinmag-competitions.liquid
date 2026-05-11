@@ -73,9 +73,11 @@
     URLs as data attributes on the section root; JS picks 4 random ones
     at runtime (one per choice tile + one when the suggest-comp modal
     opens). Pure JS-driven random per visit per Ryan's spec - not
-    daily-stable. Schema defaults: prefix 'character-', count 26.
+    daily-stable. Schema default: count 100 (generous upper bound;
+    JS retries on 404 so missing indices self-heal). Drop new PNGs in
+    /assets/ - no count edit needed unless you cross 100.
   endcomment
-  assign character_count = section.settings.character_count | default: 26
+  assign character_count = section.settings.character_count | default: 100
   assign character_prefix = section.settings.character_prefix | default: 'character-'
   assign character_ext = section.settings.character_ext | default: '.png'
   capture character_attrs
@@ -2135,16 +2137,16 @@
     },
     {
       "type": "paragraph",
-      "content": "Pulls from the sitewide character pool in /assets/ as character-1.png .. character-N.png. JS picks 4 at runtime per page load (one per choice tile + one when the suggest-comp modal opens). Drop new PNGs in /assets/ and bump the count to match the total number of files."
+      "content": "Pulls from the sitewide character pool in /assets/ as character-1.png .. character-N.png. JS picks 4 at runtime per page load (one per choice tile + one when the suggest-comp modal opens). Set this to your maximum expected file count - JS retries on 404 so missing indices self-heal. Drop new PNGs in /assets/, no count edit needed unless you cross the value below."
     },
     {
       "type": "range",
       "id": "character_count",
-      "label": "Character count",
+      "label": "Character count cap",
       "min": 3,
       "max": 100,
       "step": 1,
-      "default": 26
+      "default": 100
     },
     {
       "type": "text",
