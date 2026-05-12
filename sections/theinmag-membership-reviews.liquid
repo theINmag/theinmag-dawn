@@ -57,10 +57,6 @@
 >
   <div class="theinmag-membership-reviews__inner">
 
-    {%- if eyebrow != blank -%}
-      <p class="theinmag-membership-reviews__eyebrow">{{ eyebrow }}</p>
-    {%- endif -%}
-
     {%- liquid
       assign jm = shop.metafields.judgeme
       assign shop_rating = jm.all_reviews_rating | default: 0
@@ -69,49 +65,91 @@
       assign rating_rounded = shop_rating | round: 1
     -%}
 
-    <div class="theinmag-membership-reviews__rating-row" id="theinmag-membership-reviews-heading">
-      <div class="theinmag-membership-reviews__rating">
-        {%- if review_source == 'product' -%}
+    {%- if review_source == 'store' -%}
+      {%- comment -%}
+        STORE MODE — Atari-style stacked vertical reviews list. Section
+        heading + aggregate row + flat stacked reviews. The carousel
+        wrapper is reused but the CSS overrides Judge.me's horizontal-
+        scroll layout into a vertical block (`transform: none !important`
+        + `display: block` on the inner items container).
+      {%- endcomment -%}
+      <h2 class="theinmag-membership-reviews__heading" id="theinmag-membership-reviews-heading">Ratings &amp; reviews</h2>
+
+      {%- if shop_count != 0 -%}
+        <div class="theinmag-membership-reviews__aggregate">
+          <span
+            data-score="{{ shop_rating }}"
+            class="jdgm-all-reviews-rating theinmag-membership-reviews__aggregate-stars"
+            aria-label="{{ rating_rounded }} stars"
+            role="img"
+          ></span>
+          <div class="theinmag-membership-reviews__aggregate-meta">
+            <strong>{{ rating_rounded }}</strong>
+            <span class="jdgm-carousel-number-of-reviews" data-number-of-reviews="{{ shop_count }}">({{ shop_count }} Reviews)</span>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%}
+        Stacked vertical reviews list rendered from
+        shop.metafields.judgeme.featured_carousel. This metafield ships
+        up to ~15 reviews on the Judge.me Free plan — that's the cap we
+        live with until the Awesome plan upgrade unlocks the full
+        Review Widget with all reviews + filter/sort/native pagination.
+
+        Custom JS below flattens Judge.me's carousel wrappers so items
+        sit as flat siblings, then handles pagination (8 per page) +
+        Atari-style reorder (stars → name → date → headline → body).
+
+        Tried switching to <div class="jdgm-widget jdgm-review-widget">
+        on 12 May — the App Block-style settings that gate "Include
+        shop reviews in product widget" are paid-plan only, so the
+        widget would render 0 reviews on Membership. Reverted; revisit
+        post-15-Aug after the plan review.
+      {%- endcomment -%}
+      {%- if shop_carousel_html != blank -%}
+        <div
+          class="theinmag-membership-reviews__list"
+          data-reviews-list
+          data-per-page="8"
+        >
+          {{ shop_carousel_html }}
+        </div>
+        <nav
+          class="theinmag-membership-reviews__pagination"
+          data-reviews-pagination
+          aria-label="Reviews pagination"
+          hidden
+        ></nav>
+      {%- endif -%}
+
+    {%- else -%}
+      {%- comment -%}
+        PRODUCT MODE — original rating row + carousel + inline expand,
+        unchanged. CTA pill, expand-to-full-widget mechanics, etc.
+      {%- endcomment -%}
+      {%- if eyebrow != blank -%}
+        <p class="theinmag-membership-reviews__eyebrow">{{ eyebrow }}</p>
+      {%- endif -%}
+
+      <div class="theinmag-membership-reviews__rating-row" id="theinmag-membership-reviews-heading">
+        <div class="theinmag-membership-reviews__rating">
           <div class="jdgm-prev-badge" data-id="{{ product.id }}" data-template="badge"></div>
-        {%- elsif shop_count != 0 -%}
-          <a href="javascript:void(0)" class="jdgm-all-reviews-rating-wrapper" aria-label="{{ rating_rounded }} out of 5 stars, based on {{ shop_count }} reviews">
-            <span
-              data-score="{{ shop_rating }}"
-              class="jdgm-all-reviews-rating"
-              aria-label="{{ rating_rounded }} stars"
-              role="img"
-            ></span>
-            <span class="theinmag-membership-reviews__rating-text">
-              <strong>{{ rating_rounded }}</strong>
-              <span class="theinmag-membership-reviews__rating-divider" aria-hidden="true">·</span>
-              <span class="jdgm-carousel-number-of-reviews" data-number-of-reviews="{{ shop_count }}">Based on {{ shop_count }} reviews</span>
-            </span>
-          </a>
-        {%- endif -%}
-      </div>
-      {%- if review_source == 'product' -%}
+        </div>
         <a
           href="#"
           class="theinmag-membership-reviews__cta jdgm-write-rev-link"
           data-product-id="{{ product.id }}"
           data-product-title="{{ product.title | escape }}"
         >{{ cta_label }}</a>
-      {%- endif -%}
-    </div>
+      </div>
 
-    <div class="theinmag-membership-reviews__divider" aria-hidden="true"></div>
+      <div class="theinmag-membership-reviews__divider" aria-hidden="true"></div>
 
-    <div class="theinmag-membership-reviews__carousel">
-      {%- if review_source == 'product' -%}
+      <div class="theinmag-membership-reviews__carousel">
         <div class="jdgm-carousel-wrapper"></div>
-      {%- elsif shop_carousel_html != blank -%}
-        <div class="jdgm-carousel-wrapper">
-          {{ shop_carousel_html }}
-        </div>
-      {%- endif -%}
-    </div>
+      </div>
 
-    {%- if review_source == 'product' -%}
       <div class="theinmag-membership-reviews__expand-wrap">
         <button
           type="button"
@@ -143,8 +181,8 @@
 
 {% stylesheet %}
   .theinmag-membership-reviews {
-    background-color: var(--color-cream);
-    color: var(--color-inky-purple-navy);
+    background-color: #FFFFFF;
+    color: #1a1a1a;
     padding: var(--tmrev-pt, 96px) clamp(20px, 5vw, 64px) var(--tmrev-pb, 96px);
   }
 
@@ -152,6 +190,490 @@
     max-width: 1180px;
     margin: 0 auto;
   }
+
+  /* ============================================================
+     STORE MODE — Atari-style stacked vertical reviews list.
+     Section heading + aggregate row + flat hairline-separated rows.
+     ============================================================ */
+
+  .theinmag-membership-reviews__heading {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.1;
+    color: #1a1a1a;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 16px;
+  }
+
+  .theinmag-membership-reviews__aggregate {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 clamp(24px, 3vw, 40px);
+    padding: 0 0 clamp(20px, 2.4vw, 28px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .theinmag-membership-reviews__aggregate-stars {
+    display: inline-block;
+    font-size: clamp(20px, 2.4vw, 28px);
+    line-height: 1;
+  }
+  .theinmag-membership-reviews__aggregate-meta {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    color: #1a1a1a;
+  }
+  .theinmag-membership-reviews__aggregate-meta strong {
+    font-weight: 700;
+    font-size: clamp(16px, 1.6vw, 18px);
+  }
+  .theinmag-membership-reviews__aggregate-meta .jdgm-carousel-number-of-reviews {
+    font-weight: 400;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.55);
+  }
+
+  /* Wrapper for Judge.me's full Review Widget. The widget is JS-hydrated
+     by Judge.me's app embed — handles all reviews, filter chips, sort
+     dropdown, native date rendering, and pagination natively. Our job
+     here is purely to brand the result: hide their built-in summary
+     (we have our own aggregate row above), restyle each review row
+     Atari-flat, and recolor the filter/sort/pagination controls to
+     match the page. */
+  .theinmag-membership-reviews__list {
+    background: transparent;
+    padding: 0;
+    text-align: left;
+  }
+  .theinmag-membership-reviews__noscript {
+    padding: 16px;
+    color: rgba(0, 0, 0, 0.6);
+    font-style: italic;
+  }
+  /* Hide Judge.me's built-in summary / title / powered-by — we have our
+     own "RATINGS & REVIEWS" heading + aggregate above. */
+  .theinmag-membership-reviews__list .jdgm-rev-widg__summary,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__title,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__powered-by-text,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__summary-stars,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__summary-text,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__average-rating,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__histogram {
+    display: none !important;
+  }
+  /* Filter + sort bar above the list. Atari-style: filter chips left,
+     sort dropdown right. */
+  .theinmag-membership-reviews__list .jdgm-rev-widg__bar,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__menu {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    padding: 12px 0 !important;
+    margin: 0 0 16px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    background: transparent !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev-widg__filter-wrapper,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__filter-buttons {
+    display: flex !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev-widg__filter-btn,
+  .theinmag-membership-reviews__list .jdgm-star-rating-filter-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 36px !important;
+    height: 32px !important;
+    padding: 0 10px !important;
+    background: transparent !important;
+    border: 1px solid rgba(0, 0, 0, 0.18) !important;
+    border-radius: 999px !important;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    color: #1a1a1a !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev-widg__filter-btn:hover,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__filter-btn--active,
+  .theinmag-membership-reviews__list .jdgm-star-rating-filter-btn--selected {
+    background: #1a1a1a !important;
+    color: #FFFFFF !important;
+    border-color: #1a1a1a !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev-widg__sort-wrapper,
+  .theinmag-membership-reviews__list .jdgm-rev-widg__sort {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: transparent !important;
+    border: 1px solid rgba(0, 0, 0, 0.18) !important;
+    border-radius: 999px !important;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-size: 13px !important;
+    color: #1a1a1a !important;
+    padding: 6px 12px !important;
+    cursor: pointer !important;
+  }
+  /* Each review row — Atari-flat with our column order. */
+  .theinmag-membership-reviews__list .jdgm-rev {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: clamp(20px, 2.4vw, 28px) 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-align: left !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev:last-child {
+    border-bottom: 0 !important;
+  }
+  /* Atari order: stars → name → date → headline → body. */
+  .theinmag-membership-reviews__list .jdgm-rev .jdgm-rev__rating,
+  .theinmag-membership-reviews__list .jdgm-rev > .jdgm-star-rating { order: 1; margin-bottom: 8px !important; }
+  .theinmag-membership-reviews__list .jdgm-rev .jdgm-rev__author-wrapper,
+  .theinmag-membership-reviews__list .jdgm-rev .jdgm-rev__author { order: 2; }
+  .theinmag-membership-reviews__list .jdgm-rev .jdgm-rev__timestamp { order: 3; }
+  .theinmag-membership-reviews__list .jdgm-rev .jdgm-rev__title { order: 4; }
+  .theinmag-membership-reviews__list .jdgm-rev .jdgm-rev__body { order: 5; }
+  /* Each child styling */
+  .theinmag-membership-reviews__list .jdgm-rev__rating .jdgm-star,
+  .theinmag-membership-reviews__list .jdgm-rev .jdgm-star {
+    font-size: 14px !important;
+    line-height: 1 !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev__author,
+  .theinmag-membership-reviews__list .jdgm-rev__author-wrapper {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    color: #1a1a1a !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    text-align: left !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev__verified-buyer,
+  .theinmag-membership-reviews__list .jdgm-rev__br-buyer-verified {
+    display: inline-flex !important;
+    align-items: center;
+    padding: 2px 8px;
+    margin-left: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    background: transparent;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev__timestamp {
+    display: block !important;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    color: rgba(0, 0, 0, 0.5) !important;
+    margin: 4px 0 0 !important;
+    opacity: 1 !important;
+    text-align: left !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev__title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 700 !important;
+    font-size: clamp(16px, 1.6vw, 18px) !important;
+    line-height: 1.3 !important;
+    color: #1a1a1a !important;
+    margin: 16px 0 8px !important;
+    text-align: left !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev__body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    color: rgba(0, 0, 0, 0.85) !important;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-rev__body p {
+    margin: 0 0 8px !important;
+  }
+  /* Hide Judge.me's product-info / pictures-thumbs / source-product
+     on each review (same noise reason as before). */
+  .theinmag-membership-reviews__list .jdgm-rev__source,
+  .theinmag-membership-reviews__list .jdgm-rev__product,
+  .theinmag-membership-reviews__list .jdgm-rev__pictures,
+  .theinmag-membership-reviews__list [class*="__product"],
+  .theinmag-membership-reviews__list [class*="-spinner"] {
+    display: none !important;
+  }
+  /* Pagination at bottom — same Atari-style we built before. */
+  .theinmag-membership-reviews__list .jdgm-rev-widg__paginate,
+  .theinmag-membership-reviews__list .jdgm-paginate {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    margin: clamp(20px, 2.4vw, 32px) 0 0 !important;
+    flex-wrap: wrap !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-paginate-page,
+  .theinmag-membership-reviews__list .jdgm-paginate-arrow {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    color: #1a1a1a !important;
+    cursor: pointer !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-paginate-page--current,
+  .theinmag-membership-reviews__list .jdgm-paginate-page--active {
+    background: #1a1a1a !important;
+    color: #FFFFFF !important;
+  }
+  /* === Legacy featured_carousel rules (no longer applied) ===
+     Removed; the section now uses .jdgm-rev not .jdgm-carousel-item. */
+  .theinmag-membership-reviews__list .jdgm-carousel,
+  .theinmag-membership-reviews__list .jdgm-carousel__items,
+  .theinmag-membership-reviews__list .jdgm-carousel__item-container {
+    display: block !important;
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel-item {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 auto !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: clamp(20px, 2.4vw, 28px) 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: static !important;
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+  /* Reorder review row children: stars → name → date → headline → body.
+     Atari-style order. Default DOM order from Judge.me is
+     rating → title → body → name → timestamp, so we use flex `order`
+     to lay them out visually without rewriting the DOM. */
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-rating { order: 1; }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__reviewer-name { order: 2; }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__timestamp { order: 3; }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-title { order: 4; }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-body { order: 5; }
+  /* Pagination: items not on the current page hide entirely. JS toggles
+     this class on items based on `data-per-page` + `data-current-page`. */
+  .theinmag-membership-reviews__list .jdgm-carousel-item.is-page-hidden {
+    display: none !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel-item:last-child {
+    border-bottom: 0 !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel-item:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel__arrows,
+  .theinmag-membership-reviews__list .jdgm-carousel__arrow-left,
+  .theinmag-membership-reviews__list .jdgm-carousel__arrow-right,
+  .theinmag-membership-reviews__list .jdgm-carousel-title-and-link,
+  .theinmag-membership-reviews__list .jdgm-carousel-title {
+    display: none !important;
+  }
+
+  /* Each review row — Atari-style flat layout: stars / name+verified+date /
+     headline (bold) / body (full, no clamp) / optional "Review for [product]"
+     grey card. Each child gets explicit `text-align: left` since Judge.me's
+     defaults center most inner blocks. */
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-rating {
+    margin: 0 0 8px !important;
+    text-align: left !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-rating .jdgm-star,
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-rating {
+    font-size: 14px !important;
+    line-height: 1 !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__reviewer-name {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    color: #1a1a1a !important;
+    margin: 0 !important;
+    text-align: left !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__verified-badge,
+  .theinmag-membership-reviews__list .jdgm-carousel-item__reviewer-verified {
+    display: inline-flex !important;
+    align-items: center;
+    padding: 2px 8px;
+    margin-left: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    text-transform: none;
+    background: transparent;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__timestamp {
+    display: block !important;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    color: rgba(0, 0, 0, 0.5) !important;
+    margin: 4px 0 0 !important;
+    opacity: 1 !important;
+    text-align: left !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 700 !important;
+    font-size: clamp(16px, 1.6vw, 18px) !important;
+    line-height: 1.3 !important;
+    color: #1a1a1a !important;
+    margin: 16px 0 8px !important;
+    text-align: left !important;
+  }
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    color: rgba(0, 0, 0, 0.85) !important;
+    margin: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
+    max-height: none !important;
+    text-align: left !important;
+  }
+  /* Pagination nav — Atari-style: prev arrow, numbered page buttons,
+     active page filled black + white text, next arrow. Compresses to
+     "1 2 3 4 … N" when totalPages > 6. */
+  .theinmag-membership-reviews__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: clamp(20px, 2.4vw, 32px) 0 0;
+    flex-wrap: wrap;
+  }
+  .theinmag-membership-reviews__pagination[hidden] {
+    display: none;
+  }
+  .theinmag-membership-reviews__page,
+  .theinmag-membership-reviews__page-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1;
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .theinmag-membership-reviews__page:hover,
+  .theinmag-membership-reviews__page:focus-visible,
+  .theinmag-membership-reviews__page-arrow:not([disabled]):hover,
+  .theinmag-membership-reviews__page-arrow:not([disabled]):focus-visible {
+    background-color: rgba(0, 0, 0, 0.06);
+  }
+  .theinmag-membership-reviews__page.is-active {
+    background-color: #1a1a1a;
+    color: #FFFFFF;
+  }
+  .theinmag-membership-reviews__page.is-active:hover {
+    background-color: #1a1a1a;
+  }
+  .theinmag-membership-reviews__page-arrow {
+    font-size: 18px;
+    color: #1a1a1a;
+  }
+  .theinmag-membership-reviews__page-arrow[disabled] {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .theinmag-membership-reviews__page-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 4px;
+    color: rgba(0, 0, 0, 0.5);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+  }
+
+  /* Hide Judge.me's "review left on [product]" indicators entirely.
+     These are useful when reviews span multiple products (e.g. Atari's
+     bundle/console variants), but for theINmag every shop review is
+     tied to the same brand — showing "theINmag" + a loading-spinner
+     thumbnail under every row is redundant noise. */
+  .theinmag-membership-reviews__list .jdgm-carousel-item__product,
+  .theinmag-membership-reviews__list .jdgm-carousel-item__product-info,
+  .theinmag-membership-reviews__list .jdgm-carousel-item__product-link,
+  .theinmag-membership-reviews__list .jdgm-carousel-item__product-image,
+  .theinmag-membership-reviews__list .jdgm-carousel-item__product-name,
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-product,
+  .theinmag-membership-reviews__list .jdgm-carousel-item__review-product-info,
+  .theinmag-membership-reviews__list .jdgm-carousel-item img[src*="loading"],
+  .theinmag-membership-reviews__list .jdgm-carousel-item .jdgm-spinner,
+  .theinmag-membership-reviews__list .jdgm-carousel-item__product-spinner {
+    display: none !important;
+  }
+
+  /* ============================================================
+     PRODUCT MODE — original card-style carousel (white cards on
+     cream with shadow). Scoped to .theinmag-membership-reviews__carousel
+     so it doesn't bleed into store-mode .__list rules above.
+     ============================================================ */
 
   .theinmag-membership-reviews__eyebrow {
     margin: 0 0 var(--space-sm, 12px);
@@ -278,12 +800,13 @@
 
   /* Brand the Cards Carousel: white cards on cream, 12px radius, soft
      shadow. Override Judge.me defaults with parent-class prefix for
-     specificity (mobile playbook §3.1). */
-  .theinmag-membership-reviews .jdgm-carousel-wrapper {
+     specificity (mobile playbook §3.1). Scoped to .__carousel so the
+     store-mode .__list above is unaffected. */
+  .theinmag-membership-reviews__carousel .jdgm-carousel-wrapper {
     background: transparent;
     padding: 0;
   }
-  .theinmag-membership-reviews .jdgm-carousel-item {
+  .theinmag-membership-reviews__carousel .jdgm-carousel-item {
     background-color: #FFFFFF;
     border: 0;
     border-radius: 12px;
@@ -291,14 +814,14 @@
     padding: 24px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  .theinmag-membership-reviews .jdgm-carousel-item:hover {
+  .theinmag-membership-reviews__carousel .jdgm-carousel-item:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 32px rgba(42, 31, 61, 0.12);
   }
-  .theinmag-membership-reviews .jdgm-carousel-item__review-rating .jdgm-star {
+  .theinmag-membership-reviews__carousel .jdgm-carousel-item__review-rating .jdgm-star {
     font-size: 16px;
   }
-  .theinmag-membership-reviews .jdgm-carousel-item__review-title {
+  .theinmag-membership-reviews__carousel .jdgm-carousel-item__review-title {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
     font-size: 16px;
@@ -306,7 +829,7 @@
     color: var(--color-inky-purple-navy);
     margin-top: 12px;
   }
-  .theinmag-membership-reviews .jdgm-carousel-item__review-body {
+  .theinmag-membership-reviews__carousel .jdgm-carousel-item__review-body {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
     font-size: 15px;
@@ -315,7 +838,7 @@
     opacity: 0.88;
     margin-top: 8px;
   }
-  .theinmag-membership-reviews .jdgm-carousel-item__reviewer-name {
+  .theinmag-membership-reviews__carousel .jdgm-carousel-item__reviewer-name {
     font-family: 'Caveat', cursive;
     font-weight: 500;
     font-size: 20px;
@@ -323,12 +846,12 @@
     color: var(--color-purple-dark);
     margin-top: 14px;
   }
-  .theinmag-membership-reviews .jdgm-carousel-item__verified-badge {
+  .theinmag-membership-reviews__carousel .jdgm-carousel-item__verified-badge {
     margin-left: 6px;
     font-size: 11px;
     opacity: 0.7;
   }
-  .theinmag-membership-reviews .jdgm-carousel-item__timestamp {
+  .theinmag-membership-reviews__carousel .jdgm-carousel-item__timestamp {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-size: 12px;
     color: var(--color-inky-purple-navy);
@@ -425,6 +948,168 @@
 
 {% javascript %}
   (function () {
+    // Flatten Judge.me's internal carousel wrappers in the store-mode list.
+    // Judge.me's featured_carousel HTML has `.jdgm-carousel` / `.jdgm-carousel__items`
+    // wrappers that apply flexbox + transforms to slide cards horizontally —
+    // when we want a vertical stacked list, those wrappers shift the items
+    // off-screen left. Solution: move every `.jdgm-carousel-item` to be a
+    // direct child of `.theinmag-membership-reviews__list`, then drop the
+    // intermediary containers entirely. After this the items are flat
+    // siblings the CSS can stack vertically.
+    // Map of candidate Judge.me class names per slot — we look up each
+    // child by trying several known class names. Judge.me's featured_carousel
+    // HTML has varied across versions; this is the canonical 2026 set with
+    // legacy fallbacks.
+    var SLOT_SELECTORS = {
+      rating:    ['.jdgm-carousel-item__review-rating', '.jdgm-carousel-item__rating', '.jdgm-rev__rating'],
+      name:      ['.jdgm-carousel-item__reviewer-name', '.jdgm-carousel-item__reviewer', '.jdgm-carousel-item__author', '.jdgm-rev__author'],
+      timestamp: ['.jdgm-carousel-item__timestamp', '.jdgm-carousel-item__date', '.jdgm-carousel-item__time', '.jdgm-carousel-item__date-string', '.jdgm-carousel-item__published-at', '.jdgm-carousel-item__time-ago', '.jdgm-rev__timestamp', '.jdgm-rev__br-buyer', 'time'],
+      title:     ['.jdgm-carousel-item__review-title', '.jdgm-carousel-item__title', '.jdgm-rev__title'],
+      body:      ['.jdgm-carousel-item__review-body', '.jdgm-carousel-item__body', '.jdgm-carousel-item__content', '.jdgm-rev__body']
+    };
+
+    function findSlot(item, slot) {
+      var sels = SLOT_SELECTORS[slot];
+      for (var i = 0; i < sels.length; i++) {
+        var el = item.querySelector(sels[i]);
+        if (el) return el;
+      }
+      return null;
+    }
+
+    function reorderRow(item) {
+      // Move each child slot to be a direct child of `item` in the desired
+      // order. appendChild on an existing node MOVES it. Atari-style order:
+      // stars → name → date → headline → body.
+      ['rating', 'name', 'timestamp', 'title', 'body'].forEach(function (slot) {
+        var el = findSlot(item, slot);
+        if (el) item.appendChild(el);
+      });
+    }
+
+    function flattenList(host) {
+      var items = host.querySelectorAll('.jdgm-carousel-item');
+      items.forEach(function (item) {
+        if (item.parentNode !== host) {
+          host.appendChild(item);
+        }
+        // Strip Judge.me's "review left on [product]" indicators.
+        var productJunk = item.querySelectorAll('[class*="__product"], [class*="-spinner"], [class*="loading-spinner"]');
+        productJunk.forEach(function (p) {
+          if (p.parentNode) p.parentNode.removeChild(p);
+        });
+        reorderRow(item);
+      });
+      var cruft = host.querySelectorAll('.jdgm-carousel, .jdgm-carousel__items, .jdgm-carousel__item-container, .jdgm-carousel-title-and-link, .jdgm-carousel__arrow-left, .jdgm-carousel__arrow-right, .jdgm-carousel__arrows');
+      cruft.forEach(function (c) {
+        if (c.parentNode) c.parentNode.removeChild(c);
+      });
+    }
+
+    function applyPagination(host, page) {
+      var perPage = parseInt(host.dataset.perPage || '8', 10);
+      var items = host.querySelectorAll('.jdgm-carousel-item');
+      var totalPages = Math.max(1, Math.ceil(items.length / perPage));
+      page = Math.max(1, Math.min(page, totalPages));
+      host.dataset.currentPage = String(page);
+
+      items.forEach(function (item, i) {
+        var pageOfItem = Math.floor(i / perPage) + 1;
+        item.classList.toggle('is-page-hidden', pageOfItem !== page);
+      });
+
+      buildPaginationNav(host, page, totalPages);
+
+      // Scroll the section heading back into view when changing pages so the
+      // user doesn't lose context mid-list.
+      var section = host.closest('[data-theinmag-membership-reviews]');
+      var heading = section && section.querySelector('#theinmag-membership-reviews-heading');
+      if (heading && page !== 1) {
+        var rect = heading.getBoundingClientRect();
+        window.scrollTo({
+          top: window.scrollY + rect.top - 96,
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    function buildPaginationNav(host, page, totalPages) {
+      var section = host.closest('[data-theinmag-membership-reviews]') || host.parentNode;
+      var nav = section.querySelector('[data-reviews-pagination]');
+      if (!nav) return;
+      nav.innerHTML = '';
+      if (totalPages <= 1) { nav.hidden = true; return; }
+      nav.hidden = false;
+
+      function addArrow(direction, disabled, targetPage) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'theinmag-membership-reviews__page-arrow theinmag-membership-reviews__page-arrow--' + direction;
+        btn.setAttribute('aria-label', direction === 'prev' ? 'Previous page' : 'Next page');
+        btn.innerHTML = direction === 'prev' ? '‹' : '›';
+        btn.disabled = disabled;
+        btn.addEventListener('click', function () { applyPagination(host, targetPage); });
+        nav.appendChild(btn);
+      }
+      function addPage(n) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'theinmag-membership-reviews__page';
+        if (n === page) {
+          btn.classList.add('is-active');
+          btn.setAttribute('aria-current', 'page');
+        }
+        btn.textContent = String(n);
+        btn.setAttribute('aria-label', 'Page ' + n);
+        btn.addEventListener('click', function () { applyPagination(host, n); });
+        nav.appendChild(btn);
+      }
+      function addEllipsis() {
+        var span = document.createElement('span');
+        span.className = 'theinmag-membership-reviews__page-ellipsis';
+        span.textContent = '…';
+        span.setAttribute('aria-hidden', 'true');
+        nav.appendChild(span);
+      }
+
+      addArrow('prev', page === 1, page - 1);
+
+      // Compress middle pages when total > 6 (Atari-style: 1 2 3 4 … 27).
+      if (totalPages <= 6) {
+        for (var i = 1; i <= totalPages; i++) addPage(i);
+      } else {
+        addPage(1);
+        if (page > 3) addEllipsis();
+        var start = Math.max(2, page - 1);
+        var end = Math.min(totalPages - 1, page + 1);
+        for (var j = start; j <= end; j++) addPage(j);
+        if (page < totalPages - 2) addEllipsis();
+        addPage(totalPages);
+      }
+
+      addArrow('next', page === totalPages, page + 1);
+    }
+
+    function initLists() {
+      document.querySelectorAll('.theinmag-membership-reviews__list').forEach(function (host) {
+        flattenList(host);
+        applyPagination(host, parseInt(host.dataset.currentPage || '1', 10));
+      });
+    }
+
+    function init() {
+      initLists();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+    // Re-run after load in case Judge.me's JS rearranged things after our first pass.
+    window.addEventListener('load', function () { setTimeout(init, 50); });
+
+    // Expand/collapse mechanic for product-mode "Read all reviews" panel
+    // (unchanged from prior version).
     document.querySelectorAll('[data-theinmag-membership-reviews]').forEach(function (root) {
       var trigger = root.querySelector('[data-expand-trigger]');
       var panel = root.querySelector('#theinmag-membership-reviews-full');

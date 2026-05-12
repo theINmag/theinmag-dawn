@@ -20,15 +20,48 @@
   assign section_style = '--tmfaq-pt: ' | append: section.settings.padding_top | append: 'px; --tmfaq-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
 
+{%- comment -%}
+  Character pool is sitewide. Rendering the snippet here is a no-op
+  on pages where another section already included it (the snippet
+  guards with `window.__theinmagCharacterPoolInit`). On product PDPs
+  this is the first section to render it, so the pool initialises
+  here and any other slots later in the page can attach.
+{%- endcomment -%}
+{% render 'theinmag-character-pool' %}
+
 <section
   class="theinmag-membership-faq"
   data-theinmag-membership-faq
   aria-labelledby="theinmag-membership-faq-heading"
   style="{{ section_style }}"
 >
+  {%- comment -%}
+    Kid character popping in from the left edge of the section. Sits
+    outside the inner content column, positioned absolutely relative
+    to the section. Pop-in trigger is the sitewide scroll-pop class
+    `.is-popped` applied by theinmag-character-pool.liquid JS once the
+    slot enters viewport at the 0.85 threshold.
+  {%- endcomment -%}
+  <span
+    class="theinmag-membership-faq__character"
+    data-theinmag-pool-character
+    aria-hidden="true"
+  ></span>
+
   <div class="theinmag-membership-faq__inner">
+    {%- liquid
+      # Split the heading on the word "Membership" so we can emphasise
+      # it with a larger span without locking the brand-name casing.
+      # Falls back to plain rendering if "Membership" isn't in the
+      # configured heading (admins can change the schema setting).
+      assign heading_parts = heading | split: 'Membership'
+    -%}
     <h2 id="theinmag-membership-faq-heading" class="theinmag-membership-faq__heading">
-      {{ heading }}
+      {%- if heading_parts.size == 2 -%}
+        {{ heading_parts[0] }}<span class="theinmag-membership-faq__heading-em">Membership</span>{{ heading_parts[1] }}
+      {%- else -%}
+        {{ heading }}
+      {%- endif -%}
     </h2>
 
     {%- if items.size > 0 -%}
@@ -93,11 +126,15 @@
     background-color: var(--color-lavender);
     color: var(--color-inky-purple-navy);
     padding: var(--tmfaq-pt, 72px) var(--space-lg) var(--tmfaq-pb, 72px);
+    position: relative;
+    overflow: hidden;
   }
 
   .theinmag-membership-faq__inner {
     max-width: 760px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
   }
 
   .theinmag-membership-faq__heading {
@@ -108,6 +145,59 @@
     color: var(--color-purple-dark);
     margin: 0 0 var(--space-xl);
     text-align: center;
+  }
+
+  /* Larger span around the word "Membership" so it reads as the emphasis
+     in "Common Membership questions". Bumps font-size to ~1.3x and adds
+     a touch of tracking. Same Post Regular face so it slots in. */
+  .theinmag-membership-faq__heading-em {
+    font-size: 1.3em;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+  }
+
+  /* Kid character — sits absolutely on the left edge of the section,
+     vertically near the heading. Pops in from off-screen left when the
+     character pool's scroll-pop adds `.is-popped` (sitewide trigger
+     from theinmag-character-pool.liquid). On narrow viewports the
+     character tucks closer and shrinks so it doesn't crowd the FAQ. */
+  .theinmag-membership-faq__character {
+    position: absolute;
+    /* Vertical: aligned with the heading area, dropped a touch so the
+       character peeks at headline height rather than sitting on top of
+       the section. Width bumped 30% from the previous pass. */
+    top: clamp(100px, 12vw, 180px);
+    /* Horizontal: sits inside the viewport on the left edge, in the
+       gutter between the screen edge and the inner-760px content
+       column. Clamps so it stays visible on every breakpoint. */
+    left: clamp(20px, 4vw, 100px);
+    width: clamp(104px, 13vw, 182px);
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-40px) rotate(-6deg);
+    transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .theinmag-membership-faq__character.is-popped {
+    opacity: 1;
+    transform: translateX(0) rotate(-6deg);
+  }
+  .theinmag-membership-faq__character .theinmag-pool-character__img {
+    animation: none;
+  }
+  @media (max-width: 749px) {
+    .theinmag-membership-faq__character {
+      top: 40px;
+      left: -10px;
+      width: 110px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-faq__character {
+      transition: none;
+      opacity: 1;
+      transform: rotate(-6deg);
+    }
   }
 
   .theinmag-membership-faq__list {

@@ -213,18 +213,38 @@
       <h1 id="theinmag-membership-hero-heading" class="theinmag-membership-hero__title">{{ title_html }}</h1>
 
       {%- comment -%}
-        Rating slot sits BETWEEN title and tagline so there's no dead space
-        above the H1 (pre-Judge.me-load the Judge.me badge slot collapses to
-        zero height). Wrapped in an anchor that scrolls to the reviews section
-        when clicked. JS handles header-offset-aware smooth scroll.
+        Tagline row: subtagline + inline shop-wide rating chip (stars + count)
+        sitting on the same logical line. Rating links to the main reviews
+        section. Pre-Judge.me-load the rating renders empty space; once shop
+        metafields are populated (which they are at this point) it shows
+        ★★★★★ (N). Atari-PDP-style placement: small rating immediately after
+        the value-prop tagline.
       {%- endcomment -%}
-      <a href="#theinmag-membership-reviews-heading" class="theinmag-membership-hero__rating-link" data-rating-jump aria-label="Read customer reviews">
-        <div class="jdgm-prev-badge" data-id="{{ product.id }}" data-template="badge"></div>
-      </a>
-
-      {%- if tagline != blank -%}
-        <p class="theinmag-membership-hero__tagline">{{ tagline }}</p>
-      {%- endif -%}
+      {%- liquid
+        assign hero_jm = shop.metafields.judgeme
+        assign hero_rating = hero_jm.all_reviews_rating | default: 0
+        assign hero_count = hero_jm.all_reviews_count | default: 0
+        # Strip trailing period from tagline so the inline rating reads cleanly
+        # after a hyphen: "Inspiring creative kids - ★★★★★ (34)".
+        assign tagline_clean = tagline
+        assign last_char = tagline_clean | slice: -1
+        if last_char == '.'
+          assign last_index = tagline_clean | size | minus: 1
+          assign tagline_clean = tagline_clean | slice: 0, last_index
+        endif
+      -%}
+      <div class="theinmag-membership-hero__tagline-row">
+        {%- if tagline_clean != blank -%}
+          <p class="theinmag-membership-hero__tagline">{{ tagline_clean }}</p>
+        {%- endif -%}
+        {%- if hero_count != 0 and hero_count != blank -%}
+          <a href="#theinmag-membership-reviews-heading" class="theinmag-membership-hero__rating-link" data-rating-jump aria-label="Read {{ hero_count }} customer reviews">
+            <span class="theinmag-membership-hero__rating-sep" aria-hidden="true">-</span>
+            <span data-score="{{ hero_rating }}" class="jdgm-all-reviews-rating" aria-label="{{ hero_rating | round: 1 }} stars" role="img"></span>
+            <span class="theinmag-membership-hero__rating-count">({{ hero_count }})</span>
+          </a>
+        {%- endif -%}
+      </div>
 
       <div class="theinmag-membership-hero__price" data-price-display>{{ first_variant.price | money }}</div>
       <p class="theinmag-membership-hero__shipping-note" data-shipping-note hidden>Shipping included</p>
@@ -280,6 +300,27 @@
           Free shipping over $40 - Sustainably printed in Australia - 120+ pages, zero ads
         </p>
       </form>
+
+      {%- comment -%}
+        Mini auto-scrolling reviews widget. Sits between the trust microcopy
+        and the inline FAQ accordions. Renders Judge.me's featured_carousel
+        HTML inside a constrained container — one card visible at a time,
+        cycled by a small inline rotator. Hidden if no shop reviews yet.
+        Atari-PDP-style placement (single-card carousel inside the sales
+        widget for ambient social proof).
+      {%- endcomment -%}
+      {%- if hero_jm.featured_carousel != blank -%}
+        <div class="theinmag-membership-hero__mini-reviews" data-mini-reviews>
+          <button type="button" class="theinmag-membership-hero__mini-reviews-arrow theinmag-membership-hero__mini-reviews-arrow--prev" data-mini-reviews-prev aria-label="Previous review">‹</button>
+          <div class="theinmag-membership-hero__mini-reviews-bubble">
+            <div class="theinmag-membership-hero__mini-reviews-inner">
+              {{ hero_jm.featured_carousel }}
+            </div>
+            <a href="#theinmag-membership-reviews-heading" class="theinmag-membership-hero__mini-reviews-readmore" data-rating-jump>Read more reviews →</a>
+          </div>
+          <button type="button" class="theinmag-membership-hero__mini-reviews-arrow theinmag-membership-hero__mini-reviews-arrow--next" data-mini-reviews-next aria-label="Next review">›</button>
+        </div>
+      {%- endif -%}
 
       <ul class="theinmag-membership-hero__accordions" role="list">
 
@@ -381,6 +422,85 @@
 </aside>
 
 <script src="{{ 'theinmag-membership-form.js' | asset_url }}" defer></script>
+
+<script>
+  (function () {
+    // Flatten Judge.me's internal carousel wrappers — move every
+    // .jdgm-carousel-item to be a direct child of the inner host so
+    // CSS display-none/block toggling works regardless of how Judge.me
+    // nested things. Also strips Judge.me's own arrows/title block.
+    function flattenJdgm(root, host) {
+      var items = root.querySelectorAll('.jdgm-carousel-item');
+      items.forEach(function (item) {
+        if (item.parentNode !== host) {
+          host.appendChild(item);
+        }
+      });
+      var cruft = root.querySelectorAll('.jdgm-carousel, .jdgm-carousel__items, .jdgm-carousel__item-container, .jdgm-carousel-title-and-link, .jdgm-carousel__arrow-left, .jdgm-carousel__arrow-right, .jdgm-carousel__arrows');
+      cruft.forEach(function (c) {
+        if (c.parentNode && c.children.length === 0) {
+          c.parentNode.removeChild(c);
+        } else if (c.parentNode) {
+          c.parentNode.removeChild(c);
+        }
+      });
+    }
+
+    function initMiniReviews(root) {
+      var host = root.querySelector('.theinmag-membership-hero__mini-reviews-inner');
+      if (!host) return;
+      flattenJdgm(root, host);
+
+      var items = Array.prototype.slice.call(host.querySelectorAll(':scope > .jdgm-carousel-item'));
+      if (!items.length) {
+        // Fallback: any jdgm-carousel-item, even if still nested.
+        items = Array.prototype.slice.call(host.querySelectorAll('.jdgm-carousel-item'));
+      }
+      if (!items.length) return;
+      // Cap at 10 items for sane DOM weight.
+      items.slice(10).forEach(function (n) { n.parentNode && n.parentNode.removeChild(n); });
+      items = Array.prototype.slice.call(host.querySelectorAll('.jdgm-carousel-item'));
+      if (!items.length) return;
+
+      var index = 0;
+      items.forEach(function (n, i) { n.classList.toggle('is-active', i === 0); });
+
+      function show(i) {
+        index = (i + items.length) % items.length;
+        items.forEach(function (n, j) { n.classList.toggle('is-active', j === index); });
+      }
+
+      var prev = root.querySelector('[data-mini-reviews-prev]');
+      var next = root.querySelector('[data-mini-reviews-next]');
+      if (prev) prev.addEventListener('click', function () { show(index - 1); stop(); });
+      if (next) next.addEventListener('click', function () { show(index + 1); stop(); });
+
+      var timer = null;
+      function start() {
+        if (timer) return;
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        timer = setInterval(function () { show(index + 1); }, 6000);
+      }
+      function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+      start();
+      root.addEventListener('mouseenter', stop);
+      root.addEventListener('mouseleave', start);
+    }
+
+    function init() {
+      document.querySelectorAll('[data-mini-reviews]').forEach(initMiniReviews);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+    // Re-run on load in case Judge.me's JS rearranged things after first init.
+    window.addEventListener('load', function () { setTimeout(init, 50); });
+  })();
+</script>
 
 {% stylesheet %}
   .theinmag-membership-hero {
@@ -568,16 +688,48 @@
     }
   }
 
-  /* Rating link wraps the Judge.me badge - clickable scroll-jump to reviews
-     section. Slot has zero min-height so pre-Judge.me-load it collapses;
-     once populated, Judge.me's own internal spacing applies. */
-  .theinmag-membership-hero__rating-link {
-    display: block;
-    color: inherit;
-    text-decoration: none;
-    margin: 0 0 var(--space-xs);
+  /* Tagline row holds the italic subtagline + inline shop-wide rating chip.
+     Centred so the tagline keeps its visual weight when the chip is absent
+     (no reviews yet); chip sits to the right on wider widths, wraps below
+     the tagline on narrow widget widths. */
+  .theinmag-membership-hero__tagline-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    margin: 0 0 var(--space-sm);
   }
-  .theinmag-membership-hero__rating-link .jdgm-prev-badge { display: block; cursor: pointer; }
+  .theinmag-membership-hero__rating-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-inky-purple-navy);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .theinmag-membership-hero__rating-link .jdgm-all-reviews-rating {
+    display: inline-block;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .theinmag-membership-hero__rating-sep {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.5;
+    line-height: 1;
+    margin: 0 2px 0 0;
+  }
+  .theinmag-membership-hero__rating-count {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    line-height: 1;
+  }
 
   .theinmag-membership-hero__title {
     font-family: var(--font-heading);
@@ -601,7 +753,7 @@
     line-height: 1.4;
     color: var(--color-inky-purple-navy);
     opacity: 0.78;
-    margin: 0 0 var(--space-sm);
+    margin: 0;
     text-align: center;
   }
 
@@ -749,6 +901,132 @@
     opacity: 0.78;
     margin: var(--space-sm) 0 0;
     text-align: center;
+  }
+
+  /* Mini reviews widget — sits between trust microcopy and the FAQ
+     accordions. Bubble visual matches the starting-issue tile style
+     (white surface, 2px soft-pink border, radius-lg, body font), arrows
+     on the left and right sides of the bubble, body clamped to 3 lines
+     with a "Read more" link that scroll-jumps to the main reviews
+     section. JS flattens Judge.me's internal carousel wrappers + toggles
+     `.is-active` on the visible card. */
+  .theinmag-membership-hero__mini-reviews {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    margin: var(--space-md) 0 0;
+  }
+  .theinmag-membership-hero__mini-reviews-bubble {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: #FFFFFF;
+    border: 2px solid var(--color-soft-pink);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
+    text-align: left;
+  }
+  .theinmag-membership-hero__mini-reviews-inner {
+    min-height: 80px;
+  }
+  .theinmag-membership-hero__mini-reviews-arrow {
+    flex: 0 0 auto;
+    width: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-coral-dark);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+  }
+  .theinmag-membership-hero__mini-reviews-arrow:hover,
+  .theinmag-membership-hero__mini-reviews-arrow:focus-visible {
+    background-color: rgba(201, 84, 62, 0.08);
+  }
+  .theinmag-membership-hero__mini-reviews-arrow:active {
+    transform: scale(0.9);
+  }
+  /* Hide all carousel items except the active one. The JS toggles
+     .is-active on the visible item. */
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item {
+    display: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    position: static !important;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item.is-active {
+    display: block !important;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__review-rating .jdgm-star {
+    font-size: 12px;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__review-title {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+    margin: 4px 0 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__review-body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__reviewer-name {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--color-inky-purple-navy);
+    margin: 6px 0 0;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__timestamp,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__product-info,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__product-image,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__product,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel__arrows,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel__arrow-left,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel__arrow-right,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-number-of-reviews,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-title-and-link,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-title {
+    display: none !important;
+  }
+  .theinmag-membership-hero__mini-reviews-readmore {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .theinmag-membership-hero__mini-reviews-readmore:hover,
+  .theinmag-membership-hero__mini-reviews-readmore:focus-visible {
+    color: var(--color-coral-dark);
   }
 
   /* Accordions - small text (Ryan's preference), open one at a time

@@ -124,6 +124,18 @@
     line-height: 1.4;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    /* Defensive resets — Dawn's base.css and Safari's mobile data
+       detector can each plant a dark rectangle behind text inside a
+       <footer> inside a <blockquote>. Force every descendant to
+       transparent + disable iOS data detection so words like "parent"
+       don't get linkified with a rounded highlight box. */
+    background: transparent;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .theinmag-pull-quote__attribution,
+  .theinmag-pull-quote__attribution * {
+    background-color: transparent !important;
+    box-shadow: none !important;
   }
 
   @media (prefers-reduced-motion: no-preference) {
