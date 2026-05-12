@@ -1,0 +1,566 @@
+{%- comment -%}
+  theinmag-membership-pillars
+  Stage 2c persuasion section on the Membership PDP. Sits in the
+  "pillars" template slot between the UGC carousel and the reviews
+  section. Four-pillar persuasion block: sticky vertical nav on the
+  left (active pillar full-strength purple, inactive 30% opacity),
+  active pillar's headline + body lifted onto a cream card, single
+  static kid-created artwork on the right.
+
+  Layout mirrors sections/theinmag-philosophy.liquid - same Inter
+  type system, same click/hover/focus activation pattern, same
+  sticky behaviour. Differences vs philosophy: (1) right column is
+  a single static image (no per-anchor swap), (2) reveal copy sits
+  on a lifted cream card not flat lavender, (3) bg is the locked
+  per-section image asset/theinmag-section-bg.jpg (not the sitewide
+  pool snippet - this surface is the pillars' signature only).
+
+  Locked typography decision (Ryan, 12 May 2026): no Post Regular
+  anywhere in this section. All Inter. Post Regular would compete
+  with the editorial register of the philosophy pattern and dent
+  the premium feel.
+
+  Copy source: ../theinmag-docs/membership-pdp-copy.md
+  [WHY_MEMBERSHIP_PILLARS]. Four pillars in locked order.
+{%- endcomment -%}
+
+{%- liquid
+  assign pillars = section.blocks | where: 'type', 'pillar'
+  assign aeo_heading = section.settings.aeo_heading | default: 'Why do parents stick with theINmag Membership?'
+  assign intro_text = section.settings.intro_text
+  assign artwork_alt = section.settings.artwork_alt | default: 'Kid-created artwork from a recent issue of theINmag.'
+
+  assign artwork_src = ''
+  if section.settings.artwork_image != blank
+    assign artwork_src = section.settings.artwork_image | image_url: width: 1400
+  elsif section.settings.artwork_filename != blank
+    assign artwork_src = section.settings.artwork_filename | asset_url
+  endif
+
+  assign bg_src = 'theinmag-section-bg.jpg' | asset_url
+-%}
+
+<section
+  class="theinmag-membership-pillars"
+  data-theinmag-pillars
+  aria-labelledby="theinmag-pillars-heading"
+  style="--theinmag-pillars-bg: url('{{ bg_src }}');"
+>
+  <h2 id="theinmag-pillars-heading" class="theinmag-pillars__a11y-heading">{{ aeo_heading }}</h2>
+
+  {%- if intro_text != blank -%}
+    <p class="theinmag-pillars__intro">{{ intro_text }}</p>
+  {%- endif -%}
+
+  <div class="theinmag-pillars__inner">
+    <div class="theinmag-pillars__copy">
+      {%- if pillars.size > 0 -%}
+        <ul class="theinmag-pillars__nav" role="list" data-theinmag-pillars-nav>
+          {%- for block in pillars -%}
+            <li class="theinmag-pillars__nav-item" {{ block.shopify_attributes }}>
+              <button
+                type="button"
+                class="theinmag-pillars__nav-btn"
+                data-theinmag-pillars-trigger
+                data-headline="{{ block.settings.headline | escape }}"
+                data-body="{{ block.settings.body | escape }}"
+                aria-controls="theinmag-pillars-card"
+              >
+                {{ block.settings.short_name }}
+              </button>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        <div class="theinmag-pillars__card" id="theinmag-pillars-card" data-theinmag-pillars-card>
+          <p class="theinmag-pillars__card-headline" data-theinmag-pillars-headline aria-live="polite"></p>
+          <p class="theinmag-pillars__card-body" data-theinmag-pillars-body></p>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="theinmag-pillars__artwork-col">
+      <div class="theinmag-pillars__artwork-wrap">
+        {%- if artwork_src != blank -%}
+          <img
+            class="theinmag-pillars__artwork"
+            src="{{ artwork_src }}"
+            alt="{{ artwork_alt | escape }}"
+            loading="lazy"
+            width="1200"
+            height="1500"
+          >
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-membership-pillars
+     Patterned bg scoped to this section (theinmag-section-bg.jpg).
+     Sticky Inter nav left + lifted cream card + static artwork right.
+     Mirrors theinmag-philosophy spacing/type so the two sections
+     read as siblings across the site.
+     ================================================================ */
+
+  .theinmag-membership-pillars {
+    position: relative;
+    background-image: var(--theinmag-pillars-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(40px, 6vw, 80px) clamp(20px, 4vw, 48px) clamp(56px, 7vw, 96px);
+    overflow: hidden;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-membership-pillars {
+      padding: clamp(56px, 6vw, 96px) clamp(32px, 5vw, 80px) clamp(72px, 7vw, 112px);
+    }
+  }
+
+  .theinmag-pillars__a11y-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Light editorial intro line. Sits above the grid, capped width,
+     muted purple ink so the pillar nav still does the heavy lifting. */
+  .theinmag-pillars__intro {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 clamp(28px, 4vw, 48px);
+    max-width: 48ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.6vw, 19px);
+    line-height: 1.55;
+    color: rgba(42, 31, 61, 0.72);
+  }
+
+  .theinmag-pillars__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 4vw, 40px);
+    align-items: start;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-pillars__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: clamp(40px, 5vw, 80px);
+      align-items: stretch;
+    }
+  }
+
+  /* ================================================================
+     Copy column - nav stack + lifted cream card with active pillar.
+     ================================================================ */
+
+  .theinmag-pillars__copy {
+    display: flex;
+    flex-direction: column;
+    align-self: start;
+    padding-top: clamp(4px, 1vw, 12px);
+  }
+
+  .theinmag-pillars__nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1.2vw, 14px);
+  }
+
+  .theinmag-pillars__nav-item {
+    margin: 0;
+  }
+
+  .theinmag-pillars__nav-btn {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 6px 0;
+    margin: 0;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(26px, 4.2vw, 42px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    /* Inactive: 30% purple. */
+    color: rgba(123, 79, 158, 0.3);
+    transition: color var(--transition-hover, 0.2s ease), transform var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-pillars__nav-btn:hover,
+  .theinmag-pillars__nav-btn:focus-visible {
+    color: rgba(123, 79, 158, 0.7);
+    outline: none;
+  }
+
+  .theinmag-pillars__nav-btn:focus-visible {
+    outline: 2px dashed #7B4F9E;
+    outline-offset: 6px;
+    border-radius: 2px;
+  }
+
+  .theinmag-pillars__nav-btn.is-active {
+    color: #7B4F9E;
+  }
+
+  /* First-anchor pulse hint matching the homepage philosophy pattern.
+     Removed on first interaction by JS. */
+  .theinmag-pillars__nav-btn.is-pulse-hint.is-pulsing {
+    animation: theinmag-pillars-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes theinmag-pillars-pulse {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(4px); }
+  }
+
+  /* ================================================================
+     Cream card lift - holds the active pillar's headline + body.
+     Locked cream card formula per Ryan's design system note.
+     ================================================================ */
+
+  .theinmag-pillars__card {
+    margin-top: clamp(20px, 3vw, 36px);
+    padding: clamp(22px, 3vw, 36px) clamp(22px, 3vw, 40px);
+    background-color: rgba(251, 246, 234, 0.94);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
+    border-radius: 28px;
+    max-width: 56ch;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  .theinmag-pillars__card.is-swapping {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-pillars__card {
+      /* Locked min-height stops the photo column from resizing as the
+         user swaps between long and short pillar bodies. */
+      min-height: 240px;
+    }
+  }
+
+  .theinmag-pillars__card-headline {
+    margin: 0 0 clamp(10px, 1.4vw, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(20px, 2.3vw, 26px);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: #1a1a1a;
+  }
+
+  .theinmag-pillars__card-body {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.55vw, 17px);
+    line-height: 1.65;
+    color: #1a1a1a;
+  }
+
+  /* ================================================================
+     Artwork column - single static kid-created piece.
+     Mobile: sits below the card.
+     Desktop: fills grid-cell height alongside the copy column.
+     ================================================================ */
+
+  .theinmag-pillars__artwork-col {
+    position: relative;
+  }
+
+  .theinmag-pillars__artwork-wrap {
+    overflow: hidden;
+    border-radius: 24px;
+    box-shadow: 0 10px 28px rgba(42, 31, 61, 0.16);
+  }
+
+  .theinmag-pillars__artwork {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-pillars__artwork-col {
+      height: 100%;
+    }
+    .theinmag-pillars__artwork-wrap {
+      height: 100%;
+    }
+    .theinmag-pillars__artwork {
+      height: 100%;
+      aspect-ratio: auto;
+    }
+  }
+
+  /* Reduced motion: no swap fade, no pulse hint. State still changes. */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-pillars__nav-btn,
+    .theinmag-pillars__card {
+      transition: none;
+    }
+    .theinmag-pillars__nav-btn.is-pulse-hint.is-pulsing {
+      animation: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    const root = document.querySelector('[data-theinmag-pillars]');
+    if (!root) return;
+
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const triggers = Array.from(root.querySelectorAll('[data-theinmag-pillars-trigger]'));
+    const card = root.querySelector('[data-theinmag-pillars-card]');
+    const headlineEl = root.querySelector('[data-theinmag-pillars-headline]');
+    const bodyEl = root.querySelector('[data-theinmag-pillars-body]');
+
+    if (!triggers.length || !card || !headlineEl || !bodyEl) return;
+
+    triggers[0].classList.add('is-pulse-hint');
+
+    let activeTrigger = null;
+    let swapTimer = null;
+
+    function clearPulse() {
+      const pulser = root.querySelector('.theinmag-pillars__nav-btn.is-pulse-hint.is-pulsing');
+      if (pulser) pulser.classList.remove('is-pulsing');
+    }
+
+    /* Insert headline/body but render any "[[IN]]" tokens as
+       <span class="theinmag-in">IN</span> so the brand-pun class
+       fires inside dynamically-swapped content. Authors put [[IN]]
+       in the source string wherever they want the IN-pun emphasis. */
+    function renderWithInPun(el, text) {
+      el.innerHTML = '';
+      const parts = text.split('[[IN]]');
+      // Token uses square brackets because Shopify's JSON template
+      // validator rejects double-curly delimiters in setting strings
+      // (it parses them as malformed Liquid).
+      parts.forEach(function (part, i) {
+        el.appendChild(document.createTextNode(part));
+        if (i < parts.length - 1) {
+          const span = document.createElement('span');
+          span.className = 'theinmag-in';
+          span.textContent = 'IN';
+          el.appendChild(span);
+        }
+      });
+    }
+
+    function applyContent(trigger) {
+      renderWithInPun(headlineEl, trigger.dataset.headline || '');
+      renderWithInPun(bodyEl, trigger.dataset.body || '');
+    }
+
+    function setActive(trigger, opts) {
+      if (activeTrigger === trigger) return;
+      const initial = !!(opts && opts.initial);
+
+      triggers.forEach(function (t) {
+        t.classList.toggle('is-active', t === trigger);
+      });
+      activeTrigger = trigger;
+
+      if (initial || reducedMotion) {
+        applyContent(trigger);
+        return;
+      }
+
+      card.classList.add('is-swapping');
+      window.clearTimeout(swapTimer);
+      swapTimer = window.setTimeout(function () {
+        applyContent(trigger);
+        card.classList.remove('is-swapping');
+      }, 160);
+    }
+
+    setActive(triggers[0], { initial: true });
+
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('mouseenter', function () {
+        clearPulse();
+        setActive(trigger);
+      });
+      trigger.addEventListener('click', function () {
+        clearPulse();
+        setActive(trigger);
+      });
+      trigger.addEventListener('focus', function () {
+        clearPulse();
+        setActive(trigger);
+      });
+    });
+
+    root.addEventListener('click', clearPulse);
+
+    /* Pulse hint fires when the section enters the viewport. Matches
+       the homepage philosophy pattern - subtle nudge that the nav is
+       interactive without screaming "click me". */
+    const firstAnchor = triggers[0];
+
+    function checkEnter() {
+      const rect = root.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.8) {
+        if (firstAnchor && !reducedMotion) {
+          firstAnchor.classList.add('is-pulsing');
+        }
+        window.removeEventListener('scroll', onScroll);
+      }
+    }
+
+    function onScroll() {
+      window.requestAnimationFrame(checkEnter);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    checkEnter();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Membership pillars",
+  "tag": "section",
+  "class": "theinmag-membership-pillars-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section intro"
+    },
+    {
+      "type": "text",
+      "id": "aeo_heading",
+      "label": "Hidden H2 (AEO)",
+      "info": "Visually hidden, powers AEO + screen readers. Question form per house style."
+    },
+    {
+      "type": "text",
+      "id": "intro_text",
+      "label": "Editorial intro line",
+      "info": "Sits above the pillar nav. Short, plain English. Leave blank to hide."
+    },
+    {
+      "type": "header",
+      "content": "Right-column artwork"
+    },
+    {
+      "type": "image_picker",
+      "id": "artwork_image",
+      "label": "Kid-created artwork"
+    },
+    {
+      "type": "text",
+      "id": "artwork_filename",
+      "label": "Fallback filename",
+      "info": "Used when the image picker is empty. Filename of an image in /assets/."
+    },
+    {
+      "type": "text",
+      "id": "artwork_alt",
+      "label": "Artwork alt text"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "pillar",
+      "name": "Pillar",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "short_name",
+          "label": "Short name (left nav)",
+          "info": "Short pillar name shown in the left nav. Sentence case."
+        },
+        {
+          "type": "text",
+          "id": "headline",
+          "label": "Card headline",
+          "info": "Punchline that explains the pillar. Use [[IN]] anywhere the brand-pun IN should render with the locked emphasis class (e.g. 'send [[IN]]')."
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Card body",
+          "info": "Full pillar copy. Use [[IN]] for brand-pun emphasis on the IN letters."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Membership pillars",
+      "settings": {
+        "aeo_heading": "Why do parents stick with theINmag Membership?",
+        "intro_text": "The reasons parents stick with us, in plain English.",
+        "artwork_filename": "blog-image-universal-24.jpg",
+        "artwork_alt": "Kid-created artwork from a recent issue of theINmag."
+      },
+      "blocks": [
+        {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Made by kids, not at kids",
+            "headline": "Each creation on every page comes from an Aussie kid.",
+            "body": "Most kids' magazines are made by adults guessing what kids like. theINmag flips that. Real kids submit their creations - art, writing, photography, comics, maths puzzles, the works - and we publish them with their first name, town, and age. Your kid will recognise the voice on every page because it IS their voice. Kids reading kids. Kids inspiring kids. That's the whole thing."
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Your kid could be in the next one",
+            "headline": "Not a competition. A real chance to be published.",
+            "body": "Every Membership unlocks first dibs to send [[IN]] your kid's creation for the next issue. No entry fee, just a huge opportunity. If they send it, we read it. If we publish it, their name and town go in print, with a copy of the mag in their hands. For a lot of kids, it's the first time they've ever seen their creation outside the fridge door. It tends to change things."
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "short_name": "A real magazine, not another screen",
+            "headline": "Real paper. Real ink. Real weight in their hands.",
+            "body": "Your kid doesn't need another app. They need 120+ pages of stuff to flick through, fold corners on, doodle in the margins of, and leave on the kitchen bench for someone else to pick up. theINmag is unapologetically offline - no notifications, no algorithm deciding what they see next. The print mag arrives every four months and stays in their life for the four months after that."
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Made well, made here, made to keep",
+            "headline": "Sustainably printed in Australia. Zero ads. Built to last.",
+            "body": "We print theINmag here in Australia, on recycled stock, with vegetable inks. Every issue is 120+ pages, perfect-bound, designed to survive being carried around in a school bag for a year. No ads, no upsells, no shortcuts on the paper. Parents tell us they end up stacking them on the coffee table. That's the goal."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -4,9 +4,21 @@
       "type": "theinmag-membership-hero",
       "settings": {}
     },
-    "explainer": {
-      "type": "theinmag-membership-explainer",
-      "settings": {}
+    "pillars": {
+      "type": "theinmag-membership-pillars",
+      "blocks": {
+        "p1": { "type": "pillar", "settings": { "short_name": "Made by kids, not at kids", "headline": "Each creation on every page comes from an Aussie kid.", "body": "Most kids' magazines are made by adults guessing what kids like. theINmag flips that. Real kids submit their creations - art, writing, photography, comics, maths puzzles, the works - and we publish them with their first name, town, and age. Your kid will recognise the voice on every page because it IS their voice. Kids reading kids. Kids inspiring kids. That's the whole thing." } },
+        "p2": { "type": "pillar", "settings": { "short_name": "Your kid could be in the next one", "headline": "Not a competition. A real chance to be published.", "body": "Every Membership unlocks first dibs to send [[IN]] your kid's creation for the next issue. No entry fee, just a huge opportunity. If they send it, we read it. If we publish it, their name and town go in print, with a copy of the mag in their hands. For a lot of kids, it's the first time they've ever seen their creation outside the fridge door. It tends to change things." } },
+        "p3": { "type": "pillar", "settings": { "short_name": "A real magazine, not another screen", "headline": "Real paper. Real ink. Real weight in their hands.", "body": "Your kid doesn't need another app. They need 120+ pages of stuff to flick through, fold corners on, doodle in the margins of, and leave on the kitchen bench for someone else to pick up. theINmag is unapologetically offline - no notifications, no algorithm deciding what they see next. The print mag arrives every four months and stays in their life for the four months after that." } },
+        "p4": { "type": "pillar", "settings": { "short_name": "Made well, made here, made to keep", "headline": "Sustainably printed in Australia. Zero ads. Built to last.", "body": "We print theINmag here in Australia, on recycled stock, with vegetable inks. Every issue is 120+ pages, perfect-bound, designed to survive being carried around in a school bag for a year. No ads, no upsells, no shortcuts on the paper. Parents tell us they end up stacking them on the coffee table. That's the goal." } }
+      },
+      "block_order": ["p1", "p2", "p3", "p4"],
+      "settings": {
+        "aeo_heading": "Why do parents stick with theINmag Membership?",
+        "intro_text": "The reasons parents stick with us, in plain English.",
+        "artwork_filename": "blog-image-universal-24.jpg",
+        "artwork_alt": "Kid-created artwork from a recent issue of theINmag."
+      }
     },
     "ugc": {
       "type": "theinmag-membership-ugc",
@@ -41,7 +53,7 @@
   "order": [
     "hero",
     "ugc",
-    "explainer",
+    "pillars",
     "reviews",
     "faq",
     "cross-sells"
