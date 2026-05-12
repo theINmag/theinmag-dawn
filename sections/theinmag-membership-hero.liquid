@@ -91,7 +91,14 @@
   aria-labelledby="theinmag-membership-hero-heading"
   style="{{ section_style }}"
 >
-  {% render 'theinmag-section-bg', opacity: 0.55 %}
+  {%- comment -%}
+    Patterned bg sits at very low opacity here - the hero already
+    carries photo mosaic + widget + variant pills, so a strong bg
+    competes for attention. 0.2 keeps the dots present-but-quiet
+    behind the cream cards, matching Ryan's "very very subtle" call
+    on 2026-05-12.
+  {%- endcomment -%}
+  {% render 'theinmag-section-bg', opacity: 0.2 %}
 
   <div class="theinmag-membership-hero__inner">
 
@@ -341,21 +348,37 @@
     ]
   </script>
 
-  {%- comment -%}
-    Floating "back to my order" pill. Fixed bottom-right of viewport on
-    every screen size, shown by JS when the widget's bottom scrolls off
-    the top of viewport. Click smooth-scrolls back to the widget top so
-    the user can confirm the variant + add to cart without manually
-    scrolling up. Cream pill + soft pink accent matches the widget.
-  {%- endcomment -%}
-  <button type="button" class="theinmag-membership-hero__back-to-order" data-back-to-order hidden aria-label="Back to my order">
-    <svg class="theinmag-membership-hero__back-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <line x1="12" y1="19" x2="12" y2="5"></line>
-      <polyline points="5 12 12 5 19 12"></polyline>
-    </svg>
-    <span>Back to my order</span>
-  </button>
 </section>
+
+{%- comment -%}
+  Floating order-summary card. Rendered as a sibling of the hero
+  section (not a child) so it escapes the hero's stacking context
+  (isolation: isolate) and stays on top of every section that comes
+  after the hero. position: fixed + viewport-level stacking context
+  = always-on-top while scrolling the rest of the PDP.
+
+  Same cream-card register as the widget so it reads as "the same
+  widget in miniature" - clearly the user's order. Shown by JS via
+  the existing data-back-to-order hook when the widget's bottom
+  scrolls off viewport top. Two interaction targets inside: (1) the
+  body acts as a back-to-widget tap and (2) the CTA submits the
+  form's currently-selected variant to cart. Reuses the form's
+  variant data + price machinery via update() in theinmag-membership-form.js.
+{%- endcomment -%}
+<aside class="theinmag-membership-hero__floating-cart" data-back-to-order data-floating-cart data-show="false" aria-label="Your order summary">
+  <div class="theinmag-membership-hero__floating-cart-card">
+    <button type="button" class="theinmag-membership-hero__floating-cart-tap" data-floating-cart-tap aria-label="Back to the selectors">
+      <span class="theinmag-membership-hero__floating-cart-eyebrow">your order</span>
+      <span class="theinmag-membership-hero__floating-cart-summary" data-floating-cart-summary>4-Issue Print</span>
+      <span class="theinmag-membership-hero__floating-cart-issue" data-floating-cart-issue>Start with {{ current_issue }}</span>
+    </button>
+    <button type="button" class="theinmag-membership-hero__floating-cart-cta" data-floating-cart-cta aria-label="Add this Membership to cart">
+      <span>Add to cart</span>
+      <span aria-hidden="true">-</span>
+      <span data-floating-cart-cta-price>{{ first_variant.price | money }}</span>
+    </button>
+  </div>
+</aside>
 
 <script src="{{ 'theinmag-membership-form.js' | asset_url }}" defer></script>
 
@@ -623,7 +646,11 @@
   }
 
   .theinmag-membership-hero__pill {
-    flex: 1 1 auto;
+    /* flex: 1 1 0 (NOT 1 1 auto) so all three pills divide the row
+       equally regardless of label width - "4-Issue" is shorter than
+       "8-Issue"/"Rolling" so auto sizes give unequal widths. */
+    flex: 1 1 0;
+    min-width: 0;
     min-height: 40px;
     padding: 8px 14px;
     background: #ffffff;
@@ -675,12 +702,17 @@
 
   /* Yellow sticker Add to Cart - locked convention. */
   .theinmag-membership-hero__cta {
+    /* Centred, max-width capped so the CTA doesn't stretch across the
+       full widget - Ryan's call: bring the edges in, keep the height,
+       bump the Post font slightly. */
+    display: block;
     width: 100%;
-    margin-top: var(--space-sm);
+    max-width: 300px;
+    margin: var(--space-sm) auto 0;
     background: var(--color-yellow);
     color: var(--color-inky-purple-navy);
     font-family: var(--font-heading);
-    font-size: 16px;
+    font-size: 19px;
     text-transform: uppercase;
     letter-spacing: 0.02em;
     padding: 12px 24px;
@@ -793,41 +825,167 @@
     color: var(--color-inky-purple-navy);
   }
 
-  /* Floating "back to my order" pill - fixed bottom-right of viewport.
-     Shown when the widget's bottom scrolls off the top of viewport so the
-     user has a one-click path back to confirm/add. Cream card matching the
-     widget's visual register with the soft-pink border accent. */
-  .theinmag-membership-hero__back-to-order {
+  /* Floating order-summary card.
+     OUTER (.theinmag-membership-hero__floating-cart) handles fixed
+     positioning + the slide-in entry transform when data-show flips
+     to "true".
+     INNER (.theinmag-membership-hero__floating-cart-card) holds the
+     visible cream-card styling + a ridiculously-subtle continuous
+     wobble. Splitting outer/inner stops the slide-in transform
+     fighting the wobble rotation (single-element transform can only
+     hold one animation at a time without smearing). */
+  .theinmag-membership-hero__floating-cart {
     position: fixed;
+    z-index: 50;
+    /* Mobile: bottom-fixed, full-width minus side gutters. */
+    left: var(--space-md);
     right: var(--space-md);
     bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
-    z-index: 50;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: 10px 16px;
-    background-color: rgba(251, 246, 234, 0.96);
-    border: 1.5px solid var(--color-soft-pink);
-    border-radius: var(--radius-pill);
-    box-shadow: 0 6px 20px rgba(42, 31, 61, 0.15);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    /* Slide-in starts above (desktop) or below (mobile) the final
+       resting position. Initial opacity 0 + pointer-events none so
+       the hidden card never intercepts clicks. */
+    opacity: 0;
+    transform: translateY(24px);
+    pointer-events: none;
+    transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1);
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background var(--transition-standard), translate var(--transition-standard);
   }
-  .theinmag-membership-hero__back-to-order:hover {
-    background-color: #ffffff;
-    translate: 0 -2px;
+  .theinmag-membership-hero__floating-cart[data-show="true"] {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
   }
-  .theinmag-membership-hero__back-to-order[hidden] { display: none; }
-  .theinmag-membership-hero__back-icon { color: var(--color-soft-pink); }
+
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__floating-cart {
+      /* Desktop: top-right floating card, well clear of the header. */
+      top: clamp(104px, 13vh, 140px);
+      right: var(--space-md);
+      bottom: auto;
+      left: auto;
+      width: clamp(220px, 22vw, 260px);
+      /* Desktop slides DOWN from above the resting position. */
+      transform: translateY(-28px);
+    }
+    .theinmag-membership-hero__floating-cart[data-show="true"] {
+      transform: translateY(0);
+    }
+  }
+
+  .theinmag-membership-hero__floating-cart-card {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
+    background-color: rgba(251, 246, 234, 0.96);
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: 20px;
+    /* Deep shadow so the card reads 3D off the page (Ryan's brief). */
+    box-shadow: 0 18px 44px rgba(42, 31, 61, 0.28), 0 4px 12px rgba(42, 31, 61, 0.14);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__floating-cart-card {
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 16px;
+      border-radius: 22px;
+      /* Ridiculously subtle wobble - tiny rotation + drift, slow loop. */
+      animation: theinmag-floating-cart-wobble 5.5s ease-in-out infinite;
+      transform-origin: 80% 40%;
+    }
+  }
+
+  @keyframes theinmag-floating-cart-wobble {
+    0%, 100% { transform: rotate(-0.35deg) translateY(0); }
+    50% { transform: rotate(0.35deg) translateY(-1.5px); }
+  }
 
   @media (prefers-reduced-motion: reduce) {
-    .theinmag-membership-hero__back-to-order:hover { translate: 0 0; }
+    .theinmag-membership-hero__floating-cart {
+      transition: none;
+    }
+    .theinmag-membership-hero__floating-cart-card {
+      animation: none;
+    }
+  }
+
+  .theinmag-membership-hero__floating-cart-tap {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: inherit;
+    font-family: inherit;
+    transition: opacity var(--transition-hover);
+  }
+  .theinmag-membership-hero__floating-cart-tap:hover,
+  .theinmag-membership-hero__floating-cart-tap:focus-visible {
+    opacity: 0.85;
+    outline: none;
+  }
+
+  .theinmag-membership-hero__floating-cart-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-soft-pink);
+    line-height: 1;
+  }
+  .theinmag-membership-hero__floating-cart-summary {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__floating-cart-issue {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: rgba(42, 31, 61, 0.7);
+  }
+
+  .theinmag-membership-hero__floating-cart-cta {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    background: var(--color-soft-pink);
+    color: var(--color-inky-purple-navy);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background var(--transition-standard), translate var(--transition-standard);
+  }
+  .theinmag-membership-hero__floating-cart-cta:hover,
+  .theinmag-membership-hero__floating-cart-cta:focus-visible {
+    background: var(--color-yellow);
+    translate: 0 -1px;
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-hero__floating-cart-cta:hover { translate: 0 0; }
   }
 
   @media (prefers-reduced-motion: reduce) {

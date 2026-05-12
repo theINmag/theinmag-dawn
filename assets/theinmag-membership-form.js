@@ -29,8 +29,16 @@
   const heroDigital = section.dataset.heroDigital;
   const heroCombo = section.dataset.heroCombo;
   const primaryCta = section.querySelector('[data-primary-cta]');
-  const backToOrder = section.querySelector('[data-back-to-order]');
   const widget = section.querySelector('[data-widget]');
+  /* Floating-cart elements are document-level lookups: the aside lives
+     OUTSIDE the hero section in the DOM (so its z-index escapes the
+     hero's stacking context), so section.querySelector won't find it. */
+  const backToOrder = document.querySelector('[data-back-to-order]');
+  const floatingSummary = document.querySelector('[data-floating-cart-summary]');
+  const floatingIssue = document.querySelector('[data-floating-cart-issue]');
+  const floatingCtaPrice = document.querySelector('[data-floating-cart-cta-price]');
+  const floatingTap = document.querySelector('[data-floating-cart-tap]');
+  const floatingCta = document.querySelector('[data-floating-cart-cta]');
   const rollingOnlyEls = section.querySelectorAll('[data-rolling-only]');
   const shippingNote = section.querySelector('[data-shipping-note]');
   const postAddTile = section.querySelector('[data-post-add-tile]');
@@ -114,6 +122,26 @@
         if (length === 'Rolling') priceStr += ' per drop';
         priceDisplay.textContent = priceStr;
       }
+      /* Mirror the price onto the floating cart CTA. Rolling still
+         reads "$X per drop" so the user sees what they will be charged
+         at the next drop, not a fictional total. */
+      if (floatingCtaPrice) {
+        let ctaPriceStr = formatMoney(variant.price);
+        if (length === 'Rolling') ctaPriceStr += ' / drop';
+        floatingCtaPrice.textContent = ctaPriceStr;
+      }
+    }
+
+    /* Floating cart summary: e.g. "4-Issue Print" + "Start with Mag09".
+       Length-then-format reads more naturally per Ryan's call - "4-Issue
+       Print" rolls off the tongue better than "Print - 4-Issue". */
+    if (floatingSummary && format && length) {
+      floatingSummary.textContent = length + ' ' + format;
+    }
+    if (floatingIssue) {
+      const startMagForCard = starting === 'current' ? currentIssue : nextIssue;
+      const startLabel = starting === 'current' ? 'Start with ' : 'Starts with ';
+      floatingIssue.textContent = startLabel + startMagForCard;
     }
 
     const startMag = starting === 'current' ? currentIssue : nextIssue;
@@ -284,7 +312,11 @@
     if (!backToOrder || !widget) return;
     const rect = widget.getBoundingClientRect();
     const widgetBottom = rect.top + rect.height;
-    backToOrder.hidden = widgetBottom >= 0;
+    /* data-show drives a CSS opacity + translateY transition. Toggling
+       it (instead of the hidden attribute which hard-flips display)
+       lets the card slide in from above on desktop / from below on
+       mobile when the user scrolls past the widget. */
+    backToOrder.dataset.show = widgetBottom >= 0 ? 'false' : 'true';
   }
 
   function onScroll() {
@@ -297,13 +329,34 @@
   syncThumbActive();
   syncBackToOrder();
 
-  if (backToOrder && widget) {
-    backToOrder.addEventListener('click', function () {
-      const header = document.querySelector('.theinmag-header-section') || document.querySelector('header[role="banner"]');
-      const headerH = header ? header.offsetHeight : 0;
-      const top = widget.getBoundingClientRect().top + window.pageYOffset - headerH - 16;
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      window.scrollTo({ top: Math.max(0, top), behavior: reduced ? 'auto' : 'smooth' });
+  /* Floating cart - body tap scrolls back to the widget; CTA submits
+     the form's currently-selected variant. The listener sits on the
+     inner tap button (not the outer data-back-to-order wrapper) so
+     the CTA's click doesn't accidentally trigger a scroll-back too. */
+  function scrollBackToWidget() {
+    if (!widget) return;
+    const header = document.querySelector('.theinmag-header-section') || document.querySelector('header[role="banner"]');
+    const headerH = header ? header.offsetHeight : 0;
+    const top = widget.getBoundingClientRect().top + window.pageYOffset - headerH - 16;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: Math.max(0, top), behavior: reduced ? 'auto' : 'smooth' });
+  }
+
+  if (floatingTap) {
+    floatingTap.addEventListener('click', scrollBackToWidget);
+  }
+
+  if (floatingCta && form) {
+    floatingCta.addEventListener('click', function (evt) {
+      /* Re-run update() before submit so the form's hidden inputs are
+         in sync with whatever the user last picked - cheap insurance
+         in case the card was clicked without an intervening update. */
+      update();
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        form.submit();
+      }
     });
   }
 
