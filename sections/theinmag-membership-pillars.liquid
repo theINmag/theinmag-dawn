@@ -48,12 +48,12 @@
 >
   <h2 id="theinmag-pillars-heading" class="theinmag-pillars__a11y-heading">{{ aeo_heading }}</h2>
 
-  {%- if intro_text != blank -%}
-    <p class="theinmag-pillars__intro">{{ intro_text }}</p>
-  {%- endif -%}
-
   <div class="theinmag-pillars__inner">
     <div class="theinmag-pillars__copy">
+      {%- if intro_text != blank -%}
+        <p class="theinmag-pillars__intro">{{ intro_text }}</p>
+      {%- endif -%}
+
       {%- if pillars.size > 0 -%}
         <ul class="theinmag-pillars__nav" role="list" data-theinmag-pillars-nav>
           {%- for block in pillars -%}
@@ -112,13 +112,23 @@
     background-position: center;
     background-repeat: no-repeat;
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(40px, 6vw, 80px) clamp(20px, 4vw, 48px) clamp(56px, 7vw, 96px);
+    /* Compact padding so the whole section sits inside one desktop
+       viewport. Right padding zero on desktop so the artwork bleeds
+       to the viewport edge - matches theinmag-philosophy pattern. */
+    padding: clamp(28px, 4vw, 40px) clamp(20px, 4vw, 32px) clamp(32px, 4vw, 44px);
     overflow: hidden;
   }
 
   @media (min-width: 990px) {
     .theinmag-membership-pillars {
-      padding: clamp(56px, 6vw, 96px) clamp(32px, 5vw, 80px) clamp(72px, 7vw, 112px);
+      /* Top padding pushes the writing column down to align its top
+         edge with the artwork's top edge - intro now lives inside
+         the copy column so both share the grid row top, and a larger
+         top padding brings both down from the section's upper edge.
+         Net effect of intro being inside the grid: image pulls UP
+         (no intro above the grid anymore), intro pushes DOWN to the
+         shared row top. */
+      padding: clamp(48px, 5vw, 64px) 0 clamp(32px, 4vw, 44px) clamp(32px, 5vw, 64px);
     }
   }
 
@@ -134,17 +144,19 @@
     border: 0;
   }
 
-  /* Light editorial intro line. Sits above the grid, capped width,
-     muted purple ink so the pillar nav still does the heavy lifting. */
+  /* Light editorial intro line. First child of the copy column so
+     its top edge sits at the grid row top, level with the artwork
+     image. Capped width, muted purple ink so the pillar nav still
+     does the heavy lifting. */
   .theinmag-pillars__intro {
     position: relative;
     z-index: 1;
-    margin: 0 0 clamp(28px, 4vw, 48px);
+    margin: 0 0 clamp(16px, 2vw, 22px);
     max-width: 48ch;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(16px, 1.6vw, 19px);
-    line-height: 1.55;
+    font-size: clamp(15px, 1.5vw, 18px);
+    line-height: 1.5;
     color: rgba(42, 31, 61, 0.72);
   }
 
@@ -159,8 +171,14 @@
 
   @media (min-width: 990px) {
     .theinmag-pillars__inner {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-      gap: clamp(40px, 5vw, 80px);
+      /* Text column wider, artwork column narrower so the image
+         shrinks naturally (less wide => less tall at its aspect)
+         AND the writing gets more room. Ryan's call: more space
+         for writing was preferred over leaving white space below
+         the image. Image still bleeds to the right viewport edge
+         because the section's right padding stays at 0. */
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.85fr);
+      gap: clamp(32px, 4vw, 56px);
       align-items: stretch;
     }
   }
@@ -176,13 +194,25 @@
     padding-top: clamp(4px, 1vw, 12px);
   }
 
+  @media (min-width: 990px) {
+    .theinmag-pillars__copy {
+      /* Zero top padding on desktop so the intro sits exactly at the
+         grid row top, level with the artwork's top edge. */
+      padding-top: 0;
+      /* Left indent so the writing sits a little more central in its
+         column rather than flush against the section's left padding -
+         Ryan's call: pull the text in from the left edge. */
+      padding-left: clamp(16px, 2.5vw, 40px);
+    }
+  }
+
   .theinmag-pillars__nav {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: clamp(6px, 1.2vw, 14px);
+    gap: clamp(2px, 0.5vw, 8px);
   }
 
   .theinmag-pillars__nav-item {
@@ -193,14 +223,19 @@
     appearance: none;
     background: none;
     border: 0;
-    padding: 6px 0;
+    padding: 4px 0;
     margin: 0;
     cursor: pointer;
     text-align: left;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(26px, 4.2vw, 42px);
-    line-height: 1.15;
+    /* Smaller so each pillar name fits on a single line in the
+       left grid cell (longest name is "A real magazine, not another
+       screen" - 35 chars). Tighter line-height than philosophy
+       because the nav items are 2-3x longer than philosophy's
+       short anchors. */
+    font-size: clamp(17px, 2vw, 24px);
+    line-height: 1.2;
     letter-spacing: -0.01em;
     /* Inactive: 30% purple. */
     color: rgba(123, 79, 158, 0.3);
@@ -235,18 +270,14 @@
   }
 
   /* ================================================================
-     Cream card lift - holds the active pillar's headline + body.
-     Locked cream card formula per Ryan's design system note.
+     Active pillar reveal - sits directly on the patterned bg below
+     the nav. No card lift, no padding container - matches the
+     theinmag-philosophy pattern where the active paragraph reads
+     as part of the page surface, not a floating tile.
      ================================================================ */
 
   .theinmag-pillars__card {
-    margin-top: clamp(20px, 3vw, 36px);
-    padding: clamp(22px, 3vw, 36px) clamp(22px, 3vw, 40px);
-    background-color: rgba(251, 246, 234, 0.94);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
-    border-radius: 28px;
+    margin-top: clamp(20px, 2.5vw, 28px);
     max-width: 56ch;
     transition: opacity 0.18s ease, transform 0.18s ease;
   }
@@ -258,29 +289,31 @@
 
   @media (min-width: 990px) {
     .theinmag-pillars__card {
-      /* Locked min-height stops the photo column from resizing as the
-         user swaps between long and short pillar bodies. */
-      min-height: 240px;
+      /* Locks copy column height so the artwork column doesn't reflow
+         when the user swaps between long and short pillar bodies.
+         Trimmed from 220px - the wider text column at the new column
+         split fits the longest body in fewer lines. */
+      min-height: 180px;
     }
   }
 
   .theinmag-pillars__card-headline {
-    margin: 0 0 clamp(10px, 1.4vw, 16px);
+    margin: 0 0 clamp(8px, 1vw, 12px);
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: clamp(20px, 2.3vw, 26px);
-    line-height: 1.25;
-    letter-spacing: -0.01em;
-    color: #1a1a1a;
+    font-weight: 600;
+    font-size: clamp(16px, 1.7vw, 20px);
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
   .theinmag-pillars__card-body {
     margin: 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(15px, 1.55vw, 17px);
-    line-height: 1.65;
-    color: #1a1a1a;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
   /* ================================================================
@@ -294,9 +327,9 @@
   }
 
   .theinmag-pillars__artwork-wrap {
+    /* No border-radius - sharp edges read premium on photography
+       and match the theinmag-philosophy treatment exactly. */
     overflow: hidden;
-    border-radius: 24px;
-    box-shadow: 0 10px 28px rgba(42, 31, 61, 0.16);
   }
 
   .theinmag-pillars__artwork {
@@ -313,9 +346,15 @@
     }
     .theinmag-pillars__artwork-wrap {
       height: 100%;
+      /* Cap the artwork height so the whole section fits inside a
+         single desktop viewport even on shorter screens. 62vh leaves
+         room for the header + section padding + text-column nav
+         within a 720-900px viewport. */
+      max-height: 62vh;
     }
     .theinmag-pillars__artwork {
       height: 100%;
+      max-height: 62vh;
       aspect-ratio: auto;
     }
   }
