@@ -1,0 +1,198 @@
+{%- comment -%}
+  theinmag-membership-ugc
+  Full-bleed UGC swipe strip. No heading, no captions, no overlays - the
+  images carry the story. Square photos sit edge-to-edge in a horizontal
+  scroll-snap carousel; the user swipes through all of them. Auto-discovered
+  from /assets/ugc-1.jpg .. ugc-{N}.jpg via the theinmag-ugc-pool snippet,
+  Fisher-Yates shuffled per page load so two visits never see the same order.
+
+  Section is full-bleed (no max-width wrapper) and hard-edged left+right
+  so the strip reads as a single continuous magazine spread.
+{%- endcomment -%}
+
+{%- liquid
+  assign section_style = '--tmugc-pt: ' | append: section.settings.padding_top | append: 'px; --tmugc-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section class="theinmag-membership-ugc" data-theinmag-ugc style="{{ section_style }}">
+  {% render 'theinmag-ugc-pool' %}
+
+  {%- comment -%}
+    Visually-hidden H2 for AEO. Question form per CLAUDE.md AEO rule.
+  {%- endcomment -%}
+  <h2 class="visually-hidden">What does theINmag look like in real homes?</h2>
+
+  <ol class="theinmag-ugc-strip" role="list" data-theinmag-ugc-strip aria-label="UGC gallery"></ol>
+
+  {%- comment -%}
+    Instagram pill floats bottom-left of the strip, links to the canonical
+    Instagram handle (per reference_socials memory). Cream pill matching
+    the hero widget's visual register.
+  {%- endcomment -%}
+  <a href="https://www.instagram.com/the.inmag/" class="theinmag-ugc-cta" target="_blank" rel="noopener" aria-label="Follow theINmag on Instagram">
+    <svg class="theinmag-ugc-cta__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+    </svg>
+    <span class="theinmag-ugc-cta__copy">
+      <span class="theinmag-ugc-cta__line">come hang with us</span>
+      <span class="theinmag-ugc-cta__handle">@the.inmag</span>
+    </span>
+  </a>
+</section>
+
+{% stylesheet %}
+  .theinmag-membership-ugc {
+    position: relative;
+    background-color: var(--color-cream);
+    /* Cream padding above + below the strip = cream "borders" framing the
+       strip vertically (Ryan: same colour as the widget). */
+    padding: var(--tmugc-pt, 12px) 0 var(--tmugc-pb, 12px);
+    overflow: hidden;
+  }
+
+  /* visually-hidden is global in Dawn's base.css but defensive declaration
+     here in case a future refactor drops the global rule. */
+  .theinmag-membership-ugc .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .theinmag-ugc-strip {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    /* Cream gap between items - matches the widget's cream surface. Items
+     get a soft shadow so the cream separation reads against the cream
+     section bg (Ryan: "throw a border in there"). */
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .theinmag-ugc-strip::-webkit-scrollbar { display: none; }
+
+  .theinmag-ugc-strip__item {
+    flex: 0 0 auto;
+    /* Square tiles sized to section height. Clamped between 320px (small
+       phone) and 560px (large desktop) so the strip stays a readable scale
+       at every breakpoint. */
+    width: clamp(320px, 60vh, 560px);
+    height: clamp(320px, 60vh, 560px);
+    scroll-snap-align: start;
+    overflow: hidden;
+    margin: 0;
+    /* Soft shadow makes the cream gaps between items + above/below read
+       as visible "borders" against the cream section bg. */
+    box-shadow: 0 4px 16px rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-ugc-strip__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Instagram CTA pill - floats bottom-left of the UGC section, links to
+     theINmag's Instagram. Cream backdrop with soft-pink Instagram icon and
+     the @-handle wired from the canonical socials reference. */
+  .theinmag-ugc-cta {
+    position: absolute;
+    left: var(--space-md);
+    bottom: var(--space-md);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 10px 16px;
+    background-color: rgba(251, 246, 234, 0.96);
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: var(--radius-pill);
+    box-shadow: 0 6px 20px rgba(42, 31, 61, 0.15);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    text-decoration: none;
+    transition: background var(--transition-standard), translate var(--transition-standard);
+    z-index: 5;
+  }
+  .theinmag-ugc-cta:hover {
+    background-color: #ffffff;
+    translate: 0 -2px;
+  }
+  .theinmag-ugc-cta__icon { color: var(--color-soft-pink); flex: 0 0 auto; }
+  .theinmag-ugc-cta__copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .theinmag-ugc-cta__line {
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .theinmag-ugc-cta__handle {
+    font-weight: 400;
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-ugc-cta:hover { translate: 0 0; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Membership UGC",
+  "tag": "section",
+  "class": "shopify-section theinmag-membership-ugc-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Full-bleed edge-to-edge UGC swipe strip. Auto-discovers /assets/ugc-1.jpg, ugc-2.jpg, ... up to ugc-60.jpg. Order is randomised per page load. No heading or captions - the images carry the story."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Membership UGC" }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

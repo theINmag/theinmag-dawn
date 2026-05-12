@@ -1,0 +1,186 @@
+{%- comment -%}
+  theinmag-ugc-pool
+  Sitewide UGC pool with auto-discovery + infinite-loop carousel population.
+
+  JS parallel-probes files in /assets/ as ugc-1.jpg .. ugc-{pool_max}.jpg,
+  caches the discovered indices in sessionStorage with a 1-hour TTL, then
+  Fisher-Yates shuffles them for a fresh order on every page load.
+
+  Consumer pattern: drop a <ol data-theinmag-ugc-strip> on the page. JS
+  populates it with <li><img></li> entries TRIPLED (items + items + items)
+  so the strip feels infinite in both directions - scroll listener resets
+  scroll position to the middle copy when the user reaches either edge.
+
+  When you upload more UGC (ugc-N.jpg), they're picked up automatically.
+  Bump pool_max if/when you cross 60.
+{%- endcomment -%}
+
+{%- liquid
+  assign pool_max = 60
+  assign first_url = 'ugc-1.jpg' | asset_url
+-%}
+
+<script type="application/json" data-theinmag-ugc-pool>
+{"max":{{ pool_max }},"firstUrl":{{ first_url | json }}}
+</script>
+
+<script>
+  (function () {
+    if (window.__theinmagUgcPoolInit) return;
+    window.__theinmagUgcPoolInit = true;
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+    function init() {
+      var poolEl = document.querySelector('[data-theinmag-ugc-pool]');
+      if (!poolEl) return;
+      var data;
+      try { data = JSON.parse(poolEl.textContent); } catch (e) { return; }
+      if (!data || !data.firstUrl) return;
+
+      var strips = document.querySelectorAll('[data-theinmag-ugc-strip]');
+      if (!strips.length) return;
+
+      var max = data.max || 60;
+      var firstUrl = data.firstUrl;
+      var cacheKey = 'theinmagUgcPool';
+      var ttl = 60 * 60 * 1000;
+
+      var cached = readCache();
+      if (cached) {
+        run(cached);
+      } else {
+        probe(function (valid) {
+          writeCache(valid);
+          run(valid);
+        });
+      }
+
+      function urlForIndex(n) {
+        return firstUrl.replace('ugc-1.jpg', 'ugc-' + n + '.jpg');
+      }
+
+      function readCache() {
+        try {
+          var raw = sessionStorage.getItem(cacheKey);
+          if (!raw) return null;
+          var parsed = JSON.parse(raw);
+          if (!parsed || !parsed.ts || !parsed.indices) return null;
+          if (Date.now() - parsed.ts > ttl) return null;
+          if (!parsed.indices.length) return null;
+          return parsed.indices.slice();
+        } catch (e) { return null; }
+      }
+
+      function writeCache(indices) {
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify({
+            ts: Date.now(),
+            indices: indices
+          }));
+        } catch (e) {}
+      }
+
+      function probe(callback) {
+        var pending = max;
+        var valid = [];
+        for (var i = 1; i <= max; i++) {
+          (function (idx) {
+            var img = new Image();
+            img.onload = function () {
+              valid.push(idx);
+              if (--pending === 0) finish();
+            };
+            img.onerror = function () {
+              if (--pending === 0) finish();
+            };
+            img.src = urlForIndex(idx);
+          })(i);
+        }
+        function finish() {
+          valid.sort(function (a, b) { return a - b; });
+          callback(valid);
+        }
+      }
+
+      function run(validIndices) {
+        if (!validIndices.length) return;
+
+        /* Fisher-Yates shuffle for a fresh order every page load. */
+        var indices = validIndices.slice();
+        for (var k = indices.length - 1; k > 0; k--) {
+          var j = Math.floor(Math.random() * (k + 1));
+          var tmp = indices[k]; indices[k] = indices[j]; indices[j] = tmp;
+        }
+
+        Array.prototype.forEach.call(strips, function (strip) {
+          if (strip.dataset.populated === 'true') return;
+          strip.dataset.populated = 'true';
+
+          /* Triple-render: each indices pass gets its own block. Scroll
+             listener below jumps scroll position from end-of-third back
+             to end-of-first (and start-of-first forward to start-of-second)
+             so the carousel feels infinite in both directions. */
+          var frag = document.createDocumentFragment();
+          var copiesPerSet = indices.length;
+          var totalCopies = 3;
+          for (var copy = 0; copy < totalCopies; copy++) {
+            indices.forEach(function (n) {
+              var li = document.createElement('li');
+              li.className = 'theinmag-ugc-strip__item';
+              var img = document.createElement('img');
+              img.className = 'theinmag-ugc-strip__img';
+              img.src = urlForIndex(n);
+              img.alt = '';
+              img.loading = 'lazy';
+              img.decoding = 'async';
+              li.appendChild(img);
+              frag.appendChild(li);
+            });
+          }
+          strip.appendChild(frag);
+
+          /* Wait one frame so layout settles, then scroll the strip to the
+             start of the MIDDLE copy. From there, scrolling left or right
+             both have room to run before hitting a boundary - and when
+             they hit one, we reset position to the equivalent in the
+             middle copy. */
+          requestAnimationFrame(function () {
+            var items = strip.querySelectorAll('.theinmag-ugc-strip__item');
+            if (!items.length) return;
+            var itemWidth = items[0].getBoundingClientRect().width
+              + parseFloat(getComputedStyle(strip).columnGap || 0);
+            var setWidth = itemWidth * copiesPerSet;
+
+            /* Seed scroll position at the start of the middle copy. */
+            strip.scrollLeft = setWidth;
+
+            /* On any scroll, if we cross into the third copy, rewind by
+               one setWidth to the middle. If we cross into the first
+               copy (scrolled back too far), fast-forward by one setWidth
+               to the middle. Tiny offsets so we never sit exactly on a
+               boundary which makes momentum feel snappy. */
+            var resetting = false;
+            strip.addEventListener('scroll', function () {
+              if (resetting) return;
+              var x = strip.scrollLeft;
+              if (x >= setWidth * 2) {
+                resetting = true;
+                strip.scrollLeft = x - setWidth;
+                requestAnimationFrame(function () { resetting = false; });
+              } else if (x < setWidth * 0.1) {
+                resetting = true;
+                strip.scrollLeft = x + setWidth;
+                requestAnimationFrame(function () { resetting = false; });
+              }
+            }, { passive: true });
+          });
+        });
+      }
+    }
+  })();
+</script>

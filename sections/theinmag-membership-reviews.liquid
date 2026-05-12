@@ -1,0 +1,134 @@
+{%- comment -%}
+  theinmag-membership-reviews
+  Judge.me reviews block. Mounts the standard product review widget;
+  the Judge.me app embed (already live on Dawn per memory note) takes
+  care of populating it. Renders an empty-state fallback when no
+  reviews exist for the product yet.
+
+  Heading is question-format per AEO requirements.
+
+  Spec: ../theinmag-docs/theinmag-shopify-bible.md Part 11 (270%
+        conversion lift on products with 5+ reviews)
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading | default: 'What do families say?'
+  assign empty_state = section.settings.empty_state
+  assign section_style = '--tmrev-pt: ' | append: section.settings.padding_top | append: 'px; --tmrev-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-membership-reviews"
+  aria-labelledby="theinmag-membership-reviews-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-membership-reviews__inner">
+    <h2 id="theinmag-membership-reviews-heading" class="theinmag-membership-reviews__heading">
+      {{ heading }}
+    </h2>
+
+    {%- if empty_state != blank -%}
+      <p class="theinmag-membership-reviews__empty-state">{{ empty_state }}</p>
+    {%- endif -%}
+
+    <div class="theinmag-membership-reviews__widget">
+      <div class="jdgm-widget jdgm-review-widget" data-id="{{ product.id }}" data-product-title="{{ product.title | escape }}"></div>
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .theinmag-membership-reviews {
+    background-color: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    padding: var(--tmrev-pt, 64px) var(--space-lg) var(--tmrev-pb, 64px);
+  }
+
+  .theinmag-membership-reviews__inner {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  .theinmag-membership-reviews__heading {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(26px, 4vw, 36px);
+    line-height: 1.15;
+    color: var(--color-inky-purple-navy);
+    margin: 0 0 var(--space-md);
+    text-align: center;
+  }
+
+  /* Empty-state message sits above the widget and naturally hides
+     itself once the widget populates - Judge.me drops its own content
+     inside .jdgm-widget after load, which visually overtakes the empty
+     state without forcing display logic from our side. */
+  .theinmag-membership-reviews__empty-state {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin: 0 auto var(--space-xl);
+    max-width: 56ch;
+    text-align: center;
+  }
+
+  .theinmag-membership-reviews__widget {
+    margin-top: var(--space-lg);
+  }
+  .theinmag-membership-reviews__widget .jdgm-widget { display: block; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Membership reviews",
+  "tag": "section",
+  "class": "shopify-section theinmag-membership-reviews-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading (H2)",
+      "default": "What do families say?"
+    },
+    {
+      "type": "textarea",
+      "id": "empty_state",
+      "label": "Empty-state message",
+      "default": "Be the first to share your theINmag moment - tag us @theinmag and we'll thread your story IN."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 64,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 64,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Membership reviews" }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

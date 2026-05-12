@@ -1,0 +1,305 @@
+{%- comment -%}
+  theinmag-membership-cross-sells
+  3-up product tile row. Heading is the locked "more for you." label
+  (lowercase + full stop convention - per Ryan's memory note that's
+  the site-wide recommendation block label).
+
+  Each block stores a product reference; the section reads the product
+  image, title, and price for the tile, with an optional manual
+  tagline override. Tile is the whole-card link.
+
+  Bg: peach (shop / product pair per design tokens).
+
+  Pattern source: sections/theinmag-mission.liquid product cards 3-up.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading | default: 'more for you.'
+  assign tiles = section.blocks | where: 'type', 'tile'
+  assign section_style = '--tmcs-pt: ' | append: section.settings.padding_top | append: 'px; --tmcs-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-membership-cross-sells"
+  aria-labelledby="theinmag-membership-cross-sells-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-membership-cross-sells__inner">
+    <h2 id="theinmag-membership-cross-sells-heading" class="theinmag-membership-cross-sells__heading">
+      {{ heading }}
+    </h2>
+
+    {%- if tiles.size > 0 -%}
+      <ul class="theinmag-membership-cross-sells__grid" role="list">
+        {%- for block in tiles -%}
+          {%- liquid
+            assign linked_product = block.settings.product
+            assign tagline = block.settings.tagline
+            assign price_label = block.settings.price_label
+          -%}
+          <li class="theinmag-membership-cross-sells__tile" {{ block.shopify_attributes }}>
+            {%- if linked_product != blank -%}
+              <a class="theinmag-membership-cross-sells__card" href="{{ linked_product.url }}">
+                <div class="theinmag-membership-cross-sells__frame">
+                  {%- if linked_product.featured_image -%}
+                    <img
+                      class="theinmag-membership-cross-sells__image"
+                      src="{{ linked_product.featured_image | image_url: width: 800 }}"
+                      srcset="
+                        {{ linked_product.featured_image | image_url: width: 400 }} 400w,
+                        {{ linked_product.featured_image | image_url: width: 600 }} 600w,
+                        {{ linked_product.featured_image | image_url: width: 800 }} 800w
+                      "
+                      sizes="(min-width: 750px) 33vw, 100vw"
+                      width="{{ linked_product.featured_image.width }}"
+                      height="{{ linked_product.featured_image.height }}"
+                      alt="{{ linked_product.title | escape }}"
+                      loading="lazy"
+                    >
+                  {%- else -%}
+                    <span class="theinmag-membership-cross-sells__placeholder" aria-hidden="true">{{ linked_product.title }}</span>
+                  {%- endif -%}
+                </div>
+                <div class="theinmag-membership-cross-sells__meta">
+                  <h3 class="theinmag-membership-cross-sells__title">{{ linked_product.title }}</h3>
+                  {%- if tagline != blank -%}
+                    <p class="theinmag-membership-cross-sells__tagline">{{ tagline }}</p>
+                  {%- endif -%}
+                  <p class="theinmag-membership-cross-sells__price">
+                    {%- if price_label != blank -%}
+                      {{ price_label }}
+                    {%- else -%}
+                      {{ linked_product.price | money }}
+                    {%- endif -%}
+                  </p>
+                </div>
+              </a>
+            {%- else -%}
+              <div class="theinmag-membership-cross-sells__card theinmag-membership-cross-sells__card--empty">
+                <div class="theinmag-membership-cross-sells__frame">
+                  <span class="theinmag-membership-cross-sells__placeholder" aria-hidden="true">Pick a product</span>
+                </div>
+              </div>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .theinmag-membership-cross-sells {
+    background-color: var(--color-peach);
+    color: var(--color-inky-purple-navy);
+    padding: var(--tmcs-pt, 72px) var(--space-lg) var(--tmcs-pb, 72px);
+  }
+
+  .theinmag-membership-cross-sells__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Locked "more for you." label: lowercase, period, sentence-case rule
+     superseded by the memory note. Post Regular renders uppercase
+     letterforms but the markup preserves casing for SEO + a11y. */
+  .theinmag-membership-cross-sells__heading {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(28px, 4.5vw, 40px);
+    line-height: 1.15;
+    color: var(--color-sandy-orange-dark);
+    margin: 0 0 var(--space-xl);
+    text-align: center;
+    text-transform: lowercase;
+  }
+
+  .theinmag-membership-cross-sells__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+  @media (min-width: 750px) {
+    .theinmag-membership-cross-sells__grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-xl);
+    }
+  }
+
+  .theinmag-membership-cross-sells__tile {
+    margin: 0;
+    display: flex;
+  }
+
+  .theinmag-membership-cross-sells__card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+    background-color: var(--color-cream);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: transform var(--transition-hover), box-shadow var(--transition-hover);
+  }
+
+  .theinmag-membership-cross-sells__card:not(.theinmag-membership-cross-sells__card--empty):hover,
+  .theinmag-membership-cross-sells__card:not(.theinmag-membership-cross-sells__card--empty):focus-visible {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card-hover);
+    outline: none;
+  }
+
+  .theinmag-membership-cross-sells__frame {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background-color: var(--color-wave-peach);
+  }
+
+  .theinmag-membership-cross-sells__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-membership-cross-sells__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--space-md);
+    font-family: var(--font-body);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-sandy-orange-dark);
+    opacity: 0.8;
+  }
+
+  .theinmag-membership-cross-sells__meta {
+    padding: var(--space-lg) var(--space-lg) var(--space-lg);
+  }
+
+  .theinmag-membership-cross-sells__title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(17px, 2vw, 19px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+    margin: 0 0 var(--space-xs);
+  }
+
+  .theinmag-membership-cross-sells__tagline {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin: 0 0 var(--space-sm);
+  }
+
+  .theinmag-membership-cross-sells__price {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.3;
+    color: var(--color-sandy-orange-dark);
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-cross-sells__card { transition: none; }
+    .theinmag-membership-cross-sells__card:hover,
+    .theinmag-membership-cross-sells__card:focus-visible { transform: none; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Membership cross-sells",
+  "tag": "section",
+  "class": "shopify-section theinmag-membership-cross-sells-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading (H2)",
+      "default": "more for you.",
+      "info": "Locked lowercase + full stop convention site-wide for recommendation blocks."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 72,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 72,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tile",
+      "name": "Product tile",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "text",
+          "id": "tagline",
+          "label": "Tagline (optional)"
+        },
+        {
+          "type": "text",
+          "id": "price_label",
+          "label": "Price label override (optional)",
+          "info": "Free-form. Falls back to the product price."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Membership cross-sells",
+      "blocks": [
+        { "type": "tile" },
+        { "type": "tile" },
+        { "type": "tile" }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

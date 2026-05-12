@@ -1,0 +1,894 @@
+{%- comment -%}
+  theinmag-membership-hero
+  Stage 2c rebuild - Pangaia/Guava/Alessi-style two-column sticky-scroll
+  PDP for /products/membership. Absorbs the Stage 2b form section so all
+  variant logic, line item properties, and Starting Issue widget machinery
+  live here in one comprehensive hero.
+
+  Layout:
+    Mobile (<750px): single column - thumbs hidden, photo stack, then widget.
+    Desktop (>=750px): two columns. Left = thumb strip + 4 square photos
+    stacked. Right = info widget with position: sticky so it stays pinned
+    while the user scrolls through the photos. Right column releases when
+    its content runs out and both columns share scroll past that point.
+
+  Variant Format selector swaps the TOP photo on click (Print / Digital /
+  Combo). The 3 photos below stay constant.
+
+  Right column stack:
+    1. Judge.me preview badge
+    2. Product title (H1)
+    3. "Never miss an issue" tagline
+    4. Price
+    5. Format pills (coral)
+    6. Length pills (coral)
+    7. Starting Issue stacked tiles (coral)
+    8. Add to Cart (yellow sticker)
+    9. Trust microcopy
+    10. Accordions: What's included, What ages?, Shipping, Cancel anytime (Rolling only)
+    11. Wait-time post-add tile
+
+  Locked random background pulled from the 3-image pool via the
+  theinmag-section-bg snippet (sitewide pattern - same snippet works
+  for every shop section once we extend the pool).
+
+  Spec lives in this conversation; consolidates Stage 2a plumbing +
+  Stage 2b extensions + Stage 2c overhaul.
+{%- endcomment -%}
+
+{%- liquid
+  assign current_issue = shop.metafields.theinmag.current_issue_number.value | default: 'Mag09'
+  assign print_in_stock = shop.metafields.theinmag.current_issue_print_in_stock.value
+  assign next_release_value = shop.metafields.theinmag.next_release_date.value
+  assign next_release_formatted = next_release_value | date: '%-d %B %Y'
+
+  assign current_num_str = current_issue | remove: 'Mag'
+  assign current_num = current_num_str | times: 1
+  assign next_num = current_num | plus: 1
+  if next_num < 10
+    assign next_issue = 'Mag0' | append: next_num
+  else
+    assign next_issue = 'Mag' | append: next_num
+  endif
+
+  assign first_variant = product.selected_or_first_available_variant
+
+  if print_in_stock
+    assign print_stock_attr = 'true'
+  else
+    assign print_stock_attr = 'false'
+  endif
+
+  assign hero_print = 'membership-hero-print.jpg' | asset_url
+  assign hero_digital = 'membership-hero-digital.jpg' | asset_url
+  assign hero_combo = 'membership-hero-combo.jpg' | asset_url
+
+  comment
+    Flick-through video filename pattern: mag{NN}-02-flick-through1.mp4
+    Bound to the shop-level current_issue_number metafield so the slot
+    auto-rolls to the new mag at each release (Stage 14 trigger). If a
+    matching file is not uploaded, the video tag's `poster` fallback or
+    a manual file-name update via section setting is the remediation.
+  endcomment
+  assign flick_through_filename = 'mag' | append: current_num_str | append: '-02-flick-through1.mp4'
+  assign flick_through_src = flick_through_filename | asset_url
+  assign three_times_year_src = 'trust-overlay-three-times-year.jpg' | asset_url
+  assign sustainable_src = 'trust-overlay-sustainable.jpg' | asset_url
+
+  assign tagline = section.settings.tagline | default: 'Inspiring creative kids.'
+  assign section_style = '--tmh-pt: ' | append: section.settings.padding_top | append: 'px; --tmh-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-membership-hero"
+  data-theinmag-membership-form
+  data-current-issue="{{ current_issue }}"
+  data-next-issue="{{ next_issue }}"
+  data-print-in-stock="{{ print_stock_attr }}"
+  data-hero-print="{{ hero_print }}"
+  data-hero-digital="{{ hero_digital }}"
+  data-hero-combo="{{ hero_combo }}"
+  aria-labelledby="theinmag-membership-hero-heading"
+  style="{{ section_style }}"
+>
+  {% render 'theinmag-section-bg', opacity: 0.55 %}
+
+  <div class="theinmag-membership-hero__inner">
+
+    {%- comment -%} LEFT: thumb strip + photo stack {%- endcomment -%}
+    <div class="theinmag-membership-hero__photos">
+
+      {%- comment -%}
+        Thumb strip + photo stack: position 0 is the variant-swap (Format-driven).
+        Positions 1-3 are picked by JS from the pool below per page load - 8 trust
+        overlay JPGs plus 3 product photos. Membership-specifics (three-times-year,
+        gift-giving, nevermissout) get priority-weighting in JS so at least one
+        always lands. Pool items render hidden; JS reveals 3 + rebuilds thumb-jump
+        indexes to match. No-JS users see only the variant-swap photo and its thumb.
+      {%- endcomment -%}
+
+      {%- comment -%}
+        Mosaic layout (desktop): three rows.
+          Row 1: kids-with-mag (left) + variant-swap (right, next to widget) - 2 squares
+          Row 2: 3 random trust overlays picked by JS from the 8-item pool - 3 squares
+          Row 3: inside-spread (left) + letterbox (right) - 2 squares
+        Mobile: same elements as a horizontal swipe carousel. CSS `order: -1`
+        promotes the variant-swap to first so phones see the chosen format
+        first as Ryan asked.
+
+        Pool delimiter is `;` (alt texts contain commas like "New mags, three
+        times a year." which would otherwise split mid-string). The Row 1-left
+        slot (three-times-year) and Row 3-right slot (sustainable) are now fixed
+        positions so they're removed from the random pool to avoid duplicates.
+      {%- endcomment -%}
+      {%- assign pool_items = 'trust-overlay-gift-giving.jpg|A gift that keeps on giving.|high;trust-overlay-nevermissout.jpg|Never miss an issue.|high;trust-overlay-ad-free.jpg|100% ad-free.|low;trust-overlay-aussie-kids.jpg|Made by Aussie kids for Aussie kids.|low;trust-overlay-120-pages.jpg|120+ pages of pure creativity.|low;trust-overlay-real-kids.jpg|Real kids. Real names. Real towns.|low' | split: ';' -%}
+
+      <ol class="theinmag-membership-hero__stack" role="list" data-stack>
+        {%- comment -%}
+          Row 1 LEFT (desktop) / Mobile carousel position 2: locked trust
+          overlay "New mags, three times a year."
+        {%- endcomment -%}
+        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide theinmag-membership-hero__photo--mobile-second" data-photo-index="0">
+          <img class="theinmag-membership-hero__image" src="{{ three_times_year_src }}" alt="New mags, three times a year." loading="eager">
+        </li>
+
+        {%- comment -%} Row 1 RIGHT / Mobile carousel position 1: variant-swap (Print/Digital/Combo) {%- endcomment -%}
+        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide theinmag-membership-hero__photo--variant" data-photo-locked data-photo-index="1">
+          <img class="theinmag-membership-hero__image" data-hero-swap src="{{ hero_print }}" alt="theINmag Membership - the magazine for creative kids." loading="eager" fetchpriority="high">
+        </li>
+
+        {%- comment -%} Row 2: 3 trust overlays from 6-item pool, JS reveals 3 with priority bias {%- endcomment -%}
+        {%- for item in pool_items -%}
+          {%- assign parts = item | split: '|' -%}
+          {%- assign filename = parts[0] -%}
+          {%- assign alt = parts[1] -%}
+          {%- assign priority = parts[2] -%}
+          <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--narrow" data-pool-photo data-pool-priority="{{ priority }}" hidden>
+            <img class="theinmag-membership-hero__image" src="{{ filename | asset_url }}" alt="{{ alt | escape }}" loading="lazy">
+          </li>
+        {%- endfor -%}
+
+        {%- comment -%}
+          Row 3 LEFT: flick-through video of the current mag. Filename is
+          constructed from the current_issue_number metafield so the slot
+          auto-rolls when a new issue drops. Autoplay muted loop playsinline
+          so iOS Safari runs it without user interaction.
+        {%- endcomment -%}
+        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide">
+          <video
+            class="theinmag-membership-hero__image"
+            src="{{ flick_through_src }}"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            aria-label="A quick flick-through of the latest theINmag issue."
+          ></video>
+        </li>
+
+        {%- comment -%} Row 3 RIGHT: locked trust overlay "Sustainably printed in Australia" {%- endcomment -%}
+        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide">
+          <img class="theinmag-membership-hero__image" src="{{ sustainable_src }}" alt="Sustainably printed in Australia." loading="lazy">
+        </li>
+      </ol>
+
+      {%- comment -%}
+        Mobile carousel dots indicator - sits below the carousel, shows
+        position. Hidden on desktop (mosaic is fully visible at once).
+        JS reuses the existing thumb-jump handlers via the data-thumb-jump
+        attribute, treating dots as a degenerate thumb strip.
+      {%- endcomment -%}
+      <ol class="theinmag-membership-hero__dots" role="list" aria-label="Photo position" data-dots>
+        <li><button type="button" class="theinmag-membership-hero__dot is-active" data-thumb-jump="0" aria-label="Photo 1"></button></li>
+        <li><button type="button" class="theinmag-membership-hero__dot" data-thumb-jump="1" aria-label="Photo 2"></button></li>
+        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 3" hidden></button></li>
+        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 4" hidden></button></li>
+        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 5" hidden></button></li>
+        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 6" hidden></button></li>
+        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 7" hidden></button></li>
+        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 8" hidden></button></li>
+        <li><button type="button" class="theinmag-membership-hero__dot" data-thumb-jump="" aria-label="Photo (flick-through video)"></button></li>
+        <li><button type="button" class="theinmag-membership-hero__dot" data-thumb-jump="" aria-label="Photo (sustainable)"></button></li>
+      </ol>
+    </div>
+
+    {%- comment -%} RIGHT: sticky info widget {%- endcomment -%}
+    <div class="theinmag-membership-hero__widget" data-widget>
+
+      {%- comment -%}
+        Wrap the brand-pun IN in <span class="theinmag-in"> for sitewide
+        emphasis treatment (Post Regular renders the IN glyphs slightly
+        larger per the design rule). Targets "theINmag" specifically so
+        we don't catch unrelated IN substrings (PRINTING, INTERESTING, etc).
+      {%- endcomment -%}
+      {%- assign title_html = product.title | replace: 'theINmag', 'the<span class="theinmag-in">IN</span>mag' -%}
+      <h1 id="theinmag-membership-hero-heading" class="theinmag-membership-hero__title">{{ title_html }}</h1>
+
+      {%- comment -%}
+        Rating slot sits BETWEEN title and tagline so there's no dead space
+        above the H1 (pre-Judge.me-load the Judge.me badge slot collapses to
+        zero height). Wrapped in an anchor that scrolls to the reviews section
+        when clicked. JS handles header-offset-aware smooth scroll.
+      {%- endcomment -%}
+      <a href="#theinmag-membership-reviews-heading" class="theinmag-membership-hero__rating-link" data-rating-jump aria-label="Read customer reviews">
+        <div class="jdgm-prev-badge" data-id="{{ product.id }}" data-template="badge"></div>
+      </a>
+
+      {%- if tagline != blank -%}
+        <p class="theinmag-membership-hero__tagline">{{ tagline }}</p>
+      {%- endif -%}
+
+      <div class="theinmag-membership-hero__price" data-price-display>{{ first_variant.price | money }}</div>
+      <p class="theinmag-membership-hero__shipping-note" data-shipping-note hidden>Shipping included</p>
+
+      <form
+        action="{{ routes.cart_add_url }}"
+        method="post"
+        enctype="multipart/form-data"
+        class="theinmag-membership-hero__form"
+        data-membership-form
+      >
+        <input type="hidden" name="id" data-variant-id-input value="{{ first_variant.id }}">
+        <input type="hidden" name="quantity" value="1">
+        <input type="hidden" name="properties[_starting_mag]" data-prop-starting-mag value="{{ current_issue }}">
+        <input type="hidden" name="properties[_remaining_after_first]" data-prop-remaining value="3">
+        <input type="hidden" name="properties[_mags_included]" data-prop-mags-included value="">
+
+        <fieldset class="theinmag-membership-hero__fieldset">
+          <legend class="theinmag-membership-hero__legend">Format</legend>
+          <div class="theinmag-membership-hero__pills" role="radiogroup" data-option-name="format">
+            <button type="button" class="theinmag-membership-hero__pill" data-value="Print" aria-pressed="true">Print</button>
+            <button type="button" class="theinmag-membership-hero__pill" data-value="Digital" aria-pressed="false">Digital</button>
+            <button type="button" class="theinmag-membership-hero__pill" data-value="Combo" aria-pressed="false">Combo</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="theinmag-membership-hero__fieldset">
+          <legend class="theinmag-membership-hero__legend">Length</legend>
+          <div class="theinmag-membership-hero__pills" role="radiogroup" data-option-name="length">
+            <button type="button" class="theinmag-membership-hero__pill" data-value="4-Issue" aria-pressed="true">4-Issue</button>
+            <button type="button" class="theinmag-membership-hero__pill" data-value="8-Issue" aria-pressed="false">8-Issue</button>
+            <button type="button" class="theinmag-membership-hero__pill" data-value="Rolling" aria-pressed="false">Rolling</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="theinmag-membership-hero__fieldset">
+          <legend class="theinmag-membership-hero__legend">Starting issue</legend>
+          <div class="theinmag-membership-hero__starting" role="radiogroup" data-option-name="starting">
+            <button type="button" class="theinmag-membership-hero__start-tile" data-value="current" data-requires-print-stock="true" aria-pressed="true">
+              <span class="theinmag-membership-hero__start-title">Start with the current issue</span>
+              <span class="theinmag-membership-hero__start-sub">{{ current_issue }}{% if print_in_stock %} - in stock now{% endif %}</span>
+            </button>
+            <button type="button" class="theinmag-membership-hero__start-tile" data-value="next" aria-pressed="false">
+              <span class="theinmag-membership-hero__start-title">Start with the next issue</span>
+              <span class="theinmag-membership-hero__start-sub">{{ next_issue }} - drops {{ next_release_formatted }}</span>
+            </button>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="theinmag-membership-hero__cta" data-primary-cta>Add to cart</button>
+
+        <p class="theinmag-membership-hero__microcopy">
+          Free shipping over $40 - Sustainably printed in Australia - 120+ pages, zero ads
+        </p>
+      </form>
+
+      <ul class="theinmag-membership-hero__accordions" role="list">
+
+        <li class="theinmag-membership-hero__accordion" data-accordion>
+          <h3 class="theinmag-membership-hero__acc-q">
+            <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
+              <span>What's included</span>
+              <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
+            <p>Your chosen format (Print, Digital, or Combo) of every issue across the Membership length. First-dibs on each and every mag drop. Oh yeah - and endless inspiration.</p>
+          </div>
+        </li>
+
+        <li class="theinmag-membership-hero__accordion" data-accordion>
+          <h3 class="theinmag-membership-hero__acc-q">
+            <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
+              <span>What ages is this magazine for?</span>
+              <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
+            <p>Designed for kids aged 5-13, though lately we've had submissions from kids up to 16. How exciting. Literally enjoyed by the whole family - the puzzles, jokes, art, and short comics pull in younger siblings, the longer reads and creator interviews keep older kids hooked, and parents usually end up reading along too.</p>
+          </div>
+        </li>
+
+        <li class="theinmag-membership-hero__accordion" data-accordion>
+          <h3 class="theinmag-membership-hero__acc-q">
+            <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
+              <span>Shipping and delivery</span>
+              <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
+            <p>Print mags ship within three business days from order. Free shipping over $40 - not a problem for members. Digital lands in your inbox the day each issue drops. Releases hit mid February, mid June, and mid October.</p>
+          </div>
+        </li>
+
+        <li class="theinmag-membership-hero__accordion" data-accordion data-rolling-only hidden>
+          <h3 class="theinmag-membership-hero__acc-q">
+            <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
+              <span>Can I cancel anytime?</span>
+              <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
+            <p>Yes - two-click cancel from your account on theinmag.com.au. No emails, no phone calls, no "90-day notice" nonsense. Any issue already charged still ships; renewals stop from the next drop.</p>
+          </div>
+        </li>
+
+      </ul>
+
+      <aside class="theinmag-membership-hero__post-add" aria-label="Shipping and digital alternative" data-post-add-tile hidden>
+        <p>Grabbing a printed mag? It's about to start its Aussie road trip to your house 🚐💨 - up to three business days to ship. Want something to flick through tonight? Upgrade to Combo above and the digital lands in your inbox in about four minutes.</p>
+      </aside>
+
+    </div>
+  </div>
+
+  <script type="application/json" data-membership-variants>
+    [
+      {%- for v in product.variants -%}
+        {"id": {{ v.id }}, "option1": {{ v.option1 | json }}, "option2": {{ v.option2 | json }}, "price": {{ v.price }}, "available": {{ v.available }}}{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    ]
+  </script>
+
+  {%- comment -%}
+    Floating "back to my order" pill. Fixed bottom-right of viewport on
+    every screen size, shown by JS when the widget's bottom scrolls off
+    the top of viewport. Click smooth-scrolls back to the widget top so
+    the user can confirm the variant + add to cart without manually
+    scrolling up. Cream pill + soft pink accent matches the widget.
+  {%- endcomment -%}
+  <button type="button" class="theinmag-membership-hero__back-to-order" data-back-to-order hidden aria-label="Back to my order">
+    <svg class="theinmag-membership-hero__back-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="12" y1="19" x2="12" y2="5"></line>
+      <polyline points="5 12 12 5 19 12"></polyline>
+    </svg>
+    <span>Back to my order</span>
+  </button>
+</section>
+
+<script src="{{ 'theinmag-membership-form.js' | asset_url }}" defer></script>
+
+{% stylesheet %}
+  .theinmag-membership-hero {
+    position: relative;
+    isolation: isolate;
+    color: var(--color-inky-purple-navy);
+    padding: var(--tmh-pt, 56px) var(--space-lg) var(--tmh-pb, 56px);
+    overflow: hidden;
+  }
+
+  .theinmag-membership-hero__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__inner {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+  }
+
+  /* ---------- LEFT column ---------- */
+
+  /* Photo column is a cream card matching the widget's surface colour with
+     SHARP corners (Ryan's spec - widget keeps its rounded corners as a
+     visual distinction). Big glow lifts both cards off the patterned bg. */
+  .theinmag-membership-hero__photos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    width: 100%;
+    background-color: rgba(251, 246, 234, 0.94);
+    padding: var(--space-sm);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  /* Photo stack - mobile is a horizontal swipe carousel, desktop is a 6-col
+     grid mosaic with 3 rows: 2 wide squares, 3 narrow squares, 2 wide squares. */
+  .theinmag-membership-hero__stack {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    /* Mobile: horizontal scroll-snap carousel. Variant-swap promoted to first
+       via CSS `order` (Ryan's spec - phones see the chosen format first). */
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-sm);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 calc(-1 * var(--space-lg));
+    padding: 0 var(--space-lg);
+  }
+  .theinmag-membership-hero__stack::-webkit-scrollbar { display: none; }
+
+  /* Mobile: each photo takes ~85% viewport width, snap aligns to start. */
+  @media (max-width: 749px) {
+    .theinmag-membership-hero__photo {
+      flex: 0 0 85%;
+      scroll-snap-align: start;
+    }
+    /* Variant-swap first on mobile per Ryan: "that first one will always be
+       the one they select so printed digital or combo image." three-times-year
+       sits second on mobile. */
+    .theinmag-membership-hero__photo--variant { order: -2; }
+    .theinmag-membership-hero__photo--mobile-second { order: -1; }
+  }
+
+  /* Desktop: 6-col mosaic. Wide squares span 3 cols, narrow span 2.
+     Uniform small gap so the patterned bg shows through between every
+     photo, photos keep their soft shadow for the lifted-card feel. */
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__stack {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: var(--space-sm);
+      overflow: visible;
+      margin: 0;
+      padding: 0;
+    }
+    .theinmag-membership-hero__photo--wide { grid-column: span 3; }
+    .theinmag-membership-hero__photo--narrow { grid-column: span 2; }
+  }
+
+  /* Sharp-edged square photo card. Soft shadow keeps the lifted feel
+     even without rounded corners. Bg shows through gaps between photos. */
+  /* Photos sit inside the card wrapper - the card carries the lifted glow,
+     individual photos just need clean edges and a soft background. */
+  .theinmag-membership-hero__photo {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 0;
+    overflow: hidden;
+    background-color: var(--color-cream);
+  }
+  .theinmag-membership-hero__photo[hidden] { display: none; }
+  .theinmag-membership-hero__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Mobile dots indicator - sits below the carousel, shows position. Hidden
+     on desktop (mosaic is fully visible). The existing thumb-jump JS handler
+     treats these as a degenerate thumb strip. */
+  .theinmag-membership-hero__dots {
+    list-style: none;
+    display: flex;
+    gap: var(--space-xs);
+    justify-content: center;
+    padding: 0;
+    margin: var(--space-sm) 0 0;
+  }
+  .theinmag-membership-hero__dots li { margin: 0; }
+  .theinmag-membership-hero__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 0;
+    padding: 0;
+    background: rgba(42, 31, 61, 0.25);
+    cursor: pointer;
+    transition: background var(--transition-standard), transform var(--transition-standard);
+  }
+  .theinmag-membership-hero__dot.is-active {
+    background: var(--color-soft-pink);
+    transform: scale(1.4);
+  }
+  .theinmag-membership-hero__dot[hidden] { display: none; }
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__dots { display: none; }
+  }
+
+  /* ---------- RIGHT column (sticky widget) ---------- */
+
+  /* Cream card with subtle transparency over the patterned bg. Backdrop
+     blur softens the bg pattern behind the widget for legibility. */
+  .theinmag-membership-hero__widget {
+    background-color: rgba(251, 246, 234, 0.94);
+    border-radius: var(--radius-xl);
+    /* Tight top padding kills dead space above the title; bottom keeps
+       breathing room beneath the post-add tile. Glow matches the photos
+       card so both lift off the patterned bg with the same weight. */
+    padding: var(--space-xs) var(--space-lg) var(--space-lg);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__widget {
+      /* Widget starts aligned with photos top (align-self: start). Both
+         columns scroll naturally with the page until the widget's bottom
+         would otherwise exit viewport - sticky-bottom then pins it at
+         viewport bottom. Photos keep scrolling on the left until their
+         bottom catches up at section end, both release simultaneously.
+         Ryan: "they move together at the start but the widget stops
+         before the photos... until both bottoms line up". */
+      position: sticky;
+      bottom: 0;
+      align-self: start;
+      padding: var(--space-xs) var(--space-lg) var(--space-lg);
+    }
+  }
+
+  /* Rating link wraps the Judge.me badge - clickable scroll-jump to reviews
+     section. Slot has zero min-height so pre-Judge.me-load it collapses;
+     once populated, Judge.me's own internal spacing applies. */
+  .theinmag-membership-hero__rating-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    margin: 0 0 var(--space-xs);
+  }
+  .theinmag-membership-hero__rating-link .jdgm-prev-badge { display: block; cursor: pointer; }
+
+  .theinmag-membership-hero__title {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(24px, 3vw, 32px);
+    line-height: 1.05;
+    color: var(--color-inky-purple-navy);
+    margin: 0 0 var(--space-xs);
+    white-space: nowrap;
+  }
+
+  /* Editorial benefit line under title. Inky-navy italic - sandy-orange
+     read as "red" against the soft pink pills, the pair clashed. */
+  .theinmag-membership-hero__tagline {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin: 0 0 var(--space-sm);
+  }
+
+  .theinmag-membership-hero__price {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(20px, 2.6vw, 26px);
+    line-height: 1.1;
+    color: var(--color-inky-purple-navy);
+    margin: 0 0 var(--space-xs);
+  }
+
+  /* Shipping-included note appears under the price for Rolling Print + Rolling
+     Combo - the spec bakes shipping into the Rolling variant price, so flag it
+     up-front before the customer hits checkout. JS toggles `hidden`. */
+  .theinmag-membership-hero__shipping-note {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--color-sage-dark);
+    margin: 0 0 var(--space-md);
+  }
+  .theinmag-membership-hero__shipping-note[hidden] { display: none; }
+
+  .theinmag-membership-hero__form { display: block; }
+
+  .theinmag-membership-hero__fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0 0 var(--space-md);
+  }
+
+  .theinmag-membership-hero__legend {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--color-inky-purple-navy);
+    text-transform: uppercase;
+    padding: 0;
+    margin: 0 0 var(--space-xs);
+    opacity: 0.78;
+  }
+
+  /* Soft-pink pill toggles - white default, pink border, pink fill on
+     selection. The pink (--color-soft-pink, sampled from the header wordmark
+     backdrop) reads warmer and less aggressive than the dark coral. Selected
+     state keeps inky-navy text so we hold WCAG AA contrast on the pink fill. */
+  .theinmag-membership-hero__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .theinmag-membership-hero__pill {
+    flex: 1 1 auto;
+    min-height: 40px;
+    padding: 8px 14px;
+    background: #ffffff;
+    border: 2px solid var(--color-soft-pink);
+    border-radius: var(--radius-pill);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background var(--transition-standard), color var(--transition-standard);
+  }
+  .theinmag-membership-hero__pill:hover { background: rgba(247, 160, 146, 0.18); }
+  .theinmag-membership-hero__pill[aria-pressed='true'] {
+    background: var(--color-soft-pink);
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__pill[hidden] { display: none; }
+
+  /* Starting issue tiles - stacked vertically per Ryan's preference (reverting
+     the earlier side-by-side experiment - the stacked treatment reads cleaner
+     and lets the two-line tile content breathe). */
+  .theinmag-membership-hero__starting {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .theinmag-membership-hero__start-tile {
+    background: #ffffff;
+    border: 2px solid var(--color-soft-pink);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    transition: background var(--transition-standard), color var(--transition-standard);
+  }
+  .theinmag-membership-hero__start-tile[aria-pressed='true'] {
+    background: var(--color-soft-pink);
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__start-tile[hidden] { display: none; }
+  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 13px; }
+  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 12px; opacity: 0.85; }
+
+  /* Yellow sticker Add to Cart - locked convention. */
+  .theinmag-membership-hero__cta {
+    width: 100%;
+    margin-top: var(--space-sm);
+    background: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-heading);
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    padding: 12px 24px;
+    border: 0;
+    border-radius: var(--radius-button);
+    box-shadow: var(--shadow-button-yellow);
+    cursor: pointer;
+    transition: background var(--transition-standard), color var(--transition-standard), translate var(--transition-standard), box-shadow var(--transition-standard);
+  }
+  .theinmag-membership-hero__cta:hover {
+    background: var(--color-purple-dark);
+    color: #ffffff;
+    translate: 0 2px;
+    box-shadow: var(--shadow-button-pressed);
+  }
+
+  .theinmag-membership-hero__microcopy {
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin: var(--space-sm) 0 0;
+    text-align: center;
+  }
+
+  /* Accordions - small text (Ryan's preference), open one at a time
+     pattern handled by the JS. Cancel-anytime accordion has [hidden]
+     toggled by JS based on Length=Rolling. */
+  .theinmag-membership-hero__accordions {
+    list-style: none;
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    border-top: 1px solid rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-membership-hero__accordion {
+    border-bottom: 1px solid rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-membership-hero__accordion[hidden] { display: none; }
+  .theinmag-membership-hero__acc-q { margin: 0; }
+  .theinmag-membership-hero__acc-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    background: transparent;
+    border: 0;
+    padding: 10px 0;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+    cursor: pointer;
+    text-align: left;
+  }
+  .theinmag-membership-hero__acc-caret {
+    position: relative;
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+  }
+  .theinmag-membership-hero__acc-caret::before,
+  .theinmag-membership-hero__acc-caret::after {
+    content: '';
+    position: absolute;
+    background: var(--color-inky-purple-navy);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .theinmag-membership-hero__acc-caret::before {
+    top: 50%; left: 0; right: 0; height: 2px;
+    transform: translateY(-50%);
+  }
+  .theinmag-membership-hero__acc-caret::after {
+    left: 50%; top: 0; bottom: 0; width: 2px;
+    transform: translateX(-50%);
+  }
+  .theinmag-membership-hero__acc-trigger[aria-expanded='true'] .theinmag-membership-hero__acc-caret::after {
+    transform: translateX(-50%) scaleY(0);
+    opacity: 0;
+  }
+  .theinmag-membership-hero__acc-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .theinmag-membership-hero__acc-panel[data-open='true'] { max-height: 600px; }
+  .theinmag-membership-hero__acc-panel p {
+    margin: 0;
+    padding: 0 0 var(--space-md);
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+  }
+
+  /* Wait-time tile - lavender-tinted card below the accordions. */
+  .theinmag-membership-hero__post-add {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    background-color: rgba(232, 222, 239, 0.7);
+    border-radius: var(--radius-lg);
+  }
+  .theinmag-membership-hero__post-add p {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy);
+  }
+
+  /* Floating "back to my order" pill - fixed bottom-right of viewport.
+     Shown when the widget's bottom scrolls off the top of viewport so the
+     user has a one-click path back to confirm/add. Cream card matching the
+     widget's visual register with the soft-pink border accent. */
+  .theinmag-membership-hero__back-to-order {
+    position: fixed;
+    right: var(--space-md);
+    bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 10px 16px;
+    background-color: rgba(251, 246, 234, 0.96);
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: var(--radius-pill);
+    box-shadow: 0 6px 20px rgba(42, 31, 61, 0.15);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background var(--transition-standard), translate var(--transition-standard);
+  }
+  .theinmag-membership-hero__back-to-order:hover {
+    background-color: #ffffff;
+    translate: 0 -2px;
+  }
+  .theinmag-membership-hero__back-to-order[hidden] { display: none; }
+  .theinmag-membership-hero__back-icon { color: var(--color-soft-pink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-hero__back-to-order:hover { translate: 0 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-hero__cta:hover {
+      translate: 0 0;
+      box-shadow: var(--shadow-button-yellow);
+    }
+    .theinmag-membership-hero__acc-panel { transition: none; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Membership hero",
+  "tag": "section",
+  "class": "shopify-section theinmag-membership-hero-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Two-column sticky-scroll PDP. Photos left, info widget right. Photos pull from /assets/ filenames membership-hero-print/digital/combo.jpg and membership-photo-1/2/3.jpg. Random background from membership-section-bg_1/2/3.jpg pool."
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "tagline",
+      "label": "Tagline (under product title)",
+      "default": "Inspiring creative kids."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 56,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 56,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Membership hero" }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

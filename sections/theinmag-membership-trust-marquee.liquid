@@ -1,0 +1,345 @@
+{%- comment -%}
+  theinmag-membership-trust-marquee
+  Auto-rotating tile carousel - one trust overlay visible at a time,
+  crossfade between tiles every 4s, pause on hover. Each block stores
+  an image (the 2048x2048 JPG overlay, when Ryan supplies) plus a
+  text label as fallback. Until images land, the section renders
+  branded text-only cards.
+
+  Five shared overlays (per spec 2.18) plus two Membership-specific:
+    1. 100% ad-free
+    2. Made by Aussie kids, for Aussie kids
+    3. Sustainably printed in Australia
+    4. 120+ pages of pure creativity
+    5. Real kids. Real names. Real towns.
+    6. New mags, three times a year
+    7. A gift that keeps on giving
+
+  Reduced-motion: stacks all tiles vertically, no rotation.
+
+  Spec: ../theinmag-docs/shop-build-spec-v3.2.md 2.18,
+        ../theinmag-docs/membership-pdp-copy.md TRUST_MARQUEE_ACCOMPANIMENT
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading | default: 'What you get with every Membership:'
+  assign autoplay_ms = section.settings.autoplay_ms | default: 4000
+  assign tiles = section.blocks | where: 'type', 'overlay'
+  assign section_style = '--tmtm-pt: ' | append: section.settings.padding_top | append: 'px; --tmtm-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-membership-trust-marquee"
+  data-theinmag-trust-marquee
+  data-autoplay-ms="{{ autoplay_ms }}"
+  aria-labelledby="theinmag-membership-trust-marquee-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-membership-trust-marquee__inner">
+    <h2 id="theinmag-membership-trust-marquee-heading" class="theinmag-membership-trust-marquee__heading">
+      {{ heading }}
+    </h2>
+
+    {%- if tiles.size > 0 -%}
+      <div class="theinmag-membership-trust-marquee__stage" data-stage>
+        {%- for block in tiles -%}
+          {%- liquid
+            assign label = block.settings.label
+            assign overlay_image = block.settings.image
+            assign accent = block.settings.accent | default: 'purple'
+          -%}
+          <figure
+            class="theinmag-membership-trust-marquee__tile theinmag-membership-trust-marquee__tile--{{ accent }}{% if forloop.first %} is-active{% endif %}"
+            data-tile
+            data-index="{{ forloop.index0 }}"
+            aria-hidden="{% if forloop.first %}false{% else %}true{% endif %}"
+            {{ block.shopify_attributes }}
+          >
+            {%- if overlay_image != blank -%}
+              <img
+                class="theinmag-membership-trust-marquee__image"
+                src="{{ overlay_image | image_url: width: 800 }}"
+                srcset="
+                  {{ overlay_image | image_url: width: 400 }} 400w,
+                  {{ overlay_image | image_url: width: 600 }} 600w,
+                  {{ overlay_image | image_url: width: 800 }} 800w,
+                  {{ overlay_image | image_url: width: 1200 }} 1200w
+                "
+                sizes="(min-width: 750px) 420px, 100vw"
+                width="{{ overlay_image.width }}"
+                height="{{ overlay_image.height }}"
+                alt="{{ label | escape }}"
+                loading="lazy"
+              >
+            {%- endif -%}
+            <figcaption class="theinmag-membership-trust-marquee__label">{{ label }}</figcaption>
+          </figure>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .theinmag-membership-trust-marquee {
+    background-color: var(--color-lavender);
+    color: var(--color-purple-dark);
+    padding: var(--tmtm-pt, 64px) var(--space-lg) var(--tmtm-pb, 64px);
+  }
+
+  .theinmag-membership-trust-marquee__inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .theinmag-membership-trust-marquee__heading {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(18px, 2.4vw, 22px);
+    line-height: 1.4;
+    color: var(--color-purple-dark);
+    margin: 0 0 var(--space-xl);
+  }
+
+  /* Stage holds all tiles stacked; only the active one is opacity 1.
+     Aspect ratio 1:1 matches the 2048x2048 JPG spec - when images land,
+     they fill without cropping the rendered text overlay. */
+  .theinmag-membership-trust-marquee__stage {
+    position: relative;
+    width: min(100%, 420px);
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .theinmag-membership-trust-marquee__tile {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background-color: var(--color-purple-dark);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--space-2xl) var(--space-xl);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    box-shadow: var(--shadow-card);
+  }
+
+  .theinmag-membership-trust-marquee__tile.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Accent variants - each tile can be tinted to a different brand pair
+     so the rotation feels varied. All maintain white-on-dark contrast. */
+  .theinmag-membership-trust-marquee__tile--purple { background-color: var(--color-purple-dark); }
+  .theinmag-membership-trust-marquee__tile--coral { background-color: var(--color-coral-dark); }
+  .theinmag-membership-trust-marquee__tile--orange { background-color: var(--color-sandy-orange-dark); }
+  .theinmag-membership-trust-marquee__tile--sage { background-color: var(--color-sage-dark); }
+  .theinmag-membership-trust-marquee__tile--teal { background-color: var(--color-teal-dark); }
+  .theinmag-membership-trust-marquee__tile--ink { background-color: var(--color-inky-purple-navy); }
+
+  .theinmag-membership-trust-marquee__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 1;
+  }
+
+  /* When an image is present, hide the text fallback - the JPG carries
+     the rendered overlay text itself per spec 2.18. */
+  .theinmag-membership-trust-marquee__tile:has(.theinmag-membership-trust-marquee__image) .theinmag-membership-trust-marquee__label {
+    display: none;
+  }
+
+  .theinmag-membership-trust-marquee__label {
+    position: relative;
+    z-index: 2;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(28px, 4.5vw, 40px);
+    line-height: 1.15;
+    color: #ffffff;
+    margin: 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Reduced-motion: stack tiles vertically instead of rotating. */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-trust-marquee__stage {
+      aspect-ratio: auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+    .theinmag-membership-trust-marquee__tile {
+      position: relative;
+      inset: auto;
+      opacity: 1;
+      pointer-events: auto;
+      aspect-ratio: 1 / 1;
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+<script>
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const root = document.querySelector('[data-theinmag-trust-marquee]');
+    if (!root) return;
+
+    const stage = root.querySelector('[data-stage]');
+    if (!stage) return;
+
+    const tiles = stage.querySelectorAll('[data-tile]');
+    if (tiles.length < 2) return;
+
+    const interval = parseInt(root.dataset.autoplayMs, 10) || 4000;
+    let active = 0;
+    let timer = null;
+    let paused = false;
+
+    function show(next) {
+      tiles[active].classList.remove('is-active');
+      tiles[active].setAttribute('aria-hidden', 'true');
+      active = next;
+      tiles[active].classList.add('is-active');
+      tiles[active].setAttribute('aria-hidden', 'false');
+    }
+
+    function tick() {
+      if (paused) return;
+      show((active + 1) % tiles.length);
+    }
+
+    function start() {
+      stop();
+      timer = window.setInterval(tick, interval);
+    }
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    root.addEventListener('mouseenter', function () { paused = true; });
+    root.addEventListener('mouseleave', function () { paused = false; });
+    document.addEventListener('visibilitychange', function () {
+      paused = document.hidden;
+    });
+
+    start();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Trust marquee",
+  "tag": "section",
+  "class": "shopify-section theinmag-membership-trust-marquee-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Header copy",
+      "default": "What you get with every Membership:"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_ms",
+      "label": "Rotation interval (ms)",
+      "min": 2000,
+      "max": 8000,
+      "step": 500,
+      "default": 4000,
+      "unit": "ms"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 64,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 64,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "overlay",
+      "name": "Trust overlay",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label (also used as image alt text)",
+          "default": "Trust message"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Overlay image (2048x2048 JPG)",
+          "info": "When set, replaces the text card. JPG includes its own rendered overlay text."
+        },
+        {
+          "type": "select",
+          "id": "accent",
+          "label": "Fallback card colour",
+          "info": "Used when no image is uploaded.",
+          "options": [
+            { "value": "purple", "label": "Purple" },
+            { "value": "coral", "label": "Coral" },
+            { "value": "orange", "label": "Sandy orange" },
+            { "value": "sage", "label": "Sage" },
+            { "value": "teal", "label": "Teal" },
+            { "value": "ink", "label": "Inky purple-navy" }
+          ],
+          "default": "purple"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Membership trust marquee",
+      "blocks": [
+        { "type": "overlay", "settings": { "label": "100% ad-free", "accent": "purple" } },
+        { "type": "overlay", "settings": { "label": "Made by Aussie kids, for Aussie kids", "accent": "coral" } },
+        { "type": "overlay", "settings": { "label": "Sustainably printed in Australia", "accent": "sage" } },
+        { "type": "overlay", "settings": { "label": "120+ pages of pure creativity", "accent": "orange" } },
+        { "type": "overlay", "settings": { "label": "Real kids. Real names. Real towns.", "accent": "teal" } },
+        { "type": "overlay", "settings": { "label": "New mags, three times a year", "accent": "ink" } },
+        { "type": "overlay", "settings": { "label": "A gift that keeps on giving", "accent": "purple" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

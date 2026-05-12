@@ -58,6 +58,12 @@
     --color-yellow-shadow: #D4A02E;
     --color-cherry: #B8265E;
 
+    /* Soft pink sampled from the header wordmark backdrop - the canonical
+       brand pink that sits behind "the IN mag". Softer than the coral-dark,
+       still has enough body to read on buttons when paired with inky text.
+       Used as the shop selector pill colour. */
+    --color-soft-pink: #F7A092;
+
     /* ----- Pattern overlays ----- */
     --color-wave-purple: #C9B5DB;
     --color-wave-coral: #F5C7B5;
@@ -191,6 +197,18 @@ h5 {
     color: var(--color-cherry);
 }
 
+/* Brand-pun "IN" emphasis in Post Regular headings sitewide. The capitalised
+   IN inside theINmag, INfo, INkids, "Send IN" reads more clearly when lifted
+   a few percent above the surrounding letterforms. Wrap each occurrence in
+   <span class="theinmag-in">IN</span> from Liquid (or the future sitewide JS
+   pass). Letter-spacing tweak compensates for Post Regular's wider IN glyphs. */
+.theinmag-in {
+    font-size: 1.4em;
+    letter-spacing: -0.03em;
+    display: inline-block;
+    vertical-align: -0.06em;
+}
+
 /* ==========================================================================
    theINmag button system - locked sticker convention
    First built inside the hero section. Lifted into base on 2026-05-03 so
@@ -311,6 +329,34 @@ main#MainContent > .shopify-section:first-of-type > .theinmag-hero,
 .theinmag-hero-section > .theinmag-hero {
     margin-top: 0 !important;
     padding-top: 0 !important;
+}
+
+/* ==========================================================================
+   Sitewide section background - paired with the theinmag-section-bg snippet.
+   Snippet picks a random index from the pool and sets --theinmag-bg-image
+   + --theinmag-bg-opacity via inline style. CSS variables let one CSS rule
+   serve every section that renders the snippet.
+   The calling section needs position: relative + foreground content at
+   z-index >= 1 to sit above this bg layer.
+   ========================================================================== */
+/* Doubled-class selector bumps specificity past Dawn's `div:empty {display:none}`
+   rule in base.css (memory note: empty decorative bg-only divs collapse).
+   The bg layer has no children by design so it would otherwise be hidden. */
+.theinmag-section-bg.theinmag-section-bg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background-image: var(--theinmag-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* attachment: fixed locks the image to the viewport while the section
+       div itself scrolls over it - so the bg appears stationary while both
+       columns slide down on top. Matches the competitions section behaviour. */
+    background-attachment: fixed;
+    opacity: var(--theinmag-bg-opacity, 0.4);
+    z-index: 0;
+    pointer-events: none;
 }
 
 /* Respect reduced motion preferences across the site */

@@ -1,6 +1,6 @@
 {%- comment -%}
   theinmag-membership-form
-  Stage 2a plumbing for /products/membership.
+  Stage 2a plumbing + Stage 2b visual extensions for /products/membership.
 
   Reads three shop-level metafields:
     theinmag.current_issue_number          (single-line text, e.g. "Mag09")
@@ -8,19 +8,21 @@
     theinmag.next_release_date             (date)
 
   Renders:
-    - Format tile-buttons (Print / Digital / Combo)
-    - Length tile-buttons (4-Issue / 8-Issue / Rolling)
-    - Starting Issue tile-buttons (Current / Next)
-    - Dynamic price
+    - Judge.me preview badge slot (rating + review count)
+    - Product title (H1)
+    - Dynamic price display
+    - Format / Length / Starting Issue tile buttons with variant-driven
+      helper microcopy under Format and Length
+    - Static Liquid-rendered starting-issue helper (current vs next stock)
     - Add to Cart form posting three hidden line item properties:
         properties[_starting_mag]
         properties[_remaining_after_first]
         properties[_mags_included]
+    - Trust microcopy under CTA + wait-time post-add tile
+    - Sticky mobile CTA bar (mobile-only, shown by JS when the primary
+      CTA leaves viewport)
 
-  Stage 2a is plumbing only. Visual polish (UGC, FAQ, trust overlays,
-  sticky mobile bar, hero photo, cross-sells) all land in Stage 2b.
-
-  Starting Issue visibility logic:
+  Starting Issue visibility logic (JS):
     - Format = Print or Combo AND print_in_stock = false -> only "next"
     - Otherwise -> both options visible
 
@@ -65,6 +67,10 @@
 >
   <div class="theinmag-membership-form__inner">
 
+    <div class="theinmag-membership-form__rating">
+      <div class="jdgm-prev-badge" data-id="{{ product.id }}" data-template="badge"></div>
+    </div>
+
     <h1 id="theinmag-membership-form-heading" class="theinmag-membership-form__heading">
       {{ product.title }}
     </h1>
@@ -89,23 +95,34 @@
       <fieldset class="theinmag-membership-form__fieldset">
         <legend class="theinmag-membership-form__legend">How would you like to read?</legend>
         <div class="theinmag-membership-form__tiles" role="radiogroup" data-option-name="format">
-          <button type="button" class="theinmag-membership-form__tile" data-value="Print" aria-pressed="true">Print</button>
-          <button type="button" class="theinmag-membership-form__tile" data-value="Digital" aria-pressed="false">Digital</button>
-          <button type="button" class="theinmag-membership-form__tile" data-value="Combo" aria-pressed="false">Combo</button>
+          <button type="button" class="theinmag-membership-form__tile" data-value="Print" data-helper="The printed mag in your kid's letterbox. The classic." aria-pressed="true">Print</button>
+          <button type="button" class="theinmag-membership-form__tile" data-value="Digital" data-helper="The full mag as a PDF, in your inbox the day each issue drops. Buy one, share with anyone in your household." aria-pressed="false">Digital</button>
+          <button type="button" class="theinmag-membership-form__tile" data-value="Combo" data-helper="Both the printed mag and the digital PDF, every drop. 10% off the bundled total." aria-pressed="false">Combo</button>
         </div>
+        <p class="theinmag-membership-form__helper" data-format-helper>The printed mag in your kid's letterbox. The classic.</p>
       </fieldset>
 
       <fieldset class="theinmag-membership-form__fieldset">
         <legend class="theinmag-membership-form__legend">How many?</legend>
         <div class="theinmag-membership-form__tiles" role="radiogroup" data-option-name="length">
-          <button type="button" class="theinmag-membership-form__tile" data-value="4-Issue" aria-pressed="true">4-Issue</button>
-          <button type="button" class="theinmag-membership-form__tile" data-value="8-Issue" aria-pressed="false">8-Issue</button>
-          <button type="button" class="theinmag-membership-form__tile" data-value="Rolling" aria-pressed="false">Rolling</button>
+          <button type="button" class="theinmag-membership-form__tile" data-value="4-Issue" data-helper="Four issues, paid upfront. Roughly 16 months of mags. Cheaper per issue than buying singles." aria-pressed="true">4-Issue</button>
+          <button type="button" class="theinmag-membership-form__tile" data-value="8-Issue" data-helper="Eight issues, paid upfront. Just under three years of mags. Biggest per-issue saving we offer." aria-pressed="false">8-Issue</button>
+          <button type="button" class="theinmag-membership-form__tile" data-value="Rolling" data-helper="One issue per drop, auto-renewed at each release. Set it once and you're sorted. Cancel anytime from your account." aria-pressed="false">Rolling</button>
         </div>
+        <p class="theinmag-membership-form__helper" data-length-helper>Four issues, paid upfront. Roughly 16 months of mags. Cheaper per issue than buying singles.</p>
       </fieldset>
 
       <fieldset class="theinmag-membership-form__fieldset">
-        <legend class="theinmag-membership-form__legend">When should it start?</legend>
+        <legend class="theinmag-membership-form__legend">Where would you like to start?</legend>
+        {%- if print_in_stock -%}
+          <p class="theinmag-membership-form__helper theinmag-membership-form__helper--static">
+            {{ current_issue }} is in stock right now. {{ next_issue }} drops {{ next_release_formatted }}. No wrong answer here.
+          </p>
+        {%- else -%}
+          <p class="theinmag-membership-form__helper theinmag-membership-form__helper--static">
+            {{ next_issue }} is the next drop, on {{ next_release_formatted }}.
+          </p>
+        {%- endif -%}
         <div class="theinmag-membership-form__tiles theinmag-membership-form__tiles--stacked" role="radiogroup" data-option-name="starting">
           <button type="button" class="theinmag-membership-form__tile theinmag-membership-form__tile--starting" data-value="current" data-requires-print-stock="true" aria-pressed="true">
             <span class="theinmag-membership-form__tile-title">Start with the current issue</span>
@@ -118,11 +135,22 @@
         </div>
       </fieldset>
 
-      <button type="submit" class="theinmag-membership-form__cta">
+      <button type="submit" class="theinmag-membership-form__cta" data-primary-cta>
         Add to cart
       </button>
 
+      <p class="theinmag-membership-form__cta-microcopy">
+        Free shipping over $40 - Sustainably printed in Australia - 120+ pages, zero ads
+      </p>
+
     </form>
+
+    <aside class="theinmag-membership-form__post-add-tile" aria-label="Shipping and digital alternative">
+      <p>
+        Your kid's first mag is about to start its Aussie road trip 🚐💨 (we get a lot of orders, so first issues take up to three business days to ship). Want something to flick through tonight? Digital lands in your inbox in about 4 minutes - upgrade to Combo above.
+      </p>
+    </aside>
+
   </div>
 
   <script type="application/json" data-membership-variants>
@@ -132,6 +160,12 @@
       {%- endfor -%}
     ]
   </script>
+
+  <div class="theinmag-membership-form__sticky" data-sticky-bar hidden>
+    <button type="button" class="theinmag-membership-form__sticky-cta" data-sticky-cta>
+      Add to cart
+    </button>
+  </div>
 </section>
 
 <style>
@@ -147,6 +181,16 @@
     max-width: 640px;
     margin: 0 auto;
   }
+
+  /* Judge.me badge slot - min-height holds layout space before the
+     embed populates so first paint doesn't shift the H1 down. The
+     parent-class selector lifts specificity over Dawn's div:empty
+     collapse rule. */
+  .theinmag-membership-form__rating {
+    min-height: 24px;
+    margin: 0 0 var(--space-md);
+  }
+  .theinmag-membership-form__rating .jdgm-prev-badge { display: block; }
 
   .theinmag-membership-form__heading {
     font-family: var(--font-heading);
@@ -226,6 +270,21 @@
   .theinmag-membership-form__tile-title { font-weight: 700; font-size: 16px; }
   .theinmag-membership-form__tile-sub { font-weight: 400; font-size: 14px; opacity: 0.9; }
 
+  .theinmag-membership-form__helper {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin: var(--space-sm) 0 0;
+    min-height: 1.5em;
+  }
+
+  .theinmag-membership-form__helper--static {
+    margin: 0 0 var(--space-md);
+  }
+
   .theinmag-membership-form__cta {
     width: 100%;
     margin-top: var(--space-md);
@@ -248,6 +307,71 @@
     color: #fff;
     transform: translateY(2px);
     box-shadow: 0 2px 0 #4A2D62;
+  }
+
+  .theinmag-membership-form__cta-microcopy {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin: var(--space-sm) 0 0;
+    text-align: center;
+  }
+
+  /* Passive wait-time tile - lavender card sitting below the form CTA.
+     "Next to Add to Cart" per spec 2.8 reads as vertically adjacent in
+     this single-column form layout; horizontal placement would mean a
+     two-column restructure that's out of Stage 2b scope. */
+  .theinmag-membership-form__post-add-tile {
+    margin-top: var(--space-2xl);
+    padding: var(--space-md) var(--space-lg);
+    background-color: var(--color-lavender);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+  .theinmag-membership-form__post-add-tile p {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy);
+  }
+
+  /* Sticky mobile CTA bar - fixed to viewport bottom on mobile only.
+     Shown by JS once the form's primary CTA leaves viewport (plain
+     scroll listener; IntersectionObserver has been unreliable for
+     elements that start outside viewport, per pattern-library notes).
+     env(safe-area-inset-bottom) keeps it above the iOS home indicator. */
+  .theinmag-membership-form__sticky {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: var(--space-sm) var(--space-md) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
+    background-color: var(--color-cream);
+    box-shadow: 0 -4px 16px rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-membership-form__sticky[hidden] { display: none; }
+  .theinmag-membership-form__sticky-cta {
+    width: 100%;
+    background: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-heading);
+    font-size: 17px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    padding: 14px 24px;
+    border: 0;
+    border-radius: var(--radius-button);
+    box-shadow: 0 4px 0 var(--color-yellow-shadow);
+    cursor: pointer;
+    min-height: 48px;
+  }
+  @media (min-width: 750px) {
+    .theinmag-membership-form__sticky { display: none !important; }
   }
 
   @media (prefers-reduced-motion: reduce) {

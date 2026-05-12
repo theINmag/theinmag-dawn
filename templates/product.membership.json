@@ -1,14 +1,49 @@
 {
   "sections": {
-    "main": {
-      "type": "theinmag-membership-form",
-      "settings": {
-        "padding_top": 56,
-        "padding_bottom": 56
-      }
+    "hero": {
+      "type": "theinmag-membership-hero",
+      "settings": {}
+    },
+    "explainer": {
+      "type": "theinmag-membership-explainer",
+      "settings": {}
+    },
+    "ugc": {
+      "type": "theinmag-membership-ugc",
+      "settings": {}
+    },
+    "reviews": {
+      "type": "theinmag-membership-reviews",
+      "settings": {}
+    },
+    "faq": {
+      "type": "theinmag-membership-faq",
+      "blocks": {
+        "f1": { "type": "faq_item", "settings": { "question": "When will my first mag arrive?", "answer": "Depends on what you pick at the top. If you choose \"start with the current issue\" and it's in stock, your mag ships within three business days. If you choose \"start with the next issue\", you'll receive it in the week after the release date (15 February, 15 June, or 15 October). Either way, we'll email you the moment it ships.\n\nIf you went Digital or Combo, the digital PDF lands the day each issue drops. No waiting for the post." } },
+        "f2": { "type": "faq_item", "settings": { "question": "Can I cancel a Rolling Membership?", "answer": "Yes - log into your account on theinmag.com.au and cancel in two clicks. No emails, no phone calls, no \"you must give 90 days' notice\" nonsense. Any issues you've already been charged for still ship to you, and the renewals stop from the next drop onwards.\n\n4-Issue and 8-Issue Memberships are paid upfront for the issues you've committed to, so they're not cancellable mid-run - but they also don't auto-renew. When the last issue ships, that's the end of it." } },
+        "f3": { "type": "faq_item", "settings": { "question": "What's the difference between Combo and buying Print plus Digital separately?", "answer": "Two things. First, price - Combo is 10% off the bundled total of buying both formats as separate Memberships. Second, it's one purchase, one renewal, one account. No juggling two Memberships that don't quite align.\n\nCombo earns its keep for three kinds of customer: teachers (digital for the classroom, print for the reading corner), grandparents (print to send to the grandkids, digital to read along over FaceTime), and families who like having different ways to access the mag - perfect for when you're travelling, have kids in different rooms, or want to share across devices.\n\nIf only one format suits you, the regular Print or Digital Membership is the right pick. Combo earns its keep when you actually need both." } },
+        "f4": { "type": "faq_item", "settings": { "question": "What if my kid's already got the current issue? Can I start with the next one?", "answer": "Yes - that's exactly what the \"Start with the next issue\" option is for. You'll skip the current issue and your Membership begins with the next one when it drops. You won't be charged anything extra to wait - the price is the same either way." } }
+      },
+      "block_order": ["f1", "f2", "f3", "f4"],
+      "settings": {}
+    },
+    "cross-sells": {
+      "type": "theinmag-membership-cross-sells",
+      "blocks": {
+        "c1": { "type": "tile" },
+        "c2": { "type": "tile" },
+        "c3": { "type": "tile" }
+      },
+      "block_order": ["c1", "c2", "c3"],
+      "settings": {}
     }
   },
   "order": [
-    "main"
+    "hero",
+    "ugc",
+    "explainer",
+    "reviews",
+    "faq",
+    "cross-sells"
   ]
 }

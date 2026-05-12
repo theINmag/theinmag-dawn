@@ -1,0 +1,34 @@
+{%- comment -%}
+  theinmag-section-bg
+  Sitewide random section background picker. Renders an absolutely-
+  positioned bg image layer for the calling section. Pool of N bgs
+  in /assets/ as membership-section-bg_1.jpg ... _N.jpg. Bump
+  pool_size below when adding more files.
+
+  Random pick is server-side via Liquid using the 'now' timestamp
+  modulo pool_size - zero JS overhead, exactly one image fetched
+  per page render.
+
+  Usage from a section:
+    {% render 'theinmag-section-bg' %}
+    {% render 'theinmag-section-bg', opacity: 0.5 %}
+
+  The calling section must have `position: relative` (or absolute)
+  and its foreground content must sit at z-index >= 1. Snippet CSS
+  lives in assets/theinmag-base.css under .theinmag-section-bg.
+{%- endcomment -%}
+
+{%- liquid
+  assign pool_size = 3
+  assign seed = 'now' | date: '%-S' | plus: 0
+  assign pick = seed | modulo: pool_size | plus: 1
+  assign filename = 'membership-section-bg_' | append: pick | append: '.jpg'
+  assign bg_url = filename | asset_url
+  assign bg_opacity = opacity | default: 0.4
+-%}
+
+<div
+  class="theinmag-section-bg"
+  aria-hidden="true"
+  style="--theinmag-bg-image: url('{{ bg_url }}'); --theinmag-bg-opacity: {{ bg_opacity }};"
+></div>
