@@ -15,6 +15,16 @@ Critical deadline: site live before mid-June 2026 (Queensland trip + Dept of Edu
 
 ---
 
+## Current build state (as of 12 May 2026)
+
+Canonical source is `../theinmag-docs/build-state.md` — read it at session start. Snapshot:
+
+- Membership PDP: Stage 2a-2d complete. Pull-quote section live (`theinmag-pull-quote.liquid`, Brooke B. testimony between pillars and reviews).
+- Next build target: Stage 2e (Judge.me reviews on the Membership PDP).
+- Locked section order on `/products/membership`: `hero → ugc → pillars → pull_quote → reviews → faq → cross-sells`.
+
+---
+
 ## Reference files (read these first)
 
 Three companion files live in the sibling `../theinmag-docs/` repo (split out of the theme repo on 2026-05-08 so the theme stays theme-code-only). Read them before any design or content decision:
@@ -67,6 +77,15 @@ The brief and sitemap live in the Claude Project knowledge (sitemap also at `../
 - All custom CSS in section-level Custom CSS boxes or `assets/theinmag-base.css`.
 - All animations respect `prefers-reduced-motion`.
 - Image alt text: always descriptive, always keyword-aware.
+
+### Shopify CLI ops rules (locked 12 May 2026 after a real incident)
+
+- `shopify theme push` runs from inside `theinmag-dawn/` cwd ONLY. Never from the parent folder. From the wrong cwd, the command silently DELETES the targeted file from the live theme.
+- Single `--only` flag per command. Multiple `--only` flags in one command are unreliable.
+- After every push, verify with `shopify theme pull --only [filename]` to confirm the file landed.
+- If you're not sure which directory you're in, run `pwd` first.
+
+See `../theinmag-docs/theinmag-shopify-bible.md` Part 14B for the failure-mode details and recovery procedure.
 
 ---
 
@@ -126,4 +145,4 @@ Judge.me / Sky Pilot / Klaviyo / Make.com / JotForm / AusPost API / GA4 / Lucky 
 
 ---
 
-*CLAUDE.md last updated: May 8 2026 - planning docs split out of the theme repo into the sibling `../theinmag-docs/` folder so this repo contains only theme code. All companion-file references in this doc, plus comment-block spec pointers in section/snippet files, now use `../theinmag-docs/` paths. The `_tools/` build scripts (`build-competitions-data.py`, `audit-competitions.py`) were patched to know about the sibling layout (DOCS_ROOT for inputs/audit-outputs, THEME_ROOT for theme-bound outputs). Theme-code-only contents: assets/ config/ layout/ locales/ sections/ snippets/ templates/ + this CLAUDE.md, LICENSE.md, README.md, translation.yml, release-notes.md, .gitignore, .prettierrc.json, .theme-check.yml, .vscode/, .github/. Earlier (May 7): page-playbook added to companion files + session-start step 5; playbook is the "before any new page" doc anchored to homepage / competitions / field notes as the quality bar (send-in is pattern source, NOT a quality reference). Fonts locked (Post Regular + Inter). Hero headline locked: "The magazine for creative kids". Claude Code commits/pushes from here forward.*
+*CLAUDE.md last updated: May 12 2026 - Membership PDP Stage 2a-2d snapshot added under "Current build state" (next target = Stage 2e Judge.me reviews; locked section order hero → ugc → pillars → pull_quote → reviews → faq → cross-sells). New "Shopify CLI ops rules" subsection under Code conventions captures the 12 May incident — push from inside `theinmag-dawn/` only (parent cwd silently DELETES the file from the live theme), single `--only` per command, verify with a pull after every push. May 8 2026 - planning docs split out of the theme repo into the sibling `../theinmag-docs/` folder so this repo contains only theme code. All companion-file references in this doc, plus comment-block spec pointers in section/snippet files, now use `../theinmag-docs/` paths. The `_tools/` build scripts (`build-competitions-data.py`, `audit-competitions.py`) were patched to know about the sibling layout (DOCS_ROOT for inputs/audit-outputs, THEME_ROOT for theme-bound outputs). Theme-code-only contents: assets/ config/ layout/ locales/ sections/ snippets/ templates/ + this CLAUDE.md, LICENSE.md, README.md, translation.yml, release-notes.md, .gitignore, .prettierrc.json, .theme-check.yml, .vscode/, .github/. Earlier (May 7): page-playbook added to companion files + session-start step 5; playbook is the "before any new page" doc anchored to homepage / competitions / field notes as the quality bar (send-in is pattern source, NOT a quality reference). Fonts locked (Post Regular + Inter). Hero headline locked: "The magazine for creative kids". Claude Code commits/pushes from here forward.*

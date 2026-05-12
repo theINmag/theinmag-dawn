@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "hero": {
@@ -7,12 +16,45 @@
     "pillars": {
       "type": "theinmag-membership-pillars",
       "blocks": {
-        "p1": { "type": "pillar", "settings": { "short_name": "Made by kids, not at kids", "headline": "Each creation on every page comes from an Aussie kid.", "body": "Most kids' magazines are made by adults guessing what kids like. theINmag flips that. Real kids submit their creations - art, writing, photography, comics, maths puzzles, the works - and we publish them with their first name, town, and age. Your kid will recognise the voice on every page because it IS their voice. Kids reading kids. Kids inspiring kids. That's the whole thing." } },
-        "p2": { "type": "pillar", "settings": { "short_name": "Your kid could be in the next one", "headline": "Not a competition. A real chance to be published.", "body": "Every Membership unlocks first dibs to send [[IN]] your kid's creation for the next issue. No entry fee, just a huge opportunity. If they send it, we read it. If we publish it, their name and town go in print, with a copy of the mag in their hands. For a lot of kids, it's the first time they've ever seen their creation outside the fridge door. It tends to change things." } },
-        "p3": { "type": "pillar", "settings": { "short_name": "A real magazine, not another screen", "headline": "Real paper. Real ink. Real weight in their hands.", "body": "Your kid doesn't need another app. They need 120+ pages of stuff to flick through, fold corners on, doodle in the margins of, and leave on the kitchen bench for someone else to pick up. theINmag is unapologetically offline - no notifications, no algorithm deciding what they see next. The print mag arrives every four months and stays in their life for the four months after that." } },
-        "p4": { "type": "pillar", "settings": { "short_name": "Made well, made here, made to keep", "headline": "Sustainably printed in Australia. Zero ads. Built to last.", "body": "We print theINmag here in Australia, on recycled stock, with vegetable inks. Every issue is 120+ pages, perfect-bound, designed to survive being carried around in a school bag for a year. No ads, no upsells, no shortcuts on the paper. Parents tell us they end up stacking them on the coffee table. That's the goal." } }
+        "p1": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Made by kids, not at kids",
+            "headline": "Each creation on every page comes from an Aussie kid.",
+            "body": "Most kids' magazines are made by adults guessing what kids like. theINmag flips that. Real kids submit their creations - art, writing, photography, comics, maths puzzles, the works - and we publish them with their first name, town, and age. Your kid will recognise the voice on every page because it IS their voice. Kids reading kids. Kids inspiring kids. That's the whole thing."
+          }
+        },
+        "p2": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Your kid could be in the next one",
+            "headline": "Not a competition. A real chance to be published.",
+            "body": "Every Membership unlocks first dibs to send [[IN]] your kid's creation for the next issue. No entry fee, just a huge opportunity. If they send it, we read it. If we publish it, their name and town go in print, with a copy of the mag in their hands. For a lot of kids, it's the first time they've ever seen their creation outside the fridge door. It tends to change things."
+          }
+        },
+        "p3": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "A real magazine, not another screen",
+            "headline": "Real paper. Real ink. Real weight in their hands.",
+            "body": "Your kid doesn't need another app. They need 120+ pages of stuff to flick through, fold corners on, doodle in the margins of, and leave on the kitchen bench for someone else to pick up. theINmag is unapologetically offline - no notifications, no algorithm deciding what they see next. The print mag arrives every four months and stays in their life for the four months after that."
+          }
+        },
+        "p4": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Made well, made here, made to keep",
+            "headline": "Sustainably printed in Australia. Zero ads. Built to last.",
+            "body": "We print theINmag here in Australia, on recycled stock, with vegetable inks. Every issue is 120+ pages, perfect-bound, designed to survive being carried around in a school bag for a year. No ads, no upsells, no shortcuts on the paper. Parents tell us they end up stacking them on the coffee table. That's the goal."
+          }
+        }
       },
-      "block_order": ["p1", "p2", "p3", "p4"],
+      "block_order": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
       "settings": {
         "aeo_heading": "Why do parents stick with theINmag Membership?",
         "intro_text": "The reasons parents stick with us, in plain English.",
@@ -24,29 +66,93 @@
       "type": "theinmag-membership-ugc",
       "settings": {}
     },
+    "pull_quote": {
+      "type": "theinmag-pull-quote",
+      "settings": {
+        "quote_body": "Such an incredibly diverse, interesting, thoughtful, creative, fun, engaging magazine. My kids are going to absolutely FIZZZZZ.",
+        "attribution_name": "Brooke B.",
+        "attribution_role": "parent",
+        "background_filename": "theinside-homepage-background.jpg",
+        "scrim_opacity": 45,
+        "heading_font_style": "inter",
+        "padding_top": 72,
+        "padding_bottom": 72
+      }
+    },
     "reviews": {
       "type": "theinmag-membership-reviews",
-      "settings": {}
+      "settings": {
+        "review_source": "store",
+        "eyebrow": "From real families.",
+        "cta_label": "Write a review",
+        "expand_label": "Read all reviews",
+        "collapse_label": "Hide all reviews",
+        "min_reviews": 0,
+        "padding_top": 96,
+        "padding_bottom": 96
+      }
     },
     "faq": {
       "type": "theinmag-membership-faq",
       "blocks": {
-        "f1": { "type": "faq_item", "settings": { "question": "When will my first mag arrive?", "answer": "Depends on what you pick at the top. If you choose \"start with the current issue\" and it's in stock, your mag ships within three business days. If you choose \"start with the next issue\", you'll receive it in the week after the release date (15 February, 15 June, or 15 October). Either way, we'll email you the moment it ships.\n\nIf you went Digital or Combo, the digital PDF lands the day each issue drops. No waiting for the post." } },
-        "f2": { "type": "faq_item", "settings": { "question": "Can I cancel a Rolling Membership?", "answer": "Yes - log into your account on theinmag.com.au and cancel in two clicks. No emails, no phone calls, no \"you must give 90 days' notice\" nonsense. Any issues you've already been charged for still ship to you, and the renewals stop from the next drop onwards.\n\n4-Issue and 8-Issue Memberships are paid upfront for the issues you've committed to, so they're not cancellable mid-run - but they also don't auto-renew. When the last issue ships, that's the end of it." } },
-        "f3": { "type": "faq_item", "settings": { "question": "What's the difference between Combo and buying Print plus Digital separately?", "answer": "Two things. First, price - Combo is 10% off the bundled total of buying both formats as separate Memberships. Second, it's one purchase, one renewal, one account. No juggling two Memberships that don't quite align.\n\nCombo earns its keep for three kinds of customer: teachers (digital for the classroom, print for the reading corner), grandparents (print to send to the grandkids, digital to read along over FaceTime), and families who like having different ways to access the mag - perfect for when you're travelling, have kids in different rooms, or want to share across devices.\n\nIf only one format suits you, the regular Print or Digital Membership is the right pick. Combo earns its keep when you actually need both." } },
-        "f4": { "type": "faq_item", "settings": { "question": "What if my kid's already got the current issue? Can I start with the next one?", "answer": "Yes - that's exactly what the \"Start with the next issue\" option is for. You'll skip the current issue and your Membership begins with the next one when it drops. You won't be charged anything extra to wait - the price is the same either way." } }
+        "f1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "When will my first mag arrive?",
+            "answer": "Depends on what you pick at the top. If you choose \"start with the current issue\" and it's in stock, your mag ships within three business days. If you choose \"start with the next issue\", you'll receive it in the week after the release date (15 February, 15 June, or 15 October). Either way, we'll email you the moment it ships.\n\nIf you went Digital or Combo, the digital PDF lands the day each issue drops. No waiting for the post."
+          }
+        },
+        "f2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I cancel a Rolling Membership?",
+            "answer": "Yes - log into your account on theinmag.com.au and cancel in two clicks. No emails, no phone calls, no \"you must give 90 days' notice\" nonsense. Any issues you've already been charged for still ship to you, and the renewals stop from the next drop onwards.\n\n4-Issue and 8-Issue Memberships are paid upfront for the issues you've committed to, so they're not cancellable mid-run - but they also don't auto-renew. When the last issue ships, that's the end of it."
+          }
+        },
+        "f3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What's the difference between Combo and buying Print plus Digital separately?",
+            "answer": "Two things. First, price - Combo is 10% off the bundled total of buying both formats as separate Memberships. Second, it's one purchase, one renewal, one account. No juggling two Memberships that don't quite align.\n\nCombo earns its keep for three kinds of customer: teachers (digital for the classroom, print for the reading corner), grandparents (print to send to the grandkids, digital to read along over FaceTime), and families who like having different ways to access the mag - perfect for when you're travelling, have kids in different rooms, or want to share across devices.\n\nIf only one format suits you, the regular Print or Digital Membership is the right pick. Combo earns its keep when you actually need both."
+          }
+        },
+        "f4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What if my kid's already got the current issue? Can I start with the next one?",
+            "answer": "Yes - that's exactly what the \"Start with the next issue\" option is for. You'll skip the current issue and your Membership begins with the next one when it drops. You won't be charged anything extra to wait - the price is the same either way."
+          }
+        }
       },
-      "block_order": ["f1", "f2", "f3", "f4"],
+      "block_order": [
+        "f1",
+        "f2",
+        "f3",
+        "f4"
+      ],
       "settings": {}
     },
     "cross-sells": {
       "type": "theinmag-membership-cross-sells",
       "blocks": {
-        "c1": { "type": "tile" },
-        "c2": { "type": "tile" },
-        "c3": { "type": "tile" }
+        "c1": {
+          "type": "tile",
+          "settings": {}
+        },
+        "c2": {
+          "type": "tile",
+          "settings": {}
+        },
+        "c3": {
+          "type": "tile",
+          "settings": {}
+        }
       },
-      "block_order": ["c1", "c2", "c3"],
+      "block_order": [
+        "c1",
+        "c2",
+        "c3"
+      ],
       "settings": {}
     }
   },
@@ -54,6 +160,7 @@
     "hero",
     "ugc",
     "pillars",
+    "pull_quote",
     "reviews",
     "faq",
     "cross-sells"

@@ -85,11 +85,12 @@
 
   .theinmag-ugc-strip__item {
     flex: 0 0 auto;
-    /* Square tiles sized to section height. Clamped between 320px (small
-       phone) and 560px (large desktop) so the strip stays a readable scale
-       at every breakpoint. */
-    width: clamp(320px, 60vh, 560px);
-    height: clamp(320px, 60vh, 560px);
+    /* Square tiles. Width caps at 78vw on narrow viewports so the NEXT
+       tile peeks in from the right edge - signals "you can swipe" without
+       a caption. Min 260px, max 460px so desktop still shows a generous
+       tile and never blows past the design grid. */
+    width: clamp(260px, 78vw, 460px);
+    height: clamp(260px, 78vw, 460px);
     scroll-snap-align: start;
     overflow: hidden;
     margin: 0;

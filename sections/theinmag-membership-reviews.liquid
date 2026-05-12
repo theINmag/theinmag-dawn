@@ -1,85 +1,468 @@
 {%- comment -%}
   theinmag-membership-reviews
-  Judge.me reviews block. Mounts the standard product review widget;
-  the Judge.me app embed (already live on Dawn per memory note) takes
-  care of populating it. Renders an empty-state fallback when no
-  reviews exist for the product yet.
+  Stage 2e build (12 May 2026). Sits between pull_quote and faq on
+  /products/membership. Cream surface — exhale moment after the dark
+  full-bleed pull-quote, before the lavender FAQ takes over.
 
-  Heading is question-format per AEO requirements.
+  No H2: the rating row IS the section opener (locked decision, see
+  membership-pdp-copy.md). Optional Caveat eyebrow above the row.
 
-  Spec: ../theinmag-docs/theinmag-shopify-bible.md Part 11 (270%
-        conversion lift on products with 5+ reviews)
+  Structure:
+    1. Optional Caveat eyebrow ("From real families.")
+    2. Rating row: jdgm-prev-badge stars+count + yellow "Write a review" pill
+    3. Hairline divider
+    4. Cards Carousel (Judge.me jdgm-carousel-wrapper, hydrated by app embed JS)
+    5. Inline expander: "Read all reviews" → product-scoped jdgm-review-widget
+
+  Hides itself if product.metafields.judgeme.review_count < min_reviews
+  (default 3) UNLESS in theme editor (request.design_mode) so admins can
+  still configure.
+
+  Star colour set globally in Judge.me Branding → Primary color #F9C23C,
+  no per-section override needed.
 {%- endcomment -%}
 
 {%- liquid
-  assign heading = section.settings.heading | default: 'What do families say?'
-  assign empty_state = section.settings.empty_state
-  assign section_style = '--tmrev-pt: ' | append: section.settings.padding_top | append: 'px; --tmrev-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  assign review_source = section.settings.review_source | default: 'store'
+  assign review_count = product.metafields.judgeme.review_count | default: 0
+  assign min_reviews = section.settings.min_reviews | default: 0
+
+  assign shop_count = shop.metafields.judgeme.all_reviews_count | default: 0
+  assign shop_carousel_present = shop.metafields.judgeme.featured_carousel
+
+  assign should_hide = false
+  if review_source == 'product' and review_count < min_reviews and request.design_mode != true
+    assign should_hide = true
+  endif
+  if review_source == 'store' and shop_count == 0 and shop_carousel_present == blank and request.design_mode != true
+    assign should_hide = true
+  endif
+
+  assign eyebrow = section.settings.eyebrow
+  assign cta_label = section.settings.cta_label | default: 'Write a review'
+  assign expand_label = section.settings.expand_label | default: 'Read all reviews'
+  assign collapse_label = section.settings.collapse_label | default: 'Hide all reviews'
+  assign pt = section.settings.padding_top | default: 96
+  assign pb = section.settings.padding_bottom | default: 96
 -%}
 
+{%- unless should_hide -%}
 <section
   class="theinmag-membership-reviews"
-  aria-labelledby="theinmag-membership-reviews-heading"
-  style="{{ section_style }}"
+  aria-label="Customer reviews"
+  style="--tmrev-pt: {{ pt }}px; --tmrev-pb: {{ pb }}px;"
+  data-theinmag-membership-reviews
+  data-expand-label="{{ expand_label | escape }}"
+  data-collapse-label="{{ collapse_label | escape }}"
 >
   <div class="theinmag-membership-reviews__inner">
-    <h2 id="theinmag-membership-reviews-heading" class="theinmag-membership-reviews__heading">
-      {{ heading }}
-    </h2>
 
-    {%- if empty_state != blank -%}
-      <p class="theinmag-membership-reviews__empty-state">{{ empty_state }}</p>
+    {%- if eyebrow != blank -%}
+      <p class="theinmag-membership-reviews__eyebrow">{{ eyebrow }}</p>
     {%- endif -%}
 
-    <div class="theinmag-membership-reviews__widget">
-      <div class="jdgm-widget jdgm-review-widget" data-id="{{ product.id }}" data-product-title="{{ product.title | escape }}"></div>
+    {%- liquid
+      assign jm = shop.metafields.judgeme
+      assign shop_rating = jm.all_reviews_rating | default: 0
+      assign shop_count = jm.all_reviews_count | default: 0
+      assign shop_carousel_html = jm.featured_carousel
+      assign rating_rounded = shop_rating | round: 1
+    -%}
+
+    <div class="theinmag-membership-reviews__rating-row" id="theinmag-membership-reviews-heading">
+      <div class="theinmag-membership-reviews__rating">
+        {%- if review_source == 'product' -%}
+          <div class="jdgm-prev-badge" data-id="{{ product.id }}" data-template="badge"></div>
+        {%- elsif shop_count != 0 -%}
+          <a href="javascript:void(0)" class="jdgm-all-reviews-rating-wrapper" aria-label="{{ rating_rounded }} out of 5 stars, based on {{ shop_count }} reviews">
+            <span
+              data-score="{{ shop_rating }}"
+              class="jdgm-all-reviews-rating"
+              aria-label="{{ rating_rounded }} stars"
+              role="img"
+            ></span>
+            <span class="theinmag-membership-reviews__rating-text">
+              <strong>{{ rating_rounded }}</strong>
+              <span class="theinmag-membership-reviews__rating-divider" aria-hidden="true">·</span>
+              <span class="jdgm-carousel-number-of-reviews" data-number-of-reviews="{{ shop_count }}">Based on {{ shop_count }} reviews</span>
+            </span>
+          </a>
+        {%- endif -%}
+      </div>
+      {%- if review_source == 'product' -%}
+        <a
+          href="#"
+          class="theinmag-membership-reviews__cta jdgm-write-rev-link"
+          data-product-id="{{ product.id }}"
+          data-product-title="{{ product.title | escape }}"
+        >{{ cta_label }}</a>
+      {%- endif -%}
     </div>
+
+    <div class="theinmag-membership-reviews__divider" aria-hidden="true"></div>
+
+    <div class="theinmag-membership-reviews__carousel">
+      {%- if review_source == 'product' -%}
+        <div class="jdgm-carousel-wrapper"></div>
+      {%- elsif shop_carousel_html != blank -%}
+        <div class="jdgm-carousel-wrapper">
+          {{ shop_carousel_html }}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if review_source == 'product' -%}
+      <div class="theinmag-membership-reviews__expand-wrap">
+        <button
+          type="button"
+          class="theinmag-membership-reviews__expand-trigger"
+          aria-expanded="false"
+          aria-controls="theinmag-membership-reviews-full"
+          data-expand-trigger
+        >
+          <span class="theinmag-membership-reviews__expand-label" data-expand-label-text>{{ expand_label }}</span>
+          <span class="theinmag-membership-reviews__expand-caret" aria-hidden="true"></span>
+        </button>
+        <div
+          id="theinmag-membership-reviews-full"
+          class="theinmag-membership-reviews__expand-panel"
+          hidden
+        >
+          <div
+            class="jdgm-widget jdgm-review-widget"
+            data-id="{{ product.id }}"
+            data-product-title="{{ product.title | escape }}"
+          ></div>
+        </div>
+      </div>
+    {%- endif -%}
+
   </div>
 </section>
+{%- endunless -%}
 
 {% stylesheet %}
   .theinmag-membership-reviews {
     background-color: var(--color-cream);
     color: var(--color-inky-purple-navy);
-    padding: var(--tmrev-pt, 64px) var(--space-lg) var(--tmrev-pb, 64px);
+    padding: var(--tmrev-pt, 96px) clamp(20px, 5vw, 64px) var(--tmrev-pb, 96px);
   }
 
   .theinmag-membership-reviews__inner {
-    max-width: 880px;
+    max-width: 1180px;
     margin: 0 auto;
   }
 
-  .theinmag-membership-reviews__heading {
-    font-family: var(--font-heading);
-    font-weight: 400;
-    font-size: clamp(26px, 4vw, 36px);
-    line-height: 1.15;
-    color: var(--color-inky-purple-navy);
-    margin: 0 0 var(--space-md);
-    text-align: center;
+  .theinmag-membership-reviews__eyebrow {
+    margin: 0 0 var(--space-sm, 12px);
+    font-family: 'Caveat', cursive;
+    font-weight: 500;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1.1;
+    color: var(--color-purple-dark);
+    letter-spacing: 0;
   }
 
-  /* Empty-state message sits above the widget and naturally hides
-     itself once the widget populates - Judge.me drops its own content
-     inside .jdgm-widget after load, which visually overtakes the empty
-     state without forcing display logic from our side. */
-  .theinmag-membership-reviews__empty-state {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 1.55;
+  .theinmag-membership-reviews__rating-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(16px, 3vw, 32px);
+    flex-wrap: wrap;
+  }
+
+  .theinmag-membership-reviews__rating {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Product-scoped badge — Judge.me hydrates this from data-id. */
+  .theinmag-membership-reviews .jdgm-prev-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.5vw, 18px);
+    font-weight: 500;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-reviews .jdgm-prev-badge__stars {
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1;
+  }
+  .theinmag-membership-reviews .jdgm-prev-badge__text {
     color: var(--color-inky-purple-navy);
     opacity: 0.78;
-    margin: 0 auto var(--space-xl);
-    max-width: 56ch;
+    font-size: clamp(14px, 1.3vw, 16px);
+  }
+
+  /* Shop-wide rating row (canonical Judge.me Liquid pattern: data-score
+     attribute drives star rendering, rating text is Liquid-rendered from
+     shop.metafields.judgeme.all_reviews_*). */
+  .theinmag-membership-reviews .jdgm-all-reviews-rating-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--color-inky-purple-navy);
+    cursor: default;
+  }
+  .theinmag-membership-reviews .jdgm-all-reviews-rating {
+    display: inline-block;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1;
+  }
+  .theinmag-membership-reviews__rating-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.5vw, 18px);
+    line-height: 1.2;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-reviews__rating-text strong {
+    font-weight: 700;
+  }
+  .theinmag-membership-reviews__rating-divider {
+    opacity: 0.45;
+  }
+  .theinmag-membership-reviews .jdgm-carousel-number-of-reviews {
+    font-weight: 500;
+    opacity: 0.78;
+  }
+
+  /* Judge.me applies width: 100% / display: block to .jdgm-write-rev-link
+     globally — fight it with !important so the CTA stays a pill, not a
+     full-width bar. */
+  .theinmag-membership-reviews .theinmag-membership-reviews__cta {
+    display: inline-flex !important;
+    width: auto !important;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background-color: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    border-radius: 999px;
+    box-shadow: var(--shadow-button-yellow, 0 4px 0 #D4A02E);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+  }
+  .theinmag-membership-reviews__cta:hover,
+  .theinmag-membership-reviews__cta:focus-visible {
+    background-color: var(--color-purple-dark);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+  }
+  .theinmag-membership-reviews__cta:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow, #D4A02E);
+  }
+
+  .theinmag-membership-reviews__divider {
+    margin: clamp(20px, 2.4vw, 32px) 0 clamp(28px, 3vw, 40px);
+    height: 1px;
+    background-color: var(--color-purple-dark);
+    opacity: 0.18;
+  }
+
+  .theinmag-membership-reviews__carousel {
+    margin-bottom: clamp(28px, 3vw, 40px);
+  }
+
+  /* Brand the Cards Carousel: white cards on cream, 12px radius, soft
+     shadow. Override Judge.me defaults with parent-class prefix for
+     specificity (mobile playbook §3.1). */
+  .theinmag-membership-reviews .jdgm-carousel-wrapper {
+    background: transparent;
+    padding: 0;
+  }
+  .theinmag-membership-reviews .jdgm-carousel-item {
+    background-color: #FFFFFF;
+    border: 0;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(42, 31, 61, 0.08);
+    padding: 24px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .theinmag-membership-reviews .jdgm-carousel-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-membership-reviews .jdgm-carousel-item__review-rating .jdgm-star {
+    font-size: 16px;
+  }
+  .theinmag-membership-reviews .jdgm-carousel-item__review-title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+    margin-top: 12px;
+  }
+  .theinmag-membership-reviews .jdgm-carousel-item__review-body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.88;
+    margin-top: 8px;
+  }
+  .theinmag-membership-reviews .jdgm-carousel-item__reviewer-name {
+    font-family: 'Caveat', cursive;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.1;
+    color: var(--color-purple-dark);
+    margin-top: 14px;
+  }
+  .theinmag-membership-reviews .jdgm-carousel-item__verified-badge {
+    margin-left: 6px;
+    font-size: 11px;
+    opacity: 0.7;
+  }
+  .theinmag-membership-reviews .jdgm-carousel-item__timestamp {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 12px;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.55;
+    margin-top: 6px;
+  }
+
+  /* Inline expander: "Read all reviews" trigger + collapsible panel
+     containing the product-scoped review widget. Mechanics mirror the
+     FAQ accordion below this section so the page trains the eye to a
+     consistent expand/collapse interaction. */
+  .theinmag-membership-reviews__expand-wrap {
     text-align: center;
   }
 
-  .theinmag-membership-reviews__widget {
-    margin-top: var(--space-lg);
+  .theinmag-membership-reviews__expand-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+    margin: 0 auto;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    color: var(--color-purple-dark);
+    text-decoration: none;
+    transition: color 0.15s ease;
   }
-  .theinmag-membership-reviews__widget .jdgm-widget { display: block; }
+  .theinmag-membership-reviews__expand-trigger:hover,
+  .theinmag-membership-reviews__expand-trigger:focus-visible {
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-reviews__expand-label {
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+  }
+  .theinmag-membership-reviews__expand-caret {
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    transform-origin: 60% 60%;
+    transition: transform 0.25s ease;
+    margin-bottom: 4px;
+  }
+  .theinmag-membership-reviews__expand-trigger[aria-expanded="true"] .theinmag-membership-reviews__expand-caret {
+    transform: rotate(-135deg);
+    margin-bottom: 0;
+    margin-top: 4px;
+  }
+
+  .theinmag-membership-reviews__expand-panel {
+    margin-top: clamp(24px, 3vw, 40px);
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  .theinmag-membership-reviews__expand-panel[hidden] {
+    display: none;
+  }
+
+  /* Mobile: prefix with section class for specificity bump (§3.1). */
+  @media (max-width: 749px) {
+    .theinmag-membership-reviews .theinmag-membership-reviews__rating-row {
+      gap: 16px;
+    }
+    .theinmag-membership-reviews .theinmag-membership-reviews__cta {
+      width: 100%;
+      order: 2;
+    }
+    .theinmag-membership-reviews .theinmag-membership-reviews__rating {
+      order: 1;
+      width: 100%;
+    }
+    .theinmag-membership-reviews .jdgm-carousel-item {
+      padding: 20px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-reviews .jdgm-carousel-item,
+    .theinmag-membership-reviews__expand-caret,
+    .theinmag-membership-reviews__expand-panel,
+    .theinmag-membership-reviews__cta {
+      transition: none;
+    }
+  }
 {% endstylesheet %}
+
+{% javascript %}
+  (function () {
+    document.querySelectorAll('[data-theinmag-membership-reviews]').forEach(function (root) {
+      var trigger = root.querySelector('[data-expand-trigger]');
+      var panel = root.querySelector('#theinmag-membership-reviews-full');
+      var labelEl = root.querySelector('[data-expand-label-text]');
+      if (!trigger || !panel || !labelEl) return;
+
+      var expandLabel = root.dataset.expandLabel || 'Read all reviews';
+      var collapseLabel = root.dataset.collapseLabel || 'Hide all reviews';
+
+      trigger.addEventListener('click', function () {
+        var expanded = trigger.getAttribute('aria-expanded') === 'true';
+        if (expanded) {
+          panel.style.maxHeight = panel.scrollHeight + 'px';
+          requestAnimationFrame(function () { panel.style.maxHeight = '0px'; });
+          panel.addEventListener('transitionend', function handler() {
+            panel.setAttribute('hidden', '');
+            panel.style.maxHeight = '';
+            panel.removeEventListener('transitionend', handler);
+          });
+          trigger.setAttribute('aria-expanded', 'false');
+          labelEl.textContent = expandLabel;
+        } else {
+          panel.removeAttribute('hidden');
+          panel.style.maxHeight = '0px';
+          requestAnimationFrame(function () {
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+          });
+          panel.addEventListener('transitionend', function handler() {
+            panel.style.maxHeight = 'none';
+            panel.removeEventListener('transitionend', handler);
+          });
+          trigger.setAttribute('aria-expanded', 'true');
+          labelEl.textContent = collapseLabel;
+        }
+      });
+    });
+  })();
+{% endjavascript %}
 
 {% schema %}
 {
@@ -88,16 +471,54 @@
   "class": "shopify-section theinmag-membership-reviews-section",
   "settings": [
     {
-      "type": "text",
-      "id": "heading",
-      "label": "Heading (H2)",
-      "default": "What do families say?"
+      "type": "select",
+      "id": "review_source",
+      "label": "Review source",
+      "info": "Store = pulls all shop-level reviews (use when product-specific reviews aren't collected yet). Product = pulls reviews tied to this product only. Switch to Product once you start collecting Membership-specific reviews. CTA pill is hidden in Store mode because Judge.me's write-review form is product-scoped.",
+      "options": [
+        { "value": "store", "label": "Store-wide reviews" },
+        { "value": "product", "label": "This product's reviews only" }
+      ],
+      "default": "store"
     },
     {
-      "type": "textarea",
-      "id": "empty_state",
-      "label": "Empty-state message",
-      "default": "Be the first to share your theINmag moment - tag us @theinmag and we'll thread your story IN."
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Caveat eyebrow (above rating row)",
+      "info": "Small handwritten line above the stars. Leave blank to hide.",
+      "default": "From real families."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Write-a-review pill label",
+      "default": "Write a review"
+    },
+    {
+      "type": "text",
+      "id": "expand_label",
+      "label": "Expand link label",
+      "default": "Read all reviews"
+    },
+    {
+      "type": "text",
+      "id": "collapse_label",
+      "label": "Collapse link label",
+      "default": "Hide all reviews"
+    },
+    {
+      "type": "header",
+      "content": "Visibility"
+    },
+    {
+      "type": "range",
+      "id": "min_reviews",
+      "label": "Hide section below this count",
+      "info": "Section is hidden on the live page if the product has fewer reviews than this. Theme editor preview always shows the section.",
+      "min": 0,
+      "max": 25,
+      "step": 1,
+      "default": 3
     },
     {
       "type": "header",
@@ -107,21 +528,21 @@
       "type": "range",
       "id": "padding_top",
       "label": "Padding top",
-      "min": 0,
-      "max": 128,
+      "min": 40,
+      "max": 200,
       "step": 4,
-      "default": 64,
-      "unit": "px"
+      "unit": "px",
+      "default": 96
     },
     {
       "type": "range",
       "id": "padding_bottom",
       "label": "Padding bottom",
-      "min": 0,
-      "max": 128,
+      "min": 40,
+      "max": 200,
       "step": 4,
-      "default": 64,
-      "unit": "px"
+      "unit": "px",
+      "default": 96
     }
   ],
   "presets": [

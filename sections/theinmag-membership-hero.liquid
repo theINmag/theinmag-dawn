@@ -128,14 +128,14 @@
         slot (three-times-year) and Row 3-right slot (sustainable) are now fixed
         positions so they're removed from the random pool to avoid duplicates.
       {%- endcomment -%}
-      {%- assign pool_items = 'trust-overlay-gift-giving.jpg|A gift that keeps on giving.|high;trust-overlay-nevermissout.jpg|Never miss an issue.|high;trust-overlay-ad-free.jpg|100% ad-free.|low;trust-overlay-aussie-kids.jpg|Made by Aussie kids for Aussie kids.|low;trust-overlay-120-pages.jpg|120+ pages of pure creativity.|low;trust-overlay-real-kids.jpg|Real kids. Real names. Real towns.|low' | split: ';' -%}
+      {%- assign pool_items = 'trust-overlay-gift-giving.jpg|A gift that keeps on giving.|high;trust-overlay-nevermissout.jpg|Letterbox excitement.|high;trust-overlay-ad-free.jpg|100% ad-free.|low;trust-overlay-aussie-kids.jpg|Made by Aussie kids for Aussie kids.|low;trust-overlay-120-pages.jpg|120+ pages of pure creativity.|low;trust-overlay-real-kids.jpg|Real kids. Real names. Real towns.|low' | split: ';' -%}
 
       <ol class="theinmag-membership-hero__stack" role="list" data-stack>
         {%- comment -%}
           Row 1 LEFT (desktop) / Mobile carousel position 2: locked trust
           overlay "New mags, three times a year."
         {%- endcomment -%}
-        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide theinmag-membership-hero__photo--mobile-second" data-photo-index="0">
+        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide" data-photo-index="0">
           <img class="theinmag-membership-hero__image" src="{{ three_times_year_src }}" alt="New mags, three times a year." loading="eager">
         </li>
 
@@ -161,7 +161,7 @@
           auto-rolls when a new issue drops. Autoplay muted loop playsinline
           so iOS Safari runs it without user interaction.
         {%- endcomment -%}
-        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide">
+        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide theinmag-membership-hero__photo--mobile-second">
           <video
             class="theinmag-membership-hero__image"
             src="{{ flick_through_src }}"
@@ -453,10 +453,19 @@
       scroll-snap-align: start;
     }
     /* Variant-swap first on mobile per Ryan: "that first one will always be
-       the one they select so printed digital or combo image." three-times-year
-       sits second on mobile. */
+       the one they select so printed digital or combo image." Flick-through
+       video sits second so the kid sees motion before the trust overlays. */
     .theinmag-membership-hero__photo--variant { order: -2; }
     .theinmag-membership-hero__photo--mobile-second { order: -1; }
+
+    /* Photos card spans the full viewport on mobile - Ryan: the slider
+       was breaking out of the cream card, extend the card edge-to-edge
+       instead so the carousel sits inside its own surface. */
+    .theinmag-membership-hero__photos {
+      margin-left: calc(-1 * var(--space-lg));
+      margin-right: calc(-1 * var(--space-lg));
+      width: calc(100% + (2 * var(--space-lg)));
+    }
   }
 
   /* Desktop: 6-col mosaic. Wide squares span 3 cols, narrow span 2.
@@ -576,12 +585,14 @@
     font-size: clamp(24px, 3vw, 32px);
     line-height: 1.05;
     color: var(--color-inky-purple-navy);
-    margin: 0 0 var(--space-xs);
+    margin: 0 0 2px;
     white-space: nowrap;
+    text-align: center;
   }
 
   /* Editorial benefit line under title. Inky-navy italic - sandy-orange
-     read as "red" against the soft pink pills, the pair clashed. */
+     read as "red" against the soft pink pills, the pair clashed.
+     Centred + sitting tight under the title (Ryan: closer to heading). */
   .theinmag-membership-hero__tagline {
     font-family: var(--font-body);
     font-style: italic;
@@ -591,6 +602,7 @@
     color: var(--color-inky-purple-navy);
     opacity: 0.78;
     margin: 0 0 var(--space-sm);
+    text-align: center;
   }
 
   .theinmag-membership-hero__price {
