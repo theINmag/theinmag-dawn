@@ -133,27 +133,92 @@
       "settings": {}
     },
     "cross-sells": {
-      "type": "theinmag-membership-cross-sells",
+      "type": "theinmag-mission",
       "blocks": {
-        "c1": {
-          "type": "tile",
-          "settings": {}
+        "feature-1": {
+          "type": "feature",
+          "settings": {
+            "label": "Printed sustainably in Australia",
+            "hover_message": "That's right, locally in Melbourne by our friends at <strong>PrintGraphics PrintGreen</strong>."
+          }
         },
-        "c2": {
-          "type": "tile",
-          "settings": {}
+        "feature-2": {
+          "type": "feature",
+          "settings": {
+            "label": "100% kid-created",
+            "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a <strong>voice</strong>."
+          }
         },
-        "c3": {
-          "type": "tile",
-          "settings": {}
+        "feature-3": {
+          "type": "feature",
+          "settings": {
+            "label": "Always ad-free",
+            "hover_message": "This is super important to us. <strong>No ads. Ever.</strong>"
+          }
+        },
+        "feature-4": {
+          "type": "feature",
+          "settings": {
+            "label": "Tri-annual",
+            "hover_message": "New issues drop each <strong>February, June and October</strong>."
+          }
+        },
+        "product-membership": {
+          "type": "product_link",
+          "settings": {
+            "label": "theINmag Membership",
+            "tagline": "Every issue delivered, no fuss.",
+            "price": "From $89",
+            "link": "/products/theinmag-membership",
+            "fallback_filename": "product-membership.jpg",
+            "fallback_hover_filename": "product-membership-hover.jpg",
+            "image_alt": "theINmag membership pack with the latest issue."
+          }
+        },
+        "product-mag": {
+          "type": "product_link",
+          "settings": {
+            "label": "Single issue",
+            "tagline": "120+ pages of kid-made creativity.",
+            "price": "$23.95",
+            "link": "/products/mag10",
+            "fallback_filename": "product-mag.jpg",
+            "fallback_hover_filename": "product-mag-hover.jpg",
+            "image_alt": "Cover of the latest theINmag issue."
+          }
+        },
+        "product-bundle": {
+          "type": "product_link",
+          "settings": {
+            "label": "Build a bundle",
+            "tagline": "Pick the issues your kid will love most.",
+            "price": "",
+            "link": "/products/build-a-bundle",
+            "fallback_filename": "product-bundle.jpg",
+            "fallback_hover_filename": "product-bundle-hover.jpg",
+            "image_alt": "Stack of hand-picked theINmag issues."
+          }
         }
       },
       "block_order": [
-        "c1",
-        "c2",
-        "c3"
+        "feature-1",
+        "feature-2",
+        "feature-3",
+        "feature-4",
+        "product-membership",
+        "product-mag",
+        "product-bundle"
       ],
-      "settings": {}
+      "settings": {
+        "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
+        "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>",
+        "character_1_filename": "character-mission-1.png",
+        "character_1_alt": "A theINmag reader's drawing.",
+        "character_2_filename": "character-mission-2.png",
+        "character_2_alt": "A theINmag reader's drawing.",
+        "character_3_filename": "character-mission-3.png",
+        "character_3_alt": "A theINmag reader's drawing."
+      }
     }
   },
   "order": [

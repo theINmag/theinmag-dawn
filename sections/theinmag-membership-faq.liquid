@@ -182,13 +182,21 @@
     opacity: 1;
     transform: translateX(0) rotate(-6deg);
   }
-  .theinmag-membership-faq__character .theinmag-pool-character__img {
-    animation: none;
-  }
+  /* Let the sitewide pool's bob animation play — character wobbles
+     slightly while keeping the wrapper's static -6deg tilt. The bob's
+     transform applies to the inner <img>, the wrapper's rotation
+     applies separately, so they compose without fighting. */
   @media (max-width: 749px) {
+    /* Allow the character to overflow vertically so it can straddle
+       the section boundary (half on the reviews section above, half
+       on the FAQ section below). Horizontal clipping kept so the
+       slide-in entry doesn't show a sliver of overflow on the page. */
+    .theinmag-membership-faq {
+      overflow: visible;
+    }
     .theinmag-membership-faq__character {
-      top: 40px;
-      left: -10px;
+      top: -55px;
+      left: 12px;
       width: 110px;
     }
   }
