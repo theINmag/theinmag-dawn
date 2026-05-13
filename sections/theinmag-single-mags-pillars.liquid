@@ -1,0 +1,614 @@
+{%- comment -%}
+  theinmag-single-mags-pillars
+  Persuasion section on the Single Mags PDP. Same sticky-nav + lifted-
+  card pattern as theinmag-membership-pillars (and theinmag-philosophy
+  upstream). Four locked pillars about a single issue:
+    1 Made by kids
+    2 120+ pages of pure creativity
+    3 Beautifully printed in Melbourne
+    4 A snapshot in time
+
+  Question-form section heading ("What's actually in a theINmag issue?"),
+  statement pillars - matches the design system §6.7 anti-pattern note.
+
+  Optional kid-art block at section foot, schema-toggled. Ryan picks
+  the artwork via Theme Editor; bg_color matches the artwork's ground
+  (per feedback_match_section_bg_to_artwork_ground memory).
+{%- endcomment -%}
+
+{%- liquid
+  assign pillars = section.blocks | where: 'type', 'pillar'
+  assign aeo_heading = section.settings.aeo_heading | default: "What's actually in a theINmag issue?"
+  assign intro_text = section.settings.intro_text
+
+  assign show_kid_art = section.settings.show_kid_art
+  assign kid_art_filename = section.settings.kid_art_filename
+  assign kid_art_caption = section.settings.kid_art_caption
+  assign kid_art_alt = section.settings.kid_art_alt | default: 'Kid-created artwork from a theINmag issue.'
+  assign kid_art_bg = section.settings.kid_art_bg_color | default: '#FBF6EA'
+
+  assign bg_src = 'theinmag-section-bg.jpg' | asset_url
+-%}
+
+<section
+  class="theinmag-single-mags-pillars"
+  data-theinmag-single-mags-pillars
+  aria-labelledby="theinmag-single-mags-pillars-heading"
+  style="--theinmag-pillars-bg: url('{{ bg_src }}'); --theinmag-pillars-kid-art-bg: {{ kid_art_bg }};"
+>
+  {%- comment -%}
+    Heading is visually-hidden but kept in the DOM for AEO/screen-reader
+    load. Ryan's call - the question form lives in the section's
+    contents, not as a visible H2 above the grid.
+  {%- endcomment -%}
+  <h2 id="theinmag-single-mags-pillars-heading" class="theinmag-single-mags-pillars__a11y-heading">{{ aeo_heading }}</h2>
+
+  <div class="theinmag-single-mags-pillars__inner">
+    <div class="theinmag-single-mags-pillars__copy">
+      {%- if intro_text != blank -%}
+        <p class="theinmag-single-mags-pillars__intro">{{ intro_text }}</p>
+      {%- endif -%}
+
+      {%- if pillars.size > 0 -%}
+        <ul class="theinmag-single-mags-pillars__nav" role="list">
+          {%- for block in pillars -%}
+            <li class="theinmag-single-mags-pillars__nav-item" {{ block.shopify_attributes }}>
+              <button
+                type="button"
+                class="theinmag-single-mags-pillars__nav-btn"
+                data-pillars-trigger
+                data-headline="{{ block.settings.headline | escape }}"
+                data-body="{{ block.settings.body | escape }}"
+                aria-controls="theinmag-single-mags-pillars-card"
+              >
+                {{ block.settings.short_name }}
+              </button>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        <div class="theinmag-single-mags-pillars__card" id="theinmag-single-mags-pillars-card" data-pillars-card>
+          <p class="theinmag-single-mags-pillars__card-headline" data-pillars-headline aria-live="polite"></p>
+          <p class="theinmag-single-mags-pillars__card-body" data-pillars-body></p>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="theinmag-single-mags-pillars__artwork-col">
+      {%- comment -%}
+        Artwork pool - 4 filenames in /assets/. JS picks one at random
+        on initial load and swaps to a different random one when the
+        hero's picker fires `single-mags:issue-changed`. Empty fields
+        get filtered out of the pool client-side. Schema-editable so
+        Ryan can swap the pool without code edits.
+      {%- endcomment -%}
+      {%- liquid
+        assign art_1 = section.settings.artwork_filename_1 | default: 'blog-image-universal-28.jpg'
+        assign art_2 = section.settings.artwork_filename_2 | default: 'blog-image-universal-37.jpg'
+        assign art_3 = section.settings.artwork_filename_3 | default: 'blog-image-universal-39.jpg'
+        assign art_4 = section.settings.artwork_filename_4 | default: 'blog-image-universal-40.jpg'
+        assign art_alt = section.settings.artwork_alt | default: 'Kid-created artwork from a theINmag issue.'
+      -%}
+      <div
+        class="theinmag-single-mags-pillars__artwork-wrap"
+        data-artwork-wrap
+        data-art-1="{{ art_1 | asset_url }}"
+        data-art-2="{{ art_2 | asset_url }}"
+        data-art-3="{{ art_3 | asset_url }}"
+        data-art-4="{{ art_4 | asset_url }}"
+      >
+        <img
+          class="theinmag-single-mags-pillars__artwork"
+          data-artwork-img
+          src="{{ art_1 | asset_url }}"
+          alt="{{ art_alt | escape }}"
+          loading="lazy"
+          width="1200"
+          height="1500"
+        >
+      </div>
+    </div>
+  </div>
+
+  {%- if show_kid_art and kid_art_filename != blank -%}
+    <div class="theinmag-single-mags-pillars__kid-art" data-kid-art>
+      <img
+        class="theinmag-single-mags-pillars__kid-art-img"
+        src="{{ kid_art_filename | asset_url }}"
+        alt="{{ kid_art_alt | escape }}"
+        loading="lazy"
+      >
+      {%- if kid_art_caption != blank -%}
+        <p class="theinmag-single-mags-pillars__kid-art-caption">{{ kid_art_caption }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</section>
+
+<script>
+  (function () {
+    const root = document.querySelector('[data-theinmag-single-mags-pillars]');
+    if (!root) return;
+
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const triggers = Array.from(root.querySelectorAll('[data-pillars-trigger]'));
+    const card = root.querySelector('[data-pillars-card]');
+    const headlineEl = root.querySelector('[data-pillars-headline]');
+    const bodyEl = root.querySelector('[data-pillars-body]');
+    if (!triggers.length || !card || !headlineEl || !bodyEl) return;
+
+    let activeTrigger = null;
+    let swapTimer = null;
+
+    function renderWithInPun(el, text) {
+      el.innerHTML = '';
+      const parts = String(text).split('[[IN]]');
+      parts.forEach(function (part, i) {
+        el.appendChild(document.createTextNode(part));
+        if (i < parts.length - 1) {
+          const span = document.createElement('span');
+          span.className = 'theinmag-in';
+          span.textContent = 'IN';
+          el.appendChild(span);
+        }
+      });
+    }
+
+    function applyContent(t) {
+      renderWithInPun(headlineEl, t.dataset.headline || '');
+      renderWithInPun(bodyEl, t.dataset.body || '');
+    }
+
+    function setActive(t, opts) {
+      if (activeTrigger === t) return;
+      const initial = !!(opts && opts.initial);
+      triggers.forEach(function (other) { other.classList.toggle('is-active', other === t); });
+      activeTrigger = t;
+      if (initial || reducedMotion) { applyContent(t); return; }
+      card.classList.add('is-swapping');
+      window.clearTimeout(swapTimer);
+      swapTimer = window.setTimeout(function () {
+        applyContent(t);
+        card.classList.remove('is-swapping');
+      }, 160);
+    }
+
+    setActive(triggers[0], { initial: true });
+    triggers.forEach(function (t) {
+      t.addEventListener('mouseenter', function () { setActive(t); });
+      t.addEventListener('click', function () { setActive(t); });
+      t.addEventListener('focus', function () { setActive(t); });
+    });
+
+    /* Random artwork from the 4-slot pool. On initial load + on every
+       picker change, pick one different from the currently-shown URL
+       so the swap is visible. Empty slots are filtered out. */
+    const artWrap = root.querySelector('[data-artwork-wrap]');
+    const artImg = root.querySelector('[data-artwork-img]');
+    if (artWrap && artImg) {
+      const pool = ['data-art-1', 'data-art-2', 'data-art-3', 'data-art-4']
+        .map(function (key) { return artWrap.getAttribute(key); })
+        .filter(function (url) { return url && url.length > 0; });
+
+      function pickRandomDifferent() {
+        if (pool.length <= 1) return;
+        const current = artImg.getAttribute('src');
+        const choices = pool.filter(function (u) { return u !== current; });
+        const next = choices[Math.floor(Math.random() * choices.length)];
+        artImg.setAttribute('src', next);
+      }
+
+      // Initial random pick on page load.
+      if (pool.length > 0) {
+        const next = pool[Math.floor(Math.random() * pool.length)];
+        artImg.setAttribute('src', next);
+      }
+
+      // Swap on picker change.
+      document.addEventListener('single-mags:issue-changed', pickRandomDifferent);
+    }
+  })();
+</script>
+
+{%- stylesheet -%}
+  .theinmag-single-mags-pillars {
+    position: relative;
+    background-color: var(--color-cream);
+    background-image: var(--theinmag-pillars-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: var(--color-inky-purple-navy);
+    /* Right padding 0 on desktop so the artwork column bleeds to the
+       viewport edge - matches Membership pillars register. Mobile keeps
+       symmetric padding because the artwork stacks below the copy.
+       Iteration 9: top and bottom padding matched per Ryan. */
+    padding: clamp(24px, 3vw, 40px) clamp(20px, 5vw, 64px);
+    overflow: hidden;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-single-mags-pillars {
+      padding-right: 0;
+    }
+  }
+
+  /* Heading is visually-hidden - kept in the DOM for AEO/screen readers
+     but pulled out of the page flow. The question form lives in the
+     section copy, not as a visible H2 above the grid. */
+  .theinmag-single-mags-pillars__a11y-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .theinmag-single-mags-pillars__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 4vw, 40px);
+    align-items: start;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-single-mags-pillars__inner {
+      /* Drop the max-width on desktop so the artwork can bleed to the
+         viewport edge. Section right-padding is also 0 on desktop. */
+      max-width: none;
+      margin: 0;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.85fr);
+      gap: clamp(32px, 4vw, 56px);
+      align-items: stretch;
+    }
+  }
+
+  /* Copy column. On desktop, indent from the section's left padding
+     so the writing sits a touch more central in its column rather
+     than flush left - matches the Membership pillars register. */
+  .theinmag-single-mags-pillars__copy {
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-single-mags-pillars__copy {
+      padding-left: clamp(16px, 2.5vw, 40px);
+    }
+  }
+
+  .theinmag-single-mags-pillars__intro {
+    margin: 0 0 clamp(16px, 2vw, 22px);
+    max-width: 48ch;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: clamp(15px, 1.5vw, 18px);
+    line-height: 1.5;
+    color: rgba(42, 31, 61, 0.78);
+  }
+
+  .theinmag-single-mags-pillars__nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2px, 0.5vw, 8px);
+  }
+
+  .theinmag-single-mags-pillars__nav-btn {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 4px 0 4px 14px;
+    margin: 0;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: clamp(17px, 2vw, 24px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: rgba(123, 79, 158, 0.3);
+    /* Left-edge indicator + smooth shift for the active state. */
+    border-left: 3px solid transparent;
+    transition: color 0.25s ease, border-left-color 0.25s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .theinmag-single-mags-pillars__nav-btn:hover,
+  .theinmag-single-mags-pillars__nav-btn:focus-visible {
+    color: rgba(123, 79, 158, 0.7);
+    outline: none;
+  }
+  .theinmag-single-mags-pillars__nav-btn:focus-visible {
+    outline: 2px dashed #7B4F9E;
+    outline-offset: 6px;
+  }
+  /* Active state: full purple, left bar appears, slight forward nudge
+     so the eye picks up "this is the one currently expanded". */
+  .theinmag-single-mags-pillars__nav-btn.is-active {
+    color: #7B4F9E;
+    border-left-color: #7B4F9E;
+    transform: translateX(4px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-single-mags-pillars__nav-btn {
+      transition: color 0.2s ease;
+    }
+    .theinmag-single-mags-pillars__nav-btn.is-active {
+      transform: none;
+    }
+  }
+
+  .theinmag-single-mags-pillars__card {
+    margin-top: clamp(20px, 2.5vw, 28px);
+    max-width: 56ch;
+    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  /* Iteration 8 - more visible swap. Larger translate so the eye picks
+     up the change, slight overshoot via the easing curve. */
+  .theinmag-single-mags-pillars__card.is-swapping {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  @media (min-width: 990px) {
+    .theinmag-single-mags-pillars__card { min-height: 180px; }
+  }
+
+  .theinmag-single-mags-pillars__card-headline {
+    margin: 0 0 clamp(8px, 1vw, 12px);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(16px, 1.7vw, 20px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-single-mags-pillars__card-body {
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy);
+  }
+
+  /* Right artwork column. Sharp-cornered editorial photography.
+     Desktop bleeds to the right viewport edge (section right padding
+     is 0 on desktop). */
+  .theinmag-single-mags-pillars__artwork-col {
+    position: relative;
+  }
+  .theinmag-single-mags-pillars__artwork-wrap {
+    overflow: hidden;
+  }
+  .theinmag-single-mags-pillars__artwork {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+  @media (min-width: 990px) {
+    .theinmag-single-mags-pillars__artwork-col {
+      height: 100%;
+      /* Pull the column out of the inner max-width container so the
+         image runs to the viewport edge. */
+    }
+    .theinmag-single-mags-pillars__artwork-wrap {
+      height: 100%;
+      max-height: 62vh;
+    }
+    .theinmag-single-mags-pillars__artwork {
+      height: 100%;
+      max-height: 62vh;
+      aspect-ratio: auto;
+    }
+  }
+
+  /* Optional kid-art block at section foot. Background color matches
+     the artwork's ground per feedback_match_section_bg_to_artwork_ground
+     so the artwork lifts off without a visible card edge. */
+  .theinmag-single-mags-pillars__kid-art {
+    max-width: 1180px;
+    margin: clamp(40px, 6vw, 64px) auto 0;
+    background-color: var(--theinmag-pillars-kid-art-bg);
+    padding: clamp(20px, 3vw, 32px);
+    text-align: center;
+  }
+  .theinmag-single-mags-pillars__kid-art-img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+  .theinmag-single-mags-pillars__kid-art-caption {
+    font-family: var(--font-caveat, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(16px, 1.6vw, 20px);
+    color: var(--color-purple-dark);
+    margin: var(--space-sm) 0 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-single-mags-pillars__nav-btn,
+    .theinmag-single-mags-pillars__card {
+      transition: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Single mags pillars",
+  "tag": "section",
+  "class": "theinmag-single-mags-pillars-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section intro"
+    },
+    {
+      "type": "text",
+      "id": "aeo_heading",
+      "label": "Hidden H2 (AEO)",
+      "default": "What's actually in a theINmag issue?",
+      "info": "Visually hidden. Carries SEO + screen-reader load. Question form."
+    },
+    {
+      "type": "textarea",
+      "id": "intro_text",
+      "label": "Intro line",
+      "default": "A premium mag. Zero ads. All made by Aussie kids."
+    },
+    {
+      "type": "header",
+      "content": "Right column artwork pool"
+    },
+    {
+      "type": "paragraph",
+      "content": "Four artwork filenames - JS picks one at random on page load and swaps when the issue picker changes. Files live in /assets/."
+    },
+    {
+      "type": "text",
+      "id": "artwork_filename_1",
+      "label": "Artwork 1 filename",
+      "default": "blog-image-universal-28.jpg"
+    },
+    {
+      "type": "text",
+      "id": "artwork_filename_2",
+      "label": "Artwork 2 filename",
+      "default": "blog-image-universal-37.jpg"
+    },
+    {
+      "type": "text",
+      "id": "artwork_filename_3",
+      "label": "Artwork 3 filename",
+      "default": "blog-image-universal-39.jpg"
+    },
+    {
+      "type": "text",
+      "id": "artwork_filename_4",
+      "label": "Artwork 4 filename",
+      "default": "blog-image-universal-40.jpg"
+    },
+    {
+      "type": "text",
+      "id": "artwork_alt",
+      "label": "Artwork alt text",
+      "default": "Kid-created artwork from a theINmag issue."
+    },
+    {
+      "type": "header",
+      "content": "Kid-art block (optional)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_kid_art",
+      "label": "Show kid-art block at section foot",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "kid_art_filename",
+      "label": "Kid-art filename",
+      "info": "Filename of the kid-created artwork PNG/JPG in /assets/."
+    },
+    {
+      "type": "text",
+      "id": "kid_art_alt",
+      "label": "Kid-art alt text"
+    },
+    {
+      "type": "text",
+      "id": "kid_art_caption",
+      "label": "Kid-art caption (Caveat)",
+      "info": "Real-kid attribution: 'Maya, age 9 - Fremantle WA.'"
+    },
+    {
+      "type": "color",
+      "id": "kid_art_bg_color",
+      "label": "Kid-art block background colour",
+      "default": "#FBF6EA",
+      "info": "Match the artwork's ground colour so the artwork lifts off without a card edge."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "pillar",
+      "name": "Pillar",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "short_name",
+          "label": "Short name (left nav)"
+        },
+        {
+          "type": "text",
+          "id": "headline",
+          "label": "Card headline"
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Card body"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Single mags pillars",
+      "settings": {
+        "aeo_heading": "What's actually in a theINmag issue?",
+        "intro_text": "120+ pages. Zero ads. All made by Aussie kids."
+      },
+      "blocks": [
+        {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Made by kids",
+            "headline": "Real Aussie kids, named and credited.",
+            "body": "Every page is a kid's creation - writing, art, photography, jokes, puzzles. We just curate, design, and print. Each piece runs with the kid's first name, age, and town because their name should be on their work."
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "short_name": "120+ pages of pure creativity",
+            "headline": "No ads. Anywhere.",
+            "body": "You won't find a single ad. The space is given back to kids' creations. Every page earns its place because a real kid made something worth reading - not because a brand paid to be there."
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Beautifully printed in Melbourne",
+            "headline": "Sustainably, locally, properly.",
+            "body": "Heavy uncoated stock, plant-based inks, printed right here in Melbourne. Built to be re-read, thrown around, and loved. The mag should still be readable after a year of school bag abuse."
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "short_name": "A snapshot in time",
+            "headline": "Once it's gone, it's gone.",
+            "body": "We print short runs - just enough to cover the Membership and the single-mag wave. Mag05 sold out in six weeks. If you've got a copy on the shelf, you've got something rare."
+          }
+        }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

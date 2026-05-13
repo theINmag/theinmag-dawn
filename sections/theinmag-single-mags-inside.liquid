@@ -1,0 +1,456 @@
+{%- comment -%}
+  theinmag-single-mags-inside
+  Inside-gallery section for /products/single-mags. Sits between the
+  hero (1) and UGC (2) on the PDP. No direct archetype parent - this
+  is a hybrid of audience-tiles full-bleed scroll-rail (6.10) + the
+  Membership UGC swipe strip rhythm.
+
+  Layout:
+    Desktop: two-zone. Left ~25% is a sticky text panel; right ~75%
+    is a horizontal scroll-snap rail of mixed-aspect kid-page samples
+    pulled from each issue's `single_mag.inside_gallery_images` list.
+    Mobile: heading stacks above, gallery becomes full-bleed swipe.
+
+  Per-issue galleries all in DOM, scoped by [data-issue-handle]. JS
+  listens for the `single-mags:issue-changed` event broadcast by the
+  hero's picker and swaps the visible container + heading text.
+
+  The heading wraps "INside" with .theinmag-in so the IN reads at
+  1.4em per the sitewide brand-pun pattern.
+
+  Imagery sourcing: kid-page samples from the magazine, sharp-cornered,
+  no overlays. White-on-cream text panel on the left. No coloured pills
+  on photography (per feedback_premium_photo_text memory).
+{%- endcomment -%}
+
+{%- liquid
+  assign issues_collection_handle = section.settings.issues_collection
+  assign issues = collections[issues_collection_handle].products
+  assign aeo_heading = section.settings.aeo_heading | default: "What's inside theINmag?"
+  assign eyebrow = section.settings.eyebrow | default: "you're looking inside"
+  assign heading_prefix = section.settings.heading_prefix | default: 'INside'
+  assign pad_top = section.settings.padding_top | default: 64
+  assign pad_bottom = section.settings.padding_bottom | default: 64
+
+  assign section_style = '--tmsi-pt: ' | append: pad_top | append: 'px; --tmsi-pb: ' | append: pad_bottom | append: 'px;'
+
+  # Sort newest-first to match the hero's initial picker order. The
+  # first issue here is the default visible gallery; JS swaps when
+  # the picker fires a custom event.
+  assign sorted_issues = issues | sort: 'metafields.single_mag.issue_number.value' | reverse
+
+  assign initial_issue = sorted_issues.first
+  for issue in sorted_issues
+    if issue.metafields.single_mag.print_in_stock == true
+      assign initial_issue = issue
+      break
+    endif
+  endfor
+
+  assign heading_in_prefix = ''
+  assign heading_in_suffix = ''
+  if heading_prefix contains 'IN'
+    assign heading_in_parts = heading_prefix | split: 'IN'
+    assign heading_in_prefix = heading_in_parts[0]
+    assign heading_in_suffix = heading_in_parts[1]
+  endif
+-%}
+
+<section
+  class="theinmag-single-mags-inside"
+  data-theinmag-single-mags-inside
+  aria-labelledby="theinmag-single-mags-inside-heading"
+  style="{{ section_style }}"
+>
+  <h2 id="theinmag-single-mags-inside-heading" class="theinmag-single-mags-inside__a11y-heading">{{ aeo_heading }}</h2>
+
+  {%- comment -%}
+    Iteration 4 restructure: dropped the sticky text-panel + horizontal
+    rail two-zone layout in favour of a full-bleed swipe strip with a
+    single "Inside MagNN" pill overlaid in the top-left corner.
+    Visual register mirrors the Membership UGC banner (one pill on a
+    full-bleed photo strip) - feels native to the brand rather than
+    a fresh template move. JS still listens to the picker event and
+    swaps the visible gallery + updates the pill label.
+  {%- endcomment -%}
+  <div class="theinmag-single-mags-inside__rail-wrap">
+    <span class="theinmag-single-mags-inside__pill" data-pill aria-hidden="true">
+      Inside <span data-issue-label>{{ initial_issue.title | replace: 'theINmag - ', '' | replace: 'theINmag ', '' }}</span>
+    </span>
+
+    <div class="theinmag-single-mags-inside__galleries" data-galleries>
+      {%- for issue in sorted_issues -%}
+        {%- liquid
+          assign inside_images = issue.metafields.single_mag.inside_gallery_images.value
+          assign is_active_issue = false
+          if issue.handle == initial_issue.handle
+            assign is_active_issue = true
+          endif
+        -%}
+        <div
+          class="theinmag-single-mags-inside__gallery"
+          data-issue-handle="{{ issue.handle }}"
+          data-gallery
+          {% unless is_active_issue %}hidden{% endunless %}
+        >
+          {%- if inside_images != blank -%}
+            {%- comment -%}
+              Auto-scrolling marquee, same rhythm as the Membership UGC
+              banner and the homepage press band. Items rendered TWICE
+              in the track; CSS animates translateX(0) -> translateX(-50%)
+              so the second set takes the first set's position exactly
+              as the animation completes, creating a seamless loop.
+              Pause on hover. Reduced-motion kills the animation +
+              re-enables natural overflow scroll.
+            {%- endcomment -%}
+            <div class="theinmag-single-mags-inside__rail" data-rail>
+              <ol class="theinmag-single-mags-inside__rail-track" role="list" data-rail-track>
+                {%- for img in inside_images -%}
+                  <li class="theinmag-single-mags-inside__rail-item">
+                    <img
+                      class="theinmag-single-mags-inside__rail-img"
+                      src="{{ img | image_url: width: 1400 }}"
+                      alt="{{ img.alt | default: issue.title | escape }} - inside page sample"
+                      loading="lazy"
+                    >
+                  </li>
+                {%- endfor -%}
+                {%- for img in inside_images -%}
+                  <li class="theinmag-single-mags-inside__rail-item" aria-hidden="true">
+                    <img
+                      class="theinmag-single-mags-inside__rail-img"
+                      src="{{ img | image_url: width: 1400 }}"
+                      alt=""
+                      loading="lazy"
+                    >
+                  </li>
+                {%- endfor -%}
+              </ol>
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    'use strict';
+
+    const root = document.querySelector('[data-theinmag-single-mags-inside]');
+    if (!root) return;
+
+    const galleries = Array.from(root.querySelectorAll('[data-gallery]'));
+    const issueLabel = root.querySelector('[data-issue-label]');
+
+    function setActiveIssue(handle) {
+      galleries.forEach(function (g) {
+        g.hidden = g.dataset.issueHandle !== handle;
+      });
+    }
+
+    document.addEventListener('single-mags:issue-changed', function (ev) {
+      const detail = ev.detail || {};
+      if (!detail.handle) return;
+      setActiveIssue(detail.handle);
+      const heroMeta = document.querySelector('[data-issues-meta]');
+      if (!heroMeta || !issueLabel) return;
+      try {
+        const all = JSON.parse(heroMeta.textContent);
+        const match = all.find(function (m) { return m.handle === detail.handle; });
+        if (match && match.title) {
+          const label = match.title.replace(/theINmag\s*-?\s*/, '');
+          issueLabel.textContent = label;
+        }
+      } catch (err) { /* swallow */ }
+    });
+
+    /* Auto-scrolling marquee with manual override.
+       Each rail runs its own RAF loop incrementing scrollLeft at a
+       constant rate. User interaction (hover / pointer down / wheel
+       / touch) pauses the loop; after a short delay with no
+       interaction, the loop resumes. When scrollLeft crosses the
+       halfway mark (we render items 2x), JS jumps scrollLeft back by
+       half the scrollWidth so the loop is seamless. */
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const speedPxPerSec = 28;
+    const resumeDelay = 1500;
+
+    root.querySelectorAll('[data-rail]').forEach(function (rail) {
+      const track = rail.querySelector('[data-rail-track]');
+      if (!track) return;
+
+      let paused = false;
+      let lastTime = 0;
+      let resumeTimer = null;
+
+      function loopBack() {
+        const halfWidth = track.scrollWidth / 2;
+        if (halfWidth <= 0) return;
+        if (rail.scrollLeft >= halfWidth) {
+          rail.scrollLeft -= halfWidth;
+        } else if (rail.scrollLeft < 0) {
+          rail.scrollLeft += halfWidth;
+        }
+      }
+
+      function step(now) {
+        if (reduceMotion) return;
+        if (!lastTime) lastTime = now;
+        const delta = (now - lastTime) / 1000;
+        lastTime = now;
+        if (!paused) {
+          rail.scrollLeft += speedPxPerSec * delta;
+          loopBack();
+        }
+        window.requestAnimationFrame(step);
+      }
+
+      function pause() {
+        paused = true;
+        if (resumeTimer) { window.clearTimeout(resumeTimer); resumeTimer = null; }
+      }
+      function scheduleResume() {
+        if (resumeTimer) window.clearTimeout(resumeTimer);
+        resumeTimer = window.setTimeout(function () {
+          paused = false;
+          lastTime = 0;
+        }, resumeDelay);
+      }
+
+      // Pause on cursor over the rail. Resume when the cursor leaves.
+      rail.addEventListener('mouseenter', pause);
+      rail.addEventListener('mouseleave', scheduleResume);
+
+      // Touch + pointer interactions pause for resumeDelay after release.
+      rail.addEventListener('touchstart', pause, { passive: true });
+      rail.addEventListener('touchend', scheduleResume, { passive: true });
+      rail.addEventListener('pointerdown', pause);
+      rail.addEventListener('pointerup', scheduleResume);
+
+      // Wheel scrolling: pause + reschedule resume on every wheel tick.
+      rail.addEventListener('wheel', function () { pause(); scheduleResume(); }, { passive: true });
+
+      // Native scroll (from any source) - always loop back if we've
+      // crossed the halfway mark, so manual scrolling is also infinite.
+      rail.addEventListener('scroll', loopBack, { passive: true });
+
+      // Drag-to-scroll on desktop. Lets users grab + pull the rail.
+      let isDragging = false;
+      let dragStartX = 0;
+      let dragStartScroll = 0;
+      rail.addEventListener('mousedown', function (e) {
+        isDragging = true;
+        dragStartX = e.pageX;
+        dragStartScroll = rail.scrollLeft;
+        rail.style.cursor = 'grabbing';
+        pause();
+      });
+      window.addEventListener('mousemove', function (e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        rail.scrollLeft = dragStartScroll - (e.pageX - dragStartX);
+      });
+      window.addEventListener('mouseup', function () {
+        if (!isDragging) return;
+        isDragging = false;
+        rail.style.cursor = '';
+        scheduleResume();
+      });
+
+      if (!reduceMotion) {
+        window.requestAnimationFrame(step);
+      }
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .theinmag-single-mags-inside {
+    background-color: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    padding: var(--tmsi-pt, 64px) 0 var(--tmsi-pb, 64px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theinmag-single-mags-inside__a11y-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Full-bleed rail wrap. Pill overlays the rail in the top-left
+     corner, mirroring the Membership UGC banner pill placement. */
+  .theinmag-single-mags-inside__rail-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  .theinmag-single-mags-inside__pill {
+    position: absolute;
+    top: clamp(16px, 2vw, 28px);
+    left: clamp(20px, 3vw, 40px);
+    z-index: 2;
+    background: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1;
+    padding: 10px 18px;
+    border-radius: 999px;
+    box-shadow: 0 4px 16px rgba(42, 31, 61, 0.18);
+    font-synthesis: none;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /* ---------- Gallery rail (JS-driven scroll) ---------- */
+  /* Iteration 8 rewrite: rail is a scrollable overflow-x: auto
+     container. JS auto-scrolls scrollLeft each frame at a constant
+     speed. User interaction (hover / touch / wheel / pointer drag)
+     pauses the auto-scroll, resumes after a delay. Items rendered
+     twice in the track; JS jumps scrollLeft back by half the track
+     width when it crosses the halfway mark, creating a seamless loop.
+     Reduced-motion disables the auto-scroll loop, leaves manual
+     scrolling. */
+  .theinmag-single-mags-inside__galleries {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .theinmag-single-mags-inside__gallery[hidden] { display: none; }
+
+  .theinmag-single-mags-inside__rail {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-behavior: auto;
+  }
+  .theinmag-single-mags-inside__rail::-webkit-scrollbar { display: none; }
+
+  .theinmag-single-mags-inside__rail-track {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--space-md);
+    width: max-content;
+  }
+
+  .theinmag-single-mags-inside__rail-item {
+    flex: 0 0 auto;
+  }
+
+  .theinmag-single-mags-inside__rail-img {
+    display: block;
+    height: clamp(320px, 56vw, 580px);
+    width: auto;
+    max-width: none;
+    object-fit: contain;
+    background-color: rgba(251, 246, 234, 0.6);
+    box-shadow: 0 8px 24px rgba(42, 31, 61, 0.18);
+    border-radius: 0;
+    /* Allow the user to drag-scroll across images without the
+       browser kicking in image-drag behaviour. */
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+  }
+
+  @media (max-width: 749px) {
+    .theinmag-single-mags-inside__pill {
+      top: 12px;
+      left: var(--space-md);
+      padding: 8px 14px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Single mags inside",
+  "tag": "section",
+  "class": "shopify-section theinmag-single-mags-inside-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Inside-gallery rail for /products/single-mags. Listens to the hero's issue picker - swap the gallery when the user picks a different issue. Images come from single_mag.inside_gallery_images on each issue product."
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "aeo_heading",
+      "label": "Hidden H2 (AEO)",
+      "default": "What's inside theINmag?"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow (Caveat)",
+      "default": "you're looking inside"
+    },
+    {
+      "type": "text",
+      "id": "heading_prefix",
+      "label": "Heading prefix",
+      "default": "INside",
+      "info": "If it contains IN, the IN renders with the brand-pun emphasis."
+    },
+    {
+      "type": "header",
+      "content": "Per-issue source"
+    },
+    {
+      "type": "collection",
+      "id": "issues_collection",
+      "label": "Issues collection",
+      "info": "Same collection used in the hero. Reads single_mag.inside_gallery_images per product."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 64,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 64,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Single mags inside" }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

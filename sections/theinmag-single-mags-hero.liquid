@@ -1,0 +1,2445 @@
+{%- comment -%}
+  theinmag-single-mags-hero
+  PDP hero for /products/single-mags. Variant-driven (Print / Digital /
+  Snack Pack Print / Snack Pack Digital) on ONE Shopify product. The
+  per-issue data lives in a separate `single_mag` collection of products
+  (Mag01-MagN), each carrying metafields:
+    single_mag.subtagline           single_line_text_field
+    single_mag.description_block    rich_text_field
+    single_mag.media_images         list.file_reference
+    single_mag.media_video          file_reference (optional)
+    single_mag.inside_gallery_images list.file_reference (powers section 1.5)
+    single_mag.theme_eyebrow        single_line_text_field (optional Caveat label)
+    single_mag.issue_number         integer (drives sort order)
+    single_mag.release_date         date
+    single_mag.print_in_stock       boolean (drives picker grey-out)
+
+  Pattern parent: theinmag-membership-hero.liquid. Same sticky-widget
+  rhythm, same cream-card surface, same rating chip + mini reviews
+  bubble. Differences:
+    - Issue picker at the top swaps the media column + description
+      block + sales-widget title/subtagline in unison.
+    - Picker order driven by the active variant format (Print mode =
+      in-stock first then greyed sold-outs; Digital / Snack Pack mode
+      = strict newest-first, all full colour).
+    - Sold-out PRINT auto-flips the active variant to Digital with
+      a softened CTA and an optional back-in-stock link stub.
+    - Real DOM for every per-issue container (SEO + Sect 1.5 listens
+      to `single-mags:issue-changed` custom event).
+
+  Hyphens only, never em dashes. Inter for body, Post Regular for the
+  brand-name title only.
+{%- endcomment -%}
+
+{%- liquid
+  assign issues_collection_handle = section.settings.issues_collection
+  assign issues = collections[issues_collection_handle].products
+  assign aeo_heading = section.settings.aeo_heading | default: 'Buy a single issue of theINmag'
+  assign visible_eyebrow = section.settings.visible_eyebrow
+
+  assign show_bg = section.settings.show_section_bg
+  assign bg_opacity_pct = section.settings.section_bg_opacity | default: 35
+  assign bg_opacity = bg_opacity_pct | times: 0.01
+
+  assign trust_1 = section.settings.trust_1
+  assign trust_2 = section.settings.trust_2
+  assign trust_3 = section.settings.trust_3
+
+  assign show_rating_chip = section.settings.show_rating_chip
+  assign show_mini_reviews = section.settings.show_mini_review_bubble
+  assign show_back_in_stock = section.settings.show_back_in_stock_link
+  assign back_in_stock_label = section.settings.back_in_stock_link_label | default: 'Want notified when reprinted?'
+
+  assign show_buy_now = section.settings.show_buy_now
+  assign show_cross_sell = section.settings.show_cross_sell
+  assign cross_sell_heading = section.settings.cross_sell_heading | default: 'Set and forget?'
+  assign cross_sell_body = section.settings.cross_sell_body | default: "Skip the chase - a Membership lands every drop, three times a year, free shipping always."
+  assign cross_sell_link_label = section.settings.cross_sell_link_label | default: 'Try a Membership'
+  assign cross_sell_link_url = section.settings.cross_sell_link_url | default: '/products/membership'
+
+  assign accordion_blocks = section.blocks | where: 'type', 'accordion'
+
+  # Snack Pack picker-tile settings. The tile sits at the end of the
+  # picker row alongside the issue covers. Clicking it flips the form
+  # variant logic into "snack pack" mode without changing the active
+  # issue's media. Ryan's call - snack pack is a curation choice, not
+  # a format applied to a single issue.
+  assign snack_pack_image = section.settings.snack_pack_image
+  assign snack_pack_label = section.settings.snack_pack_label | default: 'Snack pack'
+  assign snack_pack_subtagline = section.settings.snack_pack_subtagline | default: 'Two hand-picked issues, one happy mailbox.'
+
+  assign first_variant = product.selected_or_first_available_variant
+  assign section_style = '--tmsm-pt: ' | append: section.settings.padding_top | append: 'px; --tmsm-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+
+  assign hero_jm = shop.metafields.judgeme
+  assign hero_rating = hero_jm.all_reviews_rating | default: 0
+  assign hero_count = hero_jm.all_reviews_count | default: 0
+
+  # Sort issues newest-first by issue_number metafield so the initial
+  # picker order matches the Digital / Snack Pack rule. JS reorders on
+  # the fly when the user flips to Print and a sold-out issue lands.
+  assign sorted_issues = issues | sort: 'metafields.single_mag.issue_number.value' | reverse
+
+  # First active issue: newest issue that's in print stock if available,
+  # otherwise the newest issue overall. JS re-runs this same pick on
+  # variant flip so the rule is consistent client-side.
+  assign initial_issue = sorted_issues.first
+  for issue in sorted_issues
+    if issue.metafields.single_mag.print_in_stock == true
+      assign initial_issue = issue
+      break
+    endif
+  endfor
+-%}
+
+<section
+  class="theinmag-single-mags-hero"
+  data-theinmag-single-mags
+  aria-labelledby="theinmag-single-mags-hero-heading"
+  style="{{ section_style }}"
+  data-initial-issue="{{ initial_issue.handle }}"
+  data-snack-pack-label="{{ snack_pack_label | escape }}"
+  data-snack-pack-subtagline="{{ snack_pack_subtagline | escape }}"
+>
+  {%- if show_bg -%}
+    {% render 'theinmag-section-bg', opacity: bg_opacity %}
+  {%- endif -%}
+
+  {%- comment -%}
+    Visually-hidden H1 carries the SEO / AEO keyword load. The visible
+    chrome (eyebrow, title in the widget, picker) handles the actual
+    UX. Pattern lifted from competitions choice-gate + behind-the-mag
+    hero (see design-system §3.8).
+  {%- endcomment -%}
+  <h1 id="theinmag-single-mags-hero-heading" class="theinmag-single-mags-hero__a11y-heading">{{ aeo_heading }}</h1>
+
+  <div class="theinmag-single-mags-hero__inner">
+
+    {%- comment -%}
+      One unified card wraps the picker + the two-column row (media +
+      widget). Ryan's call - "the magazine picker, the widget and the
+      images and vids should be inside the one card". Description block
+      stays outside the card, below it.
+    {%- endcomment -%}
+    <div class="theinmag-single-mags-hero__card">
+
+    {%- comment -%}
+      ISSUE PICKER. Each tile carries data attributes the JS reads to
+      re-sort + flip active state. Cover thumbnail = product.featured_image.
+      Mobile scroll-snaps horizontally with a peek of the next thumb;
+      desktop stays in a single row with wrap if too many issues.
+    {%- endcomment -%}
+    {%- if sorted_issues.size > 0 -%}
+      <div class="theinmag-single-mags-hero__picker-wrap">
+        {%- if visible_eyebrow != blank -%}
+          <p class="theinmag-single-mags-hero__eyebrow">{{ visible_eyebrow }}</p>
+        {%- endif -%}
+        <ol class="theinmag-single-mags-hero__picker" role="list" data-picker>
+          {%- for issue in sorted_issues -%}
+            {%- liquid
+              assign issue_num = issue.metafields.single_mag.issue_number.value | default: 0
+              assign issue_label = issue.title | default: issue.handle
+              assign issue_label_short = issue_label | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
+              assign print_in_stock = issue.metafields.single_mag.print_in_stock
+              if print_in_stock == true
+                assign print_in_stock_attr = 'true'
+              else
+                assign print_in_stock_attr = 'false'
+              endif
+              assign cover_img = issue.featured_image
+            -%}
+            <li
+              class="theinmag-single-mags-hero__picker-item"
+              data-picker-item
+              data-issue-handle="{{ issue.handle }}"
+              data-issue-number="{{ issue_num }}"
+              data-print-in-stock="{{ print_in_stock_attr }}"
+            >
+              <button
+                type="button"
+                class="theinmag-single-mags-hero__picker-btn"
+                data-picker-btn
+                aria-label="View {{ issue_label_short }}"
+                {% if issue.handle == initial_issue.handle %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}
+              >
+                <span class="theinmag-single-mags-hero__picker-cover">
+                  {%- if cover_img != blank -%}
+                    <img
+                      src="{{ cover_img | image_url: width: 240 }}"
+                      alt="{{ issue_label_short | escape }} cover"
+                      loading="lazy"
+                      width="80"
+                      height="80"
+                    >
+                  {%- endif -%}
+                </span>
+                <span class="theinmag-single-mags-hero__picker-label">{{ issue_label_short }}</span>
+                <span class="theinmag-single-mags-hero__picker-soldout" data-soldout-label aria-hidden="true">Digital only</span>
+              </button>
+            </li>
+          {%- endfor -%}
+
+          {%- comment -%}
+            Snack Pack tile. Sits at the end of the picker row alongside
+            the issue covers. Clicking flips activeMode to 'snack-pack'
+            in JS - variant tiles still show Print + Digital but the
+            cart variant maps to "Snack Pack (Print)" or "Snack Pack
+            (Digital)" on the main product. The media column stays on
+            the currently-shown issue (per spec - snack pack content is
+            curated separately from what the visitor was browsing).
+          {%- endcomment -%}
+          <li
+            class="theinmag-single-mags-hero__picker-item theinmag-single-mags-hero__picker-item--snack-pack"
+            data-picker-item
+            data-snack-pack-tile
+          >
+            <button
+              type="button"
+              class="theinmag-single-mags-hero__picker-btn"
+              data-picker-btn
+              aria-label="Choose snack pack"
+              aria-pressed="false"
+            >
+              <span class="theinmag-single-mags-hero__picker-cover theinmag-single-mags-hero__picker-cover--snack-pack">
+                {%- if snack_pack_image != blank -%}
+                  <img
+                    src="{{ snack_pack_image | image_url: width: 240 }}"
+                    alt="{{ snack_pack_label | escape }}"
+                    loading="lazy"
+                    width="80"
+                    height="80"
+                  >
+                {%- else -%}
+                  <span class="theinmag-single-mags-hero__picker-snack-placeholder" aria-hidden="true">2-pack</span>
+                {%- endif -%}
+              </span>
+              <span class="theinmag-single-mags-hero__picker-label">{{ snack_pack_label }}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%}
+      Two-column row: media column LEFT, sales widget RIGHT.
+    {%- endcomment -%}
+    <div class="theinmag-single-mags-hero__row">
+
+      {%- comment -%}
+        MEDIA COLUMN. One container per issue, all in DOM. Hidden via
+        attribute, swapped by JS on picker change. Each container:
+          - Main image (current selected from gallery)
+          - Thumb strip below for jump-to-image
+          - Optional video as a gallery slide (yellow play SVG facade)
+        Carousel order: media_video (if present) first, then
+        media_images (list.file_reference). Featured image is fallback
+        when both metafields are empty.
+      {%- endcomment -%}
+      <div class="theinmag-single-mags-hero__media-col">
+        {%- for issue in sorted_issues -%}
+          {%- liquid
+            assign media_images = issue.metafields.single_mag.media_images.value
+            assign media_video = issue.metafields.single_mag.media_video.value
+            assign cover_img = issue.featured_image
+            assign is_active_issue = false
+            if issue.handle == initial_issue.handle
+              assign is_active_issue = true
+            endif
+          -%}
+          <div
+            class="theinmag-single-mags-hero__media"
+            data-issue-handle="{{ issue.handle }}"
+            data-media
+            {% unless is_active_issue %}hidden{% endunless %}
+          >
+            <div class="theinmag-single-mags-hero__media-main" data-media-main>
+              {%- liquid
+                assign slide_index = 0
+              -%}
+
+              {%- comment -%}
+                Slide order: cover (image #1) first as the active slide,
+                video second, then remaining images. Iteration 6 fix -
+                render the cover slide INSIDE the for loop (using
+                forloop.first), which guarantees `img` works with the
+                image_url filter. `.first` on a list metafield returns
+                a reference object that didn't render reliably.
+              {%- endcomment -%}
+              {%- if media_images != blank -%}
+                {%- for img in media_images -%}
+                  {%- if forloop.first -%}
+                    {%- comment -%} Slide 0: cover, active by default. {%- endcomment -%}
+                    <div class="theinmag-single-mags-hero__slide is-active" data-slide data-slide-index="0" data-slide-type="image">
+                      <img
+                        class="theinmag-single-mags-hero__slide-img"
+                        src="{{ img | image_url: width: 1400 }}"
+                        alt="{{ img.alt | default: issue.title | escape }}"
+                        loading="eager"
+                        width="1400"
+                        height="1750"
+                      >
+                    </div>
+                    {%- assign slide_index = 1 -%}
+
+                    {%- comment -%} Slide 1: video, if present. Source
+                      tags rendered from media_video.sources (Shopify
+                      Video object) - more reliable than file_url for
+                      file_reference video metafields. Poster reuses
+                      the cover image so there's never an empty black
+                      frame before autoplay kicks in. {%- endcomment -%}
+                    {%- if media_video != blank -%}
+                      <div class="theinmag-single-mags-hero__slide theinmag-single-mags-hero__slide--video" data-slide data-slide-index="{{ slide_index }}" data-slide-type="video">
+                        <video
+                          class="theinmag-single-mags-hero__slide-video"
+                          autoplay
+                          muted
+                          loop
+                          playsinline
+                          preload="metadata"
+                          poster="{{ img | image_url: width: 1200 }}"
+                          aria-label="A quick look inside {{ issue.title | escape }}"
+                        >
+                          {%- if media_video.sources -%}
+                            {%- for source in media_video.sources -%}
+                              <source src="{{ source.url }}" type="{{ source.mime_type }}">
+                            {%- endfor -%}
+                          {%- else -%}
+                            <source src="{{ media_video | file_url }}">
+                          {%- endif -%}
+                        </video>
+                      </div>
+                      {%- assign slide_index = slide_index | plus: 1 -%}
+                    {%- endif -%}
+                  {%- else -%}
+                    {%- comment -%} Remaining images (index 1+). {%- endcomment -%}
+                    <div class="theinmag-single-mags-hero__slide" data-slide data-slide-index="{{ slide_index }}" data-slide-type="image">
+                      <img
+                        class="theinmag-single-mags-hero__slide-img"
+                        src="{{ img | image_url: width: 1400 }}"
+                        alt="{{ img.alt | default: issue.title | escape }}"
+                        loading="lazy"
+                        width="1400"
+                        height="1750"
+                      >
+                    </div>
+                    {%- assign slide_index = slide_index | plus: 1 -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- elsif media_video != blank -%}
+                <div class="theinmag-single-mags-hero__slide theinmag-single-mags-hero__slide--video is-active" data-slide data-slide-index="0" data-slide-type="video">
+                  <video class="theinmag-single-mags-hero__slide-video" autoplay muted loop playsinline preload="metadata" aria-label="A quick look inside {{ issue.title | escape }}">
+                    {%- if media_video.sources -%}
+                      {%- for source in media_video.sources -%}
+                        <source src="{{ source.url }}" type="{{ source.mime_type }}">
+                      {%- endfor -%}
+                    {%- else -%}
+                      <source src="{{ media_video | file_url }}">
+                    {%- endif -%}
+                  </video>
+                </div>
+              {%- elsif cover_img != blank -%}
+                <div class="theinmag-single-mags-hero__slide is-active" data-slide data-slide-index="0" data-slide-type="image">
+                  <img class="theinmag-single-mags-hero__slide-img" src="{{ cover_img | image_url: width: 1400 }}" alt="{{ issue.title | escape }} cover" loading="eager" width="1400" height="1750">
+                </div>
+              {%- endif -%}
+
+              {%- comment -%} Desktop arrows {%- endcomment -%}
+              <button type="button" class="theinmag-single-mags-hero__media-arrow theinmag-single-mags-hero__media-arrow--prev" data-media-prev aria-label="Previous image">‹</button>
+              <button type="button" class="theinmag-single-mags-hero__media-arrow theinmag-single-mags-hero__media-arrow--next" data-media-next aria-label="Next image">›</button>
+            </div>
+
+            {%- comment -%} Thumb strip below main image. Each thumb has
+              an index matching its slide. JS toggles `.is-active`. {%- endcomment -%}
+            {%- if media_images.size > 1 or media_video != blank -%}
+              <ol class="theinmag-single-mags-hero__thumbs" role="list" data-thumbs>
+                {%- liquid
+                  assign thumb_index = 0
+                -%}
+                {%- comment -%}
+                  Thumb order matches slide order: cover, video, remaining
+                  images. Cover + video thumbs both render INSIDE the
+                  for-loop using `img` as the source (instead of
+                  `media_images.first` which doesn't pipe reliably into
+                  image_url for list metafields). Same fix as iteration 6
+                  for the main slides.
+                {%- endcomment -%}
+                {%- if media_images != blank -%}
+                  {%- for img in media_images -%}
+                    {%- if forloop.first -%}
+                      {%- comment -%} Cover thumb {%- endcomment -%}
+                      <li>
+                        <button type="button" class="theinmag-single-mags-hero__thumb is-active" data-thumb-jump="0" aria-label="Cover">
+                          <img src="{{ img | image_url: width: 160 }}" alt="" loading="lazy">
+                        </button>
+                      </li>
+                      {%- assign thumb_index = 1 -%}
+
+                      {%- comment -%} Video thumb, if present. Uses cover image as the poster thumbnail. {%- endcomment -%}
+                      {%- if media_video != blank -%}
+                        <li>
+                          <button type="button" class="theinmag-single-mags-hero__thumb theinmag-single-mags-hero__thumb--video" data-thumb-jump="{{ thumb_index }}" aria-label="Video">
+                            <img src="{{ img | image_url: width: 160 }}" alt="" loading="lazy">
+                            <span class="theinmag-single-mags-hero__thumb-play" aria-hidden="true">
+                              <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="12" fill="#F9C23C"></circle><polygon points="10,8 10,16 16,12" fill="#2A1F3D"></polygon></svg>
+                            </span>
+                          </button>
+                        </li>
+                        {%- assign thumb_index = thumb_index | plus: 1 -%}
+                      {%- endif -%}
+                    {%- else -%}
+                      {%- comment -%} Remaining image thumbs {%- endcomment -%}
+                      <li>
+                        <button type="button" class="theinmag-single-mags-hero__thumb" data-thumb-jump="{{ thumb_index }}" aria-label="Image {{ forloop.index }}">
+                          <img src="{{ img | image_url: width: 160 }}" alt="" loading="lazy">
+                        </button>
+                      </li>
+                      {%- assign thumb_index = thumb_index | plus: 1 -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- elsif media_video != blank -%}
+                  <li>
+                    <button type="button" class="theinmag-single-mags-hero__thumb theinmag-single-mags-hero__thumb--video is-active" data-thumb-jump="0" aria-label="Video">
+                      <span class="theinmag-single-mags-hero__thumb-play" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="12" fill="#F9C23C"></circle><polygon points="10,8 10,16 16,12" fill="#2A1F3D"></polygon></svg>
+                      </span>
+                    </button>
+                  </li>
+                {%- endif -%}
+              </ol>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- comment -%}
+        SALES WIDGET RIGHT. Sticky desktop. Title and subtagline slots
+        update from picker selection. Variant tiles drive the cart.
+      {%- endcomment -%}
+      <div class="theinmag-single-mags-hero__widget" data-widget>
+
+        {%- liquid
+          # Strip the "theINmag - " prefix so the widget shows just the
+          # issue label (e.g. "Mag09"). The brand name lives in the page
+          # chrome (header + footer), repeating it on every issue title
+          # reads as padding rather than information.
+          assign initial_title_parts = initial_issue.title | split: ' - '
+          if initial_title_parts.size > 1
+            assign initial_title = initial_title_parts.last
+          else
+            assign initial_title = initial_issue.title
+          endif
+          assign initial_subtag = initial_issue.metafields.single_mag.subtagline
+          assign initial_eyebrow = initial_issue.metafields.single_mag.theme_eyebrow
+        -%}
+
+        <h2 class="theinmag-single-mags-hero__title" data-issue-title>{{ initial_title }}</h2>
+
+        {%- comment -%}
+          Tagline row: subtagline + optional rating chip. Mirrors the
+          Membership hero pattern - hyphen separator before stars,
+          chip jumps to #theinmag-single-mags-reviews-heading.
+        {%- endcomment -%}
+        <div class="theinmag-single-mags-hero__tagline-row">
+          <p class="theinmag-single-mags-hero__tagline" data-issue-subtagline>{{ initial_subtag }}</p>
+          {%- if show_rating_chip and hero_count != 0 and hero_count != blank -%}
+            <a href="#theinmag-membership-reviews-heading" class="theinmag-single-mags-hero__rating-link" aria-label="Read {{ hero_count }} customer reviews">
+              <span data-score="{{ hero_rating }}" class="jdgm-all-reviews-rating" aria-label="{{ hero_rating | round: 1 }} stars" role="img"></span>
+              <span class="theinmag-single-mags-hero__rating-count">({{ hero_count }})</span>
+            </a>
+          {%- endif -%}
+        </div>
+
+        <div class="theinmag-single-mags-hero__price" data-price-display>{{ first_variant.price | money }}</div>
+
+        <form
+          action="{{ routes.cart_add_url }}"
+          method="post"
+          enctype="multipart/form-data"
+          class="theinmag-single-mags-hero__form"
+          data-single-mags-form
+        >
+          <input type="hidden" name="id" data-variant-id-input value="{{ first_variant.id }}">
+          <input type="hidden" name="quantity" value="1">
+          <input type="hidden" name="properties[_issue]" data-prop-issue value="{{ initial_issue.handle }}">
+
+          <fieldset class="theinmag-single-mags-hero__fieldset">
+            <legend class="theinmag-single-mags-hero__legend">Format</legend>
+            {%- comment -%}
+              Only Print + Digital here now. Snack Pack moved into the
+              picker row as a separate tile. JS handles the variant
+              mapping - in snack-pack mode, Print/Digital here resolve
+              to the "Snack Pack (Print)" / "Snack Pack (Digital)"
+              variant on the main product.
+            {%- endcomment -%}
+            <div class="theinmag-single-mags-hero__variants" role="radiogroup" data-variant-group>
+              <button type="button" class="theinmag-single-mags-hero__variant-tile" data-variant-format="Print" aria-pressed="true">
+                <span class="theinmag-single-mags-hero__variant-title">Print</span>
+                <span class="theinmag-single-mags-hero__variant-sold" data-variant-sold>Print sold out - grab digital</span>
+              </button>
+              <button type="button" class="theinmag-single-mags-hero__variant-tile" data-variant-format="Digital" aria-pressed="false">
+                <span class="theinmag-single-mags-hero__variant-title">Digital</span>
+              </button>
+            </div>
+          </fieldset>
+
+          <div class="theinmag-single-mags-hero__cta-row">
+            <button type="submit" class="theinmag-single-mags-hero__cta theinmag-single-mags-hero__cta--primary" data-primary-cta>
+              <span data-cta-label>Add to cart</span>
+            </button>
+            {%- if show_buy_now -%}
+              {%- comment -%}
+                name="checkout" on a form submit button is Shopify's
+                built-in skip-cart pattern - the variant + properties
+                go straight to /checkout instead of /cart. Saves a click
+                for confident buyers.
+              {%- endcomment -%}
+              <button type="submit" name="checkout" class="theinmag-single-mags-hero__cta theinmag-single-mags-hero__cta--secondary" data-buy-now-cta>
+                <span>Buy now</span>
+              </button>
+            {%- endif -%}
+          </div>
+
+          {%- if show_back_in_stock -%}
+            <a class="theinmag-single-mags-hero__back-in-stock" href="#" data-back-in-stock hidden>{{ back_in_stock_label }}</a>
+          {%- endif -%}
+
+          {%- if trust_1 != blank or trust_2 != blank or trust_3 != blank -%}
+            <ul class="theinmag-single-mags-hero__trust" role="list">
+              {%- if trust_1 != blank -%}<li>{{ trust_1 }}</li>{%- endif -%}
+              {%- if trust_2 != blank -%}<li>{{ trust_2 }}</li>{%- endif -%}
+              {%- if trust_3 != blank -%}<li>{{ trust_3 }}</li>{%- endif -%}
+            </ul>
+          {%- endif -%}
+        </form>
+
+        {%- if show_mini_reviews and hero_jm.featured_carousel != blank -%}
+          {%- comment -%}
+            Iteration 10: copy the WORKING Membership pattern verbatim,
+            including the position:static/opacity:1/transform:none overrides
+            on .jdgm-carousel-item which were the missing piece. JS lives
+            in its own <script> block at the bottom of the section so it
+            initialises against the actual rendered DOM, not inside the
+            main IIFE before the carousel HTML is in place.
+          {%- endcomment -%}
+          <div class="theinmag-single-mags-hero__mini-reviews" data-mini-reviews>
+            <button type="button" class="theinmag-single-mags-hero__mini-reviews-arrow theinmag-single-mags-hero__mini-reviews-arrow--prev" data-mini-reviews-prev aria-label="Previous review">‹</button>
+            <div class="theinmag-single-mags-hero__mini-reviews-bubble">
+              <div class="theinmag-single-mags-hero__mini-reviews-inner">
+                {{ hero_jm.featured_carousel }}
+              </div>
+              <a href="#theinmag-membership-reviews-heading" class="theinmag-single-mags-hero__mini-reviews-readmore">Read more reviews &rarr;</a>
+            </div>
+            <button type="button" class="theinmag-single-mags-hero__mini-reviews-arrow theinmag-single-mags-hero__mini-reviews-arrow--next" data-mini-reviews-next aria-label="Next review">›</button>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%}
+          ACCORDIONS - Q&A bar mirroring Membership-hero pattern but
+          biased toward Membership conversion ("set and forget" / "don't
+          miss an issue"). Block-based so Ryan can tune in Theme Editor
+          without code edits.
+        {%- endcomment -%}
+        {%- if accordion_blocks.size > 0 -%}
+          <ul class="theinmag-single-mags-hero__accordions" role="list">
+            {%- for block in accordion_blocks -%}
+              <li class="theinmag-single-mags-hero__accordion" {{ block.shopify_attributes }}>
+                <h3 class="theinmag-single-mags-hero__acc-q">
+                  <button type="button" class="theinmag-single-mags-hero__acc-trigger" data-acc-trigger aria-expanded="false">
+                    <span>{{ block.settings.question }}</span>
+                    <span class="theinmag-single-mags-hero__acc-caret" aria-hidden="true"></span>
+                  </button>
+                </h3>
+                <div class="theinmag-single-mags-hero__acc-panel" data-acc-panel data-open="false">
+                  {{ block.settings.answer }}
+                </div>
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+
+        {%- comment -%}
+          Cross-sell tile - lavender-tinted panel prompting Membership.
+          Equivalent to the Membership PDP's post-add tile but tuned
+          for single-issue buyers ("you've already nearly chosen one,
+          want every drop?").
+        {%- endcomment -%}
+        {%- if show_cross_sell -%}
+          <aside class="theinmag-single-mags-hero__cross-sell" aria-label="Membership prompt">
+            <p class="theinmag-single-mags-hero__cross-sell-heading">{{ cross_sell_heading }}</p>
+            <p class="theinmag-single-mags-hero__cross-sell-body">{{ cross_sell_body }}</p>
+            {%- if cross_sell_link_url != blank -%}
+              <a class="theinmag-single-mags-hero__cross-sell-link" href="{{ cross_sell_link_url }}">{{ cross_sell_link_label }} &rarr;</a>
+            {%- endif -%}
+          </aside>
+        {%- endif -%}
+
+      </div>
+
+      {%- comment -%}
+        DESCRIPTION BLOCK. Now lives INSIDE the row grid in row 2, col 1
+        (under media-col only - widget spans both rows). This way the
+        description nestles directly under the thumb strip regardless
+        of how tall the widget grows with accordions / mini-reviews /
+        cross-sell tile underneath.
+      {%- endcomment -%}
+      <div class="theinmag-single-mags-hero__desc-col" data-desc-col>
+        {%- for issue in sorted_issues -%}
+          {%- liquid
+            assign desc_body = issue.metafields.single_mag.description_block
+            assign is_active_issue = false
+            if issue.handle == initial_issue.handle
+              assign is_active_issue = true
+            endif
+          -%}
+          <div
+            class="theinmag-single-mags-hero__desc"
+            data-issue-handle="{{ issue.handle }}"
+            data-desc
+            {% unless is_active_issue %}hidden{% endunless %}
+          >
+            {% if desc_body != blank %}{{ desc_body | metafield_tag }}{% endif %}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+
+    </div>{%- comment -%} /__card {%- endcomment -%}
+
+  </div>
+
+  {%- comment -%}
+    Per-issue meta payload. JS reads this on picker change to update
+    the widget's title + subtagline + eyebrow without round-tripping
+    through DOM containers (those still exist for SEO). Keys match
+    [data-issue-handle] across the section.
+  {%- endcomment -%}
+  <script type="application/json" data-issues-meta>
+    [
+      {%- for issue in sorted_issues -%}
+        {
+          "handle": {{ issue.handle | json }},
+          "title": {{ issue.title | json }},
+          "subtagline": {{ issue.metafields.single_mag.subtagline | json }},
+          "eyebrow": {{ issue.metafields.single_mag.theme_eyebrow | json }},
+          "issue_number": {{ issue.metafields.single_mag.issue_number.value | default: 0 }},
+          "print_in_stock": {{ issue.metafields.single_mag.print_in_stock | default: false }}
+        }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    ]
+  </script>
+
+  <script type="application/json" data-single-mags-variants>
+    [
+      {%- for v in product.variants -%}
+        {"id": {{ v.id }}, "title": {{ v.title | json }}, "option1": {{ v.option1 | json }}, "price": {{ v.price }}, "available": {{ v.available }}}{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    ]
+  </script>
+
+</section>
+
+{%- comment -%}
+  Floating cart card. Lives OUTSIDE the section so its z-index escapes
+  the section's stacking context (the section uses isolation:isolate)
+  and stays on top of every section that comes after. Pattern ported
+  from theinmag-membership-hero - same fixed positioning, same wobble
+  rhythm. IntersectionObserver flips data-show when the in-card widget
+  scrolls out of view; click on the card body scrolls back to the
+  widget, click on the CTA submits the form.
+{%- endcomment -%}
+<aside class="theinmag-single-mags-hero__floating-cart" data-floating-cart data-show="false" aria-label="Your order summary">
+  <div class="theinmag-single-mags-hero__floating-cart-card">
+    <button type="button" class="theinmag-single-mags-hero__floating-cart-tap" data-floating-cart-tap aria-label="Back to the selectors">
+      <span class="theinmag-single-mags-hero__floating-cart-eyebrow">your order</span>
+      <span class="theinmag-single-mags-hero__floating-cart-summary" data-floating-cart-summary>Mag09 Print</span>
+    </button>
+    <button type="button" class="theinmag-single-mags-hero__floating-cart-cta" data-floating-cart-cta aria-label="Add to cart">
+      <span>Add to cart</span>
+      <span aria-hidden="true">-</span>
+      <span data-floating-cart-cta-price>{{ first_variant.price | money }}</span>
+    </button>
+  </div>
+</aside>
+
+<script>
+  (function () {
+    'use strict';
+
+    const root = document.querySelector('[data-theinmag-single-mags]');
+    if (!root) return;
+
+    const metaScript = root.querySelector('[data-issues-meta]');
+    const variantsScript = root.querySelector('[data-single-mags-variants]');
+    if (!metaScript || !variantsScript) return;
+
+    let issuesMeta = [];
+    let variants = [];
+    try {
+      issuesMeta = JSON.parse(metaScript.textContent);
+      variants = JSON.parse(variantsScript.textContent);
+    } catch (err) {
+      console.error('[theinmag-single-mags-hero] failed to parse JSON', err);
+      return;
+    }
+
+    const picker = root.querySelector('[data-picker]');
+    const pickerItems = Array.from(root.querySelectorAll('[data-picker-item]'));
+    const issuePickerItems = pickerItems.filter(function (i) { return !i.hasAttribute('data-snack-pack-tile'); });
+    const snackPackTile = root.querySelector('[data-snack-pack-tile]');
+    const mediaContainers = Array.from(root.querySelectorAll('[data-media]'));
+    const descContainers = Array.from(root.querySelectorAll('[data-desc]'));
+    const titleEl = root.querySelector('[data-issue-title]');
+    const subtagEl = root.querySelector('[data-issue-subtagline]');
+    const priceDisplay = root.querySelector('[data-price-display]');
+    const variantInput = root.querySelector('[data-variant-id-input]');
+    const propIssue = root.querySelector('[data-prop-issue]');
+    const ctaLabel = root.querySelector('[data-cta-label]');
+    const backInStockLink = root.querySelector('[data-back-in-stock]');
+    const variantGroup = root.querySelector('[data-variant-group]');
+    const variantTiles = Array.from(root.querySelectorAll('[data-variant-format]'));
+
+    /* activeMode controls how the Print/Digital variant tiles map onto
+       the main product's actual variants:
+         'issue'       Print -> variant.option1 === 'Print'
+                       Digital -> variant.option1 === 'Digital'
+         'snack-pack'  Print -> variant.option1 === 'Snack Pack (Print)'
+                       Digital -> variant.option1 === 'Snack Pack (Digital)'
+       In snack-pack mode the media column keeps showing the active
+       issue's media - the bundle ships fixed component issues, what
+       the visitor was browsing is just visual context. */
+    let activeIssueHandle = root.dataset.initialIssue;
+    let activeFormat = 'Print';
+    let activeMode = 'issue';
+
+    function metaFor(handle) {
+      return issuesMeta.find(function (m) { return m.handle === handle; });
+    }
+
+    function formatMoney(cents) {
+      return '$' + (cents / 100).toFixed(2);
+    }
+
+    /* Map the picker mode + active format into the matching main-product
+       variant. In issue mode we look for option1 === 'Print' or 'Digital'.
+       In snack-pack mode we map onto the bundled variants. */
+    function findVariant(mode, format) {
+      let needle = format;
+      if (mode === 'snack-pack') {
+        needle = format === 'Digital' ? 'Snack Pack (Digital)' : 'Snack Pack (Print)';
+      }
+      return variants.find(function (v) { return v.option1 === needle; });
+    }
+
+    /* Strip the "theINmag - " prefix so the widget heading reads just
+       "Mag09". Brand name lives in the page chrome already. */
+    function issueLabel(title) {
+      const parts = String(title).split(' - ');
+      return parts.length > 1 ? parts[parts.length - 1] : title;
+    }
+
+    /* Picker sort:
+         Print mode (issue-mode + Print format) - in-stock issues first
+         (newest first by issue_number), then sold-out issues (newest
+         first). Sold-outs visibly greyed.
+         Digital or Snack Pack mode - strict newest-first, all full colour.
+       Snack Pack tile is always appended last regardless of mode. */
+    function sortPicker(mode, format) {
+      if (!picker) return;
+      const applyStockSort = mode === 'issue' && format === 'Print';
+      const items = issuePickerItems.slice();
+      items.sort(function (a, b) {
+        const numA = parseInt(a.dataset.issueNumber, 10) || 0;
+        const numB = parseInt(b.dataset.issueNumber, 10) || 0;
+        const inStockA = a.dataset.printInStock === 'true';
+        const inStockB = b.dataset.printInStock === 'true';
+        if (applyStockSort && inStockA !== inStockB) {
+          return inStockA ? -1 : 1;
+        }
+        return numB - numA;
+      });
+      items.forEach(function (item) { picker.appendChild(item); });
+      if (snackPackTile) picker.appendChild(snackPackTile);
+      issuePickerItems.forEach(function (item) {
+        const inStock = item.dataset.printInStock === 'true';
+        item.classList.toggle('is-soldout', applyStockSort && !inStock);
+      });
+    }
+
+    function setActiveIssue(handle) {
+      const meta = metaFor(handle);
+      if (!meta) return;
+      activeIssueHandle = handle;
+      activeMode = 'issue';
+
+      issuePickerItems.forEach(function (item) {
+        const btn = item.querySelector('[data-picker-btn]');
+        const isActive = item.dataset.issueHandle === handle;
+        if (btn) btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        item.classList.toggle('is-active', isActive);
+      });
+      if (snackPackTile) {
+        const spBtn = snackPackTile.querySelector('[data-picker-btn]');
+        if (spBtn) spBtn.setAttribute('aria-pressed', 'false');
+        snackPackTile.classList.remove('is-active');
+      }
+
+      mediaContainers.forEach(function (c) {
+        c.hidden = c.dataset.issueHandle !== handle;
+      });
+      descContainers.forEach(function (c) {
+        c.hidden = c.dataset.issueHandle !== handle;
+      });
+
+      if (titleEl) titleEl.textContent = issueLabel(meta.title || '');
+      if (subtagEl) subtagEl.textContent = meta.subtagline || '';
+      if (propIssue) propIssue.value = handle;
+
+      updateVariantState();
+
+      const ev = new CustomEvent('single-mags:issue-changed', {
+        detail: {
+          handle: handle,
+          isInStock: !!meta.print_in_stock,
+          issueNumber: meta.issue_number
+        },
+        bubbles: true
+      });
+      root.dispatchEvent(ev);
+    }
+
+    /* Snack pack picker tile click. activeIssueHandle stays where it
+       was so the media column doesn't reshuffle - that issue is just
+       "the cover the visitor was browsing" while the snack pack ships
+       its own component issues. */
+    function setSnackPackMode() {
+      activeMode = 'snack-pack';
+
+      issuePickerItems.forEach(function (item) {
+        const btn = item.querySelector('[data-picker-btn]');
+        if (btn) btn.setAttribute('aria-pressed', 'false');
+        item.classList.remove('is-active');
+      });
+      if (snackPackTile) {
+        const spBtn = snackPackTile.querySelector('[data-picker-btn]');
+        if (spBtn) spBtn.setAttribute('aria-pressed', 'true');
+        snackPackTile.classList.add('is-active');
+      }
+
+      // Title + subtagline read as snack-pack while in this mode.
+      if (titleEl) titleEl.textContent = root.dataset.snackPackLabel || 'Snack pack';
+      if (subtagEl) subtagEl.textContent = root.dataset.snackPackSubtagline || '';
+      if (propIssue) propIssue.value = 'snack-pack';
+
+      updateVariantState();
+    }
+
+    /* updateVariantState reads activeMode + activeFormat + the active
+       issue's stock and updates the variant tiles, hidden variant id,
+       price, CTA label, and back-in-stock link. */
+    function updateVariantState() {
+      const meta = metaFor(activeIssueHandle);
+      const printInStock = !!(meta && meta.print_in_stock);
+      const printBlocked = activeMode === 'issue' && activeFormat === 'Print' && !printInStock;
+
+      if (printBlocked) {
+        activeFormat = 'Digital';
+      }
+
+      variantTiles.forEach(function (tile) {
+        const format = tile.dataset.variantFormat;
+        // Sold-out treatment only applies in issue mode for the Print
+        // tile when the active issue has no print stock. Snack-pack
+        // tiles stay live - bundle inventory lives on the bundle.
+        const isSoldOut = activeMode === 'issue' && format === 'Print' && !printInStock;
+        tile.classList.toggle('is-soldout', isSoldOut);
+        tile.setAttribute('aria-pressed', format === activeFormat ? 'true' : 'false');
+      });
+
+      const variant = findVariant(activeMode, activeFormat);
+      if (variant) {
+        if (variantInput) variantInput.value = variant.id;
+        if (priceDisplay) priceDisplay.textContent = formatMoney(variant.price);
+        if (ctaLabel) {
+          if (printBlocked) {
+            ctaLabel.textContent = 'Get it digital - ' + formatMoney(variant.price);
+          } else {
+            ctaLabel.textContent = 'Add to cart';
+          }
+        }
+      }
+
+      if (backInStockLink) {
+        backInStockLink.hidden = !printBlocked;
+      }
+
+      sortPicker(activeMode, activeFormat);
+      updateFloatingCart();
+    }
+
+    /* Wire up the picker. Issue tiles change the active issue; the
+       Snack Pack tile flips the mode without changing the media. */
+    pickerItems.forEach(function (item) {
+      const btn = item.querySelector('[data-picker-btn]');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        if (item.hasAttribute('data-snack-pack-tile')) {
+          setSnackPackMode();
+        } else {
+          setActiveIssue(item.dataset.issueHandle);
+        }
+      });
+    });
+
+    /* Wire up the variant tiles. */
+    variantTiles.forEach(function (tile) {
+      tile.addEventListener('click', function () {
+        activeFormat = tile.dataset.variantFormat;
+        updateVariantState();
+      });
+    });
+
+    /* Per-issue media: click thumb -> show that slide. Video slides
+       autoplay muted on load; no play-button overlay to wire any more. */
+    mediaContainers.forEach(function (container) {
+      const slides = Array.from(container.querySelectorAll('[data-slide]'));
+      const thumbs = Array.from(container.querySelectorAll('[data-thumb-jump]'));
+      const prevBtn = container.querySelector('[data-media-prev]');
+      const nextBtn = container.querySelector('[data-media-next]');
+
+      function show(idx) {
+        if (!slides.length) return;
+        const clamped = ((idx % slides.length) + slides.length) % slides.length;
+        slides.forEach(function (s, i) {
+          const isActive = i === clamped;
+          s.classList.toggle('is-active', isActive);
+          // Auto-play a video slide whenever it becomes active. Browser
+          // autoplay policy can refuse the <video autoplay> attribute on
+          // initial load (no media engagement); calling .play() in JS
+          // after user-engagement context generally works around it.
+          const v = s.querySelector('video');
+          if (v) {
+            if (isActive) {
+              v.muted = true;
+              const p = v.play();
+              if (p && typeof p.catch === 'function') p.catch(function () { /* swallow */ });
+            } else {
+              v.pause();
+            }
+          }
+        });
+        thumbs.forEach(function (t, i) {
+          const tIdx = parseInt(t.dataset.thumbJump, 10);
+          t.classList.toggle('is-active', tIdx === clamped);
+        });
+      }
+
+      thumbs.forEach(function (t) {
+        t.addEventListener('click', function () {
+          show(parseInt(t.dataset.thumbJump, 10) || 0);
+        });
+      });
+      if (prevBtn) prevBtn.addEventListener('click', function () {
+        const activeIdx = slides.findIndex(function (s) { return s.classList.contains('is-active'); });
+        show(activeIdx - 1);
+      });
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        const activeIdx = slides.findIndex(function (s) { return s.classList.contains('is-active'); });
+        show(activeIdx + 1);
+      });
+    });
+
+    /* Mini-reviews init now lives in its own <script> block below so
+       it can listen for DOMContentLoaded and the load event (timing
+       matters - Judge.me's own JS re-injects DOM after first paint). */
+
+    /* Floating cart - lives outside the section in the DOM (sibling
+       <aside>). Watch the widget via IntersectionObserver; when it
+       scrolls past the viewport bottom edge, flip data-show="true" so
+       the floating card slides in. Body click scrolls back to widget,
+       CTA click submits the form. Summary + price stay in sync with
+       the picker / variant choice via updateVariantState. */
+    const widget = root.querySelector('[data-widget]');
+    const floatingCart = document.querySelector('[data-floating-cart]');
+    const floatingSummary = document.querySelector('[data-floating-cart-summary]');
+    const floatingCtaPrice = document.querySelector('[data-floating-cart-cta-price]');
+    const floatingTap = document.querySelector('[data-floating-cart-tap]');
+    const floatingCta = document.querySelector('[data-floating-cart-cta]');
+
+    function updateFloatingCart() {
+      if (!floatingSummary) return;
+      let summary;
+      if (activeMode === 'snack-pack') {
+        summary = (root.dataset.snackPackLabel || 'Snack pack') + ' - ' + activeFormat;
+      } else {
+        const meta = metaFor(activeIssueHandle);
+        const issue = meta ? issueLabel(meta.title || '') : 'Mag';
+        summary = issue + ' - ' + activeFormat;
+      }
+      floatingSummary.textContent = summary;
+      const variant = findVariant(activeMode, activeFormat);
+      if (variant && floatingCtaPrice) {
+        floatingCtaPrice.textContent = formatMoney(variant.price);
+      }
+    }
+
+    if (floatingCart && widget && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          // Show floating cart when the widget is OUT of view.
+          floatingCart.setAttribute('data-show', entry.isIntersecting ? 'false' : 'true');
+        });
+      }, { rootMargin: '0px 0px -40% 0px', threshold: 0 });
+      io.observe(widget);
+    }
+
+    if (floatingTap && widget) {
+      floatingTap.addEventListener('click', function () {
+        const offset = (document.querySelector('.theinmag-header-section')?.offsetHeight || 80) + 12;
+        const target = widget.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: target, behavior: 'smooth' });
+      });
+    }
+
+    if (floatingCta) {
+      floatingCta.addEventListener('click', function () {
+        // Find the in-card Add to Cart and click it - re-uses the form
+        // submit path including the _issue line property.
+        const primaryCta = root.querySelector('[data-primary-cta]');
+        if (primaryCta) primaryCta.click();
+      });
+    }
+
+    /* Accordion bar - same one-open-at-a-time pattern as the
+       Membership FAQ. Aria + max-height transition. */
+    const accTriggers = Array.from(root.querySelectorAll('[data-acc-trigger]'));
+    accTriggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        const panel = trigger.closest('.theinmag-single-mags-hero__accordion').querySelector('[data-acc-panel]');
+        const expanded = trigger.getAttribute('aria-expanded') === 'true';
+        accTriggers.forEach(function (other) {
+          if (other !== trigger) {
+            other.setAttribute('aria-expanded', 'false');
+            const otherPanel = other.closest('.theinmag-single-mags-hero__accordion').querySelector('[data-acc-panel]');
+            if (otherPanel) otherPanel.setAttribute('data-open', 'false');
+          }
+        });
+        trigger.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        if (panel) panel.setAttribute('data-open', expanded ? 'false' : 'true');
+      });
+    });
+
+    /* Init. */
+    sortPicker(activeMode, activeFormat);
+    updateVariantState();
+
+  })();
+</script>
+
+<script>
+  /* Mini reviews carousel - ported verbatim from
+     theinmag-membership-hero. Lives in its own script block (not
+     inside the main IIFE) so the init runs on DOMContentLoaded
+     against the actual Judge.me-injected DOM. */
+  (function () {
+    function flattenJdgm(root, host) {
+      var items = root.querySelectorAll('.jdgm-carousel-item');
+      items.forEach(function (item) {
+        if (item.parentNode !== host) {
+          host.appendChild(item);
+        }
+      });
+      var cruft = root.querySelectorAll('.jdgm-carousel, .jdgm-carousel__items, .jdgm-carousel__item-container, .jdgm-carousel-title-and-link, .jdgm-carousel__arrow-left, .jdgm-carousel__arrow-right, .jdgm-carousel__arrows');
+      cruft.forEach(function (c) {
+        if (c.parentNode && c.children.length === 0) {
+          c.parentNode.removeChild(c);
+        } else if (c.parentNode) {
+          c.parentNode.removeChild(c);
+        }
+      });
+    }
+
+    function initMiniReviews(root) {
+      var host = root.querySelector('.theinmag-single-mags-hero__mini-reviews-inner');
+      if (!host) return;
+      flattenJdgm(root, host);
+
+      var items = Array.prototype.slice.call(host.querySelectorAll(':scope > .jdgm-carousel-item'));
+      if (!items.length) {
+        items = Array.prototype.slice.call(host.querySelectorAll('.jdgm-carousel-item'));
+      }
+      if (!items.length) return;
+      items.slice(10).forEach(function (n) { n.parentNode && n.parentNode.removeChild(n); });
+      items = Array.prototype.slice.call(host.querySelectorAll('.jdgm-carousel-item'));
+      if (!items.length) return;
+
+      var index = 0;
+      items.forEach(function (n, i) { n.classList.toggle('is-active', i === 0); });
+
+      function show(i) {
+        index = (i + items.length) % items.length;
+        items.forEach(function (n, j) { n.classList.toggle('is-active', j === index); });
+      }
+
+      var prev = root.querySelector('[data-mini-reviews-prev]');
+      var next = root.querySelector('[data-mini-reviews-next]');
+      if (prev) prev.addEventListener('click', function () { show(index - 1); stop(); });
+      if (next) next.addEventListener('click', function () { show(index + 1); stop(); });
+
+      var timer = null;
+      function start() {
+        if (timer) return;
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        timer = setInterval(function () { show(index + 1); }, 6000);
+      }
+      function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+      start();
+      root.addEventListener('mouseenter', stop);
+      root.addEventListener('mouseleave', start);
+    }
+
+    function init() {
+      document.querySelectorAll('[data-theinmag-single-mags] [data-mini-reviews]').forEach(initMiniReviews);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+    // Re-run on load in case Judge.me's JS rearranged things after first init.
+    window.addEventListener('load', function () { setTimeout(init, 50); });
+  })();
+</script>
+
+{% stylesheet %}
+  .theinmag-single-mags-hero {
+    position: relative;
+    isolation: isolate;
+    color: var(--color-inky-purple-navy);
+    background-color: var(--color-cream);
+    padding: var(--tmsm-pt, 56px) var(--space-lg) var(--tmsm-pb, 56px);
+    overflow: hidden;
+  }
+
+  .theinmag-single-mags-hero__a11y-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .theinmag-single-mags-hero__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  /* ---------- Unified card ---------- */
+  /* Wraps the picker + the two-column (media + widget) row in a single
+     cream card with the lifted box-shadow. Picker tiles, media carousel,
+     and sales widget all read as one chapter visually. Description
+     block sits OUTSIDE this card. */
+  .theinmag-single-mags-hero__card {
+    background-color: rgba(251, 246, 234, 0.94);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
+    padding: clamp(20px, 3vw, 36px);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    /* overflow: visible so the sticky widget can pin past the card's
+       bottom edge on desktop. */
+    overflow: visible;
+  }
+
+  /* Tighter padding on mobile so internal columns get more room. */
+  @media (max-width: 749px) {
+    .theinmag-single-mags-hero__card {
+      padding: var(--space-md);
+    }
+  }
+
+  /* Picker now sits inside the card - drop its outer padding because the
+     card supplies the breathing room from the section edge. */
+  .theinmag-single-mags-hero__card .theinmag-single-mags-hero__picker-wrap {
+    margin-bottom: var(--space-md);
+  }
+
+  /* ---------- Eyebrow + picker ---------- */
+
+  .theinmag-single-mags-hero__eyebrow {
+    font-family: var(--font-caveat, 'Caveat', cursive);
+    font-weight: 700;
+    font-size: clamp(18px, 1.8vw, 22px);
+    color: var(--color-purple-dark);
+    margin: 0 0 var(--space-xs);
+    text-align: center;
+  }
+
+  .theinmag-single-mags-hero__picker-wrap {
+    width: 100%;
+  }
+
+  .theinmag-single-mags-hero__picker {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: var(--space-md);
+    scrollbar-width: none;
+    padding: var(--space-xs) var(--space-xs) var(--space-md);
+  }
+  .theinmag-single-mags-hero__picker::-webkit-scrollbar { display: none; }
+
+  @media (min-width: 750px) {
+    .theinmag-single-mags-hero__picker {
+      flex-wrap: wrap;
+      justify-content: center;
+      overflow: visible;
+      padding: var(--space-sm) 0;
+    }
+  }
+
+  .theinmag-single-mags-hero__picker-item {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .theinmag-single-mags-hero__picker-btn {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.2s ease;
+  }
+  .theinmag-single-mags-hero__picker-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .theinmag-single-mags-hero__picker-cover {
+    /* Square tiles per Ryan - tighter, more uniform, the row reads as
+       a compact issue selector rather than a stretched cover wall. The
+       cover image inside is cropped to fit (object-fit cover). */
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    background-color: var(--color-cream);
+    box-shadow: 0 2px 8px rgba(42, 31, 61, 0.10);
+    display: block;
+    border-radius: 0;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .theinmag-single-mags-hero__picker-cover img {
+    width: 100%;
+    height: 100%;
+    /* Magazine covers are portrait; the square tile crops them to the
+       top of the cover (where the masthead lives) so the issue stays
+       identifiable at a glance. */
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+
+  .theinmag-single-mags-hero__picker-btn[aria-pressed='true'] .theinmag-single-mags-hero__picker-cover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(123, 79, 158, 0.30);
+  }
+
+  .theinmag-single-mags-hero__picker-label {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-inky-purple-navy);
+    line-height: 1.1;
+  }
+  .theinmag-single-mags-hero__picker-btn[aria-pressed='true'] .theinmag-single-mags-hero__picker-label {
+    font-weight: 700;
+  }
+
+  .theinmag-single-mags-hero__picker-soldout {
+    display: none;
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-coral-dark);
+    line-height: 1;
+  }
+
+  .theinmag-single-mags-hero__picker-item.is-soldout .theinmag-single-mags-hero__picker-cover {
+    filter: grayscale(0.8) opacity(0.5);
+  }
+  .theinmag-single-mags-hero__picker-item.is-soldout .theinmag-single-mags-hero__picker-soldout {
+    display: block;
+  }
+
+  /* Snack Pack picker tile - visually distinct from the issue covers
+     so it reads as a curated option, not just another mag. Soft-pink
+     surface (matches the variant-tile pressed state) when no image
+     is supplied. Tile is always full-colour regardless of mode. */
+  .theinmag-single-mags-hero__picker-item--snack-pack .theinmag-single-mags-hero__picker-cover {
+    background: var(--color-soft-pink);
+    display: grid;
+    place-items: center;
+  }
+  .theinmag-single-mags-hero__picker-snack-placeholder {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--color-inky-purple-navy);
+    letter-spacing: -0.01em;
+  }
+
+  /* Narrow-phone tightening. At 400px-class viewports the 80px tiles
+     overflow the card and only ~3.5 tiles render before clipping. Cut
+     the cover to roughly half, tighten the gap, and scale the labels +
+     snack-pack placeholder so 5-6 tiles read clearly without scroll.
+     Picker stays overflow-x:auto, so more issues still trigger swipe. */
+  @media (max-width: 480px) {
+    .theinmag-single-mags-hero__picker {
+      gap: var(--space-sm);
+    }
+    .theinmag-single-mags-hero__picker-cover {
+      width: 44px;
+      height: 44px;
+    }
+    .theinmag-single-mags-hero__picker-label {
+      font-size: 11px;
+    }
+    .theinmag-single-mags-hero__picker-soldout {
+      font-size: 8px;
+      letter-spacing: 0.04em;
+    }
+    .theinmag-single-mags-hero__picker-snack-placeholder {
+      font-size: 13px;
+    }
+  }
+
+  /* ---------- Two-column row ---------- */
+
+  .theinmag-single-mags-hero__row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+
+  @media (min-width: 750px) {
+    /* Two-column grid on desktop with explicit areas:
+       - media-col in row 1, col 1
+       - widget in col 2, SPANNING both rows
+       - desc-col in row 2, col 1 (directly under media-col)
+       This way desc nestles tight to the thumb strip no matter how
+       tall the widget grows from accordions / cross-sell / etc. */
+    .theinmag-single-mags-hero__row {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      grid-template-areas:
+        "media widget"
+        "desc widget";
+      column-gap: var(--space-2xl);
+      row-gap: var(--space-md);
+      align-items: start;
+    }
+    .theinmag-single-mags-hero__media-col { grid-area: media; }
+    .theinmag-single-mags-hero__widget { grid-area: widget; }
+    .theinmag-single-mags-hero__desc-col { grid-area: desc; }
+  }
+
+  /* ---------- Media column ---------- */
+
+  .theinmag-single-mags-hero__media-col {
+    width: 100%;
+  }
+
+  .theinmag-single-mags-hero__media[hidden] { display: none; }
+
+  .theinmag-single-mags-hero__media-main {
+    position: relative;
+    width: 100%;
+    /* Square canvas - Ryan's call. Portrait covers letterbox top/bottom
+       and landscape spreads letterbox left/right via object-fit: contain,
+       both against the subtle card bg. Square gives the carousel a
+       compact feel without dominating the page vertically. */
+    aspect-ratio: 1 / 1;
+    background-color: rgba(42, 31, 61, 0.04);
+    overflow: hidden;
+  }
+
+  .theinmag-single-mags-hero__slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+  .theinmag-single-mags-hero__slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .theinmag-single-mags-hero__slide-img,
+  .theinmag-single-mags-hero__slide-video {
+    width: 100%;
+    height: 100%;
+    /* contain rather than cover so landscape inside spreads aren't
+       cropped to the portrait canvas. Letterbox sits against the
+       card's subtle cream backdrop. */
+    object-fit: contain;
+    display: block;
+  }
+  /* Video play-button removed - videos autoplay muted on load. The
+     class is kept (defensively) in case Theme Editor re-renders an
+     older cached version; styled to be invisible/inert. */
+  .theinmag-single-mags-hero__slide-play { display: none; }
+
+  .theinmag-single-mags-hero__media-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    border: 0;
+    color: var(--color-inky-purple-navy);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    z-index: 2;
+    transition: background 0.15s ease;
+  }
+  .theinmag-single-mags-hero__media-arrow:hover { background: #ffffff; }
+  .theinmag-single-mags-hero__media-arrow--prev { left: var(--space-sm); }
+  .theinmag-single-mags-hero__media-arrow--next { right: var(--space-sm); }
+
+  @media (min-width: 750px) {
+    .theinmag-single-mags-hero__media-arrow { display: grid; place-items: center; }
+  }
+
+  .theinmag-single-mags-hero__thumbs {
+    list-style: none;
+    margin: var(--space-sm) 0 0;
+    padding: 0;
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .theinmag-single-mags-hero__thumbs::-webkit-scrollbar { display: none; }
+  .theinmag-single-mags-hero__thumbs li { margin: 0; flex: 0 0 auto; }
+
+  .theinmag-single-mags-hero__thumb {
+    appearance: none;
+    background: transparent;
+    border: 2px solid transparent;
+    padding: 0;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.15s ease;
+  }
+  .theinmag-single-mags-hero__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .theinmag-single-mags-hero__thumb.is-active {
+    border-color: var(--color-purple-dark);
+  }
+  .theinmag-single-mags-hero__thumb-play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+
+  /* ---------- Sales widget ---------- */
+  /* No card surface here - the wrapping __card supplies bg + shadow.
+     Internal padding only, so widget content has breathing room from
+     the card edges + a clean separator from the media column. */
+  .theinmag-single-mags-hero__widget {
+    padding: 0 0 0 var(--space-md);
+  }
+
+  @media (max-width: 749px) {
+    .theinmag-single-mags-hero__widget {
+      padding: var(--space-md) 0 0;
+    }
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-single-mags-hero__widget {
+      position: sticky;
+      bottom: 0;
+      align-self: start;
+    }
+  }
+
+  .theinmag-single-mags-hero__title {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(24px, 3vw, 32px);
+    line-height: 1.05;
+    color: var(--color-inky-purple-navy);
+    margin: 0 0 var(--space-xs);
+    text-align: left;
+    font-synthesis: none;
+  }
+
+  .theinmag-single-mags-hero__tagline-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    margin: 0 0 var(--space-sm);
+  }
+  .theinmag-single-mags-hero__tagline {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin: 0;
+    text-align: left;
+  }
+  .theinmag-single-mags-hero__rating-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-inky-purple-navy);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .theinmag-single-mags-hero__rating-link .jdgm-all-reviews-rating {
+    display: inline-block;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .theinmag-single-mags-hero__rating-sep {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.5;
+    line-height: 1;
+  }
+  .theinmag-single-mags-hero__rating-count {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.78;
+    line-height: 1;
+  }
+
+  .theinmag-single-mags-hero__price {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(20px, 2.6vw, 26px);
+    line-height: 1.1;
+    color: var(--color-inky-purple-navy);
+    margin: 0 0 var(--space-sm);
+    text-align: left;
+  }
+
+  .theinmag-single-mags-hero__form { display: block; }
+
+  .theinmag-single-mags-hero__fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0 0 var(--space-md);
+  }
+
+  .theinmag-single-mags-hero__legend {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--color-inky-purple-navy);
+    text-transform: uppercase;
+    padding: 0;
+    margin: 0 0 var(--space-xs);
+    opacity: 0.78;
+  }
+
+  /* Variant tiles - Print + Digital only now (Snack Pack moved into
+     the picker row). White surface, 2px soft-pink border, radius-lg.
+     Bigger centred label per Ryan - reads as the deliberate choice
+     after the visitor's already picked an issue. */
+  .theinmag-single-mags-hero__variants {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-sm);
+  }
+
+  .theinmag-single-mags-hero__variant-tile {
+    background: #ffffff;
+    border: 2px solid var(--color-soft-pink);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    cursor: pointer;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    min-height: 60px;
+    transition: background 0.15s ease;
+  }
+  .theinmag-single-mags-hero__variant-tile:hover {
+    background: rgba(247, 160, 146, 0.18);
+  }
+  .theinmag-single-mags-hero__variant-tile[aria-pressed='true'] {
+    background: var(--color-soft-pink);
+  }
+  .theinmag-single-mags-hero__variant-title {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+  }
+  .theinmag-single-mags-hero__variant-sold {
+    display: none;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-coral-dark);
+    line-height: 1;
+  }
+  .theinmag-single-mags-hero__variant-tile.is-soldout {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.10);
+    color: rgba(42, 31, 61, 0.5);
+  }
+  .theinmag-single-mags-hero__variant-tile.is-soldout .theinmag-single-mags-hero__variant-sold {
+    display: block;
+  }
+  .theinmag-single-mags-hero__variant-tile.is-soldout .theinmag-single-mags-hero__variant-title {
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+
+  /* CTA row holds Add to Cart + optional Buy Now side by side. Flex
+     row so they share the line; primary is the larger yellow sticker,
+     secondary is a tighter purple-dark companion. */
+  .theinmag-single-mags-hero__cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin: var(--space-sm) 0 0;
+    justify-content: center;
+  }
+
+  .theinmag-single-mags-hero__cta {
+    appearance: none;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 220px;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-heading);
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    padding: 12px 16px;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+    transition: background var(--transition-standard), color var(--transition-standard), translate var(--transition-standard), box-shadow var(--transition-standard);
+  }
+
+  .theinmag-single-mags-hero__cta--primary {
+    background: var(--color-yellow);
+    box-shadow: var(--shadow-button-yellow);
+  }
+  .theinmag-single-mags-hero__cta--primary:hover {
+    background: var(--color-purple-dark);
+    color: #ffffff;
+    translate: 0 2px;
+    box-shadow: var(--shadow-button-pressed);
+  }
+
+  /* Outlined Buy Now - matches the sitewide "Grab a membership" sticker
+     pattern but in purple-dark (not white). Transparent fill, 2px
+     purple-dark border, purple-dark text. Hover fills purple-dark with
+     white text. Inter font (not Post Regular) reads tighter alongside
+     the yellow primary. */
+  .theinmag-single-mags-hero__cta--secondary {
+    background: transparent;
+    color: var(--color-purple-dark);
+    border: 2px solid var(--color-purple-dark);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    box-shadow: none;
+  }
+  .theinmag-single-mags-hero__cta--secondary:hover {
+    background: var(--color-purple-dark);
+    color: #ffffff;
+    translate: 0 0;
+    box-shadow: none;
+  }
+
+  @media (max-width: 749px) {
+    .theinmag-single-mags-hero__cta {
+      max-width: none;
+    }
+  }
+
+  .theinmag-single-mags-hero__back-in-stock {
+    display: block;
+    margin: var(--space-xs) auto 0;
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .theinmag-single-mags-hero__back-in-stock[hidden] { display: none; }
+
+  .theinmag-single-mags-hero__trust {
+    list-style: none;
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    text-align: center;
+  }
+  .theinmag-single-mags-hero__trust li {
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+  }
+  .theinmag-single-mags-hero__trust li + li { margin-top: 2px; }
+
+  /* ---------- Mini reviews bubble ---------- */
+  /* Exact pattern from theinmag-membership-hero.liquid - the crucial
+     overrides are `transform: none !important; opacity: 1 !important;
+     position: static !important;` on .jdgm-carousel-item which prevent
+     Judge.me's own carousel styling from hiding the visible item even
+     when our display rules allow it. */
+  .theinmag-single-mags-hero__mini-reviews {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    margin: var(--space-md) 0 0;
+  }
+  .theinmag-single-mags-hero__mini-reviews-bubble {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: #FFFFFF;
+    border: 2px solid var(--color-soft-pink);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
+    text-align: left;
+  }
+  .theinmag-single-mags-hero__mini-reviews-inner {
+    min-height: 80px;
+  }
+  .theinmag-single-mags-hero__mini-reviews-arrow {
+    flex: 0 0 auto;
+    width: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-coral-dark);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+  }
+  .theinmag-single-mags-hero__mini-reviews-arrow:hover,
+  .theinmag-single-mags-hero__mini-reviews-arrow:focus-visible {
+    background-color: rgba(201, 84, 62, 0.08);
+  }
+  .theinmag-single-mags-hero__mini-reviews-arrow:active {
+    transform: scale(0.9);
+  }
+  /* Hide all carousel items except the active one. JS toggles
+     .is-active on the visible item. The position:static, transform:none,
+     opacity:1 overrides are critical - Judge.me's own CSS uses those
+     to hide inactive carousel items, so without overriding them our
+     display:block has no effect. */
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item {
+    display: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    position: static !important;
+  }
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item.is-active {
+    display: block !important;
+  }
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item__review-rating .jdgm-star {
+    font-size: 12px;
+  }
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item__review-title {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+    margin: 4px 0 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item__review-body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item__reviewer-name {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--color-inky-purple-navy);
+    margin: 6px 0 0;
+  }
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item__timestamp,
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item__product-info,
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item__product-image,
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-item__product,
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel__arrows,
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel__arrow-left,
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel__arrow-right,
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-number-of-reviews,
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-title-and-link,
+  .theinmag-single-mags-hero__mini-reviews .jdgm-carousel-title {
+    display: none !important;
+  }
+  .theinmag-single-mags-hero__mini-reviews-readmore {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .theinmag-single-mags-hero__mini-reviews-readmore:hover,
+  .theinmag-single-mags-hero__mini-reviews-readmore:focus-visible {
+    color: var(--color-coral-dark);
+  }
+
+  /* ---------- Accordions ---------- */
+  /* Mirrors the Membership hero accordion bar. One open at a time, plus
+     caret animates. Borders hairline-divided. */
+  .theinmag-single-mags-hero__accordions {
+    list-style: none;
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    border-top: 1px solid rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-single-mags-hero__accordion {
+    border-bottom: 1px solid rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-single-mags-hero__acc-q { margin: 0; }
+  .theinmag-single-mags-hero__acc-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    background: transparent;
+    border: 0;
+    padding: 10px 0;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+    cursor: pointer;
+    text-align: left;
+  }
+  .theinmag-single-mags-hero__acc-caret {
+    position: relative;
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+  }
+  .theinmag-single-mags-hero__acc-caret::before,
+  .theinmag-single-mags-hero__acc-caret::after {
+    content: '';
+    position: absolute;
+    background: var(--color-inky-purple-navy);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .theinmag-single-mags-hero__acc-caret::before {
+    top: 50%; left: 0; right: 0; height: 2px;
+    transform: translateY(-50%);
+  }
+  .theinmag-single-mags-hero__acc-caret::after {
+    left: 50%; top: 0; bottom: 0; width: 2px;
+    transform: translateX(-50%);
+  }
+  .theinmag-single-mags-hero__acc-trigger[aria-expanded='true'] .theinmag-single-mags-hero__acc-caret::after {
+    transform: translateX(-50%) scaleY(0);
+    opacity: 0;
+  }
+  .theinmag-single-mags-hero__acc-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .theinmag-single-mags-hero__acc-panel[data-open='true'] { max-height: 600px; }
+  .theinmag-single-mags-hero__acc-panel,
+  .theinmag-single-mags-hero__acc-panel p {
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+  }
+  .theinmag-single-mags-hero__acc-panel p {
+    margin: 0;
+    padding: 0 0 var(--space-md);
+  }
+  .theinmag-single-mags-hero__acc-panel a {
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* ---------- Cross-sell tile ---------- */
+  /* Lavender-tinted card below the accordions. Same visual register as
+     the Membership PDP's post-add tile but tuned for single-issue
+     buyers who haven't yet committed. */
+  .theinmag-single-mags-hero__cross-sell {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    background-color: rgba(232, 222, 239, 0.7);
+    border-radius: var(--radius-lg);
+  }
+  .theinmag-single-mags-hero__cross-sell-heading {
+    margin: 0 0 8px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: clamp(16px, 1.6vw, 18px);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    color: var(--color-purple-dark);
+  }
+  .theinmag-single-mags-hero__cross-sell-body {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-single-mags-hero__cross-sell-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .theinmag-single-mags-hero__cross-sell-link:hover {
+    color: var(--color-coral-dark);
+  }
+
+  /* ---------- Description block ---------- */
+  /* Sits in row 2 col 1 of the row grid on desktop - directly under
+     media-col with no gap from the widget's height. Hairline separator
+     on top for visual breathing room from the thumb strip. */
+  .theinmag-single-mags-hero__desc-col {
+    width: 100%;
+    padding-top: var(--space-md);
+    border-top: 1px solid rgba(42, 31, 61, 0.10);
+  }
+
+  .theinmag-single-mags-hero__desc[hidden] { display: none; }
+  .theinmag-single-mags-hero__desc {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-single-mags-hero__desc p { margin: 0 0 var(--space-md); }
+  .theinmag-single-mags-hero__desc p:last-child { margin-bottom: 0; }
+
+  /* ---------- Mobile order ---------- */
+  /* Spec stack order on mobile:
+       1 picker
+       2 media (main + thumbs)
+       3 sales widget
+       4 description
+     The picker is already at the top of __inner. Below 750px the row
+     stacks naturally (1fr grid), media first because it's the first
+     child of __row. Description sits at the bottom of __inner. */
+
+  @media (max-width: 749px) {
+    .theinmag-single-mags-hero {
+      padding: var(--tmsm-pt, 40px) var(--space-md) var(--tmsm-pb, 40px);
+    }
+    .theinmag-single-mags-hero__widget {
+      padding: var(--space-sm) var(--space-md) var(--space-md);
+    }
+    .theinmag-single-mags-hero__variants {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* ---------- Floating cart ---------- */
+  /* Slides in from bottom (mobile) or top-right (desktop) when the
+     in-card widget scrolls out of view. Cream surface, deep shadow,
+     subtle wobble - matches the Membership PDP register. */
+  .theinmag-single-mags-hero__floating-cart {
+    position: fixed;
+    z-index: 50;
+    left: var(--space-md);
+    right: var(--space-md);
+    bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
+    opacity: 0;
+    transform: translateY(24px);
+    pointer-events: none;
+    transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+  }
+  .theinmag-single-mags-hero__floating-cart[data-show="true"] {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-single-mags-hero__floating-cart {
+      top: clamp(104px, 13vh, 140px);
+      right: var(--space-md);
+      bottom: auto;
+      left: auto;
+      width: clamp(220px, 22vw, 260px);
+      transform: translateY(-28px);
+    }
+    .theinmag-single-mags-hero__floating-cart[data-show="true"] {
+      transform: translateY(0);
+    }
+  }
+
+  .theinmag-single-mags-hero__floating-cart-card {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
+    background-color: rgba(251, 246, 234, 0.96);
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: 20px;
+    box-shadow: 0 18px 44px rgba(42, 31, 61, 0.28), 0 4px 12px rgba(42, 31, 61, 0.14);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-single-mags-hero__floating-cart-card {
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 16px;
+      border-radius: 22px;
+      animation: theinmag-single-mags-floating-wobble 5.5s ease-in-out infinite;
+      transform-origin: 80% 40%;
+    }
+  }
+
+  @keyframes theinmag-single-mags-floating-wobble {
+    0%, 100% { transform: rotate(-0.35deg) translateY(0); }
+    50% { transform: rotate(0.35deg) translateY(-1.5px); }
+  }
+
+  .theinmag-single-mags-hero__floating-cart-tap {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: inherit;
+    font-family: inherit;
+    transition: opacity var(--transition-hover);
+  }
+  .theinmag-single-mags-hero__floating-cart-tap:hover {
+    opacity: 0.85;
+  }
+  .theinmag-single-mags-hero__floating-cart-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-soft-pink);
+    line-height: 1;
+  }
+  .theinmag-single-mags-hero__floating-cart-summary {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-single-mags-hero__floating-cart-cta {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    background: var(--color-soft-pink);
+    color: var(--color-inky-purple-navy);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background var(--transition-standard), translate var(--transition-standard);
+  }
+  .theinmag-single-mags-hero__floating-cart-cta:hover {
+    background: var(--color-yellow);
+    translate: 0 -1px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-single-mags-hero__floating-cart { transition: none; }
+    .theinmag-single-mags-hero__floating-cart-card { animation: none; }
+    .theinmag-single-mags-hero__floating-cart-cta:hover { translate: 0 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-single-mags-hero__cta:hover {
+      translate: 0 0;
+      box-shadow: var(--shadow-button-yellow);
+    }
+    .theinmag-single-mags-hero__picker-btn,
+    .theinmag-single-mags-hero__picker-cover,
+    .theinmag-single-mags-hero__slide {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Single mags hero",
+  "tag": "section",
+  "class": "shopify-section theinmag-single-mags-hero-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "PDP hero for /products/single-mags. Picker reads from a collection of per-issue products (Mag01-MagN). Each issue product carries metafields under the single_mag namespace - see the section comment for the field list."
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "aeo_heading",
+      "label": "Hidden H1 (AEO)",
+      "default": "Buy a single issue of theINmag",
+      "info": "Visually hidden. Carries the SEO keyword load."
+    },
+    {
+      "type": "text",
+      "id": "visible_eyebrow",
+      "label": "Visible eyebrow above picker",
+      "info": "Optional Caveat label. Leave blank to hide."
+    },
+    {
+      "type": "header",
+      "content": "Per-issue source"
+    },
+    {
+      "type": "collection",
+      "id": "issues_collection",
+      "label": "Issues collection",
+      "info": "Collection of per-issue products with single_mag metafields."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_section_bg",
+      "label": "Show randomised section background",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "section_bg_opacity",
+      "label": "Section background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 35
+    },
+    {
+      "type": "header",
+      "content": "Trust microcopy"
+    },
+    {
+      "type": "text",
+      "id": "trust_1",
+      "label": "Trust line 1",
+      "default": "Free shipping over $40"
+    },
+    {
+      "type": "text",
+      "id": "trust_2",
+      "label": "Trust line 2",
+      "default": "Sustainably printed in Australia"
+    },
+    {
+      "type": "text",
+      "id": "trust_3",
+      "label": "Trust line 3",
+      "default": "120+ pages, zero ads"
+    },
+    {
+      "type": "header",
+      "content": "Reviews"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating_chip",
+      "label": "Show rating chip after subtagline",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_mini_review_bubble",
+      "label": "Show mini review bubble",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Snack pack tile"
+    },
+    {
+      "type": "image_picker",
+      "id": "snack_pack_image",
+      "label": "Snack pack cover image",
+      "info": "Sits in the picker row alongside the issue covers. If empty, a 2-pack text placeholder shows."
+    },
+    {
+      "type": "text",
+      "id": "snack_pack_label",
+      "label": "Snack Pack tile label",
+      "default": "Snack Pack"
+    },
+    {
+      "type": "text",
+      "id": "snack_pack_subtagline",
+      "label": "Snack Pack subtagline",
+      "default": "Two hand-picked issues, one happy mailbox."
+    },
+    {
+      "type": "header",
+      "content": "Checkout actions"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_buy_now",
+      "label": "Show Buy now button alongside Add to cart",
+      "default": true,
+      "info": "Skip-cart pattern - submits straight to /checkout."
+    },
+    {
+      "type": "header",
+      "content": "Membership cross-sell"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cross_sell",
+      "label": "Show Membership cross-sell tile",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cross_sell_heading",
+      "label": "Cross-sell heading",
+      "default": "Want to receive every future issue?"
+    },
+    {
+      "type": "textarea",
+      "id": "cross_sell_body",
+      "label": "Cross-sell body",
+      "default": "Set and forget. A membership means each new mag is delivered straight to your letterbox. Each drop, three times a year, free shipping always."
+    },
+    {
+      "type": "text",
+      "id": "cross_sell_link_label",
+      "label": "Cross-sell link label",
+      "default": "Try a membership"
+    },
+    {
+      "type": "text",
+      "id": "cross_sell_link_url",
+      "label": "Cross-sell link URL",
+      "default": "/products/membership",
+      "info": "Local path (e.g. /products/membership) or full URL."
+    },
+    {
+      "type": "header",
+      "content": "Back in stock"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_back_in_stock_link",
+      "label": "Show back-in-stock link when print is sold out",
+      "default": false,
+      "info": "Stub only - wire to Klaviyo flow when ready."
+    },
+    {
+      "type": "text",
+      "id": "back_in_stock_link_label",
+      "label": "Back-in-stock link label",
+      "default": "Want notified when reprinted?"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 56,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 56,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "accordion",
+      "name": "Accordion item",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "info": "Rich text. Use inline links to /products/membership or /pages/send-in to convert."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Single mags hero",
+      "blocks": [
+        {
+          "type": "accordion",
+          "settings": {
+            "question": "Want every issue?",
+            "answer": "<p>Get a Membership and the mag lands every February, June, and October - no chasing print runs, no missed drops. <a href=\"/products/membership\">Grab a Membership</a>.</p>"
+          }
+        },
+        {
+          "type": "accordion",
+          "settings": {
+            "question": "What if the print run sells out?",
+            "answer": "<p>Once a print issue's gone, it's gone. Digital stays available forever. A Membership guarantees your copy of every future drop.</p>"
+          }
+        },
+        {
+          "type": "accordion",
+          "settings": {
+            "question": "When does the next issue drop?",
+            "answer": "<p>Three times a year - February, June, and October. Members get theirs the week of release.</p>"
+          }
+        },
+        {
+          "type": "accordion",
+          "settings": {
+            "question": "Free shipping?",
+            "answer": "<p>Free shipping on orders over $40. Members always get free shipping.</p>"
+          }
+        }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

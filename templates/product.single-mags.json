@@ -1,0 +1,276 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "theinmag-single-mags-hero",
+      "blocks": {
+        "acc1": {
+          "type": "accordion",
+          "settings": {
+            "question": "Can I grab more than one?",
+            "answer": "<p>Yes - grab as many as you like. Use the picker above to add different issues to your cart one at a time, or pick the Snack Pack option for a curated 2-mag bundle at a tighter price.</p>"
+          }
+        },
+        "acc2": {
+          "type": "accordion",
+          "settings": {
+            "question": "What ages is this magazine for?",
+            "answer": "<p>Designed for kids aged 5-13, though we've had submissions from kids up to 16. The whole family ends up reading - puzzles and jokes pull in younger siblings, longer reads and creator interviews keep older kids hooked, and parents read along.</p>"
+          }
+        },
+        "acc3": {
+          "type": "accordion",
+          "settings": {
+            "question": "Shipping and delivery",
+            "answer": "<p>Print mags ship within three business days. Free shipping over $40. Digital downloads land in your inbox within minutes. Releases drop mid February, mid June, and mid October each year.</p>"
+          }
+        }
+      },
+      "block_order": ["acc1", "acc2", "acc3"],
+      "settings": {
+        "aeo_heading": "Buy a single issue of theINmag",
+        "visible_eyebrow": "",
+        "issues_collection": "single-issues",
+        "show_section_bg": true,
+        "section_bg_opacity": 35,
+        "trust_1": "Free shipping over $40",
+        "trust_2": "Sustainably printed in Australia",
+        "trust_3": "120+ pages, zero ads",
+        "show_rating_chip": true,
+        "show_mini_review_bubble": true,
+        "show_buy_now": true,
+        "show_cross_sell": true,
+        "cross_sell_heading": "Want to receive every future issue?",
+        "cross_sell_body": "Set and forget. A membership means each new mag is delivered straight to your letterbox. Each drop, three times a year, free shipping always.",
+        "cross_sell_link_label": "Try a membership",
+        "cross_sell_link_url": "/products/membership",
+        "show_back_in_stock_link": false,
+        "back_in_stock_link_label": "Want notified when reprinted?",
+        "snack_pack_label": "Snack Pack",
+        "snack_pack_subtagline": "Two hand-picked issues, one happy mailbox.",
+        "padding_top": 56,
+        "padding_bottom": 56
+      }
+    },
+    "inside": {
+      "type": "theinmag-single-mags-inside",
+      "settings": {
+        "aeo_heading": "What's inside theINmag?",
+        "eyebrow": "you're looking inside",
+        "heading_prefix": "INside",
+        "issues_collection": "single-issues",
+        "padding_top": 64,
+        "padding_bottom": 64
+      }
+    },
+    "ugc": {
+      "type": "theinmag-membership-ugc",
+      "settings": {}
+    },
+    "pillars": {
+      "type": "theinmag-single-mags-pillars",
+      "blocks": {
+        "p1": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Made by kids",
+            "headline": "Real Aussie kids, named and credited.",
+            "body": "Every page is a kid's creation - writing, art, photography, jokes, puzzles. We just curate, design, and print. Each piece runs with the kid's first name, age, and town because their name should be on their work."
+          }
+        },
+        "p2": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "120+ pages of pure creativity",
+            "headline": "No ads. Anywhere.",
+            "body": "You won't find a single ad. The space is given back to kids' creations. Every page earns its place because a real kid made something worth reading - not because a brand paid to be there."
+          }
+        },
+        "p3": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Beautifully printed in Melbourne",
+            "headline": "Sustainably, locally, properly.",
+            "body": "Heavy uncoated stock, plant-based inks, printed right here in Melbourne. Built to be re-read, thrown around, and loved. The mag should still be readable after a year of school bag abuse."
+          }
+        },
+        "p4": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "A snapshot in time",
+            "headline": "Once it's gone, it's gone.",
+            "body": "We print short runs - just enough to cover the Membership and the single-mag wave. Mag05 sold out in six weeks. If you've got a copy on the shelf, you've got something rare."
+          }
+        }
+      },
+      "block_order": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "settings": {
+        "aeo_heading": "What's actually in a theINmag issue?",
+        "intro_text": "A premium mag. Zero ads. All made by Aussie kids.",
+        "show_kid_art": false,
+        "kid_art_bg_color": "#FBF6EA"
+      }
+    },
+    "pull_quote": {
+      "type": "theinmag-pull-quote",
+      "settings": {
+        "quote_body": "Such an incredibly diverse, interesting, thoughtful, creative, fun, engaging magazine. My kids are going to absolutely FIZZZZZ.",
+        "attribution_name": "Brooke B.",
+        "attribution_role": "parent",
+        "background_filename": "theinside-homepage-background.jpg",
+        "scrim_opacity": 45,
+        "heading_font_style": "inter",
+        "padding_top": 72,
+        "padding_bottom": 72
+      }
+    },
+    "reviews": {
+      "type": "theinmag-membership-reviews",
+      "settings": {
+        "review_source": "store",
+        "eyebrow": "From real families.",
+        "cta_label": "Write a review",
+        "expand_label": "Read all reviews",
+        "collapse_label": "Hide all reviews",
+        "min_reviews": 0,
+        "padding_top": 96,
+        "padding_bottom": 96
+      }
+    },
+    "faq": {
+      "type": "theinmag-single-mags-faq",
+      "blocks": {
+        "f1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How often do new issues come out?",
+            "answer": "<p>Three times a year - February, June, and October. Printing the mag is expensive, so we keep print runs short. Issues often sell out quickly. Want to never miss one? <a href=\"/products/membership\">Grab a Membership</a>.</p>"
+          }
+        },
+        "f2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What's the difference between print and digital?",
+            "answer": "<p>Print is the full magazine - 120+ pages, heavy paper, sustainably printed right here in Australia, posted to your door. Digital is a PDF you can read on any device. Same content, different format.</p>"
+          }
+        },
+        "f3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can my kid send IN their creation?",
+            "answer": "<p>Yes - and it's completely free. Any Aussie kid can send IN their writing, art, photos, jokes, puzzles. We want every kid to see their own creation in print. Head to <a href=\"/pages/send-in\">Send IN</a> and let your kid loose.</p>"
+          }
+        },
+        "f4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What if a print issue is sold out?",
+            "answer": "<p>Once a print run's gone, it's gone. But every issue stays available as a digital download. If you want to never miss a future print issue, <a href=\"/products/membership\">grab a Membership</a> - guaranteed delivery to your door.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "f1",
+        "f2",
+        "f3",
+        "f4"
+      ],
+      "settings": {
+        "padding_top": 72,
+        "padding_bottom": 72
+      }
+    },
+    "cross-sells": {
+      "type": "theinmag-mission",
+      "blocks": {
+        "feature-1": {
+          "type": "feature",
+          "settings": {
+            "label": "Printed sustainably in Australia",
+            "hover_message": "That's right, locally in Melbourne by our friends at <strong>PrintGraphics PrintGreen</strong>."
+          }
+        },
+        "feature-2": {
+          "type": "feature",
+          "settings": {
+            "label": "100% kid-created",
+            "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a <strong>voice</strong>."
+          }
+        },
+        "feature-3": {
+          "type": "feature",
+          "settings": {
+            "label": "Always ad-free",
+            "hover_message": "This is super important to us. <strong>No ads. Ever.</strong>"
+          }
+        },
+        "feature-4": {
+          "type": "feature",
+          "settings": {
+            "label": "Tri-annual",
+            "hover_message": "New issues drop each <strong>February, June and October</strong>."
+          }
+        },
+        "product-membership": {
+          "type": "product_link",
+          "settings": {
+            "label": "Never miss an issue",
+            "tagline": "Get every drop, three times a year. Cancel anytime.",
+            "price": "From $89",
+            "link": "/products/membership",
+            "fallback_filename": "product-membership.jpg",
+            "fallback_hover_filename": "product-membership-hover.jpg",
+            "image_alt": "theINmag Membership pack with the latest issue."
+          }
+        },
+        "product-bundle": {
+          "type": "product_link",
+          "settings": {
+            "label": "Build a bundle",
+            "tagline": "Pick the issues your kid will love most.",
+            "price": "",
+            "link": "/products/build-a-bundle",
+            "fallback_filename": "product-bundle.jpg",
+            "fallback_hover_filename": "product-bundle-hover.jpg",
+            "image_alt": "Stack of hand-picked theINmag issues."
+          }
+        }
+      },
+      "block_order": [
+        "feature-1",
+        "feature-2",
+        "feature-3",
+        "feature-4",
+        "product-membership",
+        "product-bundle"
+      ],
+      "settings": {
+        "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
+        "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "inside",
+    "pillars",
+    "pull_quote",
+    "reviews",
+    "ugc",
+    "faq",
+    "cross-sells"
+  ]
+}

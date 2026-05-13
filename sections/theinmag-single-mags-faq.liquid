@@ -1,0 +1,429 @@
+{%- comment -%}
+  theinmag-single-mags-faq
+  FAQ accordion section for /products/single-mags. Lavender bg, 4
+  items, section-local heading emphasis on "single mag" (matches the
+  Membership FAQ pattern where "Membership" is the emphasis span).
+
+  Pattern parent: theinmag-membership-faq.liquid. FAQPage JSON-LD
+  emitted for AEO. Kid character pops in from the left edge using
+  the sitewide pool (`theinmag-character-pool` snippet).
+
+  Heading is split on the configurable emphasis word so admins can
+  tune the emphasis. Default: "Common single mag questions" with
+  "single mag" wrapped at 1.3em.
+{%- endcomment -%}
+
+{%- liquid
+  # Three-part heading - two emphasized words separated by a middle
+  # joiner phrase. Lets Ryan emphasize both the leading and trailing
+  # words (e.g. "Questions about the mag" with Questions + mag each
+  # in a larger span).
+  assign heading_emphasis_1 = section.settings.heading_emphasis_1 | default: 'Questions'
+  assign heading_middle = section.settings.heading_middle | default: 'about the'
+  assign heading_emphasis_2 = section.settings.heading_emphasis_2 | default: 'mag'
+
+  assign items = section.blocks | where: 'type', 'faq_item'
+  assign bg_filename = section.settings.bg_filename | default: 'singlemag_faq.jpg'
+  assign bg_url = bg_filename | asset_url
+  assign section_style = '--tmsfaq-pt: ' | append: section.settings.padding_top | append: 'px; --tmsfaq-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  if bg_url != blank
+    assign section_style = section_style | append: ' background-image: url(' | append: bg_url | append: ');'
+  endif
+-%}
+
+{% render 'theinmag-character-pool' %}
+
+<section
+  class="theinmag-single-mags-faq"
+  data-theinmag-single-mags-faq
+  aria-labelledby="theinmag-single-mags-faq-heading"
+  style="{{ section_style }}"
+>
+  <span
+    class="theinmag-single-mags-faq__character"
+    data-theinmag-pool-character
+    aria-hidden="true"
+  ></span>
+
+  <div class="theinmag-single-mags-faq__inner">
+    <h2 id="theinmag-single-mags-faq-heading" class="theinmag-single-mags-faq__heading">
+      <span class="theinmag-single-mags-faq__heading-em">{{ heading_emphasis_1 }}</span> {{ heading_middle }} <span class="theinmag-single-mags-faq__heading-em">{{ heading_emphasis_2 }}</span>
+    </h2>
+
+    {%- if items.size > 0 -%}
+      <ul class="theinmag-single-mags-faq__list" role="list">
+        {%- for block in items -%}
+          {%- liquid
+            assign q = block.settings.question
+            assign a = block.settings.answer
+            assign uid = section.id | append: '-' | append: forloop.index
+          -%}
+          <li class="theinmag-single-mags-faq__item" {{ block.shopify_attributes }}>
+            <h3 class="theinmag-single-mags-faq__q">
+              <button
+                type="button"
+                class="theinmag-single-mags-faq__trigger"
+                data-single-mags-faq-trigger
+                aria-expanded="false"
+                aria-controls="theinmag-single-mags-faq-panel-{{ uid }}"
+                id="theinmag-single-mags-faq-trigger-{{ uid }}"
+              >
+                <span class="theinmag-single-mags-faq__q-text">{{ q }}</span>
+                <span class="theinmag-single-mags-faq__caret" aria-hidden="true"></span>
+              </button>
+            </h3>
+            <div
+              class="theinmag-single-mags-faq__panel"
+              id="theinmag-single-mags-faq-panel-{{ uid }}"
+              role="region"
+              aria-labelledby="theinmag-single-mags-faq-trigger-{{ uid }}"
+              data-open="false"
+            >
+              <div class="theinmag-single-mags-faq__answer">{{ a }}</div>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</section>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {%- for block in items -%}
+        {
+          "@type": "Question",
+          "name": {{ block.settings.question | json }},
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": {{ block.settings.answer | strip_html | strip | json }}
+          }
+        }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    ]
+  }
+</script>
+
+{% stylesheet %}
+  .theinmag-single-mags-faq {
+    background-color: var(--color-lavender);
+    /* background-image is set INLINE on the section element via
+       Liquid (stylesheet block can't interpolate). These props apply
+       to whatever URL the inline rule sets. Lavender colour falls
+       back if the image doesn't load. */
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    color: var(--color-inky-purple-navy);
+    padding: var(--tmsfaq-pt, 72px) var(--space-lg) var(--tmsfaq-pb, 72px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theinmag-single-mags-faq__inner {
+    max-width: 760px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .theinmag-single-mags-faq__heading {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(28px, 4.5vw, 40px);
+    line-height: 1.15;
+    color: var(--color-purple-dark);
+    margin: 0 0 var(--space-xl);
+    text-align: center;
+    font-synthesis: none;
+  }
+
+  /* Section-local heading emphasis - "single mag" span runs ~1.3x and
+     slightly tighter tracking so the phrase reads as a wordmark. */
+  .theinmag-single-mags-faq__heading-em {
+    font-size: 1.3em;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+  }
+
+  /* Iteration 8: character pops in from the RIGHT side instead of
+     the left. Tilt mirrored (+6deg instead of -6deg) so the leaning
+     direction balances the new anchor side. */
+  .theinmag-single-mags-faq__character {
+    position: absolute;
+    top: clamp(100px, 12vw, 180px);
+    right: clamp(20px, 4vw, 100px);
+    left: auto;
+    width: clamp(104px, 13vw, 182px);
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(40px) rotate(6deg);
+    transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .theinmag-single-mags-faq__character.is-popped {
+    opacity: 1;
+    transform: translateX(0) rotate(6deg);
+  }
+
+  @media (max-width: 749px) {
+    .theinmag-single-mags-faq {
+      overflow: visible;
+    }
+    .theinmag-single-mags-faq__character {
+      top: -55px;
+      right: 12px;
+      left: auto;
+      width: 110px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-single-mags-faq__character {
+      transition: none;
+      opacity: 1;
+      transform: rotate(6deg);
+    }
+  }
+
+  .theinmag-single-mags-faq__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid rgba(93, 58, 122, 0.18);
+  }
+  .theinmag-single-mags-faq__item {
+    border-bottom: 1px solid rgba(93, 58, 122, 0.18);
+  }
+  .theinmag-single-mags-faq__q {
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 17px;
+    line-height: 1.4;
+  }
+  .theinmag-single-mags-faq__trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    background: transparent;
+    border: 0;
+    padding: var(--space-lg) 0;
+    color: var(--color-inky-purple-navy);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    min-height: 56px;
+  }
+  .theinmag-single-mags-faq__q-text { flex: 1; }
+
+  .theinmag-single-mags-faq__caret {
+    position: relative;
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+  }
+  .theinmag-single-mags-faq__caret::before,
+  .theinmag-single-mags-faq__caret::after {
+    content: '';
+    position: absolute;
+    background-color: var(--color-purple-dark);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .theinmag-single-mags-faq__caret::before {
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: translateY(-50%);
+  }
+  .theinmag-single-mags-faq__caret::after {
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    transform: translateX(-50%);
+  }
+  .theinmag-single-mags-faq__trigger[aria-expanded='true'] .theinmag-single-mags-faq__caret::after {
+    transform: translateX(-50%) scaleY(0);
+    opacity: 0;
+  }
+
+  .theinmag-single-mags-faq__panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .theinmag-single-mags-faq__panel[data-open='true'] { max-height: 1500px; }
+
+  .theinmag-single-mags-faq__answer {
+    padding: 0 0 var(--space-lg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--color-inky-purple-navy);
+    white-space: pre-line;
+  }
+  .theinmag-single-mags-faq__answer a {
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .theinmag-single-mags-faq__answer a:hover {
+    color: var(--color-coral-dark);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-single-mags-faq__panel { transition: none; }
+    .theinmag-single-mags-faq__caret::before,
+    .theinmag-single-mags-faq__caret::after { transition: none; }
+  }
+{% endstylesheet %}
+
+<script>
+  (function () {
+    const root = document.querySelector('[data-theinmag-single-mags-faq]');
+    if (!root) return;
+    const triggers = root.querySelectorAll('[data-single-mags-faq-trigger]');
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        const expanded = trigger.getAttribute('aria-expanded') === 'true';
+        const panelId = trigger.getAttribute('aria-controls');
+        const panel = panelId ? document.getElementById(panelId) : null;
+        triggers.forEach(function (other) {
+          if (other !== trigger && other.getAttribute('aria-expanded') === 'true') {
+            other.setAttribute('aria-expanded', 'false');
+            const otherPanelId = other.getAttribute('aria-controls');
+            const otherPanel = otherPanelId ? document.getElementById(otherPanelId) : null;
+            if (otherPanel) otherPanel.setAttribute('data-open', 'false');
+          }
+        });
+        trigger.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        if (panel) panel.setAttribute('data-open', expanded ? 'false' : 'true');
+      });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Single mags FAQ",
+  "tag": "section",
+  "class": "shopify-section theinmag-single-mags-faq-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "paragraph",
+      "content": "Three-part heading. Emphasis 1 and Emphasis 2 wrap in larger spans; the middle text sits between them at normal size."
+    },
+    {
+      "type": "text",
+      "id": "heading_emphasis_1",
+      "label": "Heading emphasis 1",
+      "default": "Questions"
+    },
+    {
+      "type": "text",
+      "id": "heading_middle",
+      "label": "Heading middle text",
+      "default": "about the"
+    },
+    {
+      "type": "text",
+      "id": "heading_emphasis_2",
+      "label": "Heading emphasis 2",
+      "default": "mag"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 72,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 72,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq_item",
+      "name": "FAQ item",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "info": "Use rich-text formatting for inline links to /products/membership or /pages/send-in."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Single mags FAQ",
+      "blocks": [
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "How often do new issues come out?",
+            "answer": "<p>Three times a year - February, June, and October. Printing the mag is expensive, so we keep print runs short. Issues often sell out quickly. Want to never miss one? <a href=\"/products/membership\">Grab a Membership</a>.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "What's the difference between print and digital?",
+            "answer": "<p>Print is the full magazine - 120+ pages, heavy paper, sustainably printed right here in Australia, posted to your door. Digital is a PDF you can read on any device. Same content, different format.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can my kid send IN their creation?",
+            "answer": "<p>Yes - and it's completely free. Any Aussie kid can send IN their writing, art, photos, jokes, puzzles. We want every kid to see their own creation in print. Head to <a href=\"/pages/send-in\">Send IN</a> and let your kid loose.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "What if a print issue is sold out?",
+            "answer": "<p>Once a print run's gone, it's gone. But every issue stays available as a digital download. If you want to never miss a future print issue, <a href=\"/products/membership\">grab a Membership</a> - guaranteed delivery to your door.</p>"
+          }
+        }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}
