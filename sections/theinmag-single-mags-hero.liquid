@@ -68,7 +68,6 @@
   assign snack_pack_label = section.settings.snack_pack_label | default: 'Snack pack'
   assign snack_pack_subtagline = section.settings.snack_pack_subtagline | default: 'Two hand-picked issues, one happy mailbox.'
 
-  assign first_variant = product.selected_or_first_available_variant
   assign section_style = '--tmsm-pt: ' | append: section.settings.padding_top | append: 'px; --tmsm-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 
   assign hero_jm = shop.metafields.judgeme
@@ -80,16 +79,50 @@
   # the fly when the user flips to Print and a sold-out issue lands.
   assign sorted_issues = issues | sort: 'metafields.single_mag.issue_number.value' | reverse
 
-  # First active issue: newest issue that's in print stock if available,
+  # First active issue: newest issue whose Print variant is available,
   # otherwise the newest issue overall. JS re-runs this same pick on
-  # variant flip so the rule is consistent client-side.
+  # variant flip so the rule is consistent client-side. Stage 3.1 -
+  # source of truth flipped from the print_in_stock metafield to the
+  # per-issue Print variant's actual stock (variant.available). The
+  # metafield is now redundant - drop in Stage 5.
   assign initial_issue = sorted_issues.first
   for issue in sorted_issues
-    if issue.metafields.single_mag.print_in_stock == true
+    assign issue_print_available = false
+    for v in issue.variants
+      if v.option1 == 'Print' and v.available
+        assign issue_print_available = true
+        break
+      endif
+    endfor
+    if issue_print_available
       assign initial_issue = issue
       break
     endif
   endfor
+
+  # first_variant = initial issue's Print variant if available, else
+  # Digital. Drives server-rendered price + the cart form's hidden
+  # variant id BEFORE the picker JS takes over. Falls back to umbrella
+  # product's default variant only if the initial issue has no variants
+  # at all (data anomaly - shouldn't happen post-Stage 3.1).
+  assign initial_print_variant = nil
+  assign initial_digital_variant = nil
+  for v in initial_issue.variants
+    if v.option1 == 'Print'
+      assign initial_print_variant = v
+    elsif v.option1 == 'Digital'
+      assign initial_digital_variant = v
+    endif
+  endfor
+  if initial_print_variant and initial_print_variant.available
+    assign first_variant = initial_print_variant
+  elsif initial_digital_variant
+    assign first_variant = initial_digital_variant
+  elsif initial_print_variant
+    assign first_variant = initial_print_variant
+  else
+    assign first_variant = product.selected_or_first_available_variant
+  endif
 -%}
 
 <section
@@ -140,12 +173,17 @@
               assign issue_num = issue.metafields.single_mag.issue_number.value | default: 0
               assign issue_label = issue.title | default: issue.handle
               assign issue_label_short = issue_label | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
-              assign print_in_stock = issue.metafields.single_mag.print_in_stock
-              if print_in_stock == true
-                assign print_in_stock_attr = 'true'
-              else
-                assign print_in_stock_attr = 'false'
-              endif
+              # Stock state now sources from the per-issue Print variant's
+              # availability. Was: print_in_stock metafield (manual flip).
+              # Now: variant.available (real Shopify inventory). Metafield
+              # stays in admin redundantly; dropped in Stage 5.
+              assign print_in_stock_attr = 'false'
+              for v in issue.variants
+                if v.option1 == 'Print' and v.available
+                  assign print_in_stock_attr = 'true'
+                  break
+                endif
+              endfor
               assign cover_img = issue.featured_image
             -%}
             <li
@@ -458,9 +496,18 @@
           class="theinmag-single-mags-hero__form"
           data-single-mags-form
         >
+          {%- comment -%}
+            Variant id only - no _issue line item property. Stage 3.1
+            change: the variant id itself identifies which issue (per-
+            issue products with Print/Digital variants), so the legacy
+            _issue prop is gone. Cart, receipts, reports all show the
+            correct per-issue product directly. The Snack Pack tile
+            (hardcoded, Stage 4 work) still routes to the umbrella
+            product's Snack Pack variants - that path uses the same
+            hidden input, just swapped at click time by the JS.
+          {%- endcomment -%}
           <input type="hidden" name="id" data-variant-id-input value="{{ first_variant.id }}">
           <input type="hidden" name="quantity" value="1">
-          <input type="hidden" name="properties[_issue]" data-prop-issue value="{{ initial_issue.handle }}">
 
           <fieldset class="theinmag-single-mags-hero__fieldset">
             <legend class="theinmag-single-mags-hero__legend">Format</legend>
@@ -628,12 +675,55 @@
     ]
   </script>
 
+  {%- comment -%}
+    Variants payload. Stage 3.1: per-issue map keyed by issue handle,
+    plus a legacy snack_pack block sourced from the umbrella product
+    (retired in Stage 4 once Snack Pack becomes its own product).
+
+    Shape:
+      {
+        "issues": {
+          "<issue-handle>": {
+            "Print":   { id, price, available } | null,
+            "Digital": { id, price, available } | null
+          },
+          ...
+        },
+        "snack_pack": {
+          "Print":   { id, price, available } | null,
+          "Digital": { id, price, available } | null
+        }
+      }
+
+    Price is in cents (Shopify default). JS converts at render time.
+  {%- endcomment -%}
   <script type="application/json" data-single-mags-variants>
-    [
-      {%- for v in product.variants -%}
-        {"id": {{ v.id }}, "title": {{ v.title | json }}, "option1": {{ v.option1 | json }}, "price": {{ v.price }}, "available": {{ v.available }}}{%- unless forloop.last -%},{%- endunless -%}
-      {%- endfor -%}
-    ]
+    {
+      "issues": {
+        {%- for issue in sorted_issues -%}
+          {%- assign issue_print = nil -%}
+          {%- assign issue_digital = nil -%}
+          {%- for v in issue.variants -%}
+            {%- if v.option1 == 'Print' -%}{%- assign issue_print = v -%}{%- endif -%}
+            {%- if v.option1 == 'Digital' -%}{%- assign issue_digital = v -%}{%- endif -%}
+          {%- endfor -%}
+          {{ issue.handle | json }}: {
+            "Print": {%- if issue_print -%}{"id": {{ issue_print.id }}, "price": {{ issue_print.price }}, "available": {{ issue_print.available }}}{%- else -%}null{%- endif -%},
+            "Digital": {%- if issue_digital -%}{"id": {{ issue_digital.id }}, "price": {{ issue_digital.price }}, "available": {{ issue_digital.available }}}{%- else -%}null{%- endif -%}
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      },
+      "snack_pack": {
+        {%- assign sp_print = nil -%}
+        {%- assign sp_digital = nil -%}
+        {%- for v in product.variants -%}
+          {%- if v.option1 == 'Snack Pack (Print)' -%}{%- assign sp_print = v -%}{%- endif -%}
+          {%- if v.option1 == 'Snack Pack (Digital)' -%}{%- assign sp_digital = v -%}{%- endif -%}
+        {%- endfor -%}
+        "Print": {%- if sp_print -%}{"id": {{ sp_print.id }}, "price": {{ sp_print.price }}, "available": {{ sp_print.available }}}{%- else -%}null{%- endif -%},
+        "Digital": {%- if sp_digital -%}{"id": {{ sp_digital.id }}, "price": {{ sp_digital.price }}, "available": {{ sp_digital.available }}}{%- else -%}null{%- endif -%}
+      }
+    }
   </script>
 
 </section>
@@ -719,15 +809,18 @@
       return '$' + (cents / 100).toFixed(2);
     }
 
-    /* Map the picker mode + active format into the matching main-product
-       variant. In issue mode we look for option1 === 'Print' or 'Digital'.
-       In snack-pack mode we map onto the bundled variants. */
-    function findVariant(mode, format) {
-      let needle = format;
+    /* Map the picker mode + active format + active issue into the
+       correct Shopify variant. Stage 3.1: per-issue product variants
+       are the source of truth for issue mode. Snack-pack mode still
+       points at the umbrella product's legacy bundle variants until
+       Stage 4 retires it. */
+    function findVariant(mode, format, issueHandle) {
       if (mode === 'snack-pack') {
-        needle = format === 'Digital' ? 'Snack Pack (Digital)' : 'Snack Pack (Print)';
+        return (variants.snack_pack && variants.snack_pack[format]) || null;
       }
-      return variants.find(function (v) { return v.option1 === needle; });
+      const issueVariants = variants.issues && variants.issues[issueHandle];
+      if (!issueVariants) return null;
+      return issueVariants[format] || null;
     }
 
     /* Strip the "theINmag - " prefix so the widget heading reads just
@@ -835,10 +928,13 @@
 
     /* updateVariantState reads activeMode + activeFormat + the active
        issue's stock and updates the variant tiles, hidden variant id,
-       price, CTA label, and back-in-stock link. */
+       price, CTA label, and back-in-stock link. Stage 3.1: print stock
+       now sources from the per-issue Print variant's availability flag
+       (was: print_in_stock metafield). */
     function updateVariantState() {
-      const meta = metaFor(activeIssueHandle);
-      const printInStock = !!(meta && meta.print_in_stock);
+      const issueVariants = (variants.issues || {})[activeIssueHandle] || {};
+      const printVariant = issueVariants.Print;
+      const printInStock = !!(printVariant && printVariant.available);
       const printBlocked = activeMode === 'issue' && activeFormat === 'Print' && !printInStock;
 
       if (printBlocked) {
@@ -855,7 +951,7 @@
         tile.setAttribute('aria-pressed', format === activeFormat ? 'true' : 'false');
       });
 
-      const variant = findVariant(activeMode, activeFormat);
+      const variant = findVariant(activeMode, activeFormat, activeIssueHandle);
       if (variant) {
         if (variantInput) variantInput.value = variant.id;
         if (priceDisplay) priceDisplay.textContent = formatMoney(variant.price);
@@ -976,7 +1072,7 @@
         summary = issue + ' - ' + activeFormat;
       }
       floatingSummary.textContent = summary;
-      const variant = findVariant(activeMode, activeFormat);
+      const variant = findVariant(activeMode, activeFormat, activeIssueHandle);
       if (variant && floatingCtaPrice) {
         floatingCtaPrice.textContent = formatMoney(variant.price);
       }
