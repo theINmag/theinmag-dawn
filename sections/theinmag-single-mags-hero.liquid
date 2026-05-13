@@ -59,14 +59,12 @@
 
   assign accordion_blocks = section.blocks | where: 'type', 'accordion'
 
-  # Snack Pack picker-tile settings. The tile sits at the end of the
-  # picker row alongside the issue covers. Clicking it flips the form
-  # variant logic into "snack pack" mode without changing the active
-  # issue's media. Ryan's call - snack pack is a curation choice, not
-  # a format applied to a single issue.
-  assign snack_pack_image = section.settings.snack_pack_image
-  assign snack_pack_label = section.settings.snack_pack_label | default: 'Snack pack'
-  assign snack_pack_subtagline = section.settings.snack_pack_subtagline | default: 'Two hand-picked issues, one happy mailbox.'
+  # Stage 3.3 - hardcoded Snack Pack tile retired. Snack Pack is now a
+  # proper bundle product (Shopify Bundles app) sitting in the issues
+  # collection with issue_number = -1 so it sorts to the end of the
+  # picker. Digital Stack works the same way at issue_number = -2.
+  # The legacy `snack_pack_image / _label / _subtagline` section settings
+  # are still in the schema for back-compat but no longer used.
 
   assign section_style = '--tmsm-pt: ' | append: section.settings.padding_top | append: 'px; --tmsm-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 
@@ -131,8 +129,6 @@
   aria-labelledby="theinmag-single-mags-hero-heading"
   style="{{ section_style }}"
   data-initial-issue="{{ initial_issue.handle }}"
-  data-snack-pack-label="{{ snack_pack_label | escape }}"
-  data-snack-pack-subtagline="{{ snack_pack_subtagline | escape }}"
 >
   {%- if show_bg -%}
     {% render 'theinmag-section-bg', opacity: bg_opacity %}
@@ -177,21 +173,52 @@
               # availability. Was: print_in_stock metafield (manual flip).
               # Now: variant.available (real Shopify inventory). Metafield
               # stays in admin redundantly; dropped in Stage 5.
+              # Also detect whether this product has a Print variant at all
+              # (Digital Stack has Digital only). Drives the variant tile
+              # state in the sales widget.
               assign print_in_stock_attr = 'false'
+              assign has_print_variant = false
               for v in issue.variants
-                if v.option1 == 'Print' and v.available
-                  assign print_in_stock_attr = 'true'
-                  break
+                if v.option1 == 'Print'
+                  assign has_print_variant = true
+                  if v.available
+                    assign print_in_stock_attr = 'true'
+                  endif
                 endif
               endfor
+              # Bundle convention: issue_number <= 0 marks a curated bundle
+              # (Snack Pack at -1, Digital Stack at -2). Magazines use 1+.
+              # Bundle tiles sort to the end via the descending issue_number
+              # sort and get a CSS hook for any future visual differentiation.
+              assign is_bundle = false
+              if issue_num <= 0
+                assign is_bundle = true
+              endif
               assign cover_img = issue.featured_image
+              # Digital media images metafield (list.file_reference). First
+              # image doubles as the picker tile thumbnail when Format =
+              # Digital. All images become the carousel slides on the main
+              # media column. Optional - if absent, the picker tile keeps
+              # the print cover and the main media stays on the print set.
+              assign digital_media_images = issue.metafields.single_mag.digital_media_images.value
+              assign digital_cover_img = nil
+              if digital_media_images != blank
+                for img in digital_media_images
+                  if forloop.first
+                    assign digital_cover_img = img
+                  endif
+                endfor
+              endif
             -%}
             <li
-              class="theinmag-single-mags-hero__picker-item"
+              class="theinmag-single-mags-hero__picker-item{% if is_bundle %} theinmag-single-mags-hero__picker-item--bundle{% endif %}"
               data-picker-item
               data-issue-handle="{{ issue.handle }}"
               data-issue-number="{{ issue_num }}"
               data-print-in-stock="{{ print_in_stock_attr }}"
+              data-has-print="{{ has_print_variant }}"
+              data-is-bundle="{{ is_bundle }}"
+              data-has-digital-media="{% if digital_cover_img %}true{% else %}false{% endif %}"
             >
               <button
                 type="button"
@@ -203,8 +230,21 @@
                 <span class="theinmag-single-mags-hero__picker-cover">
                   {%- if cover_img != blank -%}
                     <img
+                      class="theinmag-single-mags-hero__picker-cover-img theinmag-single-mags-hero__picker-cover-img--print"
+                      data-cover-format="Print"
                       src="{{ cover_img | image_url: width: 240 }}"
                       alt="{{ issue_label_short | escape }} cover"
+                      loading="lazy"
+                      width="80"
+                      height="80"
+                    >
+                  {%- endif -%}
+                  {%- if digital_cover_img != blank -%}
+                    <img
+                      class="theinmag-single-mags-hero__picker-cover-img theinmag-single-mags-hero__picker-cover-img--digital"
+                      data-cover-format="Digital"
+                      src="{{ digital_cover_img | image_url: width: 240 }}"
+                      alt="{{ issue_label_short | escape }} digital edition"
                       loading="lazy"
                       width="80"
                       height="80"
@@ -216,44 +256,6 @@
               </button>
             </li>
           {%- endfor -%}
-
-          {%- comment -%}
-            Snack Pack tile. Sits at the end of the picker row alongside
-            the issue covers. Clicking flips activeMode to 'snack-pack'
-            in JS - variant tiles still show Print + Digital but the
-            cart variant maps to "Snack Pack (Print)" or "Snack Pack
-            (Digital)" on the main product. The media column stays on
-            the currently-shown issue (per spec - snack pack content is
-            curated separately from what the visitor was browsing).
-          {%- endcomment -%}
-          <li
-            class="theinmag-single-mags-hero__picker-item theinmag-single-mags-hero__picker-item--snack-pack"
-            data-picker-item
-            data-snack-pack-tile
-          >
-            <button
-              type="button"
-              class="theinmag-single-mags-hero__picker-btn"
-              data-picker-btn
-              aria-label="Choose snack pack"
-              aria-pressed="false"
-            >
-              <span class="theinmag-single-mags-hero__picker-cover theinmag-single-mags-hero__picker-cover--snack-pack">
-                {%- if snack_pack_image != blank -%}
-                  <img
-                    src="{{ snack_pack_image | image_url: width: 240 }}"
-                    alt="{{ snack_pack_label | escape }}"
-                    loading="lazy"
-                    width="80"
-                    height="80"
-                  >
-                {%- else -%}
-                  <span class="theinmag-single-mags-hero__picker-snack-placeholder" aria-hidden="true">2-pack</span>
-                {%- endif -%}
-              </span>
-              <span class="theinmag-single-mags-hero__picker-label">{{ snack_pack_label }}</span>
-            </button>
-          </li>
         </ol>
       </div>
     {%- endif -%}
@@ -278,16 +280,24 @@
           {%- liquid
             assign media_images = issue.metafields.single_mag.media_images.value
             assign media_video = issue.metafields.single_mag.media_video.value
+            assign digital_media_images = issue.metafields.single_mag.digital_media_images.value
             assign cover_img = issue.featured_image
             assign is_active_issue = false
             if issue.handle == initial_issue.handle
               assign is_active_issue = true
             endif
           -%}
+          {%- comment -%}
+            Print media container. Default visible when format = Print or
+            when no digital container exists for this issue (fallback).
+            JS drives the show/hide via both activeIssueHandle + active
+            Format - logic in updateVariantState() / setActiveIssue().
+          {%- endcomment -%}
           <div
             class="theinmag-single-mags-hero__media"
             data-issue-handle="{{ issue.handle }}"
             data-media
+            data-format="Print"
             {% unless is_active_issue %}hidden{% endunless %}
           >
             <div class="theinmag-single-mags-hero__media-main" data-media-main>
@@ -446,6 +456,109 @@
               </ol>
             {%- endif -%}
           </div>
+
+          {%- comment -%}
+            Digital media container. Rendered only if digital_media_images
+            metafield is set. JS swaps to this when the customer flips the
+            Format toggle to Digital.
+
+            Slide order: digital mockups FIRST (iPad shots), then the
+            print spreads from media_images SKIPPING the first (because
+            the print cover is replaced by the iPad mockup). This keeps
+            the inside-spread content available when browsing Digital -
+            customer sees what's inside without flipping back to Print.
+            Video is intentionally omitted (it's a print flip-through).
+          {%- endcomment -%}
+          {%- if digital_media_images != blank -%}
+            {%- liquid
+              # Count slides up-front so we know whether to render thumbs
+              # (only render if total slides > 1, same rule as print).
+              assign digital_slide_count = digital_media_images.size
+              if media_images != blank and media_images.size > 1
+                assign digital_slide_count = digital_slide_count | plus: media_images.size | minus: 1
+              endif
+            -%}
+            <div
+              class="theinmag-single-mags-hero__media"
+              data-issue-handle="{{ issue.handle }}"
+              data-media
+              data-format="Digital"
+              hidden
+            >
+              <div class="theinmag-single-mags-hero__media-main" data-media-main>
+                {%- liquid
+                  assign d_slide_index = 0
+                -%}
+
+                {%- comment -%} Digital mockups (iPad shots) lead {%- endcomment -%}
+                {%- for img in digital_media_images -%}
+                  <div class="theinmag-single-mags-hero__slide{% if d_slide_index == 0 %} is-active{% endif %}" data-slide data-slide-index="{{ d_slide_index }}" data-slide-type="image">
+                    <img
+                      class="theinmag-single-mags-hero__slide-img"
+                      src="{{ img | image_url: width: 1400 }}"
+                      alt="{{ img.alt | default: issue.title | escape }} digital edition"
+                      loading="lazy"
+                      width="1400"
+                      height="1750"
+                    >
+                  </div>
+                  {%- assign d_slide_index = d_slide_index | plus: 1 -%}
+                {%- endfor -%}
+
+                {%- comment -%} Print spreads (skip cover, keep inside pages) {%- endcomment -%}
+                {%- if media_images != blank -%}
+                  {%- for img in media_images -%}
+                    {%- unless forloop.first -%}
+                      <div class="theinmag-single-mags-hero__slide" data-slide data-slide-index="{{ d_slide_index }}" data-slide-type="image">
+                        <img
+                          class="theinmag-single-mags-hero__slide-img"
+                          src="{{ img | image_url: width: 1400 }}"
+                          alt="{{ img.alt | default: issue.title | escape }}"
+                          loading="lazy"
+                          width="1400"
+                          height="1750"
+                        >
+                      </div>
+                      {%- assign d_slide_index = d_slide_index | plus: 1 -%}
+                    {%- endunless -%}
+                  {%- endfor -%}
+                {%- endif -%}
+
+                <button type="button" class="theinmag-single-mags-hero__media-arrow theinmag-single-mags-hero__media-arrow--prev" data-media-prev aria-label="Previous image">‹</button>
+                <button type="button" class="theinmag-single-mags-hero__media-arrow theinmag-single-mags-hero__media-arrow--next" data-media-next aria-label="Next image">›</button>
+              </div>
+
+              {%- if digital_slide_count > 1 -%}
+                <ol class="theinmag-single-mags-hero__thumbs" role="list" data-thumbs>
+                  {%- liquid
+                    assign d_thumb_index = 0
+                  -%}
+
+                  {%- for img in digital_media_images -%}
+                    <li>
+                      <button type="button" class="theinmag-single-mags-hero__thumb{% if d_thumb_index == 0 %} is-active{% endif %}" data-thumb-jump="{{ d_thumb_index }}" aria-label="Digital cover">
+                        <img src="{{ img | image_url: width: 160 }}" alt="" loading="lazy">
+                      </button>
+                    </li>
+                    {%- assign d_thumb_index = d_thumb_index | plus: 1 -%}
+                  {%- endfor -%}
+
+                  {%- if media_images != blank -%}
+                    {%- for img in media_images -%}
+                      {%- unless forloop.first -%}
+                        <li>
+                          <button type="button" class="theinmag-single-mags-hero__thumb" data-thumb-jump="{{ d_thumb_index }}" aria-label="Inside page {{ forloop.index | minus: 1 }}">
+                            <img src="{{ img | image_url: width: 160 }}" alt="" loading="lazy">
+                          </button>
+                        </li>
+                        {%- assign d_thumb_index = d_thumb_index | plus: 1 -%}
+                      {%- endunless -%}
+                    {%- endfor -%}
+                  {%- endif -%}
+                </ol>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
         {%- endfor -%}
       </div>
 
@@ -512,11 +625,11 @@
           <fieldset class="theinmag-single-mags-hero__fieldset">
             <legend class="theinmag-single-mags-hero__legend">Format</legend>
             {%- comment -%}
-              Only Print + Digital here now. Snack Pack moved into the
-              picker row as a separate tile. JS handles the variant
-              mapping - in snack-pack mode, Print/Digital here resolve
-              to the "Snack Pack (Print)" / "Snack Pack (Digital)"
-              variant on the main product.
+              Print + Digital tiles map to the active product's variants
+              via the picker JS (findVariant by handle + format). When
+              the active product has no Print variant (Digital Stack),
+              the JS adds .is-soldout to the Print tile and swaps the
+              sold-out copy to "Digital only".
             {%- endcomment -%}
             <div class="theinmag-single-mags-hero__variants" role="radiogroup" data-variant-group>
               <button type="button" class="theinmag-single-mags-hero__variant-tile" data-variant-format="Print" aria-pressed="true">
@@ -676,9 +789,11 @@
   </script>
 
   {%- comment -%}
-    Variants payload. Stage 3.1: per-issue map keyed by issue handle,
-    plus a legacy snack_pack block sourced from the umbrella product
-    (retired in Stage 4 once Snack Pack becomes its own product).
+    Variants payload. Stage 3.3: per-issue map keyed by issue handle.
+    Snack Pack and Digital Stack are now regular products in the same
+    issues collection - they emit through the loop like any other tile,
+    no special-case JSON block. Digital-only products (e.g. Digital
+    Stack) emit "Print": null and the JS greys the Print variant tile.
 
     Shape:
       {
@@ -688,10 +803,6 @@
             "Digital": { id, price, available } | null
           },
           ...
-        },
-        "snack_pack": {
-          "Print":   { id, price, available } | null,
-          "Digital": { id, price, available } | null
         }
       }
 
@@ -712,16 +823,6 @@
             "Digital": {%- if issue_digital -%}{"id": {{ issue_digital.id }}, "price": {{ issue_digital.price }}, "available": {{ issue_digital.available }}}{%- else -%}null{%- endif -%}
           }{%- unless forloop.last -%},{%- endunless -%}
         {%- endfor -%}
-      },
-      "snack_pack": {
-        {%- assign sp_print = nil -%}
-        {%- assign sp_digital = nil -%}
-        {%- for v in product.variants -%}
-          {%- if v.option1 == 'Snack Pack (Print)' -%}{%- assign sp_print = v -%}{%- endif -%}
-          {%- if v.option1 == 'Snack Pack (Digital)' -%}{%- assign sp_digital = v -%}{%- endif -%}
-        {%- endfor -%}
-        "Print": {%- if sp_print -%}{"id": {{ sp_print.id }}, "price": {{ sp_print.price }}, "available": {{ sp_print.available }}}{%- else -%}null{%- endif -%},
-        "Digital": {%- if sp_digital -%}{"id": {{ sp_digital.id }}, "price": {{ sp_digital.price }}, "available": {{ sp_digital.available }}}{%- else -%}null{%- endif -%}
       }
     }
   </script>
@@ -774,32 +875,24 @@
 
     const picker = root.querySelector('[data-picker]');
     const pickerItems = Array.from(root.querySelectorAll('[data-picker-item]'));
-    const issuePickerItems = pickerItems.filter(function (i) { return !i.hasAttribute('data-snack-pack-tile'); });
-    const snackPackTile = root.querySelector('[data-snack-pack-tile]');
     const mediaContainers = Array.from(root.querySelectorAll('[data-media]'));
     const descContainers = Array.from(root.querySelectorAll('[data-desc]'));
     const titleEl = root.querySelector('[data-issue-title]');
     const subtagEl = root.querySelector('[data-issue-subtagline]');
     const priceDisplay = root.querySelector('[data-price-display]');
     const variantInput = root.querySelector('[data-variant-id-input]');
-    const propIssue = root.querySelector('[data-prop-issue]');
     const ctaLabel = root.querySelector('[data-cta-label]');
     const backInStockLink = root.querySelector('[data-back-in-stock]');
-    const variantGroup = root.querySelector('[data-variant-group]');
     const variantTiles = Array.from(root.querySelectorAll('[data-variant-format]'));
+    const variantSoldEl = root.querySelector('[data-variant-sold]');
 
-    /* activeMode controls how the Print/Digital variant tiles map onto
-       the main product's actual variants:
-         'issue'       Print -> variant.option1 === 'Print'
-                       Digital -> variant.option1 === 'Digital'
-         'snack-pack'  Print -> variant.option1 === 'Snack Pack (Print)'
-                       Digital -> variant.option1 === 'Snack Pack (Digital)'
-       In snack-pack mode the media column keeps showing the active
-       issue's media - the bundle ships fixed component issues, what
-       the visitor was browsing is just visual context. */
+    /* Stage 3.3 - snack-pack mode retired. Every picker tile is now a
+       per-issue/per-bundle product; the variant lookup keys on the active
+       product handle + Print/Digital format. Digital-only products (e.g.
+       Digital Stack) emit Print: null and the variant-tile state +
+       sold-out messaging adapts accordingly. */
     let activeIssueHandle = root.dataset.initialIssue;
     let activeFormat = 'Print';
-    let activeMode = 'issue';
 
     function metaFor(handle) {
       return issuesMeta.find(function (m) { return m.handle === handle; });
@@ -809,15 +902,10 @@
       return '$' + (cents / 100).toFixed(2);
     }
 
-    /* Map the picker mode + active format + active issue into the
-       correct Shopify variant. Stage 3.1: per-issue product variants
-       are the source of truth for issue mode. Snack-pack mode still
-       points at the umbrella product's legacy bundle variants until
-       Stage 4 retires it. */
-    function findVariant(mode, format, issueHandle) {
-      if (mode === 'snack-pack') {
-        return (variants.snack_pack && variants.snack_pack[format]) || null;
-      }
+    /* Resolve the Shopify variant for the current product handle + format.
+       Returns null if the product has no variant of that format (e.g. asking
+       for Print on a digital-only product). Callers handle the null branch. */
+    function findVariant(format, issueHandle) {
       const issueVariants = variants.issues && variants.issues[issueHandle];
       if (!issueVariants) return null;
       return issueVariants[format] || null;
@@ -831,30 +919,37 @@
     }
 
     /* Picker sort:
-         Print mode (issue-mode + Print format) - in-stock issues first
-         (newest first by issue_number), then sold-out issues (newest
-         first). Sold-outs visibly greyed.
-         Digital or Snack Pack mode - strict newest-first, all full colour.
-       Snack Pack tile is always appended last regardless of mode. */
-    function sortPicker(mode, format) {
+         Print-format - in-stock magazines first (newest by issue_number),
+         then sold-out magazines, then bundles (issue_number <= 0).
+         Digital-format - strict newest-first; bundles still trail.
+       Bundles never get the sold-out treatment - their print component
+       availability is what determines the bundle's stock, handled per-
+       click by updateVariantState (not here). */
+    function sortPicker(format) {
       if (!picker) return;
-      const applyStockSort = mode === 'issue' && format === 'Print';
-      const items = issuePickerItems.slice();
+      const applyStockSort = format === 'Print';
+      const items = pickerItems.slice();
       items.sort(function (a, b) {
         const numA = parseInt(a.dataset.issueNumber, 10) || 0;
         const numB = parseInt(b.dataset.issueNumber, 10) || 0;
-        const inStockA = a.dataset.printInStock === 'true';
-        const inStockB = b.dataset.printInStock === 'true';
-        if (applyStockSort && inStockA !== inStockB) {
-          return inStockA ? -1 : 1;
+        const isBundleA = a.dataset.isBundle === 'true';
+        const isBundleB = b.dataset.isBundle === 'true';
+        // Bundles always trail magazines, regardless of stock or format.
+        if (isBundleA !== isBundleB) return isBundleA ? 1 : -1;
+        // Within magazines: in-Print-mode, in-stock first.
+        if (applyStockSort && !isBundleA) {
+          const inStockA = a.dataset.printInStock === 'true';
+          const inStockB = b.dataset.printInStock === 'true';
+          if (inStockA !== inStockB) return inStockA ? -1 : 1;
         }
         return numB - numA;
       });
       items.forEach(function (item) { picker.appendChild(item); });
-      if (snackPackTile) picker.appendChild(snackPackTile);
-      issuePickerItems.forEach(function (item) {
+      pickerItems.forEach(function (item) {
+        const isBundle = item.dataset.isBundle === 'true';
         const inStock = item.dataset.printInStock === 'true';
-        item.classList.toggle('is-soldout', applyStockSort && !inStock);
+        // Sold-out grey-out only applies to magazines in Print mode.
+        item.classList.toggle('is-soldout', applyStockSort && !isBundle && !inStock);
       });
     }
 
@@ -862,30 +957,21 @@
       const meta = metaFor(handle);
       if (!meta) return;
       activeIssueHandle = handle;
-      activeMode = 'issue';
 
-      issuePickerItems.forEach(function (item) {
+      pickerItems.forEach(function (item) {
         const btn = item.querySelector('[data-picker-btn]');
         const isActive = item.dataset.issueHandle === handle;
         if (btn) btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         item.classList.toggle('is-active', isActive);
       });
-      if (snackPackTile) {
-        const spBtn = snackPackTile.querySelector('[data-picker-btn]');
-        if (spBtn) spBtn.setAttribute('aria-pressed', 'false');
-        snackPackTile.classList.remove('is-active');
-      }
 
-      mediaContainers.forEach(function (c) {
-        c.hidden = c.dataset.issueHandle !== handle;
-      });
+      showActiveMedia();
       descContainers.forEach(function (c) {
         c.hidden = c.dataset.issueHandle !== handle;
       });
 
       if (titleEl) titleEl.textContent = issueLabel(meta.title || '');
       if (subtagEl) subtagEl.textContent = meta.subtagline || '';
-      if (propIssue) propIssue.value = handle;
 
       updateVariantState();
 
@@ -900,63 +986,70 @@
       root.dispatchEvent(ev);
     }
 
-    /* Snack pack picker tile click. activeIssueHandle stays where it
-       was so the media column doesn't reshuffle - that issue is just
-       "the cover the visitor was browsing" while the snack pack ships
-       its own component issues. */
-    function setSnackPackMode() {
-      activeMode = 'snack-pack';
-
-      issuePickerItems.forEach(function (item) {
-        const btn = item.querySelector('[data-picker-btn]');
-        if (btn) btn.setAttribute('aria-pressed', 'false');
-        item.classList.remove('is-active');
+    /* Show the correct media container for the active issue + format.
+       Stage 3.4 - per-issue Print AND Digital media containers in DOM;
+       JS picks the one matching activeIssueHandle + activeFormat. If
+       the issue has no Digital container (digital_media_images metafield
+       empty), falls back to its Print container so Digital toggle on an
+       issue without iPad mockups still shows something. */
+    function showActiveMedia() {
+      const candidates = mediaContainers.filter(function (c) {
+        return c.dataset.issueHandle === activeIssueHandle;
       });
-      if (snackPackTile) {
-        const spBtn = snackPackTile.querySelector('[data-picker-btn]');
-        if (spBtn) spBtn.setAttribute('aria-pressed', 'true');
-        snackPackTile.classList.add('is-active');
-      }
-
-      // Title + subtagline read as snack-pack while in this mode.
-      if (titleEl) titleEl.textContent = root.dataset.snackPackLabel || 'Snack pack';
-      if (subtagEl) subtagEl.textContent = root.dataset.snackPackSubtagline || '';
-      if (propIssue) propIssue.value = 'snack-pack';
-
-      updateVariantState();
+      if (!candidates.length) return;
+      const exact = candidates.find(function (c) {
+        return c.dataset.format === activeFormat;
+      });
+      const fallback = candidates.find(function (c) {
+        return c.dataset.format === 'Print';
+      });
+      const target = exact || fallback || candidates[0];
+      mediaContainers.forEach(function (c) {
+        c.hidden = c !== target;
+      });
     }
 
-    /* updateVariantState reads activeMode + activeFormat + the active
-       issue's stock and updates the variant tiles, hidden variant id,
-       price, CTA label, and back-in-stock link. Stage 3.1: print stock
-       now sources from the per-issue Print variant's availability flag
-       (was: print_in_stock metafield). */
+    /* updateVariantState reads activeFormat + the active product's
+       variant availability and updates the variant tiles, hidden variant
+       id, price, CTA label, and back-in-stock link.
+
+       Three states the Print tile can be in:
+         normal    - print exists + in stock        (no class, no override)
+         sold-out  - print exists + not in stock    (is-soldout class + sold-out copy)
+         absent    - no Print variant at all        (is-soldout class + "Digital only" copy)
+       The last two both force activeFormat to Digital. */
     function updateVariantState() {
       const issueVariants = (variants.issues || {})[activeIssueHandle] || {};
       const printVariant = issueVariants.Print;
-      const printInStock = !!(printVariant && printVariant.available);
-      const printBlocked = activeMode === 'issue' && activeFormat === 'Print' && !printInStock;
+      const printExists = !!printVariant;
+      const printInStock = printExists && printVariant.available;
+      const printUnavailable = !printInStock; // covers both absent + sold-out
+      const printForcedDigital = printUnavailable && activeFormat === 'Print';
 
-      if (printBlocked) {
+      if (printForcedDigital) {
         activeFormat = 'Digital';
+      }
+
+      // Update the variant-sold copy to match the situation (absent vs sold-out).
+      if (variantSoldEl) {
+        variantSoldEl.textContent = printExists
+          ? 'Print sold out - grab digital'
+          : 'Digital only';
       }
 
       variantTiles.forEach(function (tile) {
         const format = tile.dataset.variantFormat;
-        // Sold-out treatment only applies in issue mode for the Print
-        // tile when the active issue has no print stock. Snack-pack
-        // tiles stay live - bundle inventory lives on the bundle.
-        const isSoldOut = activeMode === 'issue' && format === 'Print' && !printInStock;
+        const isSoldOut = format === 'Print' && printUnavailable;
         tile.classList.toggle('is-soldout', isSoldOut);
         tile.setAttribute('aria-pressed', format === activeFormat ? 'true' : 'false');
       });
 
-      const variant = findVariant(activeMode, activeFormat, activeIssueHandle);
+      const variant = findVariant(activeFormat, activeIssueHandle);
       if (variant) {
         if (variantInput) variantInput.value = variant.id;
         if (priceDisplay) priceDisplay.textContent = formatMoney(variant.price);
         if (ctaLabel) {
-          if (printBlocked) {
+          if (printForcedDigital && printExists) {
             ctaLabel.textContent = 'Get it digital - ' + formatMoney(variant.price);
           } else {
             ctaLabel.textContent = 'Add to cart';
@@ -965,24 +1058,28 @@
       }
 
       if (backInStockLink) {
-        backInStockLink.hidden = !printBlocked;
+        // Only offer back-in-stock when print exists but is sold out.
+        // Hide for absent-print (digital-only) products.
+        backInStockLink.hidden = !(printExists && !printInStock);
       }
 
-      sortPicker(activeMode, activeFormat);
+      // Stage 3.4 - drive the picker tile cover swap (print <-> iPad
+      // mockup) via a section-level data-active-format attribute that
+      // CSS hooks into. Also re-show the matching media container.
+      root.setAttribute('data-active-format', activeFormat);
+      showActiveMedia();
+
+      sortPicker(activeFormat);
       updateFloatingCart();
     }
 
-    /* Wire up the picker. Issue tiles change the active issue; the
-       Snack Pack tile flips the mode without changing the media. */
+    /* Wire up the picker. Every tile is a product; clicking sets it
+       as the active issue/bundle and broadcasts the issue-changed event. */
     pickerItems.forEach(function (item) {
       const btn = item.querySelector('[data-picker-btn]');
       if (!btn) return;
       btn.addEventListener('click', function () {
-        if (item.hasAttribute('data-snack-pack-tile')) {
-          setSnackPackMode();
-        } else {
-          setActiveIssue(item.dataset.issueHandle);
-        }
+        setActiveIssue(item.dataset.issueHandle);
       });
     });
 
@@ -1063,16 +1160,10 @@
 
     function updateFloatingCart() {
       if (!floatingSummary) return;
-      let summary;
-      if (activeMode === 'snack-pack') {
-        summary = (root.dataset.snackPackLabel || 'Snack pack') + ' - ' + activeFormat;
-      } else {
-        const meta = metaFor(activeIssueHandle);
-        const issue = meta ? issueLabel(meta.title || '') : 'Mag';
-        summary = issue + ' - ' + activeFormat;
-      }
-      floatingSummary.textContent = summary;
-      const variant = findVariant(activeMode, activeFormat, activeIssueHandle);
+      const meta = metaFor(activeIssueHandle);
+      const label = meta ? issueLabel(meta.title || '') : 'Mag';
+      floatingSummary.textContent = label + ' - ' + activeFormat;
+      const variant = findVariant(activeFormat, activeIssueHandle);
       if (variant && floatingCtaPrice) {
         floatingCtaPrice.textContent = formatMoney(variant.price);
       }
@@ -1099,7 +1190,7 @@
     if (floatingCta) {
       floatingCta.addEventListener('click', function () {
         // Find the in-card Add to Cart and click it - re-uses the form
-        // submit path including the _issue line property.
+        // submit path with the currently-active per-product variant id.
         const primaryCta = root.querySelector('[data-primary-cta]');
         if (primaryCta) primaryCta.click();
       });
@@ -1125,7 +1216,7 @@
     });
 
     /* Init. */
-    sortPicker(activeMode, activeFormat);
+    sortPicker(activeFormat);
     updateVariantState();
 
   })();
@@ -1354,6 +1445,15 @@
     object-position: top center;
     display: block;
   }
+
+  /* Stage 3.4 - dual cover thumbnails per picker tile. When the section's
+     data-active-format flips to Digital, swap from print thumb to iPad
+     thumb on tiles that have a digital thumbnail. Tiles without a
+     digital thumbnail keep showing the print cover regardless of format
+     (the swap is gated on data-has-digital-media). */
+  .theinmag-single-mags-hero__picker-cover-img--digital { display: none; }
+  .theinmag-single-mags-hero[data-active-format='Digital'] .theinmag-single-mags-hero__picker-item[data-has-digital-media='true'] .theinmag-single-mags-hero__picker-cover-img--print { display: none; }
+  .theinmag-single-mags-hero[data-active-format='Digital'] .theinmag-single-mags-hero__picker-item[data-has-digital-media='true'] .theinmag-single-mags-hero__picker-cover-img--digital { display: block; }
 
   .theinmag-single-mags-hero__picker-btn[aria-pressed='true'] .theinmag-single-mags-hero__picker-cover {
     transform: scale(1.05);
@@ -2368,28 +2468,6 @@
       "id": "show_mini_review_bubble",
       "label": "Show mini review bubble",
       "default": true
-    },
-    {
-      "type": "header",
-      "content": "Snack pack tile"
-    },
-    {
-      "type": "image_picker",
-      "id": "snack_pack_image",
-      "label": "Snack pack cover image",
-      "info": "Sits in the picker row alongside the issue covers. If empty, a 2-pack text placeholder shows."
-    },
-    {
-      "type": "text",
-      "id": "snack_pack_label",
-      "label": "Snack Pack tile label",
-      "default": "Snack Pack"
-    },
-    {
-      "type": "text",
-      "id": "snack_pack_subtagline",
-      "label": "Snack Pack subtagline",
-      "default": "Two hand-picked issues, one happy mailbox."
     },
     {
       "type": "header",
