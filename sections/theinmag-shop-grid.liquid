@@ -573,7 +573,7 @@
     display: block;
     margin: var(--space-xl) auto 0;
     appearance: none;
-    background-color: transparent;
+    background-color: #FFFFFF;
     border: 1.5px solid var(--color-inky-purple-navy);
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
@@ -632,6 +632,13 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+  }
+
+  /* Shop-context tiles use a white card surface so each tile lifts cleanly
+     off the cream page. The BaB picker keeps its cream tile (its own copy
+     of this CSS lives in theinmag-bundle-picker.liquid). */
+  .theinmag-bundle-tile--shop {
+    background-color: #FFFFFF;
   }
 
   .theinmag-bundle-tile__cover {
