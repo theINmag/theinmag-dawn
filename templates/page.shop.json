@@ -51,9 +51,9 @@
             "tagline": "Never miss an issue.",
             "price": "From $89",
             "link": "/products/membership",
-            "fallback_filename": "membershipimage.jpg",
+            "fallback_filename": "product-membership.jpg",
             "fallback_hover_filename": "product-membership-hover.jpg",
-            "image_alt": "theINmag Membership pack with the latest issue."
+            "image_alt": "A hand holding a fan of theINmag issues."
           }
         },
         "single": {
@@ -96,6 +96,7 @@
         "heading": "Shop everything",
         "collection_handle": "all",
         "exclude_handles": "single-mags, single-issues",
+        "cover_overrides": "membership:membershipimage.jpg",
         "membership_match": "Membership",
         "snack_pack_match": "Snack Pack",
         "digital_stack_match": "Digital Stack",

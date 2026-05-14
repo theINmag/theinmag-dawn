@@ -50,6 +50,12 @@
   # of hiding a real product.
   assign exclude_handles = section.settings.exclude_handles | default: '' | split: ','
 
+  # Per-product cover overrides (comma-separated "handle:filename" pairs).
+  # When a product's handle matches, the tile shows that /assets/ image as
+  # its print cover instead of the product's featured image - lets the grid
+  # carry a curated cover without changing the product image in admin.
+  assign cover_overrides = section.settings.cover_overrides | default: '' | split: ','
+
   # Anchor matches for the custom grid order, matched against product.title.
   # Title is more stable than handle here - the store has handles set
   # inconsistently (digital-stack / mag10 / membership have no prefix, but
@@ -149,6 +155,14 @@
           {%- assign product = all_products[key_handle] -%}
           {%- if product == blank or product.id == blank -%}{%- continue -%}{%- endif -%}
           {%- assign visible_index = visible_index | plus: 1 -%}
+          {%- comment -%} Resolve a per-product cover override, if one is set. {%- endcomment -%}
+          {%- assign tile_cover = '' -%}
+          {%- for pair in cover_overrides -%}
+            {%- assign pair_handle = pair | split: ':' | first | strip -%}
+            {%- if pair_handle != blank and pair_handle == product.handle -%}
+              {%- assign tile_cover = pair | split: ':' | last | strip -%}
+            {%- endif -%}
+          {%- endfor -%}
           <li
             class="theinmag-shop-grid__item"
             data-tile-index="{{ visible_index | minus: 1 }}"
@@ -156,7 +170,7 @@
             data-product-created="{{ product.created_at | date: '%s' }}"
             {%- if visible_index > products_per_page %} hidden data-overflow{%- endif %}
           >
-            {% render 'theinmag-bundle-tile', product: product, context: 'shop' %}
+            {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover %}
           </li>
         {%- endfor -%}
       </ul>
@@ -804,6 +818,13 @@
       "label": "Product handles to hide",
       "info": "Comma-separated product handles to skip in the grid. Default hides the deprecated single-mags / single-issues umbrella product.",
       "default": "single-mags, single-issues"
+    },
+    {
+      "type": "text",
+      "id": "cover_overrides",
+      "label": "Cover overrides",
+      "info": "Comma-separated handle:filename pairs. The grid tile for that handle shows the named /assets/ image as its cover instead of the product's featured image.",
+      "default": "membership:membershipimage.jpg"
     },
     {
       "type": "header",

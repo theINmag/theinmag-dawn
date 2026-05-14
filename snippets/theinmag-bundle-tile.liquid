@@ -31,6 +31,14 @@
 {%- liquid
   assign tile_context = context | default: 'bundle'
 
+  comment
+    Optional shop-context override: a filename of an asset in /assets/ used
+    as the PRINT cover instead of product.featured_image. Lets the shop grid
+    show a curated cover for a product (e.g. Membership) without touching the
+    product's featured image in admin. Ignored outside the shop context.
+  endcomment
+  assign cover_override = cover_filename | default: ''
+
   assign print_variant = null
   assign digital_variant = null
   for v in product.variants
@@ -77,7 +85,16 @@
   <div class="theinmag-bundle-tile__cover">
     {%- if tile_context == 'shop' -%}
       <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link" aria-label="View {{ tile_title }}">
-        {%- if cover_image != blank -%}
+        {%- if cover_override != blank -%}
+          <img
+            class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--print"
+            src="{{ cover_override | asset_url }}"
+            alt="{{ product.title | escape }} print cover"
+            width="480"
+            height="640"
+            loading="lazy"
+          >
+        {%- elsif cover_image != blank -%}
           <img
             class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--print"
             src="{{ cover_image | image_url: width: 480 }}"
