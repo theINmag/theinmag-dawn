@@ -130,14 +130,23 @@
   assign secondary_url = primary_url | append: '#flick-through'
 
   comment
-    Photo source. Manual section setting wins; otherwise filename convention
-    hero-shop-{handle}.jpg from /assets/. If neither exists the photo pane
-    falls back to a cream surface with the section's accent decoration.
+    Photo source, resolved in priority order:
+      1. hero_image      - theme editor image picker (responsive srcset)
+      2. hero_image_filename - manual filename of an asset in /assets/
+      3. hero-shop-{handle}.jpg - filename convention fallback
+    If none resolve the photo pane falls back to the cream background.
   endcomment
   assign hero_image = section.settings.hero_image
-  assign hero_image_filename = 'hero-shop-' | append: hero_handle | append: '.jpg'
-  assign hero_image_fallback_url = hero_image_filename | asset_url
+  assign hero_image_manual = section.settings.hero_image_filename | strip
   assign hero_image_alt = section.settings.hero_image_alt | default: 'theINmag latest issue cover photo.'
+
+  assign hero_image_asset_url = ''
+  if hero_image_manual != blank
+    assign hero_image_asset_url = hero_image_manual | asset_url
+  else
+    assign convention_filename = 'hero-shop-' | append: hero_handle | append: '.jpg'
+    assign hero_image_asset_url = convention_filename | asset_url
+  endif
 
   comment
     Price line. Reads variants of the target product if it exists in this
@@ -205,7 +214,7 @@
       {%- else -%}
         <img
           class="theinmag-shop-hero__image"
-          src="{{ hero_image_fallback_url }}"
+          src="{{ hero_image_asset_url }}"
           alt="{{ hero_image_alt | escape }}"
           width="1400"
           height="1400"
@@ -492,6 +501,13 @@
       "type": "image_picker",
       "id": "hero_image",
       "label": "Hero photo"
+    },
+    {
+      "type": "text",
+      "id": "hero_image_filename",
+      "label": "Hero photo filename (fallback)",
+      "info": "Filename of an image in /assets/ - used when the picker above is empty. Falls back to hero-shop-{handle}.jpg if both are empty.",
+      "default": "mag08-01-cover-MOCKUP.jpg"
     },
     {
       "type": "text",

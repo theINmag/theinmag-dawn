@@ -3,7 +3,8 @@
     "hero": {
       "type": "theinmag-shop-hero",
       "settings": {
-        "hero_image_alt": "Kid reading the latest theINmag.",
+        "hero_image_filename": "mag08-01-cover-MOCKUP.jpg",
+        "hero_image_alt": "theINmag cover mockup.",
         "padding_top": 0,
         "padding_bottom": 0
       }
@@ -50,7 +51,7 @@
             "tagline": "Never miss an issue.",
             "price": "From $89",
             "link": "/products/membership",
-            "fallback_filename": "product-membership.jpg",
+            "fallback_filename": "membershipimage.jpg",
             "fallback_hover_filename": "product-membership-hover.jpg",
             "image_alt": "theINmag Membership pack with the latest issue."
           }
