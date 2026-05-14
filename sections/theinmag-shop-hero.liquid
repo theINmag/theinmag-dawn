@@ -241,17 +241,6 @@
       </div>
     </div>
   </div>
-
-  {%- comment -%} Trust micro-bar across the full hero width {%- endcomment -%}
-  <div class="theinmag-shop-hero__trust-bar" role="list" aria-label="theINmag promises">
-    <span class="theinmag-shop-hero__trust-item" role="listitem">Free shipping over $40</span>
-    <span class="theinmag-shop-hero__trust-divider" aria-hidden="true"></span>
-    <span class="theinmag-shop-hero__trust-item" role="listitem">Made in Australia</span>
-    <span class="theinmag-shop-hero__trust-divider" aria-hidden="true"></span>
-    <span class="theinmag-shop-hero__trust-item" role="listitem">100% kid-created</span>
-    <span class="theinmag-shop-hero__trust-divider" aria-hidden="true"></span>
-    <span class="theinmag-shop-hero__trust-item" role="listitem">Ad-free, always</span>
-  </div>
 </section>
 
 {%- comment -%}
@@ -481,45 +470,6 @@
     .theinmag-shop-hero__cta--primary:hover {
       translate: 0 0;
       box-shadow: var(--shadow-button-yellow);
-    }
-  }
-
-  /* ---------- Trust micro-bar ---------- */
-
-  .theinmag-shop-hero__trust-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: clamp(8px, 1.5vw, 20px);
-    padding: clamp(14px, 2vw, 22px) clamp(16px, 4vw, 48px);
-    background-color: var(--color-cream);
-    border-top: 1px solid rgba(42, 31, 61, 0.08);
-    text-align: center;
-  }
-
-  .theinmag-shop-hero__trust-item {
-    font-family: var(--font-body);
-    font-weight: 500;
-    font-size: clamp(12px, 1.3vw, 14px);
-    color: var(--color-inky-purple-navy);
-    opacity: 0.85;
-  }
-
-  .theinmag-shop-hero__trust-divider {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background-color: var(--color-coral-dark, #C9543E);
-    opacity: 0.6;
-  }
-
-  /* Mobile: trust bar can read as a horizontal scrolling strip if the
-     four items overflow. The flex-wrap above is the default; this hides
-     the dividers when items wrap to a new row so they don't dangle. */
-  @media (max-width: 749px) {
-    .theinmag-shop-hero__trust-bar {
-      gap: 6px 12px;
     }
   }
 {%- endstylesheet -%}

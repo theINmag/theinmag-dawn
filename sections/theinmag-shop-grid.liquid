@@ -50,9 +50,22 @@
   # of hiding a real product.
   assign exclude_handles = section.settings.exclude_handles | default: '' | split: ','
 
-  # Pre-count the products that will actually render after exclusion so
-  # the count line, show-more gate, and empty-state check are all correct.
-  assign render_count = 0
+  # Anchor product handles for the custom grid order. Theme editor settings
+  # so they can be corrected without a code push if a handle is wrong.
+  assign membership_handle = section.settings.membership_handle | default: 'membership'
+  assign snack_pack_handle = section.settings.snack_pack_handle | default: 'theinmag-snack-pack'
+  assign digital_stack_handle = section.settings.digital_stack_handle | default: 'theinmag-digital-stack'
+
+  # Build a sortable "WEIGHT:handle" list. Weights are 4-digit zero-padded
+  # so a plain string sort is also a numeric sort. Sorted descending the
+  # final grid order is: Membership, Snack Pack, mags newest-first, any
+  # other product, then Digital Stack last.
+  #   Membership    9999
+  #   Snack Pack    9998
+  #   MagNN         3000 + NN   (Mag10 = 3010, Mag01 = 3001)
+  #   other         2000
+  #   Digital Stack 1000
+  assign sort_keys = ''
   for product in target_collection.products
     assign is_excluded = false
     for h in exclude_handles
@@ -62,9 +75,25 @@
       endif
     endfor
     unless is_excluded
-      assign render_count = render_count | plus: 1
+      assign weight = '2000'
+      if product.handle == membership_handle
+        assign weight = '9999'
+      elsif product.handle == snack_pack_handle
+        assign weight = '9998'
+      elsif product.handle == digital_stack_handle
+        assign weight = '1000'
+      else
+        assign handle_prefix = product.handle | slice: 0, 3
+        if handle_prefix == 'mag'
+          assign mag_num = product.handle | slice: 3, 5 | times: 1
+          assign weight = 3000 | plus: mag_num | append: ''
+        endif
+      endif
+      assign sort_keys = sort_keys | append: weight | append: ':' | append: product.handle | append: ','
     endunless
   endfor
+  assign sorted_keys = sort_keys | split: ',' | sort | reverse
+  assign render_count = sorted_keys.size
 
   assign section_style = '--tsg-pt: ' | append: section.settings.padding_top | append: 'px; --tsg-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
@@ -112,24 +141,20 @@
 
       <ul class="theinmag-shop-grid__list" data-shop-grid-list data-active-format="all" role="list">
         {%- assign visible_index = 0 -%}
-        {%- for product in target_collection.products -%}
-          {%- assign is_excluded = false -%}
-          {%- for h in exclude_handles -%}
-            {%- assign h_trim = h | strip -%}
-            {%- if h_trim != blank and h_trim == product.handle -%}{%- assign is_excluded = true -%}{%- endif -%}
-          {%- endfor -%}
-          {%- unless is_excluded -%}
-            {%- assign visible_index = visible_index | plus: 1 -%}
-            <li
-              class="theinmag-shop-grid__item"
-              data-tile-index="{{ visible_index | minus: 1 }}"
-              data-product-price="{{ product.price }}"
-              data-product-created="{{ product.created_at | date: '%s' }}"
-              {%- if visible_index > products_per_page %} hidden data-overflow{%- endif %}
-            >
-              {% render 'theinmag-bundle-tile', product: product, context: 'shop' %}
-            </li>
-          {%- endunless -%}
+        {%- for key in sorted_keys -%}
+          {%- assign key_handle = key | split: ':' | last -%}
+          {%- assign product = all_products[key_handle] -%}
+          {%- if product == blank or product.id == blank -%}{%- continue -%}{%- endif -%}
+          {%- assign visible_index = visible_index | plus: 1 -%}
+          <li
+            class="theinmag-shop-grid__item"
+            data-tile-index="{{ visible_index | minus: 1 }}"
+            data-product-price="{{ product.price }}"
+            data-product-created="{{ product.created_at | date: '%s' }}"
+            {%- if visible_index > products_per_page %} hidden data-overflow{%- endif %}
+          >
+            {% render 'theinmag-bundle-tile', product: product, context: 'shop' %}
+          </li>
         {%- endfor -%}
       </ul>
 
@@ -156,29 +181,25 @@
     "numberOfItems": {{ render_count }},
     "itemListElement": [
       {%- assign ld_position = 0 -%}
-      {%- for product in target_collection.products -%}
-        {%- assign is_excluded = false -%}
-        {%- for h in exclude_handles -%}
-          {%- assign h_trim = h | strip -%}
-          {%- if h_trim != blank and h_trim == product.handle -%}{%- assign is_excluded = true -%}{%- endif -%}
-        {%- endfor -%}
-        {%- unless is_excluded -%}
-          {%- assign ld_position = ld_position | plus: 1 -%}
-          {%- if ld_position > 1 %},{% endif -%}
-          {
-            "@type": "ListItem",
-            "position": {{ ld_position }},
-            "url": {{ shop.url | append: '/products/' | append: product.handle | json }},
-            "name": {{ product.title | json }}{% if product.featured_image %},
-            "image": {{ product.featured_image | image_url: width: 800 | prepend: 'https:' | json }}{% endif %},
-            "offers": {
-              "@type": "Offer",
-              "price": "{{ product.price | money_without_currency | strip_html | strip }}",
-              "priceCurrency": {{ cart.currency.iso_code | json }},
-              "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
-            }
+      {%- for key in sorted_keys -%}
+        {%- assign key_handle = key | split: ':' | last -%}
+        {%- assign product = all_products[key_handle] -%}
+        {%- if product == blank or product.id == blank -%}{%- continue -%}{%- endif -%}
+        {%- assign ld_position = ld_position | plus: 1 -%}
+        {%- if ld_position > 1 %},{% endif -%}
+        {
+          "@type": "ListItem",
+          "position": {{ ld_position }},
+          "url": {{ shop.url | append: '/products/' | append: product.handle | json }},
+          "name": {{ product.title | json }}{% if product.featured_image %},
+          "image": {{ product.featured_image | image_url: width: 800 | prepend: 'https:' | json }}{% endif %},
+          "offers": {
+            "@type": "Offer",
+            "price": "{{ product.price | money_without_currency | strip_html | strip }}",
+            "priceCurrency": {{ cart.currency.iso_code | json }},
+            "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
           }
-        {%- endunless -%}
+        }
       {%- endfor -%}
     ]
   }
@@ -780,6 +801,32 @@
       "label": "Product handles to hide",
       "info": "Comma-separated product handles to skip in the grid. Default hides the deprecated single-mags / single-issues umbrella product.",
       "default": "single-mags, single-issues"
+    },
+    {
+      "type": "header",
+      "content": "Custom order anchors"
+    },
+    {
+      "type": "paragraph",
+      "content": "Grid order is: Membership, Snack Pack, mags newest-first, any other product, then Digital Stack last. The three handles below anchor that order - correct them here if a handle is wrong."
+    },
+    {
+      "type": "text",
+      "id": "membership_handle",
+      "label": "Membership product handle",
+      "default": "membership"
+    },
+    {
+      "type": "text",
+      "id": "snack_pack_handle",
+      "label": "Snack Pack product handle",
+      "default": "theinmag-snack-pack"
+    },
+    {
+      "type": "text",
+      "id": "digital_stack_handle",
+      "label": "Digital Stack product handle",
+      "default": "theinmag-digital-stack"
     },
     {
       "type": "range",
