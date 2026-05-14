@@ -103,7 +103,7 @@
         echo ' days'
       endif
     endcapture
-    assign subhead = 'Pre-order open. First in line for the next print run.'
+    assign subhead = section.settings.subhead_countdown | default: 'Pre-order open. Drops into letterboxes right across Australia, very soon.'
     assign primary_label = 'Pre-order'
     assign primary_label = primary_label | append: ' ' | append: hero_mag
   elsif hero_state == 'just-dropped'
@@ -114,14 +114,14 @@
       echo hero_mag
       echo ' is here'
     endcapture
-    assign subhead = '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
+    assign subhead = section.settings.subhead_just_dropped | default: '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
     assign primary_label = 'Shop ' | append: hero_mag
   else
     assign hero_mag = current_issue
     assign hero_handle = current_handle
     assign eyebrow = 'Latest issue'
     assign headline = hero_mag
-    assign subhead = '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
+    assign subhead = section.settings.subhead_available | default: '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
     assign primary_label = 'Shop ' | append: hero_mag
   endif
 
@@ -548,6 +548,35 @@
       "id": "hero_image_alt",
       "label": "Hero photo alt text",
       "default": "theINmag latest issue cover photo."
+    },
+    {
+      "type": "header",
+      "content": "Subhead copy (per state)"
+    },
+    {
+      "type": "paragraph",
+      "content": "The eyebrow + headline auto-generate from the issue metafields. These three subheads are editable - the hero shows whichever one matches the current state."
+    },
+    {
+      "type": "text",
+      "id": "subhead_countdown",
+      "label": "Subhead - countdown state",
+      "info": "Shown when the next issue is more than 21 days from release.",
+      "default": "Pre-order open. Drops into letterboxes right across Australia, very soon."
+    },
+    {
+      "type": "text",
+      "id": "subhead_just_dropped",
+      "label": "Subhead - just dropped state",
+      "info": "Shown for the first 21 days after a release.",
+      "default": "120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia."
+    },
+    {
+      "type": "text",
+      "id": "subhead_available",
+      "label": "Subhead - available state",
+      "info": "Shown once an issue is more than 21 days past release.",
+      "default": "120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia."
     },
     {
       "type": "header",

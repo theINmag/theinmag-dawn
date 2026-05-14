@@ -17,8 +17,24 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign release_date_str = section.settings.release_date | strip
-  assign issue_number = section.settings.issue_number | strip
+  # Release date + issue number source from the shop metafields so the
+  # announcement bar, the /shop hero, and the Membership/Single PDPs all
+  # read ONE source of truth and can never drift. Section settings stay
+  # as fallbacks for preview/dev contexts where the metafields aren't
+  # populated. To change the release date, update the
+  # theinmag.next_release_date shop metafield (not this section).
+  assign release_date_mf = shop.metafields.theinmag.next_release_date.value
+  if release_date_mf != blank
+    assign release_date_str = release_date_mf
+  else
+    assign release_date_str = section.settings.release_date | strip
+  endif
+  assign current_issue_mf = shop.metafields.theinmag.current_issue_number.value
+  if current_issue_mf != blank
+    assign issue_number = current_issue_mf | remove: 'Mag' | times: 1 | plus: 1
+  else
+    assign issue_number = section.settings.issue_number | strip
+  endif
   assign shipping_threshold = section.settings.shipping_threshold | default: 40
 
   assign show_msg_1 = section.settings.show_msg_1
@@ -333,17 +349,21 @@
       "default": true
     },
     {
+      "type": "paragraph",
+      "content": "Release date + issue number now read from the theinmag.next_release_date and theinmag.current_issue_number shop metafields so this bar stays aligned with the /shop hero and PDPs. The two fields below are fallbacks only - used if the metafields are empty."
+    },
+    {
       "type": "text",
       "id": "release_date",
-      "label": "Next release date",
-      "info": "Format: YYYY-MM-DD (e.g. 2026-06-10). Days-only countdown - no hours/minutes. Hides automatically two days after the release.",
-      "default": "2026-06-10"
+      "label": "Next release date (fallback)",
+      "info": "Format: YYYY-MM-DD. Only used if the theinmag.next_release_date metafield is empty. Days-only countdown. Hides automatically two days after release.",
+      "default": "2026-06-15"
     },
     {
       "type": "text",
       "id": "issue_number",
-      "label": "Issue number",
-      "info": "Whole number only (e.g. 10).",
+      "label": "Issue number (fallback)",
+      "info": "Whole number only. Only used if the theinmag.current_issue_number metafield is empty.",
       "default": "10"
     },
     {

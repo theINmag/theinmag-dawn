@@ -42,7 +42,29 @@
   assign heading = section.settings.heading | default: 'Shop everything'
   assign empty_text = section.settings.empty_text | default: 'No mags available right now. Check back soon.'
 
-  assign total_count = target_collection.products.size
+  # Handles to skip in the grid (comma-separated). Defaults exclude the
+  # deprecated single-mags / single-issues umbrella product left over from
+  # before the Stage 4 per-issue refactor. Both candidate handles are
+  # listed so whichever one the umbrella actually uses gets filtered;
+  # neither matches a real individual mag (mag01..N) so there's no risk
+  # of hiding a real product.
+  assign exclude_handles = section.settings.exclude_handles | default: '' | split: ','
+
+  # Pre-count the products that will actually render after exclusion so
+  # the count line, show-more gate, and empty-state check are all correct.
+  assign render_count = 0
+  for product in target_collection.products
+    assign is_excluded = false
+    for h in exclude_handles
+      assign h_trim = h | strip
+      if h_trim != blank and h_trim == product.handle
+        assign is_excluded = true
+      endif
+    endfor
+    unless is_excluded
+      assign render_count = render_count | plus: 1
+    endunless
+  endfor
 
   assign section_style = '--tsg-pt: ' | append: section.settings.padding_top | append: 'px; --tsg-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
@@ -59,7 +81,7 @@
     <div class="theinmag-shop-grid__head">
       <h2 id="theinmag-shop-grid-heading" class="theinmag-shop-grid__heading">{{ heading }}</h2>
 
-      {%- if total_count > 0 -%}
+      {%- if render_count > 0 -%}
         <div class="theinmag-shop-grid__controls" role="group" aria-label="Filter and sort the product grid">
 
           <div class="theinmag-shop-grid__filters" role="radiogroup" aria-label="Filter by format">
@@ -83,26 +105,35 @@
       {%- endif -%}
     </div>
 
-    {%- if total_count > 0 -%}
+    {%- if render_count > 0 -%}
       <p class="theinmag-shop-grid__count" data-count-line>
-        Showing <span data-visible-count>{% if total_count > products_per_page %}{{ products_per_page }}{% else %}{{ total_count }}{% endif %}</span> of {{ total_count }}
+        Showing <span data-visible-count>{% if render_count > products_per_page %}{{ products_per_page }}{% else %}{{ render_count }}{% endif %}</span> of {{ render_count }}
       </p>
 
       <ul class="theinmag-shop-grid__list" data-shop-grid-list data-active-format="all" role="list">
+        {%- assign visible_index = 0 -%}
         {%- for product in target_collection.products -%}
-          <li
-            class="theinmag-shop-grid__item"
-            data-tile-index="{{ forloop.index0 }}"
-            data-product-price="{{ product.price }}"
-            data-product-created="{{ product.created_at | date: '%s' }}"
-            {%- if forloop.index > products_per_page %} hidden data-overflow{%- endif %}
-          >
-            {% render 'theinmag-bundle-tile', product: product, context: 'shop' %}
-          </li>
+          {%- assign is_excluded = false -%}
+          {%- for h in exclude_handles -%}
+            {%- assign h_trim = h | strip -%}
+            {%- if h_trim != blank and h_trim == product.handle -%}{%- assign is_excluded = true -%}{%- endif -%}
+          {%- endfor -%}
+          {%- unless is_excluded -%}
+            {%- assign visible_index = visible_index | plus: 1 -%}
+            <li
+              class="theinmag-shop-grid__item"
+              data-tile-index="{{ visible_index | minus: 1 }}"
+              data-product-price="{{ product.price }}"
+              data-product-created="{{ product.created_at | date: '%s' }}"
+              {%- if visible_index > products_per_page %} hidden data-overflow{%- endif %}
+            >
+              {% render 'theinmag-bundle-tile', product: product, context: 'shop' %}
+            </li>
+          {%- endunless -%}
         {%- endfor -%}
       </ul>
 
-      {%- if total_count > products_per_page -%}
+      {%- if render_count > products_per_page -%}
         <button type="button" class="theinmag-shop-grid__show-more" data-show-more>
           Show more
         </button>
@@ -116,28 +147,38 @@
   </div>
 </section>
 
-{%- if total_count > 0 -%}
+{%- if render_count > 0 -%}
 <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "ItemList",
     "name": {{ heading | json }},
-    "numberOfItems": {{ total_count }},
+    "numberOfItems": {{ render_count }},
     "itemListElement": [
+      {%- assign ld_position = 0 -%}
       {%- for product in target_collection.products -%}
-        {
-          "@type": "ListItem",
-          "position": {{ forloop.index }},
-          "url": {{ shop.url | append: '/products/' | append: product.handle | json }},
-          "name": {{ product.title | json }}{% if product.featured_image %},
-          "image": {{ product.featured_image | image_url: width: 800 | prepend: 'https:' | json }}{% endif %},
-          "offers": {
-            "@type": "Offer",
-            "price": "{{ product.price | money_without_currency | strip_html | strip }}",
-            "priceCurrency": {{ cart.currency.iso_code | json }},
-            "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+        {%- assign is_excluded = false -%}
+        {%- for h in exclude_handles -%}
+          {%- assign h_trim = h | strip -%}
+          {%- if h_trim != blank and h_trim == product.handle -%}{%- assign is_excluded = true -%}{%- endif -%}
+        {%- endfor -%}
+        {%- unless is_excluded -%}
+          {%- assign ld_position = ld_position | plus: 1 -%}
+          {%- if ld_position > 1 %},{% endif -%}
+          {
+            "@type": "ListItem",
+            "position": {{ ld_position }},
+            "url": {{ shop.url | append: '/products/' | append: product.handle | json }},
+            "name": {{ product.title | json }}{% if product.featured_image %},
+            "image": {{ product.featured_image | image_url: width: 800 | prepend: 'https:' | json }}{% endif %},
+            "offers": {
+              "@type": "Offer",
+              "price": "{{ product.price | money_without_currency | strip_html | strip }}",
+              "priceCurrency": {{ cart.currency.iso_code | json }},
+              "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+            }
           }
-        }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endunless -%}
       {%- endfor -%}
     ]
   }
@@ -732,6 +773,13 @@
       "type": "collection",
       "id": "collection_handle",
       "label": "Collection to render"
+    },
+    {
+      "type": "text",
+      "id": "exclude_handles",
+      "label": "Product handles to hide",
+      "info": "Comma-separated product handles to skip in the grid. Default hides the deprecated single-mags / single-issues umbrella product.",
+      "default": "single-mags, single-issues"
     },
     {
       "type": "range",

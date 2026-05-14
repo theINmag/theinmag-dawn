@@ -11,10 +11,38 @@
     "categories": {
       "type": "theinmag-mission",
       "settings": {
-        "default_message": "",
+        "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
         "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>"
       },
       "blocks": {
+        "feature-1": {
+          "type": "feature",
+          "settings": {
+            "label": "Printed sustainably in Australia",
+            "hover_message": "That's right, locally in Melbourne by our friends at <strong>PrintGraphics PrintGreen</strong>."
+          }
+        },
+        "feature-2": {
+          "type": "feature",
+          "settings": {
+            "label": "100% kid-created",
+            "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a <strong>voice</strong>."
+          }
+        },
+        "feature-3": {
+          "type": "feature",
+          "settings": {
+            "label": "Always ad-free",
+            "hover_message": "This is super important to us. <strong>No ads. Ever.</strong>"
+          }
+        },
+        "feature-4": {
+          "type": "feature",
+          "settings": {
+            "label": "Tri-annual",
+            "hover_message": "New issues drop each <strong>February, June and October</strong>."
+          }
+        },
         "membership": {
           "type": "product_link",
           "settings": {
@@ -52,7 +80,7 @@
           }
         }
       },
-      "block_order": ["membership", "single", "bundle"]
+      "block_order": ["feature-1", "feature-2", "feature-3", "feature-4", "membership", "single", "bundle"]
     },
     "trust_strip": {
       "type": "theinmag-shop-trust-strip",
@@ -66,6 +94,7 @@
       "settings": {
         "heading": "Shop everything",
         "collection_handle": "all",
+        "exclude_handles": "single-mags, single-issues",
         "products_per_page": 12,
         "empty_text": "No mags available right now. Check back soon.",
         "padding_top": 48,
