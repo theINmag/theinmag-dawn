@@ -44,15 +44,13 @@
   assign msg_1_state = 'hidden'
 
   if show_msg_1 and release_date_str != blank and issue_number != blank
-    assign release_ts = release_date_str | date: '%s' | times: 1
-    assign now_ts = 'now' | date: '%s' | times: 1
-    assign diff_seconds = release_ts | minus: now_ts
-    assign one_day = 86400
-    assign days_until = diff_seconds | divided_by: one_day
-
-    if diff_seconds > 0 and days_until == 0
-      assign days_until = 1
-    endif
+    # Normalise both timestamps to midnight before the day-count division so
+    # the result is an exact integer. The /shop hero uses the identical
+    # midnight-normalised math - without this the two drift by a day because
+    # one floors a positive remainder and the other floors a negative one.
+    assign release_midnight = release_date_str | date: '%Y-%m-%d' | date: '%s' | times: 1
+    assign now_midnight = 'now' | date: '%Y-%m-%d' | date: '%s' | times: 1
+    assign days_until = release_midnight | minus: now_midnight | divided_by: 86400
 
     if days_until > 0
       assign msg_1_state = 'countdown'

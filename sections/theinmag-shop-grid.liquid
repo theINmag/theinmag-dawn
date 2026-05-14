@@ -50,11 +50,14 @@
   # of hiding a real product.
   assign exclude_handles = section.settings.exclude_handles | default: '' | split: ','
 
-  # Anchor product handles for the custom grid order. Theme editor settings
-  # so they can be corrected without a code push if a handle is wrong.
-  assign membership_handle = section.settings.membership_handle | default: 'membership'
-  assign snack_pack_handle = section.settings.snack_pack_handle | default: 'theinmag-snack-pack'
-  assign digital_stack_handle = section.settings.digital_stack_handle | default: 'theinmag-digital-stack'
+  # Anchor matches for the custom grid order, matched against product.title.
+  # Title is more stable than handle here - the store has handles set
+  # inconsistently (digital-stack / mag10 / membership have no prefix, but
+  # titles reliably read "theINmag - Digital Stack" etc). Theme editor
+  # settings so they can be corrected without a code push.
+  assign membership_match = section.settings.membership_match | default: 'Membership'
+  assign snack_pack_match = section.settings.snack_pack_match | default: 'Snack Pack'
+  assign digital_stack_match = section.settings.digital_stack_match | default: 'Digital Stack'
 
   # Build a sortable "WEIGHT:handle" list. Weights are 4-digit zero-padded
   # so a plain string sort is also a numeric sort. Sorted descending the
@@ -76,11 +79,11 @@
     endfor
     unless is_excluded
       assign weight = '2000'
-      if product.handle == membership_handle
+      if product.title contains membership_match
         assign weight = '9999'
-      elsif product.handle == snack_pack_handle
+      elsif product.title contains snack_pack_match
         assign weight = '9998'
-      elsif product.handle == digital_stack_handle
+      elsif product.title contains digital_stack_match
         assign weight = '1000'
       else
         assign handle_prefix = product.handle | slice: 0, 3
@@ -808,25 +811,25 @@
     },
     {
       "type": "paragraph",
-      "content": "Grid order is: Membership, Snack Pack, mags newest-first, any other product, then Digital Stack last. The three handles below anchor that order - correct them here if a handle is wrong."
+      "content": "Grid order is: Membership, Snack Pack, mags newest-first, any other product, then Digital Stack last. The three values below are matched against each product's title (case-sensitive, partial match) to anchor that order."
     },
     {
       "type": "text",
-      "id": "membership_handle",
-      "label": "Membership product handle",
-      "default": "membership"
+      "id": "membership_match",
+      "label": "Membership - title contains",
+      "default": "Membership"
     },
     {
       "type": "text",
-      "id": "snack_pack_handle",
-      "label": "Snack Pack product handle",
-      "default": "theinmag-snack-pack"
+      "id": "snack_pack_match",
+      "label": "Snack Pack - title contains",
+      "default": "Snack Pack"
     },
     {
       "type": "text",
-      "id": "digital_stack_handle",
-      "label": "Digital Stack product handle",
-      "default": "theinmag-digital-stack"
+      "id": "digital_stack_match",
+      "label": "Digital Stack - title contains",
+      "default": "Digital Stack"
     },
     {
       "type": "range",

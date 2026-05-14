@@ -6,11 +6,12 @@
     countdown    - pre-release window. "MagXX drops in N days. Pre-order open."
                    Eyebrow "Coming soon", peach Pre-order stamp on the photo.
                    Headline + CTA point at the NEXT issue (current + 1).
-                   Active when days_since_release < -21.
-    just-dropped - 0 to 21 days after release. "MagXX is here." Eyebrow
-                   "Just dropped". Points at the CURRENT issue.
-    available    - 22+ days after release. "MagXX". Eyebrow "Latest issue".
-                   Points at the CURRENT issue.
+                   Active when diff_days (release - today) > 21.
+    just-dropped - release window. "MagXX is here." Eyebrow "Just dropped".
+                   Points at the CURRENT issue. Active when diff_days is
+                   between -21 and 21 inclusive.
+    available    - "MagXX". Eyebrow "Latest issue". Points at the CURRENT
+                   issue. Active when diff_days < -21.
 
   Metafields read:
     shop.metafields.theinmag.current_issue_number  -> e.g. "Mag09" (full string)
@@ -57,28 +58,25 @@
   endif
 
   comment
-    Determine hero state from days_since_release. next_release_date is the
-    next FUTURE release date during countdown; flips on release day (Stage 14).
-    days_since_release = now - next_release_date / day.
-      negative > -21 days  -> countdown (pre-release)
-      -21 to +21           -> just-dropped (release window)
-      > +21                -> available
+    Determine hero state from diff_days = next_release_date - today, both
+    normalised to midnight so the count is an exact integer. The announcement
+    bar uses the identical midnight-normalised math so the two countdowns
+    always show the same number.
+      diff_days > 21        -> countdown (pre-release)
+      -21 to 21 inclusive   -> just-dropped (release window)
+      diff_days < -21       -> available
     days_until_release is the positive countdown value (for copy).
   endcomment
   assign hero_state = 'available'
   assign days_until_release = 0
   if next_release_value != blank
-    assign release_ts = next_release_value | date: '%s' | times: 1
-    assign now_ts = 'now' | date: '%s' | times: 1
-    assign diff_seconds = now_ts | minus: release_ts
-    assign days_since_release = diff_seconds | divided_by: 86400
-    if days_since_release < -21
+    assign release_midnight = next_release_value | date: '%Y-%m-%d' | date: '%s' | times: 1
+    assign now_midnight = 'now' | date: '%Y-%m-%d' | date: '%s' | times: 1
+    assign diff_days = release_midnight | minus: now_midnight | divided_by: 86400
+    if diff_days > 21
       assign hero_state = 'countdown'
-      assign days_until_release = 0 | minus: days_since_release
-      if diff_seconds < 0 and days_until_release == 0
-        assign days_until_release = 1
-      endif
-    elsif days_since_release <= 21
+      assign days_until_release = diff_days
+    elsif diff_days >= -21
       assign hero_state = 'just-dropped'
     else
       assign hero_state = 'available'
