@@ -15,13 +15,14 @@ Critical deadline: site live before mid-June 2026 (Queensland trip + Dept of Edu
 
 ---
 
-## Current build state (as of 12 May 2026)
+## Current build state (as of 14 May 2026)
 
 Canonical source is `../theinmag-docs/build-state.md` — read it at session start. Snapshot:
 
-- Membership PDP: Stage 2a-2d complete. Pull-quote section live (`theinmag-pull-quote.liquid`, Brooke B. testimony between pillars and reviews).
-- Next build target: Stage 2e (Judge.me reviews on the Membership PDP).
-- Locked section order on `/products/membership`: `hero → ugc → pillars → pull_quote → reviews → faq → cross-sells`.
+- **Membership PDP** (canonical Stage 2): complete, live at `/products/membership`. Section order: `hero → ugc → pillars → pull_quote → reviews → faq → cross-sells`.
+- **Single Issue PDPs** (canonical Stage 4): complete. Every mag (Mag01-Mag10), Digital Stack and Snack Pack are their own products with Print/Digital variants. They ALL share ONE template — `templates/product.single-mags.json` — which loops the `single-issues` collection and swaps issue content client-side. Do not make per-mag template files.
+- **/shop page** (canonical Stage 5): complete, live at `/pages/shop`. New sections `theinmag-shop-hero/-trust-strip/-grid`; `theinmag-bundle-tile.liquid` extended with a `context` param; `templates/page.shop.json`. Header "Shop" nav points here.
+- **Next build target: Stage 4 follow-up — Single Issue PDP picker + pre-sale state** (picker thumbnails to one line, Mag10-first + "presale" label, `is_pre_order` logic). Then Stage 3 close-out (push the local-only Build a Bundle infrastructure) and Stage 14 audit (new-issue release flow). See build-state.md "Right now" for full scope.
 
 ---
 
