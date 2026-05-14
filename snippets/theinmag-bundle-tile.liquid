@@ -1,0 +1,173 @@
+{%- comment -%}
+  theinmag-bundle-tile
+  Single product tile, rendered in two contexts. Pass a product (and
+  optional context):
+
+    {% render 'theinmag-bundle-tile', product: product %}                  (bundle, default)
+    {% render 'theinmag-bundle-tile', product: product, context: 'shop' %}
+
+  Bundle context (BaB picker):
+    - Cover + title are NOT wrapped in a link.
+    - Add buttons fire data-bundle-add (picker's updateBundleUI()).
+    - aria-labels carry "...to bundle" suffix.
+
+  Shop context (/shop product grid):
+    - Cover + title wrap in <a> linking to PDP.
+    - Second cover image (digital edition) renders from
+      product.metafields.single_mag.digital_media_images first slot when
+      present. Parent grid toggles data-active-format on its wrapper; CSS
+      swaps which cover is visible. Pattern matches the single-mag PDP
+      iPad-mockup swap (theinmag-single-mags-hero.liquid).
+    - Pre-order badge (peach pill, top-right) renders when
+      product.metafields.theinmag.is_pre_order is true.
+    - Add buttons fire data-shop-add (shop-grid's AJAX add-to-cart).
+    - Aria-labels carry "...to cart" suffix.
+
+  Variant lookup is unchanged: scan product.variants for option titles
+  containing "Print" or "Digital" (case-insensitive). Defensive ordering
+  Print-then-Digital matches the BaB picker's row order.
+{%- endcomment -%}
+
+{%- liquid
+  assign tile_context = context | default: 'bundle'
+
+  assign print_variant = null
+  assign digital_variant = null
+  for v in product.variants
+    assign vt = v.title | downcase
+    if print_variant == null and vt contains 'print'
+      assign print_variant = v
+    elsif digital_variant == null and vt contains 'digital'
+      assign digital_variant = v
+    endif
+  endfor
+
+  assign cover_image = product.featured_image
+  assign tile_title = product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
+
+  assign digital_cover_image = null
+  assign is_pre_order = false
+  assign pdp_url = ''
+  if tile_context == 'shop'
+    assign digital_media_images = product.metafields.single_mag.digital_media_images.value
+    if digital_media_images != blank
+      for img in digital_media_images
+        if forloop.first
+          assign digital_cover_image = img
+        endif
+      endfor
+    endif
+    assign is_pre_order = product.metafields.theinmag.is_pre_order | default: false
+    assign pdp_url = '/products/' | append: product.handle
+    assign add_suffix = ' to cart'
+    assign add_attr = 'data-shop-add'
+  else
+    assign add_suffix = ' to bundle'
+    assign add_attr = 'data-bundle-add'
+  endif
+-%}
+
+<article
+  class="theinmag-bundle-tile{% if tile_context == 'shop' %} theinmag-bundle-tile--shop{% endif %}"
+  data-bundle-tile
+  data-product-handle="{{ product.handle }}"
+  data-context="{{ tile_context }}"
+  {%- if tile_context == 'shop' %} data-pre-order="{{ is_pre_order }}"{%- endif %}
+>
+  <div class="theinmag-bundle-tile__cover">
+    {%- if tile_context == 'shop' -%}
+      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link" aria-label="View {{ tile_title }}">
+        {%- if cover_image != blank -%}
+          <img
+            class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--print"
+            src="{{ cover_image | image_url: width: 480 }}"
+            srcset="{{ cover_image | image_url: width: 320 }} 320w, {{ cover_image | image_url: width: 480 }} 480w, {{ cover_image | image_url: width: 640 }} 640w"
+            sizes="(min-width: 1200px) 25vw, (min-width: 750px) 33vw, 50vw"
+            alt="{{ product.title | escape }} print cover"
+            width="480"
+            height="640"
+            loading="lazy"
+          >
+        {%- else -%}
+          <div class="theinmag-bundle-tile__cover-placeholder" aria-hidden="true"></div>
+        {%- endif -%}
+        {%- if digital_cover_image != blank -%}
+          <img
+            class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--digital"
+            src="{{ digital_cover_image | image_url: width: 480 }}"
+            srcset="{{ digital_cover_image | image_url: width: 320 }} 320w, {{ digital_cover_image | image_url: width: 480 }} 480w, {{ digital_cover_image | image_url: width: 640 }} 640w"
+            sizes="(min-width: 1200px) 25vw, (min-width: 750px) 33vw, 50vw"
+            alt="{{ product.title | escape }} digital edition"
+            width="480"
+            height="640"
+            loading="lazy"
+            aria-hidden="true"
+          >
+        {%- endif -%}
+      </a>
+      {%- if is_pre_order -%}
+        <span class="theinmag-bundle-tile__badge" aria-label="Pre-order open">Pre-order</span>
+      {%- endif -%}
+    {%- else -%}
+      {%- if cover_image != blank -%}
+        <img
+          src="{{ cover_image | image_url: width: 480 }}"
+          srcset="{{ cover_image | image_url: width: 320 }} 320w, {{ cover_image | image_url: width: 480 }} 480w, {{ cover_image | image_url: width: 640 }} 640w"
+          sizes="(min-width: 990px) 240px, 160px"
+          alt="{{ product.title | escape }} cover"
+          width="480"
+          height="640"
+          loading="lazy"
+        >
+      {%- else -%}
+        <div class="theinmag-bundle-tile__cover-placeholder" aria-hidden="true"></div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+
+  {%- if tile_context == 'shop' -%}
+    <a href="{{ pdp_url }}" class="theinmag-bundle-tile__title-link">
+      <h3 class="theinmag-bundle-tile__title">{{ tile_title }}</h3>
+    </a>
+  {%- else -%}
+    <h3 class="theinmag-bundle-tile__title">{{ tile_title }}</h3>
+  {%- endif -%}
+
+  {%- if print_variant -%}
+    {%- liquid
+      assign print_sold_out = false
+      if print_variant.available == false
+        assign print_sold_out = true
+      endif
+    -%}
+    <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--print{% if print_sold_out %} is-sold-out{% endif %}" data-variant-id="{{ print_variant.id }}">
+      <span class="theinmag-bundle-tile__format">Print</span>
+      {%- if print_sold_out -%}
+        <span class="theinmag-bundle-tile__pill" aria-label="Print sold out">Sold out</span>
+      {%- else -%}
+        <span class="theinmag-bundle-tile__price">{{ print_variant.price | money }}</span>
+        <button
+          type="button"
+          class="theinmag-bundle-tile__add"
+          {{ add_attr }}
+          data-variant-id="{{ print_variant.id }}"
+          aria-label="Add {{ tile_title }} Print{{ add_suffix }}"
+        ><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if digital_variant -%}
+    <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--digital" data-variant-id="{{ digital_variant.id }}">
+      <span class="theinmag-bundle-tile__format">Digital</span>
+      <span class="theinmag-bundle-tile__price">{{ digital_variant.price | money }}</span>
+      <button
+        type="button"
+        class="theinmag-bundle-tile__add"
+        {{ add_attr }}
+        data-variant-id="{{ digital_variant.id }}"
+        aria-label="Add {{ tile_title }} Digital{{ add_suffix }}"
+      ><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+    </div>
+  {%- endif -%}
+</article>

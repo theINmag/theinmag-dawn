@@ -1,0 +1,240 @@
+{%- comment -%}
+  theinmag-shop-trust-strip
+  Slim trust strip sitting between the categories row and the product grid.
+  Five tiles, hairline-divided. Leads with the Judge.me aggregate rating
+  (the single highest-leverage trust signal per Bible Part 4) and follows
+  with four brand-truth tiles.
+
+  Tiles (in order):
+    1. Aggregate stars   -> ★★★★★ 4.X - N reviews, links to #reviews anchor
+    2. Free shipping     -> over $40
+    3. Made in Australia -> sustainably printed
+    4. Kid-created       -> 100% kid-created
+    5. Ad-free, always
+
+  Aggregate tile hides when shop.metafields.judgeme.all_reviews_count is
+  blank or zero (Bible Part 11 empty-state honesty - never show 0 reviews).
+
+  Spec: Stage 5 build brief Part 3.3.
+{%- endcomment -%}
+
+{%- liquid
+  assign jm = shop.metafields.judgeme
+  assign jm_rating = jm.all_reviews_rating | default: 0
+  assign jm_count = jm.all_reviews_count | default: 0
+  assign show_rating = false
+  if jm_count != 0 and jm_count != blank
+    assign show_rating = true
+  endif
+
+  assign section_style = '--tsts-pt: ' | append: section.settings.padding_top | append: 'px; --tsts-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-shop-trust-strip"
+  data-theinmag-shop-trust-strip
+  aria-label="theINmag promises"
+  style="{{ section_style }}"
+>
+  <ul class="theinmag-shop-trust-strip__list" role="list">
+    {%- if show_rating -%}
+      <li class="theinmag-shop-trust-strip__item theinmag-shop-trust-strip__item--rating">
+        <a href="#reviews" class="theinmag-shop-trust-strip__link" data-rating-jump>
+          <span data-score="{{ jm_rating }}" class="jdgm-all-reviews-rating theinmag-shop-trust-strip__stars" aria-label="{{ jm_rating | round: 1 }} stars" role="img"></span>
+          <span class="theinmag-shop-trust-strip__label">{{ jm_rating | round: 1 }} - {{ jm_count }} reviews</span>
+        </a>
+      </li>
+    {%- endif -%}
+
+    <li class="theinmag-shop-trust-strip__item">
+      <span class="theinmag-shop-trust-strip__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+          <rect x="1" y="6" width="15" height="13" rx="1"/>
+          <path d="M16 9h4l3 4v6h-7"/>
+          <circle cx="5.5" cy="19.5" r="2.5"/>
+          <circle cx="18.5" cy="19.5" r="2.5"/>
+        </svg>
+      </span>
+      <span class="theinmag-shop-trust-strip__label">Free shipping over $40</span>
+    </li>
+
+    <li class="theinmag-shop-trust-strip__item">
+      <span class="theinmag-shop-trust-strip__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>
+        </svg>
+      </span>
+      <span class="theinmag-shop-trust-strip__label">Made in Australia</span>
+    </li>
+
+    <li class="theinmag-shop-trust-strip__item">
+      <span class="theinmag-shop-trust-strip__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+          <path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+      </span>
+      <span class="theinmag-shop-trust-strip__label">100% kid-created</span>
+    </li>
+
+    <li class="theinmag-shop-trust-strip__item">
+      <span class="theinmag-shop-trust-strip__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+      </span>
+      <span class="theinmag-shop-trust-strip__label">Ad-free, always</span>
+    </li>
+  </ul>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-shop-trust-strip {
+    background-color: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    padding: var(--tsts-pt, 24px) clamp(16px, 4vw, 48px) var(--tsts-pb, 24px);
+    border-top: 1px solid rgba(42, 31, 61, 0.06);
+    border-bottom: 1px solid rgba(42, 31, 61, 0.06);
+  }
+
+  .theinmag-shop-trust-strip__list {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 1320px;
+    /* Mobile: horizontal scroll-snap so the five tiles can swipe rather
+       than wrap into uneven rows. Each tile gets a flex-basis just under
+       half the viewport so a second tile peeks at the edge - "more here"
+       affordance per Bible Part 9. */
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: var(--space-md);
+  }
+  .theinmag-shop-trust-strip__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .theinmag-shop-trust-strip__item {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: clamp(12px, 1.3vw, 14px);
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-shop-trust-strip__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--color-coral-dark, #C9543E);
+  }
+  .theinmag-shop-trust-strip__icon svg {
+    display: block;
+  }
+
+  .theinmag-shop-trust-strip__label {
+    white-space: nowrap;
+  }
+
+  /* Stars tile - the link wrapper carries the same inline-flex layout so the
+     stars + label sit on one line. Underline removed; the whole tile is the
+     clickable surface and the cursor + colour change signal interactivity. */
+  .theinmag-shop-trust-strip__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: opacity var(--transition-hover, 0.2s ease);
+  }
+  .theinmag-shop-trust-strip__link:hover,
+  .theinmag-shop-trust-strip__link:focus-visible {
+    opacity: 0.75;
+    outline: none;
+  }
+  .theinmag-shop-trust-strip__stars {
+    display: inline-block;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  /* Desktop: switch to even row with hairline dividers between items.
+     Centred row, no overflow, dividers added via ::after on each item
+     except the last. */
+  @media (min-width: 750px) {
+    .theinmag-shop-trust-strip__list {
+      justify-content: center;
+      flex-wrap: wrap;
+      overflow: visible;
+      gap: 0;
+    }
+    .theinmag-shop-trust-strip__item {
+      padding: 6px clamp(14px, 2vw, 24px);
+      position: relative;
+    }
+    .theinmag-shop-trust-strip__item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 18px;
+      background-color: rgba(42, 31, 61, 0.18);
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Shop trust strip",
+  "tag": "section",
+  "class": "shopify-section theinmag-shop-trust-strip-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Slim trust strip - aggregate Judge.me rating + four brand-truth tiles. Stars tile auto-hides until the shop has reviews."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "default": 24,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "default": 24,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Shop trust strip" }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

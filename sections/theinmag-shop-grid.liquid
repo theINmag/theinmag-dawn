@@ -1,0 +1,783 @@
+{%- comment -%}
+  theinmag-shop-grid
+  Filterable product grid for /shop page. Renders the configured collection
+  via the extended theinmag-bundle-tile snippet (context: 'shop').
+
+  Filter row: Format (All / Print / Digital). Filter is COVER-ONLY - it
+  swaps which cover image is visible on each tile but does NOT filter the
+  product list. Print + Digital rows always render both formats. Mechanic:
+  JS toggles data-active-format on the <ul>; CSS rules on the tile show/hide
+  the right cover image via parent attribute selectors. Pattern matches the
+  single-mag PDP iPad-mockup swap and the BaB picker's Format toggle.
+
+  Sort: client-side via data attributes (price + created_at on each <li>).
+  Server-side renders all products in collection order; sort options
+  re-order the DOM nodes in place. Sort options:
+    featured       - default, server-side collection order
+    newest         - by product.created_at DESC
+    price-asc      - by price ASC
+    price-desc     - by price DESC
+
+  Show more: first N products (default 12) render visible, remainder
+  render with the [hidden] attribute. Show-more button reveals the next
+  N hidden items each click. No AJAX, no infinite scroll - SEO + LCP wins.
+
+  Add-to-cart: tiles fire data-shop-add which this section's JS handles
+  via fetch -> /cart/add.js. Button label flips to "Added ✓" for 1.6s then
+  back to "Add". On error the button reads "Try again". No cart drawer
+  re-render is handled here; the storefront cart count badge picks it up
+  on the next page load.
+
+  Also emits the page-level ItemList JSON-LD for SEO (full product list
+  with position + URL + name + image + price). The hero section emits
+  BreadcrumbList + CollectionPage at the top of the page.
+
+  Spec: Stage 5 build brief Part 3.4.
+{%- endcomment -%}
+
+{%- liquid
+  assign collection_handle = section.settings.collection_handle | default: 'all'
+  assign target_collection = collections[collection_handle]
+  assign products_per_page = section.settings.products_per_page | default: 12
+  assign heading = section.settings.heading | default: 'Shop everything'
+  assign empty_text = section.settings.empty_text | default: 'No mags available right now. Check back soon.'
+
+  assign total_count = target_collection.products.size
+
+  assign section_style = '--tsg-pt: ' | append: section.settings.padding_top | append: 'px; --tsg-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-shop-grid"
+  data-theinmag-shop-grid
+  id="shop-grid"
+  aria-labelledby="theinmag-shop-grid-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-shop-grid__inner">
+
+    <div class="theinmag-shop-grid__head">
+      <h2 id="theinmag-shop-grid-heading" class="theinmag-shop-grid__heading">{{ heading }}</h2>
+
+      {%- if total_count > 0 -%}
+        <div class="theinmag-shop-grid__controls" role="group" aria-label="Filter and sort the product grid">
+
+          <div class="theinmag-shop-grid__filters" role="radiogroup" aria-label="Filter by format">
+            <span class="theinmag-shop-grid__filter-label">Format</span>
+            <button type="button" class="theinmag-shop-grid__filter-pill" data-format-filter="all" aria-pressed="true">All</button>
+            <button type="button" class="theinmag-shop-grid__filter-pill" data-format-filter="print" aria-pressed="false">Print</button>
+            <button type="button" class="theinmag-shop-grid__filter-pill" data-format-filter="digital" aria-pressed="false">Digital</button>
+          </div>
+
+          <div class="theinmag-shop-grid__sort">
+            <label for="shop-grid-sort" class="theinmag-shop-grid__sort-label">Sort</label>
+            <select id="shop-grid-sort" class="theinmag-shop-grid__sort-select" data-sort>
+              <option value="featured">Featured</option>
+              <option value="newest">Newest first</option>
+              <option value="price-asc">Price low to high</option>
+              <option value="price-desc">Price high to low</option>
+            </select>
+          </div>
+
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if total_count > 0 -%}
+      <p class="theinmag-shop-grid__count" data-count-line>
+        Showing <span data-visible-count>{% if total_count > products_per_page %}{{ products_per_page }}{% else %}{{ total_count }}{% endif %}</span> of {{ total_count }}
+      </p>
+
+      <ul class="theinmag-shop-grid__list" data-shop-grid-list data-active-format="all" role="list">
+        {%- for product in target_collection.products -%}
+          <li
+            class="theinmag-shop-grid__item"
+            data-tile-index="{{ forloop.index0 }}"
+            data-product-price="{{ product.price }}"
+            data-product-created="{{ product.created_at | date: '%s' }}"
+            {%- if forloop.index > products_per_page %} hidden data-overflow{%- endif %}
+          >
+            {% render 'theinmag-bundle-tile', product: product, context: 'shop' %}
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      {%- if total_count > products_per_page -%}
+        <button type="button" class="theinmag-shop-grid__show-more" data-show-more>
+          Show more
+        </button>
+      {%- endif -%}
+
+      <div class="theinmag-shop-grid__feedback" data-shop-feedback role="status" aria-live="polite" hidden></div>
+    {%- else -%}
+      <p class="theinmag-shop-grid__empty">{{ empty_text }}</p>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{%- if total_count > 0 -%}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": {{ heading | json }},
+    "numberOfItems": {{ total_count }},
+    "itemListElement": [
+      {%- for product in target_collection.products -%}
+        {
+          "@type": "ListItem",
+          "position": {{ forloop.index }},
+          "url": {{ shop.url | append: '/products/' | append: product.handle | json }},
+          "name": {{ product.title | json }}{% if product.featured_image %},
+          "image": {{ product.featured_image | image_url: width: 800 | prepend: 'https:' | json }}{% endif %},
+          "offers": {
+            "@type": "Offer",
+            "price": "{{ product.price | money_without_currency | strip_html | strip }}",
+            "priceCurrency": {{ cart.currency.iso_code | json }},
+            "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+          }
+        }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    ]
+  }
+</script>
+{%- endif -%}
+
+<script>
+  (function () {
+    const root = document.querySelector('[data-theinmag-shop-grid]');
+    if (!root) return;
+
+    const list = root.querySelector('[data-shop-grid-list]');
+    const filterPills = root.querySelectorAll('[data-format-filter]');
+    const sortSelect = root.querySelector('[data-sort]');
+    const showMoreBtn = root.querySelector('[data-show-more]');
+    const visibleCount = root.querySelector('[data-visible-count]');
+    const feedback = root.querySelector('[data-shop-feedback]');
+
+    /* ----- Format filter: toggle data-active-format on the list ----- */
+    filterPills.forEach(function (pill) {
+      pill.addEventListener('click', function () {
+        const fmt = pill.getAttribute('data-format-filter');
+        if (!fmt) return;
+        list.setAttribute('data-active-format', fmt);
+        filterPills.forEach(function (p) {
+          p.setAttribute('aria-pressed', p === pill ? 'true' : 'false');
+        });
+      });
+    });
+
+    /* ----- Sort: re-order <li> children by data attributes ----- */
+    if (sortSelect) {
+      sortSelect.addEventListener('change', function () {
+        const sort = sortSelect.value;
+        const items = Array.prototype.slice.call(list.querySelectorAll('.theinmag-shop-grid__item'));
+
+        items.sort(function (a, b) {
+          if (sort === 'price-asc') {
+            return parseInt(a.dataset.productPrice, 10) - parseInt(b.dataset.productPrice, 10);
+          }
+          if (sort === 'price-desc') {
+            return parseInt(b.dataset.productPrice, 10) - parseInt(a.dataset.productPrice, 10);
+          }
+          if (sort === 'newest') {
+            return parseInt(b.dataset.productCreated, 10) - parseInt(a.dataset.productCreated, 10);
+          }
+          /* featured: restore original order via data-tile-index */
+          return parseInt(a.dataset.tileIndex, 10) - parseInt(b.dataset.tileIndex, 10);
+        });
+
+        items.forEach(function (item) { list.appendChild(item); });
+      });
+    }
+
+    /* ----- Show more: reveal the next N hidden items ----- */
+    if (showMoreBtn) {
+      showMoreBtn.addEventListener('click', function () {
+        const hidden = list.querySelectorAll('.theinmag-shop-grid__item[hidden]');
+        const reveal = Math.min(12, hidden.length);
+        for (var i = 0; i < reveal; i++) {
+          hidden[i].removeAttribute('hidden');
+        }
+        const stillHidden = list.querySelectorAll('.theinmag-shop-grid__item[hidden]').length;
+        if (stillHidden === 0) {
+          showMoreBtn.setAttribute('hidden', '');
+        }
+        if (visibleCount) {
+          const visible = list.querySelectorAll('.theinmag-shop-grid__item:not([hidden])').length;
+          visibleCount.textContent = visible;
+        }
+      });
+    }
+
+    /* ----- AJAX add-to-cart for shop tiles ----- */
+    function flashFeedback(message) {
+      if (!feedback) return;
+      feedback.textContent = message;
+      feedback.removeAttribute('hidden');
+      clearTimeout(feedback._timer);
+      feedback._timer = setTimeout(function () {
+        feedback.setAttribute('hidden', '');
+      }, 2400);
+    }
+
+    function flipButton(btn, success) {
+      const addLabel = btn.querySelector('[data-add-label]');
+      const addedLabel = btn.querySelector('[data-added-label]');
+      if (!addLabel || !addedLabel) return;
+      if (success) {
+        addLabel.setAttribute('hidden', '');
+        addedLabel.removeAttribute('hidden');
+        clearTimeout(btn._flipTimer);
+        btn._flipTimer = setTimeout(function () {
+          addedLabel.setAttribute('hidden', '');
+          addLabel.removeAttribute('hidden');
+        }, 1800);
+      } else {
+        addLabel.textContent = 'Try again';
+        clearTimeout(btn._flipTimer);
+        btn._flipTimer = setTimeout(function () {
+          addLabel.textContent = 'Add';
+        }, 2200);
+      }
+    }
+
+    function refreshCartCount() {
+      /* Refresh the storefront's cart count badge if a sitewide handler
+         exists. Otherwise the badge updates on the next page load. */
+      fetch('/cart.js', { headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (cart) {
+          document.querySelectorAll('[data-cart-count]').forEach(function (el) {
+            el.textContent = cart.item_count;
+          });
+          document.dispatchEvent(new CustomEvent('cart:updated', { detail: cart }));
+        })
+        .catch(function () { /* swallow - graceful degradation */ });
+    }
+
+    list.addEventListener('click', function (event) {
+      const btn = event.target.closest('[data-shop-add]');
+      if (!btn) return;
+      event.preventDefault();
+      const variantId = btn.getAttribute('data-variant-id');
+      if (!variantId) return;
+      if (btn._pending) return;
+      btn._pending = true;
+
+      const body = new FormData();
+      body.append('id', variantId);
+      body.append('quantity', '1');
+
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: body
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error('Add failed');
+          return r.json();
+        })
+        .then(function (data) {
+          flipButton(btn, true);
+          flashFeedback((data.product_title || 'Item') + ' added to cart');
+          refreshCartCount();
+        })
+        .catch(function () {
+          flipButton(btn, false);
+          flashFeedback('Could not add to cart. Try again.');
+        })
+        .finally(function () {
+          setTimeout(function () { btn._pending = false; }, 600);
+        });
+    });
+  })();
+</script>
+
+{%- stylesheet -%}
+  .theinmag-shop-grid {
+    background-color: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    padding: var(--tsg-pt, 48px) clamp(16px, 4vw, 48px) var(--tsg-pb, 96px);
+  }
+
+  .theinmag-shop-grid__inner {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Head row (heading + controls) ---------- */
+
+  .theinmag-shop-grid__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-shop-grid__head {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-lg);
+    }
+  }
+
+  .theinmag-shop-grid__heading {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(28px, 3.5vw, 40px);
+    line-height: 1.05;
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-shop-grid__controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-shop-grid__controls {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-lg);
+    }
+  }
+
+  /* Format filter pills */
+  .theinmag-shop-grid__filters {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .theinmag-shop-grid__filter-label {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin-right: 4px;
+  }
+
+  .theinmag-shop-grid__filter-pill {
+    appearance: none;
+    background: transparent;
+    border: 1.5px solid var(--color-inky-purple-navy);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    transition: background-color var(--transition-hover, 0.2s ease), color var(--transition-hover, 0.2s ease);
+    min-height: 36px;
+  }
+
+  .theinmag-shop-grid__filter-pill[aria-pressed='true'] {
+    background-color: var(--color-yellow);
+    border-color: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-shop-grid__filter-pill:hover,
+  .theinmag-shop-grid__filter-pill:focus-visible {
+    background-color: rgba(249, 194, 60, 0.2);
+    outline: none;
+  }
+
+  /* Sort dropdown */
+  .theinmag-shop-grid__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .theinmag-shop-grid__sort-label {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+  }
+
+  .theinmag-shop-grid__sort-select {
+    appearance: none;
+    background-color: #ffffff;
+    border: 1.5px solid var(--color-inky-purple-navy);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    padding: 8px 32px 8px 14px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 36px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='%232A1F3D'><path d='M3 4l3 4 3-4z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 10px;
+  }
+
+  /* Count line */
+  .theinmag-shop-grid__count {
+    margin: 0 0 var(--space-md);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+  }
+
+  /* ---------- Grid layout ---------- */
+
+  .theinmag-shop-grid__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-shop-grid__list {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .theinmag-shop-grid__list {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+    }
+  }
+
+  .theinmag-shop-grid__item {
+    display: flex;
+  }
+
+  .theinmag-shop-grid__item[hidden] {
+    display: none;
+  }
+
+  .theinmag-shop-grid__item > .theinmag-bundle-tile {
+    flex: 1;
+    width: 100%;
+  }
+
+  /* Empty state */
+  .theinmag-shop-grid__empty {
+    margin: var(--space-xl) auto;
+    max-width: 480px;
+    text-align: center;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+  }
+
+  /* Show more button */
+  .theinmag-shop-grid__show-more {
+    display: block;
+    margin: var(--space-xl) auto 0;
+    appearance: none;
+    background-color: transparent;
+    border: 1.5px solid var(--color-inky-purple-navy);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 28px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 44px;
+    transition: background-color var(--transition-hover, 0.2s ease), color var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-shop-grid__show-more:hover,
+  .theinmag-shop-grid__show-more:focus-visible {
+    background-color: var(--color-inky-purple-navy);
+    color: var(--color-cream);
+    outline: none;
+  }
+
+  .theinmag-shop-grid__show-more[hidden] {
+    display: none;
+  }
+
+  /* Feedback toast (accessibility live region for add-to-cart status) */
+  .theinmag-shop-grid__feedback {
+    position: fixed;
+    bottom: clamp(16px, 4vw, 32px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-inky-purple-navy);
+    color: var(--color-cream);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    padding: 12px 20px;
+    border-radius: var(--radius-pill, 9999px);
+    box-shadow: 0 8px 24px rgba(42, 31, 61, 0.28);
+    z-index: 60;
+    pointer-events: none;
+  }
+
+  .theinmag-shop-grid__feedback[hidden] {
+    display: none;
+  }
+
+  /* ---------- Tile styles (paired with theinmag-bundle-tile.liquid).
+     Copied from theinmag-bundle-picker.liquid so the tile renders identically
+     in /shop where the bundle picker section is not present. Keep these two
+     stylesheet blocks in sync if the tile visual ever changes.
+     ----------------------------------------------------------------- */
+  .theinmag-bundle-tile {
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-soft-pink, #F7A092);
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .theinmag-bundle-tile__cover {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background-color: var(--color-lavender);
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+
+  .theinmag-bundle-tile__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-bundle-tile__cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #E8DEEF 0%, #FCDDB8 100%);
+  }
+
+  /* Shop-context: full-cover anchor link + image swap */
+  .theinmag-bundle-tile__cover-link {
+    display: block;
+    position: absolute;
+    inset: 0;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .theinmag-bundle-tile__cover-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity var(--transition-hover, 0.2s ease);
+  }
+
+  /* Default: print cover visible, digital hidden */
+  .theinmag-bundle-tile__cover-img--digital {
+    opacity: 0;
+  }
+
+  /* Grid filter = digital: swap visibility */
+  .theinmag-shop-grid__list[data-active-format='digital'] .theinmag-bundle-tile__cover-img--print {
+    opacity: 0;
+  }
+  .theinmag-shop-grid__list[data-active-format='digital'] .theinmag-bundle-tile__cover-img--digital {
+    opacity: 1;
+  }
+
+  /* Pre-order badge - peach pill, top-right corner */
+  .theinmag-bundle-tile__badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--color-peach, #FCDDB8);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill, 9999px);
+    box-shadow: 0 2px 6px rgba(42, 31, 61, 0.18);
+    z-index: 2;
+  }
+
+  .theinmag-bundle-tile__title {
+    margin: 10px 12px 6px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-bundle-tile__title-link {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .theinmag-bundle-tile__title-link:hover .theinmag-bundle-tile__title,
+  .theinmag-bundle-tile__title-link:focus-visible .theinmag-bundle-tile__title {
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-bundle-tile__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-bundle-tile__row.is-sold-out {
+    opacity: 0.4;
+  }
+
+  .theinmag-bundle-tile__format { font-weight: 500; }
+  .theinmag-bundle-tile__price { font-weight: 500; color: rgba(42, 31, 61, 0.78); text-align: right; }
+
+  .theinmag-bundle-tile__pill {
+    grid-column: 2 / -1;
+    justify-self: end;
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-peach);
+    border-radius: var(--radius-pill, 9999px);
+    color: var(--color-sandy-orange-dark, #D9783A);
+    font-weight: 500;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .theinmag-bundle-tile__add {
+    appearance: none;
+    background: transparent;
+    border: 1.5px solid var(--color-purple-dark, #5D3A7A);
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 36px;
+    transition: background-color var(--transition-hover, 0.2s ease), color var(--transition-hover, 0.2s ease);
+  }
+
+  .theinmag-bundle-tile__add:hover,
+  .theinmag-bundle-tile__add:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bundle-tile__add,
+    .theinmag-bundle-tile__cover-img,
+    .theinmag-shop-grid__filter-pill,
+    .theinmag-shop-grid__show-more {
+      transition: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Shop grid",
+  "tag": "section",
+  "class": "shopify-section theinmag-shop-grid-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Filterable product grid for /shop. Renders the configured collection via the bundle-tile snippet (shop context). Format filter is COVER-ONLY (swaps the visible cover image, does not filter the list). Sort + Show-more are client-side."
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop everything"
+    },
+    {
+      "type": "collection",
+      "id": "collection_handle",
+      "label": "Collection to render"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Initial products visible",
+      "min": 4,
+      "max": 24,
+      "step": 4,
+      "default": 12
+    },
+    {
+      "type": "text",
+      "id": "empty_text",
+      "label": "Empty state text",
+      "default": "No mags available right now. Check back soon."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 48,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 96,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Shop grid" }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

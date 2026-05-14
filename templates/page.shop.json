@@ -1,0 +1,77 @@
+{
+  "sections": {
+    "hero": {
+      "type": "theinmag-shop-hero",
+      "settings": {
+        "hero_image_alt": "Kid reading the latest theINmag.",
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    "categories": {
+      "type": "theinmag-mission",
+      "settings": {
+        "default_message": "",
+        "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>"
+      },
+      "blocks": {
+        "membership": {
+          "type": "product_link",
+          "settings": {
+            "label": "theINmag Membership",
+            "tagline": "Never miss an issue.",
+            "price": "From $89",
+            "link": "/products/membership",
+            "fallback_filename": "product-membership.jpg",
+            "fallback_hover_filename": "product-membership-hover.jpg",
+            "image_alt": "theINmag Membership pack with the latest issue."
+          }
+        },
+        "single": {
+          "type": "product_link",
+          "settings": {
+            "label": "Single issues",
+            "tagline": "Pick the mag that calls to you.",
+            "price": "$23.95",
+            "link": "#shop-grid",
+            "fallback_filename": "product-mag.jpg",
+            "fallback_hover_filename": "product-mag-hover.jpg",
+            "image_alt": "Cover of the latest theINmag issue."
+          }
+        },
+        "bundle": {
+          "type": "product_link",
+          "settings": {
+            "label": "Build a bundle",
+            "tagline": "Mix mags and memberships. Save 5-15%.",
+            "price": "Build yours",
+            "link": "/pages/build-a-bundle",
+            "fallback_filename": "product-bundle.jpg",
+            "fallback_hover_filename": "product-bundle-hover.jpg",
+            "image_alt": "Stack of hand-picked theINmag issues."
+          }
+        }
+      },
+      "block_order": ["membership", "single", "bundle"]
+    },
+    "trust_strip": {
+      "type": "theinmag-shop-trust-strip",
+      "settings": {
+        "padding_top": 24,
+        "padding_bottom": 24
+      }
+    },
+    "grid": {
+      "type": "theinmag-shop-grid",
+      "settings": {
+        "heading": "Shop everything",
+        "collection_handle": "all",
+        "products_per_page": 12,
+        "empty_text": "No mags available right now. Check back soon.",
+        "padding_top": 48,
+        "padding_bottom": 96
+      }
+    }
+  },
+  "order": ["hero", "categories", "trust_strip", "grid"]
+}

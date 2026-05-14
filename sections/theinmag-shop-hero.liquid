@@ -1,0 +1,584 @@
+{%- comment -%}
+  theinmag-shop-hero
+  Stage 5 /shop page hero. Editorial latest-mag feature with three
+  auto-cycling states driven by shop metafields:
+
+    countdown    - pre-release window. "MagXX drops in N days. Pre-order open."
+                   Eyebrow "Coming soon", peach Pre-order stamp on the photo.
+                   Headline + CTA point at the NEXT issue (current + 1).
+                   Active when days_since_release < -21.
+    just-dropped - 0 to 21 days after release. "MagXX is here." Eyebrow
+                   "Just dropped". Points at the CURRENT issue.
+    available    - 22+ days after release. "MagXX". Eyebrow "Latest issue".
+                   Points at the CURRENT issue.
+
+  Metafields read:
+    shop.metafields.theinmag.current_issue_number  -> e.g. "Mag09" (full string)
+    shop.metafields.theinmag.next_release_date     -> date, drives state + countdown
+    shop.metafields.theinmag.current_issue_print_in_stock -> not used here,
+                                                            reserved for sold-out
+                                                            display logic
+    shop.metafields.judgeme.{all_reviews_rating,all_reviews_count} -> aggregate
+
+  Stage 14 dependencies (flag for the new-issue release flow):
+    - During the countdown window, the hero CTA links to /products/{{ next_handle }}
+      (e.g. /products/mag10). That product must exist + accept pre-orders before
+      pre-sale opens, or the CTA 404s.
+    - next_release_date metafield must continue pointing at the upcoming release
+      through the 21-day just-dropped window (do not flip to the next-next release
+      immediately on release day, or just-dropped is never visible).
+    - Hero photo asset: section setting hero_image wins; fallback is filename
+      pattern hero-shop-{handle}.jpg in /assets/. Release flow can either upload
+      the new hero photo into /assets/ matching that filename OR set the image
+      picker via theme editor.
+
+  Spec: Stage 5 build brief Part 3.1.
+{%- endcomment -%}
+
+{%- liquid
+  assign current_issue = shop.metafields.theinmag.current_issue_number.value | default: 'Mag09'
+  assign next_release_value = shop.metafields.theinmag.next_release_date.value
+
+  comment
+    Derive handles. current_issue is stored as the full "Mag09" string so
+    the current product handle is just the lowercase. Next issue is current
+    plus 1 with zero-padding so "Mag09" -> next "Mag10", "Mag10" -> "Mag11".
+  endcomment
+  assign current_handle = current_issue | downcase
+  assign current_num_str = current_issue | remove: 'Mag'
+  assign current_num = current_num_str | times: 1
+  assign next_num = current_num | plus: 1
+  if next_num < 10
+    assign next_issue = 'Mag0' | append: next_num
+    assign next_handle = 'mag0' | append: next_num
+  else
+    assign next_issue = 'Mag' | append: next_num
+    assign next_handle = 'mag' | append: next_num
+  endif
+
+  comment
+    Determine hero state from days_since_release. next_release_date is the
+    next FUTURE release date during countdown; flips on release day (Stage 14).
+    days_since_release = now - next_release_date / day.
+      negative > -21 days  -> countdown (pre-release)
+      -21 to +21           -> just-dropped (release window)
+      > +21                -> available
+    days_until_release is the positive countdown value (for copy).
+  endcomment
+  assign hero_state = 'available'
+  assign days_until_release = 0
+  if next_release_value != blank
+    assign release_ts = next_release_value | date: '%s' | times: 1
+    assign now_ts = 'now' | date: '%s' | times: 1
+    assign diff_seconds = now_ts | minus: release_ts
+    assign days_since_release = diff_seconds | divided_by: 86400
+    if days_since_release < -21
+      assign hero_state = 'countdown'
+      assign days_until_release = 0 | minus: days_since_release
+      if diff_seconds < 0 and days_until_release == 0
+        assign days_until_release = 1
+      endif
+    elsif days_since_release <= 21
+      assign hero_state = 'just-dropped'
+    else
+      assign hero_state = 'available'
+    endif
+  endif
+
+  comment
+    Hero copy bound to state. In countdown state the headline + CTA target
+    the NEXT issue; in just-dropped/available they target the CURRENT issue.
+  endcomment
+  if hero_state == 'countdown'
+    assign hero_mag = next_issue
+    assign hero_handle = next_handle
+    assign eyebrow = 'Coming soon'
+    capture headline
+      echo hero_mag
+      echo ' drops in '
+      echo days_until_release
+      if days_until_release == 1
+        echo ' day'
+      else
+        echo ' days'
+      endif
+    endcapture
+    assign subhead = 'Pre-order open. First in line for the next print run.'
+    assign primary_label = 'Pre-order'
+    assign primary_label = primary_label | append: ' ' | append: hero_mag
+  elsif hero_state == 'just-dropped'
+    assign hero_mag = current_issue
+    assign hero_handle = current_handle
+    assign eyebrow = 'Just dropped'
+    capture headline
+      echo hero_mag
+      echo ' is here'
+    endcapture
+    assign subhead = '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
+    assign primary_label = 'Shop ' | append: hero_mag
+  else
+    assign hero_mag = current_issue
+    assign hero_handle = current_handle
+    assign eyebrow = 'Latest issue'
+    assign headline = hero_mag
+    assign subhead = '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
+    assign primary_label = 'Shop ' | append: hero_mag
+  endif
+
+  assign primary_url = '/products/' | append: hero_handle
+  assign secondary_label = 'See inside'
+  assign secondary_url = primary_url | append: '#flick-through'
+
+  comment
+    Photo source. Manual section setting wins; otherwise filename convention
+    hero-shop-{handle}.jpg from /assets/. If neither exists the photo pane
+    falls back to a cream surface with the section's accent decoration.
+  endcomment
+  assign hero_image = section.settings.hero_image
+  assign hero_image_filename = 'hero-shop-' | append: hero_handle | append: '.jpg'
+  assign hero_image_fallback_url = hero_image_filename | asset_url
+  assign hero_image_alt = section.settings.hero_image_alt | default: 'theINmag latest issue cover photo.'
+
+  comment
+    Price line. Reads variants of the target product if it exists in this
+    storefront context. Falls back to brand-standard pricing line when the
+    product isn't yet created (countdown state for an unreleased mag).
+  endcomment
+  assign target_product = all_products[hero_handle]
+  assign print_price = ''
+  assign digital_price = ''
+  if target_product != blank and target_product.id != blank
+    for v in target_product.variants
+      assign vt = v.title | downcase
+      if print_price == '' and vt contains 'print'
+        assign print_price = v.price | money
+      elsif digital_price == '' and vt contains 'digital'
+        assign digital_price = v.price | money
+      endif
+    endfor
+  endif
+  if print_price == ''
+    assign print_price = '$23.95'
+  endif
+  if digital_price == ''
+    assign digital_price = '$10.45'
+  endif
+
+  comment
+    Judge.me aggregate stamp. Hidden until the shop has reviews so we
+    never show "0 reviews" - empty-state honesty per Bible Part 11.
+  endcomment
+  assign jm = shop.metafields.judgeme
+  assign jm_rating = jm.all_reviews_rating | default: 0
+  assign jm_count = jm.all_reviews_count | default: 0
+  assign show_rating = false
+  if jm_count != 0 and jm_count != blank
+    assign show_rating = true
+  endif
+
+  assign section_style = '--tsh-pt: ' | append: section.settings.padding_top | append: 'px; --tsh-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-shop-hero"
+  data-theinmag-shop-hero
+  data-hero-state="{{ hero_state }}"
+  aria-labelledby="theinmag-shop-hero-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-shop-hero__inner">
+
+    {%- comment -%} LEFT pane (desktop) / TOP (mobile): hero photo {%- endcomment -%}
+    <div class="theinmag-shop-hero__photo">
+      {%- if hero_image != blank -%}
+        <img
+          class="theinmag-shop-hero__image"
+          src="{{ hero_image | image_url: width: 1400 }}"
+          srcset="{{ hero_image | image_url: width: 720 }} 720w, {{ hero_image | image_url: width: 1080 }} 1080w, {{ hero_image | image_url: width: 1400 }} 1400w, {{ hero_image | image_url: width: 1800 }} 1800w"
+          sizes="(min-width: 990px) 50vw, 100vw"
+          alt="{{ hero_image_alt | escape }}"
+          width="1400"
+          height="1400"
+          loading="eager"
+          fetchpriority="high"
+        >
+      {%- else -%}
+        <img
+          class="theinmag-shop-hero__image"
+          src="{{ hero_image_fallback_url }}"
+          alt="{{ hero_image_alt | escape }}"
+          width="1400"
+          height="1400"
+          loading="eager"
+          fetchpriority="high"
+          onerror="this.style.display='none'"
+        >
+      {%- endif -%}
+
+      {%- if hero_state == 'countdown' -%}
+        <span class="theinmag-shop-hero__preorder-stamp" aria-label="Pre-order open">Pre-order</span>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} RIGHT pane (desktop) / BOTTOM (mobile): copy {%- endcomment -%}
+    <div class="theinmag-shop-hero__copy">
+      <p class="theinmag-shop-hero__eyebrow">{{ eyebrow }}</p>
+      <h1 id="theinmag-shop-hero-heading" class="theinmag-shop-hero__headline">{{ headline }}</h1>
+      <p class="theinmag-shop-hero__subhead">{{ subhead }}</p>
+
+      {%- if show_rating -%}
+        <a href="#reviews" class="theinmag-shop-hero__rating" data-rating-jump aria-label="Read {{ jm_count }} customer reviews across our printed mags">
+          <span data-score="{{ jm_rating }}" class="jdgm-all-reviews-rating" aria-label="{{ jm_rating | round: 1 }} stars" role="img"></span>
+          <span class="theinmag-shop-hero__rating-meta">{{ jm_rating | round: 1 }} - {{ jm_count }} reviews across our printed mags</span>
+        </a>
+      {%- endif -%}
+
+      <p class="theinmag-shop-hero__price">{{ print_price }} print - {{ digital_price }} digital</p>
+
+      <div class="theinmag-shop-hero__ctas">
+        <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--primary" href="{{ primary_url }}">{{ primary_label }}</a>
+        <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--secondary" href="{{ secondary_url }}">{{ secondary_label }}</a>
+      </div>
+    </div>
+  </div>
+
+  {%- comment -%} Trust micro-bar across the full hero width {%- endcomment -%}
+  <div class="theinmag-shop-hero__trust-bar" role="list" aria-label="theINmag promises">
+    <span class="theinmag-shop-hero__trust-item" role="listitem">Free shipping over $40</span>
+    <span class="theinmag-shop-hero__trust-divider" aria-hidden="true"></span>
+    <span class="theinmag-shop-hero__trust-item" role="listitem">Made in Australia</span>
+    <span class="theinmag-shop-hero__trust-divider" aria-hidden="true"></span>
+    <span class="theinmag-shop-hero__trust-item" role="listitem">100% kid-created</span>
+    <span class="theinmag-shop-hero__trust-divider" aria-hidden="true"></span>
+    <span class="theinmag-shop-hero__trust-item" role="listitem">Ad-free, always</span>
+  </div>
+</section>
+
+{%- comment -%}
+  Page-level JSON-LD for /shop. Three nodes:
+    BreadcrumbList - Home -> Shop
+    CollectionPage - the /shop page itself
+    ItemList       - the latest mag featured here (full grid ItemList is the
+                     shop-grid section's responsibility once that ships).
+{%- endcomment -%}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": {{ shop.url | json }}},
+      {"@type": "ListItem", "position": 2, "name": "Shop", "item": {{ shop.url | append: '/pages/shop' | json }}}
+    ]
+  }
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Shop",
+    "description": "Shop the latest theINmag - kid-created, ad-free, sustainably printed in Australia.",
+    "url": {{ shop.url | append: '/pages/shop' | json }}
+  }
+</script>
+
+{%- comment -%}
+  ItemList JSON-LD is emitted by theinmag-shop-grid below this section
+  with the full product list. Don't duplicate it here.
+{%- endcomment -%}
+
+{%- stylesheet -%}
+  .theinmag-shop-hero {
+    background-color: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    padding: var(--tsh-pt, 0) 0 var(--tsh-pb, 0);
+    position: relative;
+    isolation: isolate;
+  }
+
+  .theinmag-shop-hero__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* Mobile: photo on top, copy beneath. Total section height grows
+       organically from content. */
+    align-items: stretch;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-shop-hero__inner {
+      grid-template-columns: 1fr 1fr;
+      min-height: clamp(560px, 75vh, 800px);
+    }
+  }
+
+  /* ---------- Photo pane ---------- */
+
+  .theinmag-shop-hero__photo {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background-color: var(--color-cream);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-shop-hero__photo {
+      aspect-ratio: auto;
+      height: 100%;
+      min-height: clamp(560px, 75vh, 800px);
+    }
+  }
+
+  .theinmag-shop-hero__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Pre-order stamp - peach pill, top-right corner of photo. Soft shadow
+     so it lifts off the photo without competing. Only visible in countdown
+     state via the data-hero-state CSS hook on the section root. */
+  .theinmag-shop-hero__preorder-stamp {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    background-color: var(--color-peach, #FCDDB8);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 2px 8px rgba(42, 31, 61, 0.15);
+    z-index: 2;
+  }
+
+  /* ---------- Copy pane ---------- */
+
+  .theinmag-shop-hero__copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(32px, 5vw, 64px) clamp(20px, 4vw, 56px);
+    gap: var(--space-sm);
+  }
+
+  .theinmag-shop-hero__eyebrow {
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-coral-dark, #C9543E);
+  }
+
+  .theinmag-shop-hero__headline {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(38px, 5.5vw, 64px);
+    line-height: 1.02;
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-shop-hero__subhead {
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: clamp(16px, 1.8vw, 19px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+    max-width: 44ch;
+  }
+
+  /* Aggregate rating - sits just under the subhead, links to #reviews. */
+  .theinmag-shop-hero__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--color-inky-purple-navy);
+    margin-top: var(--space-xs);
+  }
+  .theinmag-shop-hero__rating .jdgm-all-reviews-rating {
+    display: inline-block;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .theinmag-shop-hero__rating-meta {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.82;
+  }
+
+  /* Price line - subdued, between rating and CTAs. */
+  .theinmag-shop-hero__price {
+    margin: var(--space-sm) 0 0;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(15px, 1.7vw, 17px);
+    color: var(--color-inky-purple-navy);
+  }
+
+  /* CTAs - primary yellow sticker (locked convention) + outlined secondary. */
+  .theinmag-shop-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+  }
+
+  .theinmag-shop-hero__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(17px, 1.8vw, 20px);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    border-radius: var(--radius-button);
+    transition: background var(--transition-standard), color var(--transition-standard), translate var(--transition-standard), box-shadow var(--transition-standard);
+    cursor: pointer;
+  }
+
+  .theinmag-shop-hero__cta--primary {
+    background: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    border: 0;
+    box-shadow: var(--shadow-button-yellow);
+  }
+  .theinmag-shop-hero__cta--primary:hover,
+  .theinmag-shop-hero__cta--primary:focus-visible {
+    background: var(--color-purple-dark);
+    color: #ffffff;
+    translate: 0 2px;
+    box-shadow: var(--shadow-button-pressed);
+    outline: none;
+  }
+
+  .theinmag-shop-hero__cta--secondary {
+    background: transparent;
+    color: var(--color-inky-purple-navy);
+    border: 2px solid var(--color-inky-purple-navy);
+  }
+  .theinmag-shop-hero__cta--secondary:hover,
+  .theinmag-shop-hero__cta--secondary:focus-visible {
+    background: var(--color-inky-purple-navy);
+    color: var(--color-cream);
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-shop-hero__cta--primary:hover {
+      translate: 0 0;
+      box-shadow: var(--shadow-button-yellow);
+    }
+  }
+
+  /* ---------- Trust micro-bar ---------- */
+
+  .theinmag-shop-hero__trust-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: clamp(8px, 1.5vw, 20px);
+    padding: clamp(14px, 2vw, 22px) clamp(16px, 4vw, 48px);
+    background-color: var(--color-cream);
+    border-top: 1px solid rgba(42, 31, 61, 0.08);
+    text-align: center;
+  }
+
+  .theinmag-shop-hero__trust-item {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: clamp(12px, 1.3vw, 14px);
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+  }
+
+  .theinmag-shop-hero__trust-divider {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--color-coral-dark, #C9543E);
+    opacity: 0.6;
+  }
+
+  /* Mobile: trust bar can read as a horizontal scrolling strip if the
+     four items overflow. The flex-wrap above is the default; this hides
+     the dividers when items wrap to a new row so they don't dangle. */
+  @media (max-width: 749px) {
+    .theinmag-shop-hero__trust-bar {
+      gap: 6px 12px;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Shop hero",
+  "tag": "section",
+  "class": "shopify-section theinmag-shop-hero-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Editorial latest-mag feature. Auto-cycles three states (countdown / just-dropped / available) from shop metafields theinmag.current_issue_number + theinmag.next_release_date. Photo source: section setting wins; fallback is filename pattern hero-shop-{handle}.jpg in /assets/."
+    },
+    {
+      "type": "header",
+      "content": "Hero photo"
+    },
+    {
+      "type": "image_picker",
+      "id": "hero_image",
+      "label": "Hero photo"
+    },
+    {
+      "type": "text",
+      "id": "hero_image_alt",
+      "label": "Hero photo alt text",
+      "default": "theINmag latest issue cover photo."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Shop hero" }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}
