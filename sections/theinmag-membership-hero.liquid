@@ -94,13 +94,10 @@
   style="{{ section_style }}"
 >
   {%- comment -%}
-    Patterned bg sits at very low opacity here - the hero already
-    carries photo mosaic + widget + variant pills, so a strong bg
-    competes for attention. 0.2 keeps the dots present-but-quiet
-    behind the cream cards, matching Ryan's "very very subtle" call
-    on 2026-05-12.
+    Plain cream background. The hero's section CSS sets
+    background-color: var(--color-cream); no patterned-bg render
+    here so the flat layout reads clean against the page.
   {%- endcomment -%}
-  {% render 'theinmag-section-bg', opacity: 0.2 %}
 
   <div class="theinmag-membership-hero__inner">
 
