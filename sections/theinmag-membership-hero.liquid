@@ -194,6 +194,18 @@
           </button>
         </li>
       </ol>
+
+      {%- comment -%}
+        Product description, sits under the media gallery (matches the
+        typical product page's desc-col placement). Pulls from the
+        standard product.description field in admin; rendered as HTML so
+        rich-text formatting from the editor carries through.
+      {%- endcomment -%}
+      {%- if product.description != blank -%}
+        <div class="theinmag-membership-hero__desc">
+          {{ product.description }}
+        </div>
+      {%- endif -%}
     </div>
 
     {%- comment -%} RIGHT: sticky info widget {%- endcomment -%}
@@ -290,7 +302,16 @@
           </div>
         </fieldset>
 
-        <button type="submit" class="theinmag-membership-hero__cta" data-primary-cta>Add to cart</button>
+        {%- comment -%}
+          CTA row: yellow ADD TO CART + outlined BUY NOW. Same pattern
+          as the typical product page. name="checkout" on Buy Now is
+          Shopify's built-in skip-cart submit - sends variant + line
+          item properties straight to /checkout.
+        {%- endcomment -%}
+        <div class="theinmag-membership-hero__cta-row">
+          <button type="submit" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--primary" data-primary-cta>Add to cart</button>
+          <button type="submit" name="checkout" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--secondary" data-buy-now-cta>Buy now</button>
+        </div>
 
         <p class="theinmag-membership-hero__microcopy">
           Free shipping over $40 - Sustainably printed in Australia - 120+ pages, zero ads
@@ -629,6 +650,38 @@
     pointer-events: none;
   }
 
+  /* Product description block - sits under the gallery thumbs, inside
+     the media column. Matches the typical product page rhythm. */
+  .theinmag-membership-hero__desc {
+    margin: var(--space-md) 0 0;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__desc p { margin: 0 0 var(--space-sm); }
+  .theinmag-membership-hero__desc p:last-child { margin-bottom: 0; }
+  .theinmag-membership-hero__desc h2,
+  .theinmag-membership-hero__desc h3 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    color: var(--color-inky-purple-navy);
+    margin: var(--space-md) 0 var(--space-xs);
+  }
+  .theinmag-membership-hero__desc h2 { font-size: clamp(20px, 2.4vw, 24px); }
+  .theinmag-membership-hero__desc h3 { font-size: clamp(16px, 1.8vw, 18px); }
+  .theinmag-membership-hero__desc a {
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .theinmag-membership-hero__desc ul,
+  .theinmag-membership-hero__desc ol {
+    margin: 0 0 var(--space-sm);
+    padding-left: 1.25em;
+  }
+  .theinmag-membership-hero__desc li { margin: 0 0 4px; }
+
   /* ---------- RIGHT column (sticky widget) ---------- */
 
   /* Flat - no card surface (matches the typical product page). The
@@ -808,12 +861,12 @@
     background: #ffffff;
     border: 2px solid var(--color-soft-pink);
     border-radius: var(--radius-lg);
-    padding: 10px 14px;
+    padding: 8px 12px;
     cursor: pointer;
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
     transition: background var(--transition-standard), color var(--transition-standard);
@@ -823,36 +876,59 @@
     color: var(--color-inky-purple-navy);
   }
   .theinmag-membership-hero__start-tile[hidden] { display: none; }
-  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 13px; }
-  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 12px; opacity: 0.85; }
+  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 12px; }
+  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 11px; opacity: 0.85; }
 
-  /* Yellow sticker Add to Cart - locked convention. */
+  /* CTA row holds the yellow ADD TO CART + outlined BUY NOW side by side.
+     Pattern matches the typical product page (theinmag-single-mags-hero). */
+  .theinmag-membership-hero__cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin: var(--space-sm) 0 0;
+    justify-content: center;
+  }
+
   .theinmag-membership-hero__cta {
-    /* Centred, max-width capped so the CTA doesn't stretch across the
-       full widget - Ryan's call: bring the edges in, keep the height,
-       bump the Post font slightly. */
-    display: block;
-    width: 100%;
-    max-width: 300px;
-    margin: var(--space-sm) auto 0;
-    background: var(--color-yellow);
+    appearance: none;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 220px;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-heading);
-    font-size: 19px;
+    font-size: 18px;
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    padding: 12px 24px;
+    padding: 12px 20px;
     border: 0;
     border-radius: var(--radius-button);
-    box-shadow: var(--shadow-button-yellow);
     cursor: pointer;
     transition: background var(--transition-standard), color var(--transition-standard), translate var(--transition-standard), box-shadow var(--transition-standard);
   }
-  .theinmag-membership-hero__cta:hover {
+
+  /* Yellow sticker - locked convention for ADD TO CART. */
+  .theinmag-membership-hero__cta--primary {
+    background: var(--color-yellow);
+    box-shadow: var(--shadow-button-yellow);
+  }
+  .theinmag-membership-hero__cta--primary:hover {
     background: var(--color-purple-dark);
     color: #ffffff;
     translate: 0 2px;
     box-shadow: var(--shadow-button-pressed);
+  }
+
+  /* Outlined companion for BUY NOW - inky-purple stroke on the cream
+     section bg, fills on hover. */
+  .theinmag-membership-hero__cta--secondary {
+    background: transparent;
+    border: 2px solid var(--color-inky-purple-navy);
+    padding: 10px 18px; /* compensate for border so total height matches primary */
+  }
+  .theinmag-membership-hero__cta--secondary:hover {
+    background: var(--color-inky-purple-navy);
+    color: var(--color-cream);
+    translate: 0 2px;
   }
 
   .theinmag-membership-hero__microcopy {
@@ -1243,6 +1319,8 @@
   @media (prefers-reduced-motion: reduce) {
     .theinmag-membership-hero__cta:hover {
       translate: 0 0;
+    }
+    .theinmag-membership-hero__cta--primary:hover {
       box-shadow: var(--shadow-button-yellow);
     }
     .theinmag-membership-hero__acc-panel { transition: none; }
