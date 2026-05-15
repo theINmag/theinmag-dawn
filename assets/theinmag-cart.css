@@ -5,19 +5,23 @@
  * component-cart-items.css / quantity-popover.css. Loaded by:
  *   - snippets/cart-drawer.liquid
  *   - sections/main-cart-items.liquid
+ *   - sections/main-cart-footer.liquid
  *
- * Scoped to cart surfaces only - keep design-system tokens / sitewide
- * styling in theinmag-base.css. Anything cart-specific lives here.
+ * Holds all CSS for the four theinmag-cart-* widgets (shipping bar,
+ * trust strip, cross-sell, empty state) plus cart-page typography
+ * overrides. Snippet-level {% stylesheet %} blocks were tried first
+ * but proved unreliable in production (the shipping bar fill colour
+ * was missing on live), so everything is consolidated here.
  */
 
 /* ---------------------------------------------------------------
-   Hide between-line-items-and-totals widgets when cart is empty.
-   The drawer renders these unconditionally so JS can update them
-   after the first add-to-cart; CSS toggles visibility via .is-empty.
+   Visibility toggles - hide between-line-items widgets when empty
    --------------------------------------------------------------- */
 cart-drawer.is-empty .theinmag-cart-drawer__between-wrap,
 cart-drawer.is-empty .theinmag-cart-drawer__shipping-bar-wrap,
-#main-cart-footer.is-empty .theinmag-main-cart__between-wrap {
+cart-drawer.is-empty .theinmag-cart-drawer__top-wrap,
+#main-cart-footer.is-empty .theinmag-main-cart__between-wrap,
+cart-items.is-empty .theinmag-main-cart__top-wrap {
   display: none;
 }
 
@@ -39,10 +43,275 @@ cart-drawer.is-empty .drawer__footer {
 }
 
 /* ---------------------------------------------------------------
+   /cart page typography overrides
+   --------------------------------------------------------------- */
+
+/* Product titles in the cart use Inter (not Post Regular). Post is
+   reserved for brand-identity headings - per the "Inter for editorial
+   blog titles" convention, factual / transactional copy uses Inter. */
+.cart-item__name {
+  font-family: var(--font-body) !important;
+  font-weight: 700 !important;
+  font-size: clamp(16px, 2vw, 19px);
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+.cart-item__name:hover,
+.cart-item__name:focus-visible {
+  color: var(--color-purple-dark);
+}
+
+/* Estimated total - bigger so it lands as a moment, not a footnote. */
+.totals__total {
+  font-size: clamp(18px, 2.4vw, 22px) !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.totals__total-value {
+  font-family: var(--font-body) !important;
+  font-size: clamp(22px, 3vw, 28px) !important;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ---------------------------------------------------------------
+   Shipping bar
+   --------------------------------------------------------------- */
+.theinmag-shipping-bar {
+  display: block;
+  padding: 14px 18px;
+  margin: 0 0 16px;
+  background: var(--color-cream);
+  border: 1px solid rgba(45, 104, 120, 0.12);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+.theinmag-shipping-bar.is-hidden {
+  display: none;
+}
+.theinmag-shipping-bar__copy {
+  margin: 0 0 10px;
+  text-align: center;
+  font-weight: 500;
+}
+.theinmag-shipping-bar__copy strong {
+  font-weight: 700;
+  color: var(--color-purple-dark);
+}
+.theinmag-shipping-bar__arrow {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--color-purple-dark);
+}
+.theinmag-shipping-bar__track {
+  height: 8px;
+  background: rgba(93, 58, 122, 0.14);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.theinmag-shipping-bar__fill {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--color-teal-dark) 0%,
+    var(--color-purple-dark) 100%
+  );
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.theinmag-shipping-bar.is-unlocked .theinmag-shipping-bar__fill {
+  background: var(--color-sage-dark);
+}
+.theinmag-shipping-bar.is-unlocked .theinmag-shipping-bar__copy {
+  color: var(--color-sage-dark);
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theinmag-shipping-bar__fill {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Trust strip
+   --------------------------------------------------------------- */
+.theinmag-cart-trust {
+  list-style: none;
+  margin: 16px 0;
+  padding: 14px 18px;
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.theinmag-cart-trust__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--color-text);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(45, 31, 61, 0.08);
+}
+.theinmag-cart-trust__item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.theinmag-cart-trust__icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--color-sage-dark);
+}
+
+/* /cart surface: full-width banner across the top, 5 columns on
+   desktop with hairline separators. Wraps to 3+2 then 2+2+1 on
+   tablet, single column on phone. */
+.theinmag-cart-trust--page {
+  margin: 0 0 16px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 14px 20px;
+}
+.theinmag-cart-trust--page .theinmag-cart-trust__item {
+  flex: 1 1 100%;
+  border-bottom: 1px solid rgba(45, 31, 61, 0.08);
+  padding: 8px 12px 8px 0;
+  justify-content: flex-start;
+}
+@media (min-width: 750px) {
+  .theinmag-cart-trust--page .theinmag-cart-trust__item {
+    flex: 1 1 calc(50% - 12px);
+    border-bottom: 0;
+  }
+}
+@media (min-width: 990px) {
+  .theinmag-cart-trust--page .theinmag-cart-trust__item {
+    flex: 1 1 0;
+    border-right: 1px solid rgba(45, 31, 61, 0.08);
+    border-bottom: 0;
+    padding: 6px 14px;
+  }
+  .theinmag-cart-trust--page .theinmag-cart-trust__item:last-child {
+    border-right: 0;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Cross-sell row
+   --------------------------------------------------------------- */
+.theinmag-cart-crosssell {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(45, 31, 61, 0.08);
+  border-radius: var(--radius-md);
+}
+.theinmag-cart-crosssell__heading {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 10px;
+}
+.theinmag-cart-crosssell__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.theinmag-cart-crosssell__card {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px;
+  background: #fff;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+}
+.theinmag-cart-crosssell__media img {
+  display: block;
+  width: 64px;
+  height: auto;
+  border-radius: 4px;
+}
+.theinmag-cart-crosssell__copy {
+  min-width: 0;
+}
+.theinmag-cart-crosssell__title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text);
+}
+.theinmag-cart-crosssell__subtitle {
+  margin: 2px 0 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--color-text-muted);
+}
+.theinmag-cart-crosssell__details {
+  display: inline-block;
+  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-teal-dark);
+  text-decoration: none;
+}
+.theinmag-cart-crosssell__details:hover,
+.theinmag-cart-crosssell__details:focus-visible {
+  text-decoration: underline;
+}
+.theinmag-cart-crosssell__add {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  background: var(--color-yellow);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-button-yellow);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  min-width: 64px;
+}
+.theinmag-cart-crosssell__add:hover,
+.theinmag-cart-crosssell__add:focus-visible {
+  background: var(--color-purple-dark);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.theinmag-cart-crosssell__add:disabled {
+  opacity: 0.8;
+  cursor: progress;
+  transform: none;
+}
+
+/* ---------------------------------------------------------------
    Remove link (softens Dawn's bin icon to a "Remove" text link)
    --------------------------------------------------------------- */
 .theinmag-cart-remove {
-  /* Reset Dawn's .button--tertiary chrome (border, min-height, padding) */
   min-height: 0 !important;
   min-width: 0 !important;
   padding: 4px 0 !important;
@@ -70,12 +339,11 @@ cart-drawer.is-empty .drawer__footer {
 }
 .theinmag-cart-remove::before,
 .theinmag-cart-remove::after {
-  /* Dawn injects an underline pseudo-element on .button--tertiary; nuke. */
   display: none !important;
 }
 
 /* ---------------------------------------------------------------
-   Cart note (gift message / special request)
+   Cart note (gift message for the kid receiving the mag)
    --------------------------------------------------------------- */
 .theinmag-cart-note__label {
   display: block;
@@ -83,7 +351,15 @@ cart-drawer.is-empty .drawer__footer {
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+}
+.theinmag-cart-note__hint {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
 }
 .theinmag-cart-note__field {
   width: 100%;
@@ -106,6 +382,18 @@ cart-drawer.is-empty .drawer__footer {
   outline: 2px solid var(--color-purple-dark);
   outline-offset: 2px;
   border-color: transparent;
+}
+.theinmag-cart-note__counter {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  text-align: right;
+}
+.theinmag-cart-note__counter.is-near {
+  color: var(--color-purple-dark);
+  font-weight: 600;
 }
 
 /* Drawer surface keeps the <details> collapse pattern. */
@@ -148,6 +436,107 @@ cart-drawer.is-empty .drawer__footer {
 }
 .theinmag-cart-note-details > .theinmag-cart-note__body {
   padding-top: 10px;
+}
+
+/* ---------------------------------------------------------------
+   Cart-bottom Featured collection (theinmag-cart-featured.liquid)
+   --------------------------------------------------------------- */
+.theinmag-cart-featured {
+  padding: clamp(32px, 5vw, 56px) clamp(16px, 4vw, 48px);
+  background-color: var(--color-cream);
+}
+.theinmag-cart-featured__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+.theinmag-cart-featured__heading {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1.05;
+  color: var(--color-text);
+  margin: 0 0 24px;
+}
+.theinmag-cart-featured__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(12px, 2vw, 20px);
+}
+@media (min-width: 750px) {
+  .theinmag-cart-featured__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.theinmag-cart-featured__tile {
+  display: block;
+  text-decoration: none;
+  color: var(--color-text);
+  background: #fff;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.theinmag-cart-featured__tile:hover,
+.theinmag-cart-featured__tile:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+.theinmag-cart-featured__cover {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: var(--color-cream);
+  overflow: hidden;
+}
+.theinmag-cart-featured__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.theinmag-cart-featured__meta {
+  padding: 10px 12px 14px;
+}
+.theinmag-cart-featured__title {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0 0 4px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text);
+}
+.theinmag-cart-featured__price {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+.theinmag-cart-featured__viewall {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 12px 24px;
+  background: var(--color-yellow);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: var(--shadow-button-yellow);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.theinmag-cart-featured__viewall:hover,
+.theinmag-cart-featured__viewall:focus-visible {
+  background: var(--color-purple-dark);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.theinmag-cart-featured__viewall-wrap {
+  text-align: center;
+  margin-top: 8px;
 }
 
 /* ---------------------------------------------------------------

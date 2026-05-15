@@ -1,0 +1,137 @@
+{%- comment -%}
+  theinmag-cart-featured.liquid
+
+  Replaces Dawn's stock `featured-collection` block at the bottom of
+  the /cart template. Differences:
+
+  - Smart ordering: Membership first (unless already in cart), then
+    Mag10 / 9 / 8 / 7 / 6, then Snack Pack + Digital Stack as backup.
+    Picks the first N that aren't in the cart already.
+  - Rectangular tiles matching the magazine cover aspect (3:4
+    portrait), not the square thumbnails Dawn's featured-collection
+    uses.
+  - Smaller tiles than Dawn's featured-collection (2-col on mobile,
+    4-col on desktop, narrower meta padding).
+  - View all CTA points at /pages/shop (Dawn's view_all link points
+    at the source collection URL which is misleading for /cart).
+  - Heading "More from theINmag" sized to feel like a section header,
+    not buried.
+
+  Wired into `templates/cart.json` in place of the previous
+  `featured-collection` section.
+
+  Hardcoded handles list (in priority order) below - edit to retune.
+{%- endcomment -%}
+
+{{ 'theinmag-cart.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign max_tiles = section.settings.max_tiles | default: 4
+  assign priority_handles = 'membership,mag10,mag09,mag08,mag07,mag06,snack-pack,digital-stack' | split: ','
+
+  assign cart_handles = ''
+  for item in cart.items
+    assign cart_handles = cart_handles | append: item.product.handle | append: '|'
+  endfor
+
+  assign tile_count = 0
+-%}
+
+<section class="theinmag-cart-featured">
+  <div class="theinmag-cart-featured__inner">
+    <h2 class="theinmag-cart-featured__heading">
+      {{- section.settings.heading | default: 'More from theINmag' -}}
+    </h2>
+    <div class="theinmag-cart-featured__grid">
+      {%- for handle in priority_handles -%}
+        {%- if tile_count >= max_tiles -%}{% break %}{%- endif -%}
+        {%- assign product = all_products[handle] -%}
+        {%- if product == empty or product.handle == blank -%}{% continue %}{%- endif -%}
+        {%- assign cart_key = product.handle | append: '|' -%}
+        {%- if cart_handles contains cart_key -%}{% continue %}{%- endif -%}
+
+        <a
+          href="{{ product.url }}"
+          class="theinmag-cart-featured__tile"
+          aria-label="{{ product.title | replace: 'theINmag - ', '' | escape }}"
+        >
+          <div class="theinmag-cart-featured__cover">
+            {%- if product.featured_image -%}
+              <img
+                src="{{ product.featured_image | image_url: width: 400 }}"
+                alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                loading="lazy"
+                width="400"
+                height="{{ 400 | divided_by: product.featured_image.aspect_ratio | ceil }}"
+              >
+            {%- endif -%}
+          </div>
+          <div class="theinmag-cart-featured__meta">
+            <p class="theinmag-cart-featured__title">
+              {{- product.title | replace: 'theINmag - ', '' | escape -}}
+            </p>
+            <p class="theinmag-cart-featured__price">
+              {%- if product.price_varies -%}
+                From {{ product.price_min | money }}
+              {%- else -%}
+                {{ product.price | money }}
+              {%- endif -%}
+            </p>
+          </div>
+        </a>
+        {%- assign tile_count = tile_count | plus: 1 -%}
+      {%- endfor -%}
+    </div>
+
+    {%- if section.settings.show_view_all -%}
+      <div class="theinmag-cart-featured__viewall-wrap">
+        <a href="{{ section.settings.view_all_link | default: '/pages/shop' }}" class="theinmag-cart-featured__viewall">
+          {{- section.settings.view_all_label | default: 'View all in the shop →' -}}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Cart - featured collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "More from theINmag"
+    },
+    {
+      "type": "range",
+      "id": "max_tiles",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "label": "Max tiles",
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "Show View all button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "view_all_label",
+      "label": "View all label",
+      "default": "View all in the shop →"
+    },
+    {
+      "type": "url",
+      "id": "view_all_link",
+      "label": "View all link (defaults to /pages/shop)"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["cart"]
+  }
+}
+{% endschema %}

@@ -9,6 +9,34 @@
 {{ 'component-card.css' | asset_url | stylesheet_tag }}
 {{ 'theinmag-cart.css' | asset_url | stylesheet_tag }}
 
+<script>
+  // Cart-note character counter (both surfaces). Updates live, flips
+  // the .is-near class once the user is in the last 10 chars.
+  (function () {
+    if (window.__theinmagCartNoteCounter) return;
+    window.__theinmagCartNoteCounter = true;
+    function bind() {
+      document.querySelectorAll('[data-theinmag-note-counter]').forEach(function (input) {
+        var display = input.parentElement.querySelector('[data-theinmag-note-counter-display]');
+        if (!display) return;
+        function update() {
+          var len = input.value.length;
+          var max = parseInt(input.getAttribute('maxlength'), 10) || 50;
+          display.textContent = len + ' / ' + max;
+          display.classList.toggle('is-near', len >= max - 10);
+        }
+        input.addEventListener('input', update);
+        update();
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bind);
+    } else {
+      bind();
+    }
+  })();
+</script>
+
 <script src="{{ 'cart.js' | asset_url }}" defer="defer"></script>
 <script src="{{ 'quantity-popover.js' | asset_url }}" defer="defer"></script>
 
@@ -66,6 +94,9 @@
             {{- 'icon-close.svg' | inline_asset_content -}}
           </span>
         </button>
+      </div>
+      <div class="theinmag-cart-drawer__top-wrap">
+        {% render 'theinmag-cart-trust-strip', surface: 'drawer' %}
       </div>
       <div class="theinmag-cart-drawer__shipping-bar-wrap">
         {% render 'theinmag-cart-shipping-bar' %}
@@ -470,22 +501,25 @@
       </cart-drawer-items>
       <div class="theinmag-cart-drawer__between-wrap">
         {% render 'theinmag-cart-crosssell' %}
-        {% render 'theinmag-cart-trust-strip', surface: 'drawer' %}
       </div>
       <div class="drawer__footer">
         {%- if settings.show_cart_note -%}
           <details id="Details-CartDrawer" class="theinmag-cart-note-details">
             <summary>
-              <span class="theinmag-cart-note__label">Got a gift message or special request?</span>
+              <span class="theinmag-cart-note__label">Sending this as a gift? Add a note for the kid.</span>
             </summary>
             <cart-note class="theinmag-cart-note__body">
-              <label class="visually-hidden" for="CartDrawer-Note">Gift message or special request</label>
+              <span class="theinmag-cart-note__hint">Up to 50 characters - fits on the post label.</span>
+              <label class="visually-hidden" for="CartDrawer-Note">Gift note for the kid</label>
               <textarea
                 id="CartDrawer-Note"
                 class="theinmag-cart-note__field"
                 name="note"
-                placeholder="e.g. 'Happy 9th birthday Mia! Love Grandma.'"
+                maxlength="50"
+                placeholder="e.g. Happy 9th birthday Mia!"
+                data-theinmag-note-counter
               >{{ cart.note }}</textarea>
+              <span class="theinmag-cart-note__counter" data-theinmag-note-counter-display>0 / 50</span>
             </cart-note>
           </details>
         {%- endif -%}

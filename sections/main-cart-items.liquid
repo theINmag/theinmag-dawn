@@ -27,6 +27,11 @@
 <script src="{{ 'quantity-popover.js' | asset_url }}" defer="defer"></script>
 
 <cart-items class="gradient color-{{ section.settings.color_scheme }} isolate{% if cart == empty %} is-empty{% else %} section-{{ section.id }}-padding{% endif %}">
+  <div class="theinmag-main-cart__top-wrap">
+    <div class="page-width">
+      {% render 'theinmag-cart-trust-strip', surface: 'page' %}
+    </div>
+  </div>
   <div class="page-width">
     <div class="theinmag-main-cart__shipping-bar-wrap">
       {% render 'theinmag-cart-shipping-bar' %}
