@@ -67,7 +67,87 @@
 
     <div class="theinmag-send-in-form-section__embed">
       {%- if jotform_id != blank -%}
+        {%- comment -%}
+          Loading state. JotForm's jsform script takes ~2-3s on a cold
+          load and renders a blank gap until it injects. A kid-drawn
+          character + a single line of copy fills that gap so visitors
+          don't think they've landed on the wrong page. A MutationObserver
+          on the embed wrapper hides this the moment JotForm injects its
+          <form>; a 10s timeout is the belt-and-braces fallback.
+          Eager-loaded image so it actually paints during the gap.
+        {%- endcomment -%}
+        <div class="theinmag-send-in-form-section__loader" data-jotform-loader>
+          <img
+            class="theinmag-send-in-form-section__loader-character"
+            src="{{ 'character-1.png' | asset_url }}"
+            alt=""
+            width="160"
+            height="160"
+            fetchpriority="high"
+          >
+          <p class="theinmag-send-in-form-section__loader-label">Loading the submission form...</p>
+        </div>
         <script type="text/javascript" src="https://form.jotform.com/jsform/{{ jotform_id }}"></script>
+        <script>
+          (function () {
+            var embed = document.currentScript.closest('.theinmag-send-in-form-section__embed');
+            if (!embed) return;
+            var loader = embed.querySelector('[data-jotform-loader]');
+            if (!loader) return;
+
+            var hidden = false;
+            var fallback;
+            function hide() {
+              if (hidden) return;
+              hidden = true;
+              loader.classList.add('is-hidden');
+              if (obs) obs.disconnect();
+              if (fallback) clearTimeout(fallback);
+            }
+
+            // Bind the iframe's load event - JotForm injects an iframe
+            // pointing at form.jotform.com via document.write, and the
+            // form content lives cross-origin inside it. `load` fires
+            // from the parent's side when the iframe's initial document
+            // has finished, which is what the user actually waits for.
+            function bindIframe(node) {
+              if (!node || node.dataset.loaderBound) return false;
+              node.dataset.loaderBound = '1';
+              // If the iframe has already loaded (cached on revisit),
+              // contentWindow access throws cross-origin; checking
+              // `complete`-like state isn't possible. Bind load anyway
+              // and rely on the fallback if it never fires.
+              node.addEventListener('load', hide, { once: true });
+              return true;
+            }
+
+            // Initial sweep - jsform's document.write may have already
+            // inserted the iframe by the time this script runs.
+            var existing = embed.querySelector('iframe[src*="jotform.com"]');
+            bindIframe(existing);
+
+            // Watch for the iframe being injected after this script
+            // runs (defensive - covers async insertion variants).
+            var obs = new MutationObserver(function (muts) {
+              for (var i = 0; i < muts.length; i += 1) {
+                var added = muts[i].addedNodes;
+                for (var j = 0; j < added.length; j += 1) {
+                  var n = added[j];
+                  if (n.nodeType !== 1) continue;
+                  if (n.tagName === 'IFRAME' && /jotform\.com/.test(n.src || '')) {
+                    if (bindIframe(n)) return;
+                  }
+                }
+              }
+            });
+            obs.observe(embed, { childList: true, subtree: true });
+
+            // Belt-and-braces: if the load event never fires (rare on
+            // very slow networks or third-party blocking), reveal the
+            // form after 12s so the loader doesn't sit forever.
+            fallback = setTimeout(hide, 12000);
+          })();
+        </script>
         <noscript>
           <p class="theinmag-send-in-form-section__noscript">
             Our submission form needs JavaScript to load. If it isn't showing up, please enable JavaScript or
@@ -228,6 +308,44 @@
   .theinmag-send-in-form-section__embed > form {
     margin: 0 auto !important;
     max-width: 100% !important;
+  }
+
+  /* Loading state shown until JotForm injects its form. Kid character
+     bobs gently so the gap reads as "loading something fun", not as a
+     broken page. The MutationObserver in the section script sets
+     is-hidden the moment JotForm injects. */
+  .theinmag-send-in-form-section__loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    min-height: 480px;
+    padding: var(--space-lg) var(--space-md);
+    text-align: center;
+  }
+  .theinmag-send-in-form-section__loader.is-hidden {
+    display: none;
+  }
+  .theinmag-send-in-form-section__loader-character {
+    width: clamp(120px, 18vw, 180px);
+    height: auto;
+    animation: theinmag-sif-loader-bob 1.6s ease-in-out infinite;
+    transform-origin: 50% 80%;
+  }
+  .theinmag-send-in-form-section__loader-label {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+    margin: 0;
+  }
+  @keyframes theinmag-sif-loader-bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-8px) rotate(2deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-send-in-form-section__loader-character { animation: none; }
   }
 
   .theinmag-send-in-form-section__placeholder,
