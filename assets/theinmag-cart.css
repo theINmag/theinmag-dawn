@@ -180,36 +180,74 @@ cart-drawer.is-empty .drawer__footer {
 }
 
 /* /cart surface: full-width banner across the top, 5 columns on
-   desktop with hairline separators. Wraps to 3+2 then 2+2+1 on
-   tablet, single column on phone. */
+   desktop with hairline separators. Wraps to 2-col on tablet,
+   compact 2-col on phone (was single-column - Ryan flagged it
+   dominating the top of the mobile viewport). */
 .theinmag-cart-trust--page {
   margin: 0 0 16px;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 0;
-  padding: 14px 20px;
+  padding: 8px 12px;
 }
 .theinmag-cart-trust--page .theinmag-cart-trust__item {
-  flex: 1 1 100%;
-  border-bottom: 1px solid rgba(45, 31, 61, 0.08);
-  padding: 8px 12px 8px 0;
+  flex: 1 1 calc(50% - 6px);
+  border-bottom: 0;
+  padding: 4px 8px;
   justify-content: flex-start;
+  font-size: 11px;
+  line-height: 1.25;
+  gap: 6px;
+}
+.theinmag-cart-trust--page .theinmag-cart-trust__icon {
+  width: 12px;
+  height: 12px;
 }
 @media (min-width: 750px) {
+  .theinmag-cart-trust--page {
+    padding: 14px 20px;
+  }
   .theinmag-cart-trust--page .theinmag-cart-trust__item {
-    flex: 1 1 calc(50% - 12px);
-    border-bottom: 0;
+    font-size: 13px;
+    line-height: 1.35;
+    gap: 10px;
+    padding: 6px 12px 6px 0;
+  }
+  .theinmag-cart-trust--page .theinmag-cart-trust__icon {
+    width: 16px;
+    height: 16px;
   }
 }
 @media (min-width: 990px) {
   .theinmag-cart-trust--page .theinmag-cart-trust__item {
     flex: 1 1 0;
     border-right: 1px solid rgba(45, 31, 61, 0.08);
-    border-bottom: 0;
     padding: 6px 14px;
   }
   .theinmag-cart-trust--page .theinmag-cart-trust__item:last-child {
     border-right: 0;
+  }
+}
+
+/* Mobile-only reorder: gift note above the cross-sell cards.
+   Desktop's .cart__footer is a flex row (Dawn's component-cart.css
+   line 134, gated by @media min-width 750px), so this override only
+   touches the phone layout where items stack vertically. */
+@media (max-width: 749px) {
+  .cart__footer {
+    display: flex;
+    flex-direction: column;
+  }
+  .cart__footer cart-note,
+  .cart__footer .theinmag-cart-note {
+    order: 1;
+    margin-bottom: 16px;
+  }
+  .cart__footer .theinmag-main-cart__between-wrap {
+    order: 2;
+  }
+  .cart__footer .cart__blocks {
+    order: 3;
   }
 }
 
