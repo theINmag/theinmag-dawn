@@ -197,13 +197,16 @@
 
       {%- comment -%}
         Product description, sits under the media gallery (matches the
-        typical product page's desc-col placement). Pulls from the
-        standard product.description field in admin; rendered as HTML so
-        rich-text formatting from the editor carries through.
+        typical product page's desc-col placement). Reads the same
+        single_mag.description_block richtext metafield that the
+        single-mags-hero uses for per-issue descriptions, so admin
+        editing flows are consistent across product pages. `metafield_tag`
+        renders richtext metafields as HTML.
       {%- endcomment -%}
-      {%- if product.description != blank -%}
+      {%- assign desc_body = product.metafields.single_mag.description_block -%}
+      {%- if desc_body != blank -%}
         <div class="theinmag-membership-hero__desc">
-          {{ product.description }}
+          {{ desc_body | metafield_tag }}
         </div>
       {%- endif -%}
     </div>
@@ -859,14 +862,14 @@
   }
   .theinmag-membership-hero__start-tile {
     background: #ffffff;
-    border: 2px solid var(--color-soft-pink);
-    border-radius: var(--radius-lg);
-    padding: 8px 12px;
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: var(--radius-pill);
+    padding: 5px 12px;
     cursor: pointer;
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 0;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
     transition: background var(--transition-standard), color var(--transition-standard);
@@ -876,8 +879,8 @@
     color: var(--color-inky-purple-navy);
   }
   .theinmag-membership-hero__start-tile[hidden] { display: none; }
-  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 12px; }
-  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 11px; opacity: 0.85; }
+  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 11px; line-height: 1.25; }
+  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 10px; opacity: 0.8; line-height: 1.25; }
 
   /* CTA row holds the yellow ADD TO CART + outlined BUY NOW side by side.
      Pattern matches the typical product page (theinmag-single-mags-hero). */
