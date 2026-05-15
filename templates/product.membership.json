@@ -9,6 +9,16 @@
  */
 {
   "sections": {
+    "issue-strip": {
+      "type": "theinmag-issue-strip",
+      "settings": {
+        "heading": "Browse the issues",
+        "issues_collection": "single-issues",
+        "membership_handle": "membership",
+        "padding_top": 24,
+        "padding_bottom": 8
+      }
+    },
     "hero": {
       "type": "theinmag-membership-hero",
       "settings": {}
@@ -222,6 +232,7 @@
     }
   },
   "order": [
+    "issue-strip",
     "hero",
     "ugc",
     "pillars",
@@ -231,3 +242,4 @@
     "cross-sells"
   ]
 }
+

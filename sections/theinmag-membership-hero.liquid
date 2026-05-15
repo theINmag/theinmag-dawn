@@ -5,15 +5,17 @@
   variant logic, line item properties, and Starting Issue widget machinery
   live here in one comprehensive hero.
 
-  Layout:
-    Mobile (<750px): single column - thumbs hidden, photo stack, then widget.
-    Desktop (>=750px): two columns. Left = thumb strip + 4 square photos
-    stacked. Right = info widget with position: sticky so it stays pinned
-    while the user scrolls through the photos. Right column releases when
-    its content runs out and both columns share scroll past that point.
+  Layout (matches theinmag-single-mags-hero - the typical product page -
+  so the Membership PDP reads as the same product-page family):
+    Mobile (<750px): single column - media gallery, then widget.
+    Desktop (>=750px): two columns. Left = media gallery (one big square
+    main image + a thumb strip below). Right = info widget with
+    position: sticky so it stays pinned while the user scrolls. Flat -
+    no card surfaces; the section bg + padding carry it.
 
-  Variant Format selector swaps the TOP photo on click (Print / Digital /
-  Combo). The 3 photos below stay constant.
+  Variant Format selector swaps the gallery's slide-0 photo + thumb-0
+  image on click (Print / Digital / Combo). Gallery JS (thumb click +
+  prev/next arrows) lives in theinmag-membership-form.js.
 
   Right column stack:
     1. Judge.me preview badge
@@ -102,68 +104,47 @@
 
   <div class="theinmag-membership-hero__inner">
 
-    {%- comment -%} LEFT: thumb strip + photo stack {%- endcomment -%}
-    <div class="theinmag-membership-hero__photos">
+    {%- comment -%}
+      LEFT: media gallery - one big main image + a thumb strip below.
+      Mirrors the typical product page media column
+      (theinmag-single-mags-hero) so the Membership PDP reads as the same
+      product-page family. Slide 0 is the Format-driven variant photo
+      (data-hero-swap); the rest are fixed lifestyle / trust photos plus
+      the current-issue flick-through video. theinmag-membership-form.js
+      runs a small gallery (thumb click + arrows toggle the active slide).
+      Photo filename pool: membership-hero-print/digital/combo.jpg,
+      trust-overlay-*.jpg, mag{NN}-02-flick-through1.mp4.
+    {%- endcomment -%}
+    {%- assign gallery_overlays = 'trust-overlay-gift-giving.jpg|A gift that keeps on giving.;trust-overlay-nevermissout.jpg|Letterbox excitement.;trust-overlay-ad-free.jpg|100% ad-free.;trust-overlay-aussie-kids.jpg|Made by Aussie kids for Aussie kids.' | split: ';' -%}
+    <div class="theinmag-membership-hero__media-col">
 
-      {%- comment -%}
-        Thumb strip + photo stack: position 0 is the variant-swap (Format-driven).
-        Positions 1-3 are picked by JS from the pool below per page load - 8 trust
-        overlay JPGs plus 3 product photos. Membership-specifics (three-times-year,
-        gift-giving, nevermissout) get priority-weighting in JS so at least one
-        always lands. Pool items render hidden; JS reveals 3 + rebuilds thumb-jump
-        indexes to match. No-JS users see only the variant-swap photo and its thumb.
-      {%- endcomment -%}
+      <div class="theinmag-membership-hero__media-main" data-media-main>
+        {%- comment -%} Slide 0: variant-swap photo (Print / Digital / Combo). {%- endcomment -%}
+        <div class="theinmag-membership-hero__slide is-active" data-slide>
+          <img class="theinmag-membership-hero__slide-img" data-hero-swap src="{{ hero_print }}" alt="theINmag Membership - the magazine for creative kids." loading="eager" fetchpriority="high">
+        </div>
 
-      {%- comment -%}
-        Mosaic layout (desktop): three rows.
-          Row 1: kids-with-mag (left) + variant-swap (right, next to widget) - 2 squares
-          Row 2: 3 random trust overlays picked by JS from the 8-item pool - 3 squares
-          Row 3: inside-spread (left) + letterbox (right) - 2 squares
-        Mobile: same elements as a horizontal swipe carousel. CSS `order: -1`
-        promotes the variant-swap to first so phones see the chosen format
-        first as Ryan asked.
+        {%- comment -%} Slide 1: "New mags, three times a year." {%- endcomment -%}
+        <div class="theinmag-membership-hero__slide" data-slide>
+          <img class="theinmag-membership-hero__slide-img" src="{{ three_times_year_src }}" alt="New mags, three times a year." loading="lazy">
+        </div>
 
-        Pool delimiter is `;` (alt texts contain commas like "New mags, three
-        times a year." which would otherwise split mid-string). The Row 1-left
-        slot (three-times-year) and Row 3-right slot (sustainable) are now fixed
-        positions so they're removed from the random pool to avoid duplicates.
-      {%- endcomment -%}
-      {%- assign pool_items = 'trust-overlay-gift-giving.jpg|A gift that keeps on giving.|high;trust-overlay-nevermissout.jpg|Letterbox excitement.|high;trust-overlay-ad-free.jpg|100% ad-free.|low;trust-overlay-aussie-kids.jpg|Made by Aussie kids for Aussie kids.|low;trust-overlay-120-pages.jpg|120+ pages of pure creativity.|low;trust-overlay-real-kids.jpg|Real kids. Real names. Real towns.|low' | split: ';' -%}
-
-      <ol class="theinmag-membership-hero__stack" role="list" data-stack>
-        {%- comment -%}
-          Row 1 LEFT (desktop) / Mobile carousel position 2: locked trust
-          overlay "New mags, three times a year."
-        {%- endcomment -%}
-        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide" data-photo-index="0">
-          <img class="theinmag-membership-hero__image" src="{{ three_times_year_src }}" alt="New mags, three times a year." loading="eager">
-        </li>
-
-        {%- comment -%} Row 1 RIGHT / Mobile carousel position 1: variant-swap (Print/Digital/Combo) {%- endcomment -%}
-        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide theinmag-membership-hero__photo--variant" data-photo-locked data-photo-index="1">
-          <img class="theinmag-membership-hero__image" data-hero-swap src="{{ hero_print }}" alt="theINmag Membership - the magazine for creative kids." loading="eager" fetchpriority="high">
-        </li>
-
-        {%- comment -%} Row 2: 3 trust overlays from 6-item pool, JS reveals 3 with priority bias {%- endcomment -%}
-        {%- for item in pool_items -%}
+        {%- comment -%} Trust-overlay slides. {%- endcomment -%}
+        {%- for item in gallery_overlays -%}
           {%- assign parts = item | split: '|' -%}
-          {%- assign filename = parts[0] -%}
-          {%- assign alt = parts[1] -%}
-          {%- assign priority = parts[2] -%}
-          <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--narrow" data-pool-photo data-pool-priority="{{ priority }}" hidden>
-            <img class="theinmag-membership-hero__image" src="{{ filename | asset_url }}" alt="{{ alt | escape }}" loading="lazy">
-          </li>
+          <div class="theinmag-membership-hero__slide" data-slide>
+            <img class="theinmag-membership-hero__slide-img" src="{{ parts[0] | asset_url }}" alt="{{ parts[1] | escape }}" loading="lazy">
+          </div>
         {%- endfor -%}
 
         {%- comment -%}
-          Row 3 LEFT: flick-through video of the current mag. Filename is
-          constructed from the current_issue_number metafield so the slot
-          auto-rolls when a new issue drops. Autoplay muted loop playsinline
-          so iOS Safari runs it without user interaction.
+          Flick-through video of the current mag. Filename built from the
+          current_issue_number metafield so the slot auto-rolls at each
+          release. Autoplay muted loop playsinline for iOS Safari.
         {%- endcomment -%}
-        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide theinmag-membership-hero__photo--mobile-second">
+        <div class="theinmag-membership-hero__slide theinmag-membership-hero__slide--video" data-slide>
           <video
-            class="theinmag-membership-hero__image"
+            class="theinmag-membership-hero__slide-video"
             src="{{ flick_through_src }}"
             autoplay
             muted
@@ -172,31 +153,49 @@
             preload="metadata"
             aria-label="A quick flick-through of the latest theINmag issue."
           ></video>
-        </li>
+        </div>
 
-        {%- comment -%} Row 3 RIGHT: locked trust overlay "Sustainably printed in Australia" {%- endcomment -%}
-        <li class="theinmag-membership-hero__photo theinmag-membership-hero__photo--wide">
-          <img class="theinmag-membership-hero__image" src="{{ sustainable_src }}" alt="Sustainably printed in Australia." loading="lazy">
-        </li>
-      </ol>
+        {%- comment -%} "Sustainably printed in Australia." {%- endcomment -%}
+        <div class="theinmag-membership-hero__slide" data-slide>
+          <img class="theinmag-membership-hero__slide-img" src="{{ sustainable_src }}" alt="Sustainably printed in Australia." loading="lazy">
+        </div>
 
-      {%- comment -%}
-        Mobile carousel dots indicator - sits below the carousel, shows
-        position. Hidden on desktop (mosaic is fully visible at once).
-        JS reuses the existing thumb-jump handlers via the data-thumb-jump
-        attribute, treating dots as a degenerate thumb strip.
-      {%- endcomment -%}
-      <ol class="theinmag-membership-hero__dots" role="list" aria-label="Photo position" data-dots>
-        <li><button type="button" class="theinmag-membership-hero__dot is-active" data-thumb-jump="0" aria-label="Photo 1"></button></li>
-        <li><button type="button" class="theinmag-membership-hero__dot" data-thumb-jump="1" aria-label="Photo 2"></button></li>
-        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 3" hidden></button></li>
-        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 4" hidden></button></li>
-        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 5" hidden></button></li>
-        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 6" hidden></button></li>
-        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 7" hidden></button></li>
-        <li><button type="button" class="theinmag-membership-hero__dot" data-pool-dot data-thumb-jump="" aria-label="Photo 8" hidden></button></li>
-        <li><button type="button" class="theinmag-membership-hero__dot" data-thumb-jump="" aria-label="Photo (flick-through video)"></button></li>
-        <li><button type="button" class="theinmag-membership-hero__dot" data-thumb-jump="" aria-label="Photo (sustainable)"></button></li>
+        <button type="button" class="theinmag-membership-hero__media-arrow theinmag-membership-hero__media-arrow--prev" data-media-prev aria-label="Previous image">‹</button>
+        <button type="button" class="theinmag-membership-hero__media-arrow theinmag-membership-hero__media-arrow--next" data-media-next aria-label="Next image">›</button>
+      </div>
+
+      <ol class="theinmag-membership-hero__thumbs" role="list" data-thumbs>
+        <li>
+          <button type="button" class="theinmag-membership-hero__thumb is-active" data-thumb aria-label="View the membership photo">
+            <img data-thumb-swap src="{{ hero_print }}" alt="" loading="lazy">
+          </button>
+        </li>
+        <li>
+          <button type="button" class="theinmag-membership-hero__thumb" data-thumb aria-label="View: new mags three times a year">
+            <img src="{{ three_times_year_src }}" alt="" loading="lazy">
+          </button>
+        </li>
+        {%- for item in gallery_overlays -%}
+          {%- assign parts = item | split: '|' -%}
+          <li>
+            <button type="button" class="theinmag-membership-hero__thumb" data-thumb aria-label="View: {{ parts[1] | escape }}">
+              <img src="{{ parts[0] | asset_url }}" alt="" loading="lazy">
+            </button>
+          </li>
+        {%- endfor -%}
+        <li>
+          <button type="button" class="theinmag-membership-hero__thumb theinmag-membership-hero__thumb--video" data-thumb aria-label="View the flick-through video">
+            <img src="{{ three_times_year_src }}" alt="" loading="lazy">
+            <span class="theinmag-membership-hero__thumb-play" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="12" fill="#F9C23C"></circle><polygon points="10,8 10,16 16,12" fill="#2A1F3D"></polygon></svg>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="theinmag-membership-hero__thumb" data-thumb aria-label="View: sustainably printed in Australia">
+            <img src="{{ sustainable_src }}" alt="" loading="lazy">
+          </button>
+        </li>
       </ol>
     </div>
 
@@ -507,6 +506,7 @@
     position: relative;
     isolation: isolate;
     color: var(--color-inky-purple-navy);
+    background-color: var(--color-cream);
     padding: var(--tmh-pt, 56px) var(--space-lg) var(--tmh-pb, 56px);
     overflow: hidden;
   }
@@ -523,168 +523,133 @@
 
   @media (min-width: 750px) {
     .theinmag-membership-hero__inner {
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
       gap: var(--space-2xl);
       align-items: start;
     }
   }
 
-  /* ---------- LEFT column ---------- */
+  /* ---------- LEFT: media gallery (main image + thumb strip) ---------- */
+  /* Ported from theinmag-single-mags-hero so the Membership PDP media
+     column reads identically to the typical product page. Flat - no
+     card surface; the section's own bg + padding carry it. */
 
-  /* Photo column is a cream card matching the widget's surface colour with
-     SHARP corners (Ryan's spec - widget keeps its rounded corners as a
-     visual distinction). Big glow lifts both cards off the patterned bg. */
-  .theinmag-membership-hero__photos {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
+  .theinmag-membership-hero__media-col {
     width: 100%;
-    background-color: rgba(251, 246, 234, 0.94);
-    padding: var(--space-sm);
-    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
   }
 
-  /* Photo stack - mobile is a horizontal swipe carousel, desktop is a 6-col
-     grid mosaic with 3 rows: 2 wide squares, 3 narrow squares, 2 wide squares. */
-  .theinmag-membership-hero__stack {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    /* Mobile: horizontal scroll-snap carousel. Variant-swap promoted to first
-       via CSS `order` (Ryan's spec - phones see the chosen format first). */
-    display: flex;
-    flex-direction: row;
-    gap: var(--space-sm);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    margin: 0 calc(-1 * var(--space-lg));
-    padding: 0 var(--space-lg);
-  }
-  .theinmag-membership-hero__stack::-webkit-scrollbar { display: none; }
-
-  /* Mobile: each photo takes ~85% viewport width, snap aligns to start. */
-  @media (max-width: 749px) {
-    .theinmag-membership-hero__photo {
-      flex: 0 0 85%;
-      scroll-snap-align: start;
-    }
-    /* Variant-swap first on mobile per Ryan: "that first one will always be
-       the one they select so printed digital or combo image." Flick-through
-       video sits second so the kid sees motion before the trust overlays. */
-    .theinmag-membership-hero__photo--variant { order: -2; }
-    .theinmag-membership-hero__photo--mobile-second { order: -1; }
-
-    /* Photos card spans the full viewport on mobile - Ryan: the slider
-       was breaking out of the cream card, extend the card edge-to-edge
-       instead so the carousel sits inside its own surface. */
-    .theinmag-membership-hero__photos {
-      margin-left: calc(-1 * var(--space-lg));
-      margin-right: calc(-1 * var(--space-lg));
-      width: calc(100% + (2 * var(--space-lg)));
-    }
-  }
-
-  /* Desktop: 6-col mosaic. Wide squares span 3 cols, narrow span 2.
-     Uniform small gap so the patterned bg shows through between every
-     photo, photos keep their soft shadow for the lifted-card feel. */
-  @media (min-width: 750px) {
-    .theinmag-membership-hero__stack {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: var(--space-sm);
-      overflow: visible;
-      margin: 0;
-      padding: 0;
-    }
-    .theinmag-membership-hero__photo--wide { grid-column: span 3; }
-    .theinmag-membership-hero__photo--narrow { grid-column: span 2; }
-  }
-
-  /* Sharp-edged square photo card. Soft shadow keeps the lifted feel
-     even without rounded corners. Bg shows through gaps between photos. */
-  /* Photos sit inside the card wrapper - the card carries the lifted glow,
-     individual photos just need clean edges and a soft background. */
-  .theinmag-membership-hero__photo {
+  .theinmag-membership-hero__media-main {
     position: relative;
+    width: 100%;
+    /* Square canvas - matches the single-mags hero. */
     aspect-ratio: 1 / 1;
-    border-radius: 0;
+    background-color: rgba(42, 31, 61, 0.04);
     overflow: hidden;
-    background-color: var(--color-cream);
   }
-  .theinmag-membership-hero__photo[hidden] { display: none; }
-  .theinmag-membership-hero__image {
+
+  .theinmag-membership-hero__slide {
     position: absolute;
     inset: 0;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+  .theinmag-membership-hero__slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .theinmag-membership-hero__slide-img,
+  .theinmag-membership-hero__slide-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
 
-  /* Mobile dots indicator - sits below the carousel, shows position. Hidden
-     on desktop (mosaic is fully visible). The existing thumb-jump JS handler
-     treats these as a degenerate thumb strip. */
-  .theinmag-membership-hero__dots {
+  .theinmag-membership-hero__media-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    border: 0;
+    color: var(--color-inky-purple-navy);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    z-index: 2;
+    transition: background 0.15s ease;
+  }
+  .theinmag-membership-hero__media-arrow:hover { background: #ffffff; }
+  .theinmag-membership-hero__media-arrow--prev { left: var(--space-sm); }
+  .theinmag-membership-hero__media-arrow--next { right: var(--space-sm); }
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__media-arrow { display: grid; place-items: center; }
+  }
+
+  .theinmag-membership-hero__thumbs {
     list-style: none;
+    margin: var(--space-sm) 0 0;
+    padding: 0;
     display: flex;
     gap: var(--space-xs);
-    justify-content: center;
-    padding: 0;
-    margin: var(--space-sm) 0 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
-  .theinmag-membership-hero__dots li { margin: 0; }
-  .theinmag-membership-hero__dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    border: 0;
+  .theinmag-membership-hero__thumbs::-webkit-scrollbar { display: none; }
+  .theinmag-membership-hero__thumbs li { margin: 0; flex: 0 0 auto; }
+
+  .theinmag-membership-hero__thumb {
+    appearance: none;
+    background: transparent;
+    border: 2px solid transparent;
     padding: 0;
-    background: rgba(42, 31, 61, 0.25);
+    width: 60px;
+    height: 60px;
     cursor: pointer;
-    transition: background var(--transition-standard), transform var(--transition-standard);
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.15s ease;
   }
-  .theinmag-membership-hero__dot.is-active {
-    background: var(--color-soft-pink);
-    transform: scale(1.4);
+  .theinmag-membership-hero__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
-  .theinmag-membership-hero__dot[hidden] { display: none; }
-  @media (min-width: 750px) {
-    .theinmag-membership-hero__dots { display: none; }
+  .theinmag-membership-hero__thumb.is-active {
+    border-color: var(--color-purple-dark);
+  }
+  .theinmag-membership-hero__thumb-play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
   }
 
   /* ---------- RIGHT column (sticky widget) ---------- */
 
-  /* Cream card with subtle transparency over the patterned bg. Backdrop
-     blur softens the bg pattern behind the widget for legibility. */
+  /* Flat - no card surface (matches the typical product page). The
+     section bg + padding carry it; the widget just needs internal
+     spacing off the media column. */
   .theinmag-membership-hero__widget {
-    background-color: rgba(251, 246, 234, 0.94);
-    border-radius: var(--radius-xl);
-    /* Tight top padding kills dead space above the title; bottom keeps
-       breathing room beneath the post-add tile. Glow matches the photos
-       card so both lift off the patterned bg with the same weight. */
-    padding: var(--space-xs) var(--space-lg) var(--space-lg);
-    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    padding: var(--space-md) 0 0;
   }
 
   @media (min-width: 750px) {
     .theinmag-membership-hero__widget {
-      /* Widget starts aligned with photos top (align-self: start). Both
-         columns scroll naturally with the page until the widget's bottom
-         would otherwise exit viewport - sticky-bottom then pins it at
-         viewport bottom. Photos keep scrolling on the left until their
-         bottom catches up at section end, both release simultaneously.
-         Ryan: "they move together at the start but the widget stops
-         before the photos... until both bottoms line up". */
+      /* Sticky-bottom: widget pins at viewport bottom once its own
+         bottom would otherwise scroll off, then releases with the
+         media column at section end. Matches single-mags-hero. */
       position: sticky;
       bottom: 0;
       align-self: start;
-      padding: var(--space-xs) var(--space-lg) var(--space-lg);
+      padding: 0 0 0 var(--space-md);
     }
   }
 

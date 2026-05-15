@@ -175,69 +175,35 @@
     }
   }
 
-  /* Pool randomisation - server renders 2 fixed photos (kids, variant-swap),
-     8 hidden trust-overlay pool items, then 2 more fixed (inside, letterbox).
-     JS picks 3 pool items at random per page load, biasing toward Membership-
-     specific overlays (data-pool-priority === 'high') so at least one always
-     lands. The matching pool dots get the same picks treatment. Removed pool
-     items leave the DOM so they don't fetch. */
-  (function selectPool() {
-    const poolPhotos = Array.from(section.querySelectorAll('[data-pool-photo]'));
-    const poolDots = Array.from(section.querySelectorAll('[data-pool-dot]'));
-    if (poolPhotos.length === 0) return;
+  /* Media gallery - one big main image plus a thumb strip below, mirroring
+     the typical product page (theinmag-single-mags-hero). One slide is
+     visible at a time; clicking a thumb or a prev/next arrow toggles the
+     active slide. Slide 0 is the Format-driven variant photo, kept in
+     sync by update() via data-hero-swap / data-thumb-swap. */
+  (function gallery() {
+    const slides = Array.prototype.slice.call(section.querySelectorAll('[data-slide]'));
+    const thumbBtns = Array.prototype.slice.call(section.querySelectorAll('[data-thumb]'));
+    if (slides.length === 0) return;
 
-    function shuffleIndices(n) {
-      const arr = [];
-      for (let i = 0; i < n; i += 1) arr.push(i);
-      for (let i = arr.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
-      }
-      return arr;
-    }
-
-    const indices = shuffleIndices(poolPhotos.length);
-    let picks = indices.slice(0, 3);
-
-    const hasHigh = picks.some(function (i) {
-      return poolPhotos[i].dataset.poolPriority === 'high';
-    });
-    if (!hasHigh) {
-      const highIndices = indices.filter(function (i) {
-        return poolPhotos[i].dataset.poolPriority === 'high';
+    let activeSlide = 0;
+    function show(i) {
+      activeSlide = (i + slides.length) % slides.length;
+      slides.forEach(function (slide, j) {
+        slide.classList.toggle('is-active', j === activeSlide);
       });
-      if (highIndices.length) {
-        const swapInto = Math.floor(Math.random() * picks.length);
-        picks[swapInto] = highIndices[Math.floor(Math.random() * highIndices.length)];
-      }
+      thumbBtns.forEach(function (btn, j) {
+        btn.classList.toggle('is-active', j === activeSlide);
+      });
     }
 
-    const pickedSet = {};
-    picks.forEach(function (i) { pickedSet[i] = true; });
-
-    poolPhotos.forEach(function (photo, i) {
-      if (pickedSet[i]) {
-        photo.hidden = false;
-      } else {
-        photo.remove();
-      }
-    });
-    poolDots.forEach(function (dot, i) {
-      if (pickedSet[i]) {
-        dot.hidden = false;
-      } else {
-        dot.remove();
-      }
+    thumbBtns.forEach(function (btn, j) {
+      btn.addEventListener('click', function () { show(j); });
     });
 
-    /* Re-index data-photo-index + data-thumb-jump on the survivors so
-       click-jump (mobile carousel) finds clean sequential indexes. */
-    section.querySelectorAll('.theinmag-membership-hero__photo').forEach(function (p, idx) {
-      p.setAttribute('data-photo-index', idx);
-    });
-    section.querySelectorAll('[data-thumb-jump]').forEach(function (btn, idx) {
-      btn.setAttribute('data-thumb-jump', idx);
-    });
+    const prevArrow = section.querySelector('[data-media-prev]');
+    const nextArrow = section.querySelector('[data-media-next]');
+    if (prevArrow) prevArrow.addEventListener('click', function () { show(activeSlide - 1); });
+    if (nextArrow) nextArrow.addEventListener('click', function () { show(activeSlide + 1); });
   })();
 
   form.querySelectorAll('[data-option-name] [data-value]').forEach(function (tile) {
@@ -269,41 +235,6 @@
     });
   });
 
-  /* Mobile carousel: dot click scrolls the carousel horizontally to the
-     target photo. Desktop's mosaic shows everything at once so dots are
-     hidden via CSS - this handler is mobile-only in practice. */
-  const stack = section.querySelector('[data-stack]');
-  const thumbs = section.querySelectorAll('[data-thumb-jump]');
-  const photos = section.querySelectorAll('[data-photo-index]');
-  thumbs.forEach(function (thumb) {
-    thumb.addEventListener('click', function () {
-      const idx = parseInt(thumb.dataset.thumbJump, 10);
-      const target = photos[idx];
-      if (!target || !stack) return;
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest', inline: 'start' });
-    });
-  });
-
-  /* Scroll-spy on the mobile carousel - tracks scrollLeft, highlights the
-     matching dot. Plain scroll listener over IntersectionObserver per
-     pattern-library guidance. Desktop's mosaic is fully visible so spy is
-     a no-op there (dots are hidden anyway). */
-  function syncThumbActive() {
-    if (!photos.length || !thumbs.length || !stack) return;
-    let activeIdx = 0;
-    const stackRect = stack.getBoundingClientRect();
-    const stackMid = stackRect.left + stackRect.width * 0.3;
-    photos.forEach(function (photo, idx) {
-      const rect = photo.getBoundingClientRect();
-      if (rect.left <= stackMid) activeIdx = idx;
-    });
-    thumbs.forEach(function (thumb, idx) {
-      thumb.classList.toggle('is-active', idx === activeIdx);
-    });
-  }
-  if (stack) stack.addEventListener('scroll', syncThumbActive, { passive: true });
-
   /* "Back to my order" floating button visibility - shown when the widget's
      bottom has scrolled past the top of viewport so the user is below the
      order surface and needs a quick path back to confirm + add. Click
@@ -320,13 +251,11 @@
   }
 
   function onScroll() {
-    syncThumbActive();
     syncBackToOrder();
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll, { passive: true });
-  syncThumbActive();
   syncBackToOrder();
 
   /* Floating cart - body tap scrolls back to the widget; CTA submits
