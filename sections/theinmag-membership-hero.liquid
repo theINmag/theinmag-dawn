@@ -854,22 +854,25 @@
 
   /* Starting issue tiles - stacked vertically per Ryan's preference (reverting
      the earlier side-by-side experiment - the stacked treatment reads cleaner
-     and lets the two-line tile content breathe). */
+     and lets the two-line tile content breathe). Tiles shrink to fit their
+     content width so there's no dead space on the right - matches the rest
+     of the widget's tight rhythm. */
   .theinmag-membership-hero__starting {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--space-xs);
   }
   .theinmag-membership-hero__start-tile {
     background: #ffffff;
     border: 1.5px solid var(--color-soft-pink);
     border-radius: var(--radius-pill);
-    padding: 5px 12px;
+    padding: 8px 16px;
     cursor: pointer;
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 1px;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
     transition: background var(--transition-standard), color var(--transition-standard);
@@ -879,8 +882,8 @@
     color: var(--color-inky-purple-navy);
   }
   .theinmag-membership-hero__start-tile[hidden] { display: none; }
-  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 11px; line-height: 1.25; }
-  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 10px; opacity: 0.8; line-height: 1.25; }
+  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 13px; line-height: 1.3; }
+  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 12px; opacity: 0.85; line-height: 1.3; }
 
   /* CTA row holds the yellow ADD TO CART + outlined BUY NOW side by side.
      Pattern matches the typical product page (theinmag-single-mags-hero). */
