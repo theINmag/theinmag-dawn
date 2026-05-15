@@ -114,7 +114,12 @@ cart-drawer.is-empty .drawer__footer {
   border-radius: 999px;
   overflow: hidden;
 }
-.theinmag-shipping-bar__fill {
+/* Parent-class bumped specificity (0,2,1) beats Dawn's
+   `div:empty { display: none }` rule (0,1,1) in base.css which
+   would otherwise hide our decorative empty fill bar. Same
+   workaround pattern as the locked memory note about Dawn
+   collapsing empty divs. */
+.theinmag-shipping-bar .theinmag-shipping-bar__fill {
   display: block;
   height: 100%;
   min-width: 4px;

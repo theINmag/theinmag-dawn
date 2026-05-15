@@ -40,7 +40,7 @@
 <section class="theinmag-cart-featured">
   <div class="theinmag-cart-featured__inner">
     <h2 class="theinmag-cart-featured__heading">
-      {{- section.settings.heading | default: 'More from theINmag' -}}
+      {{- section.settings.heading | default: 'More to explore' -}}
     </h2>
     <div class="theinmag-cart-featured__grid">
       {%- for handle in priority_handles -%}
@@ -101,7 +101,7 @@
       "type": "text",
       "id": "heading",
       "label": "Heading",
-      "default": "More from theINmag"
+      "default": "More to explore"
     },
     {
       "type": "range",
