@@ -115,6 +115,23 @@
                 </small>
               </div>
             {%- else -%}
+              {%- comment -%}
+                Gift-address callout. Sits flush above the Check out
+                button so it lands eyes-first right before they click
+                through to the (un-editable on Basic plan) Shopify
+                checkout. Wording deliberately blunt: Ryan was getting
+                ~2 emails/day from gift buyers who used their own
+                address by mistake.
+              {%- endcomment -%}
+              <aside class="theinmag-gift-callout" role="note" aria-label="Gift shipping reminder">
+                <p class="theinmag-gift-callout__heading">
+                  <span class="theinmag-gift-callout__icon" aria-hidden="true">🎁</span>
+                  Sending this as a gift?
+                </p>
+                <p class="theinmag-gift-callout__body">
+                  On the next page, enter the <strong>kid's name and address</strong> in the shipping fields. Not yours. Otherwise the mag lands in your letterbox, not theirs.
+                </p>
+              </aside>
               <div class="cart__ctas" {{ block.shopify_attributes }}>
                 <button
                   type="submit"

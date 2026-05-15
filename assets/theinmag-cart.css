@@ -471,6 +471,45 @@ cart-drawer.is-empty .drawer__footer {
 }
 
 /* ---------------------------------------------------------------
+   Gift-address callout (sits directly above the Check out button).
+   --------------------------------------------------------------- */
+.theinmag-gift-callout {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  background: var(--color-peach);
+  border: 1.5px solid var(--color-sandy-orange-dark);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+}
+.theinmag-gift-callout__heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-sandy-orange-dark);
+}
+.theinmag-gift-callout__icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.theinmag-gift-callout__body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--color-inky-purple-navy);
+}
+.theinmag-gift-callout__body strong {
+  font-weight: 700;
+  color: var(--color-sandy-orange-dark);
+}
+
+/* ---------------------------------------------------------------
    Cart-bottom Featured collection (theinmag-cart-featured.liquid)
    --------------------------------------------------------------- */
 .theinmag-cart-featured {
