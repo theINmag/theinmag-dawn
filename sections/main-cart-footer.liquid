@@ -2,6 +2,7 @@
 {{ 'component-totals.css' | asset_url | stylesheet_tag }}
 {{ 'component-price.css' | asset_url | stylesheet_tag }}
 {{ 'component-discounts.css' | asset_url | stylesheet_tag }}
+{{ 'theinmag-cart.css' | asset_url | stylesheet_tag }}
 
 {%- style -%}
   .section-{{ section.id }}-padding {
@@ -24,15 +25,22 @@
 >
   <div class="page-width">
     <div class="cart__footer isolate section-{{ section.id }}-padding">
+      <div class="theinmag-main-cart__between-wrap">
+        {% render 'theinmag-cart-crosssell' %}
+        {% render 'theinmag-cart-trust-strip', surface: 'page' %}
+      </div>
+
       {%- if settings.show_cart_note -%}
-        <cart-note class="cart__note field">
-          <label for="Cart-note">{{ 'sections.cart.note' | t }}</label>
+        <cart-note class="theinmag-cart-note theinmag-cart-note--page">
+          <label for="Cart-note" class="theinmag-cart-note__label">
+            Got a gift message or special request?
+          </label>
           <textarea
-            class="text-area field__input"
+            class="theinmag-cart-note__field"
             name="note"
             form="cart"
             id="Cart-note"
-            placeholder="{{ 'sections.cart.note' | t }}"
+            placeholder="e.g. 'Happy 9th birthday Mia! Love Grandma.'"
           >{{ cart.note }}</textarea>
         </cart-note>
       {%- endif -%}

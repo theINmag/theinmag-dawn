@@ -4,6 +4,7 @@
 {{ 'component-price.css' | asset_url | stylesheet_tag }}
 {{ 'component-discounts.css' | asset_url | stylesheet_tag }}
 {{ 'quantity-popover.css' | asset_url | stylesheet_tag }}
+{{ 'theinmag-cart.css' | asset_url | stylesheet_tag }}
 
 {%- style -%}
   .section-{{ section.id }}-padding {
@@ -27,6 +28,9 @@
 
 <cart-items class="gradient color-{{ section.settings.color_scheme }} isolate{% if cart == empty %} is-empty{% else %} section-{{ section.id }}-padding{% endif %}">
   <div class="page-width">
+    <div class="theinmag-main-cart__shipping-bar-wrap">
+      {% render 'theinmag-cart-shipping-bar' %}
+    </div>
     <div class="title-wrapper-with-link">
       <h1 class="title title--primary">{{ 'sections.cart.title' | t }}</h1>
       <a href="{{ routes.all_products_collection_url }}" class="underlined-link">
@@ -35,17 +39,22 @@
     </div>
 
     <div class="cart__warnings">
-      <h1 class="cart__empty-text">{{ 'sections.cart.empty' | t }}</h1>
-      <a href="{{ routes.all_products_collection_url }}" class="button">
-        {{ 'general.continue_shopping' | t }}
-      </a>
-
-      {%- if shop.customer_accounts_enabled and customer == null -%}
-        <h2 class="cart__login-title">{{ 'sections.cart.login.title' | t }}</h2>
-        <p class="cart__login-paragraph">
-          {{ 'sections.cart.login.paragraph_html' | t: link: routes.account_login_url }}
+      <div class="theinmag-empty-cart theinmag-empty-cart--page">
+        <span
+          class="theinmag-empty-cart__character"
+          data-theinmag-pool-character
+        ></span>
+        <h1 class="theinmag-empty-cart__heading">Looks empty IN here.</h1>
+        <p class="theinmag-empty-cart__subhead">No mags in the basket yet.</p>
+        <p class="theinmag-empty-cart__body">
+          Browse the mags below - every issue is 120+ pages of pure
+          creativity by Aussie kids, ad-free, sustainably printed.
         </p>
-      {%- endif -%}
+        <a href="/pages/shop" class="theinmag-empty-cart__cta">
+          Take me to the shop →
+        </a>
+      </div>
+      {% render 'theinmag-character-pool' %}
     </div>
 
     <form action="{{ routes.cart_url }}" class="cart__contents critical-hidden" method="post" id="cart">
@@ -108,7 +117,7 @@
                         <p class="caption-with-letter-spacing">{{ item.product.vendor }}</p>
                       {%- endif -%}
 
-                      <a href="{{ item.url }}" class="cart-item__name h4 break">{{ item.product.title | escape }}</a>
+                      <a href="{{ item.url }}" class="cart-item__name h4 break">{{ item.product.title | replace: 'theINmag - ', '' | escape }}</a>
 
                       {%- if item.original_price != item.final_price -%}
                         <div class="cart-item__discounted-prices">
@@ -301,12 +310,10 @@
                           >
                             <a
                               href="{{ item.url_to_remove }}"
-                              class="button button--tertiary"
+                              class="button button--tertiary theinmag-cart-remove"
                               aria-label="{{ 'sections.cart.remove_title' | t: title: item.title | escape }}"
                             >
-                              <span class="svg-wrapper">
-                                {{- 'icon-remove.svg' | inline_asset_content -}}
-                              </span>
+                              Remove
                             </a>
                           </cart-remove-button>
                         </div>

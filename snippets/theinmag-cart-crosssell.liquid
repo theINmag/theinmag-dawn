@@ -1,0 +1,305 @@
+{%- comment -%}
+  theinmag-cart-crosssell.liquid
+
+  "Often paired with..." row, between the cart line items and the
+  trust strip on both surfaces (drawer + /cart). Suggests 1-3 add-on
+  products that aren't already in the cart.
+
+  Defaults (Ryan tunes by editing the handles list below):
+    - membership  (theINmag Membership)
+    - snack-pack  (Snack Pack)
+    - digital-stack  (Digital Stack)
+
+  Hide rule: if a product is already in the cart (by product handle),
+  its card is omitted. So if a customer's cart already has Membership,
+  Membership doesn't suggest itself again.
+
+  AJAX add uses Shopify's /cart/add.js with sections payload so the
+  drawer + cart-icon-bubble refresh in one round trip. After success,
+  publishes PUB_SUB_EVENTS.cartUpdate so the shipping bar + any other
+  cart listeners refresh.
+
+  Per Bible Part 6 (Quick Add aversion): we don't add Quick Add to
+  PDP grids because customers haven't decided yet. Cart cross-sells
+  are the exception - the customer HAS decided to buy, they're just
+  being asked "and one more?"
+{%- endcomment -%}
+
+{%- liquid
+  assign crosssell_handles = 'membership,snack-pack,digital-stack' | split: ','
+
+  assign cart_handles = ''
+  for item in cart.items
+    assign cart_handles = cart_handles | append: item.product.handle | append: '|'
+  endfor
+
+  assign rendered_count = 0
+-%}
+
+<div class="theinmag-cart-crosssell" data-theinmag-cart-crosssell>
+  <p class="theinmag-cart-crosssell__heading">Often paired with...</p>
+  <ul class="theinmag-cart-crosssell__list" role="list">
+    {%- for handle in crosssell_handles -%}
+      {%- assign product = all_products[handle] -%}
+      {%- if product == empty or product.handle == blank -%}{% continue %}{%- endif -%}
+      {%- assign cart_key = product.handle | append: '|' -%}
+      {%- if cart_handles contains cart_key -%}{% continue %}{%- endif -%}
+      {%- assign variant = product.selected_or_first_available_variant -%}
+      {%- unless variant and variant.available -%}{% continue %}{%- endunless -%}
+
+      {%- assign subtitle = '' -%}
+      {%- case product.handle -%}
+        {%- when 'membership' -%}
+          {%- assign subtitle = 'Get the next 4 issues delivered.' -%}
+        {%- when 'snack-pack' -%}
+          {%- assign subtitle = 'Two mags. Perfect intro pack.' -%}
+        {%- when 'digital-stack' -%}
+          {%- assign subtitle = 'Every back issue as a PDF.' -%}
+        {%- else -%}
+          {%- assign subtitle = product.description | strip_html | truncate: 60 -%}
+      {%- endcase -%}
+
+      <li class="theinmag-cart-crosssell__card">
+        {%- if product.featured_image -%}
+          <div class="theinmag-cart-crosssell__media">
+            <img
+              src="{{ product.featured_image | image_url: width: 200 }}"
+              alt="{{ product.featured_image.alt | default: product.title | escape }}"
+              loading="lazy"
+              width="80"
+              height="{{ 80 | divided_by: product.featured_image.aspect_ratio | ceil }}"
+            >
+          </div>
+        {%- endif -%}
+        <div class="theinmag-cart-crosssell__copy">
+          <p class="theinmag-cart-crosssell__title">
+            {{ product.title | replace: 'theINmag - ', '' | escape }}
+          </p>
+          {%- if subtitle != '' -%}
+            <p class="theinmag-cart-crosssell__subtitle">{{ subtitle }}</p>
+          {%- endif -%}
+          <a href="{{ product.url }}" class="theinmag-cart-crosssell__details">view details →</a>
+        </div>
+        <button
+          type="button"
+          class="theinmag-cart-crosssell__add"
+          data-theinmag-crosssell-add
+          data-variant-id="{{ variant.id }}"
+          data-product-handle="{{ product.handle }}"
+          aria-label="Add {{ product.title | replace: 'theINmag - ', '' | escape }} to cart"
+        >
+          Add
+        </button>
+      </li>
+      {%- assign rendered_count = rendered_count | plus: 1 -%}
+    {%- endfor -%}
+  </ul>
+</div>
+
+{%- if rendered_count == 0 -%}
+  <style>[data-theinmag-cart-crosssell]{display:none;}</style>
+{%- endif -%}
+
+<script>
+  (function () {
+    if (window.__theinmagCartCrosssellInit) return;
+    window.__theinmagCartCrosssellInit = true;
+
+    function init() {
+      document.addEventListener('click', function (event) {
+        var btn = event.target.closest('[data-theinmag-crosssell-add]');
+        if (!btn) return;
+        event.preventDefault();
+        if (btn._pending) return;
+        btn._pending = true;
+
+        var variantId = btn.getAttribute('data-variant-id');
+        var originalLabel = btn.textContent;
+        btn.textContent = 'Adding...';
+        btn.disabled = true;
+
+        /* When cart_type=drawer, refresh the drawer + cart-icon-bubble
+           in the same round-trip by passing the sections payload. */
+        var cartDrawer = document.querySelector('cart-drawer');
+        var sectionIds = cartDrawer && typeof cartDrawer.getSectionsToRender === 'function'
+          ? cartDrawer.getSectionsToRender().map(function (s) { return s.id; }).join(',')
+          : '';
+
+        var body = new FormData();
+        body.append('id', variantId);
+        body.append('quantity', '1');
+        if (sectionIds) {
+          body.append('sections', sectionIds);
+          body.append('sections_url', window.location.pathname);
+        }
+
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: body
+        })
+          .then(function (r) {
+            if (!r.ok) throw new Error('add failed');
+            return r.json();
+          })
+          .then(function (response) {
+            btn.textContent = 'Added ✓';
+
+            /* Refresh the drawer DOM from the returned sections (same
+               mechanism PDP product-form.js uses). */
+            if (cartDrawer && response.sections && typeof cartDrawer.renderContents === 'function') {
+              cartDrawer.renderContents(response);
+            }
+
+            /* On /cart page, force a full page reload after a beat so
+               the line items + totals fully refresh. cart.js already
+               powers the drawer/quantity flow but doesn't listen to
+               external /cart/add.js calls, and pretending otherwise
+               leaks stale UI. Only do this on /cart, not on PDPs. */
+            if (window.location.pathname.replace(/\/$/, '') === '/cart') {
+              setTimeout(function () { window.location.reload(); }, 350);
+              return;
+            }
+
+            /* Publish cartUpdate so shipping bar + any other listeners
+               recalculate. Use the response as cartData; if sections
+               weren't requested, response is the line item just added
+               (not the full cart), so fall back to fetching /cart.js. */
+            if (typeof publish === 'function' && typeof PUB_SUB_EVENTS !== 'undefined') {
+              if (response && typeof response.total_price === 'number') {
+                publish(PUB_SUB_EVENTS.cartUpdate, {
+                  source: 'theinmag-cart-crosssell',
+                  cartData: response,
+                });
+              } else {
+                fetch('/cart.js', { headers: { Accept: 'application/json' } })
+                  .then(function (r) { return r.json(); })
+                  .then(function (cart) {
+                    publish(PUB_SUB_EVENTS.cartUpdate, {
+                      source: 'theinmag-cart-crosssell',
+                      cartData: cart,
+                    });
+                  })
+                  .catch(function () {});
+              }
+            }
+          })
+          .catch(function () {
+            btn.textContent = 'Try again';
+          })
+          .finally(function () {
+            setTimeout(function () {
+              btn.textContent = originalLabel;
+              btn.disabled = false;
+              btn._pending = false;
+            }, 1400);
+          });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
+
+{% stylesheet %}
+.theinmag-cart-crosssell {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(45, 31, 61, 0.08);
+  border-radius: var(--radius-md);
+}
+.theinmag-cart-crosssell__heading {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 10px;
+}
+.theinmag-cart-crosssell__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.theinmag-cart-crosssell__card {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px;
+  background: #fff;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+}
+.theinmag-cart-crosssell__media img {
+  display: block;
+  width: 64px;
+  height: auto;
+  border-radius: 4px;
+}
+.theinmag-cart-crosssell__copy {
+  min-width: 0;
+}
+.theinmag-cart-crosssell__title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text);
+}
+.theinmag-cart-crosssell__subtitle {
+  margin: 2px 0 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--color-text-muted);
+}
+.theinmag-cart-crosssell__details {
+  display: inline-block;
+  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-teal-dark);
+  text-decoration: none;
+}
+.theinmag-cart-crosssell__details:hover,
+.theinmag-cart-crosssell__details:focus-visible {
+  text-decoration: underline;
+}
+.theinmag-cart-crosssell__add {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  background: var(--color-yellow);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-button-yellow);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  min-width: 64px;
+}
+.theinmag-cart-crosssell__add:hover,
+.theinmag-cart-crosssell__add:focus-visible {
+  background: var(--color-purple-dark);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.theinmag-cart-crosssell__add:disabled {
+  opacity: 0.8;
+  cursor: progress;
+  transform: none;
+}
+{% endstylesheet %}

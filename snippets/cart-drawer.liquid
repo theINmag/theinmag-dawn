@@ -7,6 +7,7 @@
 
 {{ 'quantity-popover.css' | asset_url | stylesheet_tag }}
 {{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'theinmag-cart.css' | asset_url | stylesheet_tag }}
 
 <script src="{{ 'cart.js' | asset_url }}" defer="defer"></script>
 <script src="{{ 'quantity-popover.js' | asset_url }}" defer="defer"></script>
@@ -27,40 +28,32 @@
       aria-label="{{ 'sections.cart.title' | t }}"
       tabindex="-1"
     >
-      {%- if cart == empty -%}
-        <div class="drawer__inner-empty">
-          <div class="cart-drawer__warnings center{% if settings.cart_drawer_collection != blank %} cart-drawer__warnings--has-collection{% endif %}">
-            <div class="cart-drawer__empty-content">
-              <h2 class="cart__empty-text">{{ 'sections.cart.empty' | t }}</h2>
-              <button
-                class="drawer__close"
-                type="button"
-                onclick="this.closest('cart-drawer').close()"
-                aria-label="{{ 'accessibility.close' | t }}"
-              >
-                <span class="svg-wrapper">
-                  {{- 'icon-close.svg' | inline_asset_content -}}
-                </span>
-              </button>
-              <a href="{{ routes.all_products_collection_url }}" class="button">
-                {{ 'general.continue_shopping' | t }}
-              </a>
-
-              {%- if shop.customer_accounts_enabled and customer == null -%}
-                <p class="cart__login-title h3">{{ 'sections.cart.login.title' | t }}</p>
-                <p class="cart__login-paragraph">
-                  {{ 'sections.cart.login.paragraph_html' | t: link: routes.account_login_url }}
-                </p>
-              {%- endif -%}
-            </div>
-          </div>
-          {%- if settings.cart_drawer_collection != blank -%}
-            <div class="cart-drawer__collection">
-              {% render 'card-collection', card_collection: settings.cart_drawer_collection, columns: 1 %}
-            </div>
-          {%- endif -%}
+      <div class="drawer__inner-empty">
+        <button
+          class="drawer__close"
+          type="button"
+          onclick="this.closest('cart-drawer').close()"
+          aria-label="{{ 'accessibility.close' | t }}"
+        >
+          <span class="svg-wrapper">
+            {{- 'icon-close.svg' | inline_asset_content -}}
+          </span>
+        </button>
+        <div class="theinmag-empty-cart theinmag-empty-cart--drawer">
+          <span
+            class="theinmag-empty-cart__character"
+            data-theinmag-pool-character
+          ></span>
+          <h2 class="theinmag-empty-cart__heading">Looks empty IN here.</h2>
+          <p class="theinmag-empty-cart__body">
+            Pop a mag in here and we'll get IT in your letterbox.
+          </p>
+          <a href="/pages/shop" class="theinmag-empty-cart__cta">
+            Browse the mag shop →
+          </a>
         </div>
-      {%- endif -%}
+        {% render 'theinmag-character-pool' %}
+      </div>
       <div class="drawer__header">
         <h2 class="drawer__heading">{{ 'sections.cart.title' | t }}</h2>
         <button
@@ -73,6 +66,9 @@
             {{- 'icon-close.svg' | inline_asset_content -}}
           </span>
         </button>
+      </div>
+      <div class="theinmag-cart-drawer__shipping-bar-wrap">
+        {% render 'theinmag-cart-shipping-bar' %}
       </div>
       <cart-drawer-items
         {% if cart == empty %}
@@ -151,7 +147,7 @@
                           {%- endif -%}
 
                           <a href="{{ item.url }}" class="cart-item__name h4 break">
-                            {{- item.product.title | escape -}}
+                            {{- item.product.title | replace: 'theINmag - ', '' | escape -}}
                           </a>
 
                           {%- if item.original_price != item.final_price -%}
@@ -350,16 +346,14 @@
                               >
                                 <button
                                   type="button"
-                                  class="button button--tertiary cart-remove-button"
+                                  class="button button--tertiary cart-remove-button theinmag-cart-remove"
                                   aria-label="{{ 'sections.cart.remove_title' | t: title: item.title | escape }}"
                                   data-variant-id="{{ item.variant.id }}"
                                   {% if item.instructions and item.instructions.can_remove == false %}
                                     class="hidden"
                                   {% endif %}
                                 >
-                                  <span class="svg-wrapper">
-                                    {{- 'icon-remove.svg' | inline_asset_content -}}
-                                  </span>
+                                  Remove
                                 </button>
                               </cart-remove-button>
                             </div>
@@ -474,22 +468,23 @@
           <div id="CartDrawer-CartErrors" role="alert"></div>
         </form>
       </cart-drawer-items>
+      <div class="theinmag-cart-drawer__between-wrap">
+        {% render 'theinmag-cart-crosssell' %}
+        {% render 'theinmag-cart-trust-strip', surface: 'drawer' %}
+      </div>
       <div class="drawer__footer">
         {%- if settings.show_cart_note -%}
-          <details id="Details-CartDrawer">
+          <details id="Details-CartDrawer" class="theinmag-cart-note-details">
             <summary>
-              <span class="summary__title">
-                {{ 'sections.cart.note' | t }}
-                {{- 'icon-caret.svg' | inline_asset_content -}}
-              </span>
+              <span class="theinmag-cart-note__label">Got a gift message or special request?</span>
             </summary>
-            <cart-note class="cart__note field">
-              <label class="visually-hidden" for="CartDrawer-Note">{{ 'sections.cart.note' | t }}</label>
+            <cart-note class="theinmag-cart-note__body">
+              <label class="visually-hidden" for="CartDrawer-Note">Gift message or special request</label>
               <textarea
                 id="CartDrawer-Note"
-                class="text-area text-area--resize-vertical field__input"
+                class="theinmag-cart-note__field"
                 name="note"
-                placeholder="{{ 'sections.cart.note' | t }}"
+                placeholder="e.g. 'Happy 9th birthday Mia! Love Grandma.'"
               >{{ cart.note }}</textarea>
             </cart-note>
           </details>

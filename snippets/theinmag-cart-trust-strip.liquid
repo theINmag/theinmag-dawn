@@ -1,0 +1,113 @@
+{%- comment -%}
+  theinmag-cart-trust-strip.liquid
+
+  Five locked brand truths in slim text-only form. Rendered between
+  line items and totals on both cart surfaces (drawer + /cart). No
+  images - the existing trust-overlay JPGs are sized for product hero
+  swaps, not slim cart bars.
+
+  Copy is hardcoded so a single Liquid edit changes both surfaces;
+  no schema settings (the 5 truths are brand-locked per spec 2.18).
+{%- endcomment -%}
+
+{%- liquid
+  assign tick = '<svg class="theinmag-cart-trust__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 10.5l3 3 7-7"/></svg>'
+  assign surface_modifier = ''
+  if surface == 'page'
+    assign surface_modifier = ' theinmag-cart-trust--page'
+  endif
+-%}
+
+<ul class="theinmag-cart-trust{{ surface_modifier }}" role="list">
+  <li class="theinmag-cart-trust__item">
+    {{ tick }}
+    <span>100% ad-free</span>
+  </li>
+  <li class="theinmag-cart-trust__item">
+    {{ tick }}
+    <span>Made by Aussie kids, for Aussie kids</span>
+  </li>
+  <li class="theinmag-cart-trust__item">
+    {{ tick }}
+    <span>Sustainably printed in Australia</span>
+  </li>
+  <li class="theinmag-cart-trust__item">
+    {{ tick }}
+    <span>120+ pages of pure creativity</span>
+  </li>
+  <li class="theinmag-cart-trust__item">
+    {{ tick }}
+    <span>Real kids. Real names. Real towns.</span>
+  </li>
+</ul>
+
+{% stylesheet %}
+.theinmag-cart-trust {
+  list-style: none;
+  margin: 16px 0;
+  padding: 14px 18px;
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.theinmag-cart-trust__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--color-text);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(45, 31, 61, 0.08);
+}
+.theinmag-cart-trust__item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.theinmag-cart-trust__icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--color-sage-dark);
+}
+
+@media (min-width: 750px) {
+  .theinmag-cart-trust {
+    font-size: 13px;
+  }
+  .theinmag-cart-trust__item {
+    font-size: 13px;
+  }
+}
+
+/* On /cart page surface where there's more horizontal room, lay the
+   ticks out in a row of 5 (or wrap to 2x3 if needed). The drawer is
+   narrower so it always stacks. The .theinmag-cart-trust--page class
+   is added by the /cart render call to opt into the row layout. */
+.theinmag-cart-trust--page {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 16px 20px;
+}
+.theinmag-cart-trust--page .theinmag-cart-trust__item {
+  flex: 1 1 calc(50% - 12px);
+  border-bottom: 0;
+  padding: 6px 12px 6px 0;
+}
+@media (min-width: 990px) {
+  .theinmag-cart-trust--page .theinmag-cart-trust__item {
+    flex: 1 1 0;
+    border-right: 1px solid rgba(45, 31, 61, 0.08);
+    padding: 6px 14px;
+    text-align: left;
+    justify-content: flex-start;
+  }
+  .theinmag-cart-trust--page .theinmag-cart-trust__item:last-child {
+    border-right: 0;
+  }
+}
+{% endstylesheet %}

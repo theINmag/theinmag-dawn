@@ -1,15 +1,31 @@
-{% if cart == empty %}
-  <span class="svg-wrapper">{{ 'icon-cart-empty.svg' | inline_asset_content }}</span>
-{% else %}
-  <span class="svg-wrapper">{{ 'icon-cart.svg' | inline_asset_content }}</span>
-{% endif %}
+{%- comment -%}
+  cart-icon-bubble.liquid - theINmag override (May 2026)
 
-<span class="visually-hidden">{{ 'templates.cart.cart' | t }}</span>
-{%- if cart != empty -%}
-  <div class="cart-count-bubble">
-    {%- if cart.item_count < 100 -%}
-      <span aria-hidden="true">{{ cart.item_count }}</span>
-    {%- endif -%}
-    <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
-  </div>
+  This file replaces Dawn's stock cart-icon-bubble.liquid. The section
+  is fetched fresh by cart.js / cart-drawer.js on every cart change and
+  its innerHTML is dropped INTO `#cart-icon-bubble` (the anchor inside
+  sections/theinmag-header.liquid). So the markup here MUST match the
+  inner contents of that anchor or the custom header visually breaks
+  after the first add-to-cart.
+
+  Original Dawn markup is preserved in git history if Dawn's header
+  is ever reintroduced.
+{%- endcomment -%}
+
+<svg
+  class="theinmag-header__cart-icon"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.8"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  <path d="M5 7h14l-1.2 12.2A2 2 0 0 1 15.81 21H8.19a2 2 0 0 1-1.99-1.8L5 7Z"></path>
+  <path d="M9 7V5.5a3 3 0 0 1 6 0V7"></path>
+</svg>
+{%- if cart.item_count > 0 -%}
+  <span class="theinmag-header__cart-count" data-cart-count>{{ cart.item_count }}</span>
 {%- endif -%}

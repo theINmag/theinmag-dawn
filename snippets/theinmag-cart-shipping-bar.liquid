@@ -1,0 +1,182 @@
+{%- comment -%}
+  theinmag-cart-shipping-bar.liquid
+
+  Single source of truth for the free-shipping progress bar. Rendered
+  at the top of:
+    - snippets/cart-drawer.liquid (just under .drawer__header)
+    - sections/main-cart-items.liquid (just inside <cart-items>)
+
+  Threshold (dollars) reads from shop.metafields.theinmag.free_shipping_threshold
+  with a fallback of 40. To change the threshold, edit the metafield in
+  admin - do not hunt for hardcoded values in Liquid.
+
+  Drawer surface: when cart.js fetches cart-drawer after a quantity
+  change, this whole snippet re-renders server-side from fresh
+  cart.total_price - no client-side update needed.
+
+  /cart surface: only `.js-contents` re-renders on quantity change,
+  not the wider <cart-items>. So this snippet's inline JS also
+  subscribes to PUB_SUB_EVENTS.cartUpdate and re-renders the bar
+  client-side from event.cartData.total_price.
+
+  Hides itself when cart is empty (no shipping context).
+{%- endcomment -%}
+
+{%- liquid
+  assign threshold_dollars = shop.metafields.theinmag.free_shipping_threshold | default: 40
+  assign threshold_cents = threshold_dollars | times: 100
+  assign cart_total = cart.total_price | default: 0
+  assign remaining_cents = threshold_cents | minus: cart_total
+  assign progress_pct = cart_total | times: 100.0 | divided_by: threshold_cents
+  if progress_pct > 100
+    assign progress_pct = 100
+  endif
+  assign unlocked = false
+  if cart_total >= threshold_cents
+    assign unlocked = true
+  endif
+-%}
+
+<div
+  class="theinmag-shipping-bar{% if unlocked %} is-unlocked{% endif %}{% if cart == empty %} is-hidden{% endif %}"
+  data-theinmag-shipping-bar
+  data-threshold-cents="{{ threshold_cents }}"
+  role="status"
+  aria-live="polite"
+>
+  <p class="theinmag-shipping-bar__copy" data-shipping-bar-copy>
+    {%- if unlocked -%}
+      <span aria-hidden="true">🎉</span>
+      You've unlocked free shipping.
+    {%- else -%}
+      Spend <strong data-shipping-bar-remaining>{{ remaining_cents | money_without_trailing_zeros }}</strong> more for free shipping
+      <span class="theinmag-shipping-bar__arrow" aria-hidden="true">→</span>
+    {%- endif -%}
+  </p>
+  <div class="theinmag-shipping-bar__track" aria-hidden="true">
+    <div
+      class="theinmag-shipping-bar__fill"
+      data-shipping-bar-fill
+      style="width: {{ progress_pct }}%;"
+    ></div>
+  </div>
+</div>
+
+{%- comment -%}
+  Inline script + style scoped to this snippet. Guard ensures multiple
+  renders on the same page (drawer + /cart in the same DOM if Shopify
+  re-renders both) share one subscription, not two.
+{%- endcomment -%}
+
+<script>
+  (function () {
+    if (window.__theinmagShippingBarInit) return;
+    window.__theinmagShippingBarInit = true;
+
+    /* Subscribe needs to wait for global.js to define PUB_SUB_EVENTS
+       + subscribe. Defer to DOMContentLoaded so module load order is
+       irrelevant. */
+    function init() {
+      if (typeof subscribe !== 'function' || typeof PUB_SUB_EVENTS === 'undefined') return;
+
+      subscribe(PUB_SUB_EVENTS.cartUpdate, function (event) {
+        if (!event || !event.cartData) return;
+        var bars = document.querySelectorAll('[data-theinmag-shipping-bar]');
+        if (!bars.length) return;
+
+        var total = event.cartData.total_price || 0;
+        var itemCount = event.cartData.item_count;
+        Array.prototype.forEach.call(bars, function (bar) {
+          var threshold = parseInt(bar.dataset.thresholdCents, 10) || 4000;
+          var pct = Math.min(100, (total / threshold) * 100);
+          var remaining = Math.max(0, threshold - total);
+          var unlocked = total >= threshold;
+
+          bar.classList.toggle('is-unlocked', unlocked);
+          bar.classList.toggle('is-hidden', itemCount === 0);
+
+          var fill = bar.querySelector('[data-shipping-bar-fill]');
+          if (fill) fill.style.width = pct + '%';
+
+          var copy = bar.querySelector('[data-shipping-bar-copy]');
+          if (copy) {
+            if (unlocked) {
+              copy.innerHTML = '<span aria-hidden="true">🎉</span> You\'ve unlocked free shipping.';
+            } else {
+              copy.innerHTML =
+                'Spend <strong>$' +
+                (remaining / 100).toFixed(remaining % 100 === 0 ? 0 : 2) +
+                '</strong> more for free shipping <span class="theinmag-shipping-bar__arrow" aria-hidden="true">→</span>';
+            }
+          }
+        });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
+
+{% stylesheet %}
+.theinmag-shipping-bar {
+  display: block;
+  padding: 14px 18px;
+  margin: 0 0 16px;
+  background: var(--color-cream);
+  border: 1px solid rgba(45, 104, 120, 0.12);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+.theinmag-shipping-bar.is-hidden {
+  display: none;
+}
+.theinmag-shipping-bar__copy {
+  margin: 0 0 10px;
+  text-align: center;
+  font-weight: 500;
+}
+.theinmag-shipping-bar__copy strong {
+  font-weight: 700;
+  color: var(--color-purple-dark);
+}
+.theinmag-shipping-bar__arrow {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--color-purple-dark);
+}
+.theinmag-shipping-bar__track {
+  height: 6px;
+  background: rgba(93, 58, 122, 0.14);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.theinmag-shipping-bar__fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-teal-dark) 0%,
+    var(--color-purple-dark) 100%
+  );
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.theinmag-shipping-bar.is-unlocked .theinmag-shipping-bar__fill {
+  background: var(--color-sage-dark);
+}
+.theinmag-shipping-bar.is-unlocked .theinmag-shipping-bar__copy {
+  color: var(--color-sage-dark);
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theinmag-shipping-bar__fill {
+    transition: none;
+  }
+}
+{% endstylesheet %}

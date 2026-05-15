@@ -120,28 +120,48 @@ class CartItems extends HTMLElement {
   }
 
   getSectionsToRender() {
-    return [
-      {
+    // Only include sections whose target element is present in the DOM.
+    // Without this, removing from the drawer on a non-cart page (or any
+    // page that does not render Dawn's cart-icon-bubble section, like
+    // this theme's custom theinmag-header) null-derefs the lookup and
+    // the .totals__total-value replacement never runs.
+    const sections = [];
+
+    const mainCartItems = document.getElementById('main-cart-items');
+    if (mainCartItems) {
+      sections.push({
         id: 'main-cart-items',
-        section: document.getElementById('main-cart-items').dataset.id,
+        section: mainCartItems.dataset.id,
         selector: '.js-contents',
-      },
-      {
+      });
+    }
+
+    if (document.getElementById('cart-icon-bubble')) {
+      sections.push({
         id: 'cart-icon-bubble',
         section: 'cart-icon-bubble',
         selector: '.shopify-section',
-      },
-      {
+      });
+    }
+
+    if (document.getElementById('cart-live-region-text')) {
+      sections.push({
         id: 'cart-live-region-text',
         section: 'cart-live-region-text',
         selector: '.shopify-section',
-      },
-      {
+      });
+    }
+
+    const mainCartFooter = document.getElementById('main-cart-footer');
+    if (mainCartFooter) {
+      sections.push({
         id: 'main-cart-footer',
-        section: document.getElementById('main-cart-footer').dataset.id,
+        section: mainCartFooter.dataset.id,
         selector: '.js-contents',
-      },
-    ];
+      });
+    }
+
+    return sections;
   }
 
   updateQuantity(line, quantity, event, name, variantId) {
@@ -183,9 +203,9 @@ class CartItems extends HTMLElement {
           if (cartDrawerWrapper) cartDrawerWrapper.classList.toggle('is-empty', parsedState.item_count === 0);
 
           this.getSectionsToRender().forEach((section) => {
-            const elementToReplace =
-              document.getElementById(section.id).querySelector(section.selector) ||
-              document.getElementById(section.id);
+            const sectionEl = document.getElementById(section.id);
+            if (!sectionEl) return;
+            const elementToReplace = sectionEl.querySelector(section.selector) || sectionEl;
             elementToReplace.innerHTML = this.getSectionInnerHTML(
               parsedState.sections[section.section],
               section.selector

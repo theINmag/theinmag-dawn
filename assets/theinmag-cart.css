@@ -1,0 +1,212 @@
+/*
+ * theinmag-cart.css
+ *
+ * Cart-surface overrides on top of Dawn's component-cart.css /
+ * component-cart-items.css / quantity-popover.css. Loaded by:
+ *   - snippets/cart-drawer.liquid
+ *   - sections/main-cart-items.liquid
+ *
+ * Scoped to cart surfaces only - keep design-system tokens / sitewide
+ * styling in theinmag-base.css. Anything cart-specific lives here.
+ */
+
+/* ---------------------------------------------------------------
+   Hide between-line-items-and-totals widgets when cart is empty.
+   The drawer renders these unconditionally so JS can update them
+   after the first add-to-cart; CSS toggles visibility via .is-empty.
+   --------------------------------------------------------------- */
+cart-drawer.is-empty .theinmag-cart-drawer__between-wrap,
+cart-drawer.is-empty .theinmag-cart-drawer__shipping-bar-wrap,
+#main-cart-footer.is-empty .theinmag-main-cart__between-wrap {
+  display: none;
+}
+
+/* Drawer empty state: always rendered so the snippet stays present
+   after the customer removes the last line item. CSS toggles based
+   on cart-drawer's .is-empty class. */
+cart-drawer:not(.is-empty) .drawer__inner-empty {
+  display: none;
+}
+cart-drawer.is-empty .drawer__inner-empty {
+  display: flex;
+  flex-direction: column;
+  padding: 0 1.5rem;
+  height: 100%;
+}
+cart-drawer.is-empty cart-drawer-items,
+cart-drawer.is-empty .drawer__footer {
+  display: none;
+}
+
+/* ---------------------------------------------------------------
+   Remove link (softens Dawn's bin icon to a "Remove" text link)
+   --------------------------------------------------------------- */
+.theinmag-cart-remove {
+  /* Reset Dawn's .button--tertiary chrome (border, min-height, padding) */
+  min-height: 0 !important;
+  min-width: 0 !important;
+  padding: 4px 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  letter-spacing: 0;
+  text-transform: none;
+
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-purple-dark);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.theinmag-cart-remove:hover,
+.theinmag-cart-remove:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--color-purple-dark);
+  background: transparent !important;
+}
+.theinmag-cart-remove::before,
+.theinmag-cart-remove::after {
+  /* Dawn injects an underline pseudo-element on .button--tertiary; nuke. */
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------
+   Cart note (gift message / special request)
+   --------------------------------------------------------------- */
+.theinmag-cart-note__label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+.theinmag-cart-note__field {
+  width: 100%;
+  min-height: 84px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid rgba(45, 31, 61, 0.18);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text);
+  resize: vertical;
+}
+.theinmag-cart-note__field::placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.theinmag-cart-note__field:focus {
+  outline: 2px solid var(--color-purple-dark);
+  outline-offset: 2px;
+  border-color: transparent;
+}
+
+/* Drawer surface keeps the <details> collapse pattern. */
+.theinmag-cart-note-details {
+  margin-bottom: 16px;
+  border: 1px dashed rgba(93, 58, 122, 0.25);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  background: rgba(251, 246, 234, 0.6);
+}
+.theinmag-cart-note-details > summary {
+  list-style: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.theinmag-cart-note-details > summary::-webkit-details-marker {
+  display: none;
+}
+.theinmag-cart-note-details > summary::after {
+  content: '+';
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--color-purple-dark);
+  transition: transform 0.2s ease;
+}
+.theinmag-cart-note-details[open] > summary::after {
+  content: '−';
+}
+.theinmag-cart-note-details > summary .theinmag-cart-note__label {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.theinmag-cart-note-details > .theinmag-cart-note__body {
+  padding-top: 10px;
+}
+
+/* ---------------------------------------------------------------
+   Empty cart state (theINmag-flavoured)
+   --------------------------------------------------------------- */
+.theinmag-empty-cart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(24px, 6vw, 56px) 20px;
+  gap: 14px;
+}
+.theinmag-empty-cart__character {
+  width: clamp(120px, 30vw, 180px);
+  height: auto;
+  margin-bottom: 4px;
+}
+.theinmag-empty-cart__heading {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.05;
+  color: var(--color-text);
+  margin: 0;
+}
+.theinmag-empty-cart__subhead {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+.theinmag-empty-cart__body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text);
+  max-width: 38ch;
+  margin: 0;
+}
+.theinmag-empty-cart__cta {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 12px 22px;
+  background: var(--color-yellow);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: var(--shadow-button-yellow);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.theinmag-empty-cart__cta:hover,
+.theinmag-empty-cart__cta:focus-visible {
+  background: var(--color-purple-dark);
+  color: #fff;
+  transform: translateY(-1px);
+}
