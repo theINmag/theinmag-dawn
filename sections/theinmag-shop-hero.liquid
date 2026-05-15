@@ -388,7 +388,9 @@
     line-height: 1.5;
     color: var(--color-inky-purple-navy);
     opacity: 0.85;
-    max-width: 44ch;
+    /* Wide enough to keep the countdown subhead on one line on desktop;
+       still wraps on narrow viewports as the font + column scale down. */
+    max-width: 58ch;
   }
 
   /* Aggregate rating - sits just under the subhead, links to #reviews. */

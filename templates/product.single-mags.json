@@ -178,9 +178,17 @@
             "question": "What if a print issue is sold out?",
             "answer": "<p>Once a print run's gone, it's gone. But every issue stays available as a digital download. If you want to never miss a future print issue, <a href=\"/products/membership\">grab a Membership</a> - guaranteed delivery to your door.</p>"
           }
+        },
+        "f5": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What ages is theINmag for?",
+            "answer": "<p>We built theINmag for primary-age kids. In practice it reaches further - we've published creations from kids as young as three and as old as sixteen. The sweet spot sits around seven to thirteen, when kids are independent enough to dive in themselves and really get inspired by what other kids have made.</p>"
+          }
         }
       },
       "block_order": [
+        "f5",
         "f1",
         "f2",
         "f3",
@@ -225,7 +233,7 @@
         "product-membership": {
           "type": "product_link",
           "settings": {
-            "label": "Never miss an issue",
+            "label": "theINmag Membership",
             "tagline": "Get every drop, three times a year. Cancel anytime.",
             "price": "From $89",
             "link": "/products/membership",
@@ -245,6 +253,17 @@
             "fallback_hover_filename": "product-bundle-hover.jpg",
             "image_alt": "Stack of hand-picked theINmag issues."
           }
+        },
+        "product-mag10": {
+          "type": "product_link",
+          "settings": {
+            "label": "Pre-order Mag10",
+            "tagline": "The new issue drops mid-June. Lock yours in now.",
+            "price": "$23.95",
+            "link": "/products/mag10",
+            "fallback_filename": "Mag10-mockup.jpg",
+            "image_alt": "Cover of theINmag Mag10, the new issue."
+          }
         }
       },
       "block_order": [
@@ -253,7 +272,8 @@
         "feature-3",
         "feature-4",
         "product-membership",
-        "product-bundle"
+        "product-bundle",
+        "product-mag10"
       ],
       "settings": {
         "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
@@ -265,9 +285,9 @@
     "hero",
     "inside",
     "pillars",
+    "ugc",
     "pull_quote",
     "reviews",
-    "ugc",
     "faq",
     "cross-sells"
   ]

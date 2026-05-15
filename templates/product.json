@@ -1,216 +1,227 @@
 {
   "sections": {
-    "main": {
-      "type": "main-product",
+    "issue-strip": {
+      "type": "theinmag-issue-strip",
+      "settings": {
+        "heading": "Browse the issues",
+        "issues_collection": "single-issues",
+        "membership_handle": "membership",
+        "padding_top": 24,
+        "padding_bottom": 8
+      }
+    },
+    "hero": {
+      "type": "theinmag-single-mags-hero",
       "blocks": {
-        "vendor": {
-          "type": "text",
+        "acc1": {
+          "type": "accordion",
           "settings": {
-            "text": "{{ product.vendor }}",
-            "text_style": "uppercase"
+            "question": "Can I grab more than one?",
+            "answer": "<p>Yes - grab as many as you like. Use the picker above to add different issues to your cart one at a time, or pick the Snack Pack option for a curated 2-mag bundle at a tighter price.</p>"
           }
         },
-        "title": {
-          "type": "title"
-        },
-        "caption": {
-          "type": "text",
+        "acc2": {
+          "type": "accordion",
           "settings": {
-            "text": "{{ product.metafields.descriptors.subtitle.value }}",
-            "text_style": "subtitle"
+            "question": "What ages is this magazine for?",
+            "answer": "<p>Designed for kids aged 5-13, though we've had submissions from kids up to 16. The whole family ends up reading - puzzles and jokes pull in younger siblings, longer reads and creator interviews keep older kids hooked, and parents read along.</p>"
           }
         },
-        "price": {
-          "type": "price"
-        },
-        "variant_picker": {
-          "type": "variant_picker",
+        "acc3": {
+          "type": "accordion",
           "settings": {
-            "picker_type": "button"
+            "question": "Shipping and delivery",
+            "answer": "<p>Print mags ship within three business days. Free shipping over $40. Digital downloads land in your inbox within minutes. Releases drop mid February, mid June, and mid October each year.</p>"
+          }
+        }
+      },
+      "block_order": ["acc1", "acc2", "acc3"],
+      "settings": {
+        "aeo_heading": "Buy a single issue of theINmag",
+        "visible_eyebrow": "",
+        "issues_collection": "single-issues",
+        "show_picker": false,
+        "show_card": false,
+        "show_section_bg": false,
+        "section_bg_opacity": 35,
+        "trust_1": "Free shipping over $40",
+        "trust_2": "Sustainably printed in Australia",
+        "trust_3": "120+ pages, zero ads",
+        "show_rating_chip": true,
+        "show_mini_review_bubble": true,
+        "show_buy_now": true,
+        "show_cross_sell": true,
+        "cross_sell_heading": "Want to receive every future issue?",
+        "cross_sell_body": "Set and forget. A membership means each new mag is delivered straight to your letterbox. Each drop, three times a year, free shipping always.",
+        "cross_sell_link_label": "Try a membership",
+        "cross_sell_link_url": "/products/membership",
+        "show_back_in_stock_link": false,
+        "back_in_stock_link_label": "Want notified when reprinted?",
+        "padding_top": 20,
+        "padding_bottom": 56
+      }
+    },
+    "inside": {
+      "type": "theinmag-single-mags-inside",
+      "settings": {
+        "aeo_heading": "What's inside theINmag?",
+        "eyebrow": "you're looking inside",
+        "heading_prefix": "INside",
+        "issues_collection": "single-issues",
+        "padding_top": 0,
+        "padding_bottom": 64
+      }
+    },
+    "pillars": {
+      "type": "theinmag-single-mags-pillars",
+      "blocks": {
+        "p1": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Made by kids",
+            "headline": "Real Aussie kids, named and credited.",
+            "body": "Every page is a kid's creation - writing, art, photography, jokes, puzzles. We just curate, design, and print. Each piece runs with the kid's first name, age, and town because their name should be on their work."
           }
         },
-        "quantity_selector": {
-          "type": "quantity_selector"
-        },
-        "buy_buttons": {
-          "type": "buy_buttons",
+        "p2": {
+          "type": "pillar",
           "settings": {
-            "show_dynamic_checkout": true,
-            "show_gift_card_recipient": true
+            "short_name": "120+ pages of pure creativity",
+            "headline": "No ads. Anywhere.",
+            "body": "You won't find a single ad. The space is given back to kids' creations. Every page earns its place because a real kid made something worth reading - not because a brand paid to be there."
           }
         },
-        "description": {
-          "type": "description"
-        },
-        "collapsible-row-0": {
-          "type": "collapsible_tab",
+        "p3": {
+          "type": "pillar",
           "settings": {
-            "heading": "Materials",
-            "icon": "leather",
-            "content": "",
-            "page": ""
+            "short_name": "Beautifully printed in Melbourne",
+            "headline": "Sustainably, locally, properly.",
+            "body": "Heavy uncoated stock, plant-based inks, printed right here in Melbourne. Built to be re-read, thrown around, and loved. The mag should still be readable after a year of school bag abuse."
           }
         },
-        "collapsible-row-1": {
-          "type": "collapsible_tab",
+        "p4": {
+          "type": "pillar",
           "settings": {
-            "heading": "Shipping & Returns",
-            "icon": "truck",
-            "content": "",
-            "page": ""
-          }
-        },
-        "collapsible-row-2": {
-          "type": "collapsible_tab",
-          "settings": {
-            "heading": "Dimensions",
-            "icon": "ruler",
-            "content": "",
-            "page": ""
-          }
-        },
-        "collapsible-row-3": {
-          "type": "collapsible_tab",
-          "settings": {
-            "heading": "Care Instructions",
-            "icon": "heart",
-            "content": "",
-            "page": ""
-          }
-        },
-        "share": {
-          "type": "share",
-          "settings": {
-            "share_label": "Share"
+            "short_name": "A snapshot in time",
+            "headline": "Once it's gone, it's gone.",
+            "body": "We print short runs - just enough to cover the Membership and the single-mag wave. Mag05 sold out in six weeks. If you've got a copy on the shelf, you've got something rare."
           }
         }
       },
       "block_order": [
-        "vendor",
-        "title",
-        "caption",
-        "price",
-        "variant_picker",
-        "quantity_selector",
-        "buy_buttons",
-        "description",
-        "collapsible-row-0",
-        "collapsible-row-1",
-        "collapsible-row-2",
-        "collapsible-row-3",
-        "share"
+        "p1",
+        "p2",
+        "p3",
+        "p4"
       ],
       "settings": {
-        "enable_sticky_info": true,
-        "gallery_layout": "stacked",
-        "media_size": "large",
-        "constrain_to_viewport": true,
-        "mobile_thumbnails": "hide",
-        "hide_variants": true,
-        "enable_video_looping": false,
-        "padding_top": 36,
-        "padding_bottom": 12
+        "aeo_heading": "What's actually in a theINmag issue?",
+        "intro_text": "A premium mag. Zero ads. All made by Aussie kids.",
+        "show_kid_art": false,
+        "kid_art_bg_color": "#FBF6EA"
       }
     },
-    "image-with-text": {
-      "type": "image-with-text",
+    "ugc": {
+      "type": "theinmag-membership-ugc",
+      "settings": {}
+    },
+    "pull_quote": {
+      "type": "theinmag-pull-quote",
+      "settings": {
+        "quote_body": "Such an incredibly diverse, interesting, thoughtful, creative, fun, engaging magazine. My kids are going to absolutely FIZZZZZ.",
+        "attribution_name": "Brooke B.",
+        "attribution_role": "parent",
+        "background_filename": "theinside-homepage-background.jpg",
+        "scrim_opacity": 45,
+        "heading_font_style": "inter",
+        "padding_top": 72,
+        "padding_bottom": 72
+      }
+    },
+    "reviews": {
+      "type": "theinmag-membership-reviews",
+      "settings": {
+        "review_source": "store",
+        "eyebrow": "From real families.",
+        "cta_label": "Write a review",
+        "expand_label": "Read all reviews",
+        "collapse_label": "Hide all reviews",
+        "min_reviews": 0,
+        "padding_top": 96,
+        "padding_bottom": 96
+      }
+    },
+    "faq": {
+      "type": "theinmag-single-mags-faq",
       "blocks": {
-        "image-with-text-0": {
-          "type": "heading",
+        "f1": {
+          "type": "faq_item",
           "settings": {
-            "heading": "Image with text",
-            "heading_size": "h1"
+            "question": "How often do new issues come out?",
+            "answer": "<p>Three times a year - February, June, and October. Printing the mag is expensive, so we keep print runs short. Issues often sell out quickly. Want to never miss one? <a href=\"/products/membership\">Grab a Membership</a>.</p>"
           }
         },
-        "image-with-text-1": {
-          "type": "text",
+        "f2": {
+          "type": "faq_item",
           "settings": {
-            "text": "<p>Pair text with an image to focus on your chosen product, collection, or blog post. Add details on availability, style, or even provide a review.<\/p>",
-            "text_style": "body"
+            "question": "What's the difference between print and digital?",
+            "answer": "<p>Print is the full magazine - 120+ pages, heavy paper, sustainably printed right here in Australia, posted to your door. Digital is a PDF you can read on any device. Same content, different format.</p>"
+          }
+        },
+        "f3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can my kid send IN their creation?",
+            "answer": "<p>Yes - and it's completely free. Any Aussie kid can send IN their writing, art, photos, jokes, puzzles. We want every kid to see their own creation in print. Head to <a href=\"/pages/send-in\">Send IN</a> and let your kid loose.</p>"
+          }
+        },
+        "f4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What if a print issue is sold out?",
+            "answer": "<p>Once a print run's gone, it's gone. But every issue stays available as a digital download. If you want to never miss a future print issue, <a href=\"/products/membership\">grab a Membership</a> - guaranteed delivery to your door.</p>"
+          }
+        },
+        "f5": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What ages is theINmag for?",
+            "answer": "<p>We built theINmag for primary-age kids. In practice it reaches further - we've published creations from kids as young as three and as old as sixteen. The sweet spot sits around seven to thirteen, when kids are independent enough to dive in themselves and really get inspired by what other kids have made.</p>"
           }
         }
       },
       "block_order": [
-        "image-with-text-0",
-        "image-with-text-1"
+        "f5",
+        "f1",
+        "f2",
+        "f3",
+        "f4"
       ],
       "settings": {
-        "height": "small",
-        "desktop_image_width": "medium",
-        "layout": "text_first",
-        "desktop_content_position": "top",
-        "desktop_content_alignment": "left",
-        "content_layout": "no-overlap",
-        "color_scheme": "scheme-2",
-        "mobile_content_alignment": "left",
-        "padding_top": 36,
-        "padding_bottom": 36
+        "padding_top": 72,
+        "padding_bottom": 72
       }
     },
-    "multicolumn": {
-      "type": "multicolumn",
-      "blocks": {
-        "column-0": {
-          "type": "column",
-          "settings": {
-            "title": "Free Shipping",
-            "text": "<p>Pair text with an image to focus on your chosen product, collection, or blog post. Add details on availability, style, or even provide a review.<\/p>",
-            "link_label": "",
-            "link": ""
-          }
-        },
-        "column-1": {
-          "type": "column",
-          "settings": {
-            "title": "Hassle-Free Exchanges",
-            "text": "<p>Pair text with an image to focus on your chosen product, collection, or blog post. Add details on availability, style, or even provide a review.<\/p>",
-            "link_label": "",
-            "link": ""
-          }
-        }
-      },
-      "block_order": [
-        "column-0",
-        "column-1"
-      ],
-      "settings": {
-        "title": "",
-        "heading_size": "h1",
-        "image_width": "full",
-        "image_ratio": "adapt",
-        "columns_desktop": 2,
-        "column_alignment": "left",
-        "background_style": "none",
-        "button_label": "",
-        "button_link": "",
-        "swipe_on_mobile": false,
-        "color_scheme": "scheme-1",
-        "columns_mobile": "1",
-        "padding_top": 36,
-        "padding_bottom": 36
-      }
-    },
-    "related-products": {
-      "type": "related-products",
+    "you-may-also-like": {
+      "type": "theinmag-you-may-also-like",
       "settings": {
         "heading": "You may also like",
-        "heading_size": "h2",
-        "columns_desktop": 4,
-        "color_scheme": "scheme-1",
-        "image_ratio": "square",
-        "show_secondary_image": true,
-        "show_vendor": false,
-        "show_rating": false,
-        "columns_mobile": "2",
-        "padding_top": 36,
-        "padding_bottom": 28
+        "issues_collection": "single-issues",
+        "membership_handle": "membership",
+        "padding_top": 72,
+        "padding_bottom": 72
       }
     }
   },
   "order": [
-    "main",
-    "image-with-text",
-    "multicolumn",
-    "related-products"
+    "issue-strip",
+    "hero",
+    "inside",
+    "pillars",
+    "ugc",
+    "pull_quote",
+    "reviews",
+    "faq",
+    "you-may-also-like"
   ]
 }

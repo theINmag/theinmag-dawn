@@ -1,0 +1,296 @@
+{%- comment -%}
+  theinmag-issue-strip
+  Horizontal navigation strip for the top of the product page. Each
+  tile links straight to that product's page - this is the old
+  single-mags picker reimagined as honest navigation (real URLs, one
+  product per page, no in-page content swapping).
+
+  Order (Ryan's call):
+    1. Membership
+    2. Snack Pack
+    3. Pre-sale magazine(s) - the is_pre_order one(s)
+    4. The rest of the magazines, newest-first
+    5. Digital Stack last
+
+  Rendered in five filtered passes rather than one re-sorted array -
+  slice/where/concat on product arrays proved unreliable, so each pass
+  is a plain filtered loop. Bundles are told apart from magazines by
+  is_pre_order OR a positive issue_number (Mag10's issue_number can be
+  blank during pre-sale, so is_pre_order is the reliable mag signal);
+  Snack Pack has a Print variant, Digital Stack does not.
+
+  The current product's tile is highlighted - bigger, rectangular,
+  bold label - so you can see the whole cover of the one you're on.
+{%- endcomment -%}
+
+{%- liquid
+  assign issues_collection_handle = section.settings.issues_collection | default: 'single-issues'
+  assign issues = collections[issues_collection_handle].products
+  assign sorted_issues = issues | sort: 'metafields.single_mag.issue_number.value' | reverse
+  assign membership_product = all_products[section.settings.membership_handle]
+  assign section_style = '--tmis-pt: ' | append: section.settings.padding_top | append: 'px; --tmis-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+{%- if sorted_issues.size > 0 -%}
+<section
+  class="theinmag-issue-strip"
+  style="{{ section_style }}"
+  aria-label="Browse theINmag issues"
+>
+  <div class="theinmag-issue-strip__inner">
+    {%- if section.settings.heading != blank -%}
+      <p class="theinmag-issue-strip__heading">{{ section.settings.heading }}</p>
+    {%- endif -%}
+    <ol class="theinmag-issue-strip__list" role="list">
+      {%- comment -%} 1. Membership {%- endcomment -%}
+      {%- if membership_product != blank -%}
+        {%- render 'theinmag-issue-strip-tile', product: membership_product, current_handle: product.handle -%}
+      {%- endif -%}
+
+      {%- comment -%} 2. Snack Pack - bundle (not pre-order, no positive issue number) WITH a Print variant {%- endcomment -%}
+      {%- for issue in sorted_issues -%}
+        {%- liquid
+          assign inum = issue.metafields.single_mag.issue_number.value | default: 0
+          assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
+          assign has_print = false
+          for v in issue.variants
+            if v.option1 == 'Print'
+              assign has_print = true
+            endif
+          endfor
+        -%}
+        {%- if is_pre == false and inum <= 0 and has_print -%}
+          {%- render 'theinmag-issue-strip-tile', product: issue, current_handle: product.handle -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- comment -%} 3. Pre-sale magazine(s) {%- endcomment -%}
+      {%- for issue in sorted_issues -%}
+        {%- assign is_pre = issue.metafields.theinmag.is_pre_order | default: false -%}
+        {%- if is_pre -%}
+          {%- render 'theinmag-issue-strip-tile', product: issue, current_handle: product.handle -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- comment -%} 4. The rest of the magazines, newest-first {%- endcomment -%}
+      {%- for issue in sorted_issues -%}
+        {%- liquid
+          assign inum = issue.metafields.single_mag.issue_number.value | default: 0
+          assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
+        -%}
+        {%- if is_pre == false and inum > 0 -%}
+          {%- render 'theinmag-issue-strip-tile', product: issue, current_handle: product.handle -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- comment -%} 5. Digital Stack - bundle (not pre-order, no positive issue number) with NO Print variant {%- endcomment -%}
+      {%- for issue in sorted_issues -%}
+        {%- liquid
+          assign inum = issue.metafields.single_mag.issue_number.value | default: 0
+          assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
+          assign has_print = false
+          for v in issue.variants
+            if v.option1 == 'Print'
+              assign has_print = true
+            endif
+          endfor
+        -%}
+        {%- if is_pre == false and inum <= 0 and has_print == false -%}
+          {%- render 'theinmag-issue-strip-tile', product: issue, current_handle: product.handle -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </ol>
+  </div>
+</section>
+{%- endif -%}
+
+{% stylesheet %}
+  .theinmag-issue-strip {
+    background-color: var(--color-cream);
+    padding: var(--tmis-pt, 24px) var(--space-lg) var(--tmis-pb, 24px);
+  }
+
+  .theinmag-issue-strip__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .theinmag-issue-strip__heading {
+    margin: 0 0 10px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-inky-purple-navy);
+    text-align: center;
+  }
+
+  .theinmag-issue-strip__list {
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .theinmag-issue-strip__list::-webkit-scrollbar { display: none; }
+
+  /* Desktop: keep the row centred when it fits, scroll when it doesn't
+     (no clipped start), and never wrap to a second line. */
+  @media (min-width: 750px) {
+    .theinmag-issue-strip__list {
+      width: max-content;
+      max-width: 100%;
+      margin-inline: auto;
+    }
+  }
+
+  .theinmag-issue-strip__item {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .theinmag-issue-strip__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+  }
+  .theinmag-issue-strip__link:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Non-current tile: a compact square thumbnail, cover-cropped. */
+  .theinmag-issue-strip__cover {
+    width: 62px;
+    height: 62px;
+    overflow: hidden;
+    background-color: var(--color-cream);
+    box-shadow: 0 2px 8px rgba(42, 31, 61, 0.10);
+    display: block;
+    transition: box-shadow 0.2s ease;
+  }
+  .theinmag-issue-strip__cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+
+  /* Current tile: bigger, portrait rectangle - the visual cue for
+     "you're on this one". The cover-img inherits object-fit:cover from
+     the base rule so it fills the taller box edge-to-edge (no contain
+     letterbox bar, which was leaving a thin line along the bottom). */
+  .theinmag-issue-strip__item.is-current .theinmag-issue-strip__cover {
+    width: 82px;
+    height: 108px;
+    box-shadow: 0 4px 16px rgba(123, 79, 158, 0.30);
+  }
+
+  /* Label: not bold by default, bold for the current product. */
+  .theinmag-issue-strip__label {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-inky-purple-navy);
+    line-height: 1.1;
+    text-align: center;
+  }
+  .theinmag-issue-strip__item.is-current .theinmag-issue-strip__label {
+    font-weight: 700;
+  }
+
+  /* Pre-order sub-label - sits under the pre-sale issue's tile. */
+  .theinmag-issue-strip__presale {
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark);
+    line-height: 1;
+  }
+
+  @media (max-width: 480px) {
+    .theinmag-issue-strip__cover {
+      width: 48px;
+      height: 48px;
+    }
+    .theinmag-issue-strip__item.is-current .theinmag-issue-strip__cover {
+      width: 64px;
+      height: 84px;
+    }
+    .theinmag-issue-strip__label {
+      font-size: 10px;
+    }
+    .theinmag-issue-strip__presale {
+      font-size: 8px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Issue strip",
+  "tag": "section",
+  "class": "shopify-section theinmag-issue-strip-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Horizontal nav strip for the top of product pages. Each tile links straight to that product's page. Order: Membership, Snack Pack, the pre-sale issue, the rest of the magazines newest-first, then Digital Stack."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading (optional)",
+      "default": "Browse the issues"
+    },
+    {
+      "type": "collection",
+      "id": "issues_collection",
+      "label": "Issues collection"
+    },
+    {
+      "type": "text",
+      "id": "membership_handle",
+      "label": "Membership product handle",
+      "default": "membership"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 96,
+      "step": 4,
+      "default": 24,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 96,
+      "step": 4,
+      "default": 24,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Issue strip" }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

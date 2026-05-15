@@ -1,0 +1,238 @@
+{%- comment -%}
+  theinmag-you-may-also-like
+  Curated upsell row for the bottom of the product page. Four slots, in
+  order: Snack Pack, Membership, Digital Stack, and the latest issue.
+
+  If the visitor is currently ON one of those four products, that slot
+  swaps to the previous issue (the one before the latest) so the row
+  never just points back at the page you're already on.
+
+  Replaces the old generic "cross-sells" mission block on the PDP.
+{%- endcomment -%}
+
+{%- liquid
+  assign issues_collection_handle = section.settings.issues_collection | default: 'single-issues'
+  assign all_issues = collections[issues_collection_handle].products | sort: 'metafields.single_mag.issue_number.value' | reverse
+
+  # Latest + previous magazine. The descending sort means the first two
+  # positive-numbered issues are the newest and second-newest.
+  assign latest_issue = nil
+  assign previous_issue = nil
+  for issue in all_issues
+    assign inum = issue.metafields.single_mag.issue_number.value | default: 0
+    if inum > 0
+      if latest_issue == nil
+        assign latest_issue = issue
+      elsif previous_issue == nil
+        assign previous_issue = issue
+      endif
+    endif
+  endfor
+
+  # The two curated bundles. Snack Pack carries a Print variant; the
+  # Digital Stack does not - that is how we tell them apart.
+  assign snack_pack = nil
+  assign digital_stack = nil
+  for issue in all_issues
+    assign inum = issue.metafields.single_mag.issue_number.value | default: 0
+    if inum <= 0
+      assign issue_has_print = false
+      for v in issue.variants
+        if v.option1 == 'Print'
+          assign issue_has_print = true
+        endif
+      endfor
+      if issue_has_print
+        assign snack_pack = issue
+      else
+        assign digital_stack = issue
+      endif
+    endif
+  endfor
+
+  assign membership_product = all_products[section.settings.membership_handle]
+
+  # Four slots in display order. If the current product fills a slot,
+  # swap that slot for the previous issue so the row stays useful.
+  assign slot_1 = snack_pack
+  assign slot_2 = membership_product
+  assign slot_3 = digital_stack
+  assign slot_4 = latest_issue
+  if slot_1 != blank and slot_1.handle == product.handle
+    assign slot_1 = previous_issue
+  endif
+  if slot_2 != blank and slot_2.handle == product.handle
+    assign slot_2 = previous_issue
+  endif
+  if slot_3 != blank and slot_3.handle == product.handle
+    assign slot_3 = previous_issue
+  endif
+  if slot_4 != blank and slot_4.handle == product.handle
+    assign slot_4 = previous_issue
+  endif
+
+  assign section_style = '--tmyml-pt: ' | append: section.settings.padding_top | append: 'px; --tmyml-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-you-may-also-like"
+  style="{{ section_style }}"
+  aria-labelledby="theinmag-yml-heading"
+>
+  <div class="theinmag-you-may-also-like__inner">
+    <h2 id="theinmag-yml-heading" class="theinmag-you-may-also-like__heading">
+      {{ section.settings.heading | default: 'You may also like' }}
+    </h2>
+    <ul class="theinmag-you-may-also-like__grid" role="list">
+      {%- if slot_1 != blank -%}{%- render 'theinmag-yml-card', product: slot_1 -%}{%- endif -%}
+      {%- if slot_2 != blank -%}{%- render 'theinmag-yml-card', product: slot_2 -%}{%- endif -%}
+      {%- if slot_3 != blank -%}{%- render 'theinmag-yml-card', product: slot_3 -%}{%- endif -%}
+      {%- if slot_4 != blank -%}{%- render 'theinmag-yml-card', product: slot_4 -%}{%- endif -%}
+    </ul>
+  </div>
+</section>
+
+{% stylesheet %}
+  .theinmag-you-may-also-like {
+    background-color: var(--color-cream);
+    padding: var(--tmyml-pt, 72px) var(--space-lg) var(--tmyml-pb, 72px);
+  }
+
+  .theinmag-you-may-also-like__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .theinmag-you-may-also-like__heading {
+    margin: 0 0 var(--space-lg);
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.05;
+    color: var(--color-inky-purple-navy);
+    text-align: center;
+  }
+
+  .theinmag-you-may-also-like__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+  }
+  @media (max-width: 749px) {
+    .theinmag-you-may-also-like__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .theinmag-you-may-also-like__item {
+    display: flex;
+  }
+
+  .theinmag-you-may-also-like__card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    text-decoration: none;
+    background: #ffffff;
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .theinmag-you-may-also-like__card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(42, 31, 61, 0.16);
+  }
+
+  .theinmag-you-may-also-like__cover {
+    display: block;
+    aspect-ratio: 1 / 1;
+    background-color: var(--color-cream);
+    overflow: hidden;
+  }
+  .theinmag-you-may-also-like__cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+
+  .theinmag-you-may-also-like__title {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.2;
+    color: var(--color-inky-purple-navy);
+    padding: 14px 16px 0;
+  }
+
+  .theinmag-you-may-also-like__price {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    color: rgba(42, 31, 61, 0.78);
+    padding: 4px 16px 16px;
+    margin-top: auto;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "You may also like",
+  "tag": "section",
+  "class": "shopify-section theinmag-you-may-also-like-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Curated upsell row: Snack Pack, Membership, Digital Stack, and the latest issue. If the visitor is on one of those, that slot swaps to the previous issue automatically."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "You may also like"
+    },
+    {
+      "type": "collection",
+      "id": "issues_collection",
+      "label": "Issues collection"
+    },
+    {
+      "type": "text",
+      "id": "membership_handle",
+      "label": "Membership product handle",
+      "default": "membership"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 72,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 72,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "You may also like" }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

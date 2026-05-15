@@ -1,0 +1,31 @@
+{%- comment -%}
+  theinmag-yml-card
+  One product card in the "You may also like" upsell row.
+
+  Params:
+    product - the product to render as a card
+{%- endcomment -%}
+{%- liquid
+  assign card_label = product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
+  assign card_cover = product.featured_image
+-%}
+<li class="theinmag-you-may-also-like__item">
+  <a class="theinmag-you-may-also-like__card" href="{{ product.url }}">
+    <span class="theinmag-you-may-also-like__cover">
+      {%- if card_cover != blank -%}
+        <img
+          class="theinmag-you-may-also-like__cover-img"
+          src="{{ card_cover | image_url: width: 600 }}"
+          alt="{{ card_label | escape }}"
+          loading="lazy"
+          width="600"
+          height="600"
+        >
+      {%- endif -%}
+    </span>
+    <span class="theinmag-you-may-also-like__title">{{ card_label }}</span>
+    <span class="theinmag-you-may-also-like__price">
+      {%- if product.price_varies -%}From {% endif -%}{{ product.price | money }}
+    </span>
+  </a>
+</li>

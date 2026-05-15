@@ -694,11 +694,13 @@
     opacity: 1;
   }
 
-  /* Pre-order badge - peach pill, top-right corner */
+  /* Pre-order badge - peach pill, top-LEFT corner. Left so it doesn't
+     cover the "made by kids, for kids" slogan that sits top-right on
+     the issue covers. */
   .theinmag-bundle-tile__badge {
     position: absolute;
     top: 10px;
-    right: 10px;
+    left: 10px;
     background-color: var(--color-peach, #FCDDB8);
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
@@ -710,6 +712,14 @@
     border-radius: var(--radius-pill, 9999px);
     box-shadow: 0 2px 6px rgba(42, 31, 61, 0.18);
     z-index: 2;
+  }
+
+  /* Current-issue badge - same pill, mint instead of peach so it reads
+     distinct from the pre-order badge on the grid. Stays top-LEFT (a
+     product is never both pre-order and current issue, so they never
+     collide; left keeps it clear of the cover slogan). */
+  .theinmag-bundle-tile__badge--current {
+    background-color: var(--color-mint, #D6EAD9);
   }
 
   .theinmag-bundle-tile__title {

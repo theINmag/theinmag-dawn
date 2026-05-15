@@ -1,0 +1,323 @@
+{%- comment -%}
+  theinmag-bundle-tier-strip
+  The persuasion engine. Sticky below the site header once the picker
+  enters view; reads live cart state and updates count + tier label +
+  progress fill + running total.
+
+  Listens for `theinmag-bundle:update` (CustomEvent on window) and
+  re-fetches /cart.js to repaint. Picker tiles + modal + remove buttons
+  all dispatch that event after a successful cart write.
+
+  IntersectionObserver on #theinmag-bundle-picker toggles `.is-sticky`
+  on the strip so it only appears once the visitor has reached the
+  picker zone.
+{%- endcomment -%}
+
+<section
+  class="theinmag-bundle-tier-strip"
+  data-theinmag-bundle-strip
+  aria-label="Bundle progress"
+>
+  <div class="theinmag-bundle-tier-strip__inner">
+    <div class="theinmag-bundle-tier-strip__count">
+      <strong data-strip-count>0</strong>
+      <span>items in your bundle</span>
+    </div>
+
+    <div class="theinmag-bundle-tier-strip__progress">
+      <p class="theinmag-bundle-tier-strip__label" data-strip-label>
+        Add 3 items to unlock your first 5% discount.
+      </p>
+      <div class="theinmag-bundle-tier-strip__track" aria-hidden="true">
+        <div class="theinmag-bundle-tier-strip__fill" data-strip-fill style="width: 0%;"></div>
+        <span class="theinmag-bundle-tier-strip__notch" style="left: 33%;"></span>
+        <span class="theinmag-bundle-tier-strip__notch" style="left: 67%;"></span>
+        <span class="theinmag-bundle-tier-strip__notch" style="left: 100%;"></span>
+      </div>
+    </div>
+
+    <div class="theinmag-bundle-tier-strip__total">
+      <span class="theinmag-bundle-tier-strip__strike" data-strip-strike hidden></span>
+      <span class="theinmag-bundle-tier-strip__final" data-strip-final>$0.00</span>
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-bundle-tier-strip {
+    position: fixed;
+    top: var(--bundle-strip-top, 80px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background-color: var(--color-peach, #FCDDB8);
+    color: var(--color-sandy-orange-dark, #D9783A);
+    box-shadow: 0 4px 12px rgba(42, 31, 61, 0.08);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+    pointer-events: none;
+  }
+  .theinmag-bundle-tier-strip.is-sticky {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .theinmag-bundle-tier-strip__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px clamp(16px, 4vw, 32px);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bundle-tier-strip__inner {
+      flex-direction: row;
+      align-items: center;
+      gap: clamp(16px, 3vw, 32px);
+      padding: 12px clamp(16px, 4vw, 32px);
+    }
+  }
+
+  .theinmag-bundle-tier-strip__count {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--color-sandy-orange-dark, #D9783A);
+    flex: 0 0 auto;
+  }
+  .theinmag-bundle-tier-strip__count strong {
+    font-weight: 700;
+    margin-right: 2px;
+  }
+
+  .theinmag-bundle-tier-strip__progress {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .theinmag-bundle-tier-strip__label {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--color-sandy-orange-dark, #D9783A);
+  }
+
+  .theinmag-bundle-tier-strip__track {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background-color: rgba(217, 120, 58, 0.20);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .theinmag-bundle-tier-strip__fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: var(--color-sandy-orange-dark, #D9783A);
+    border-radius: 2px;
+    transition: width 0.2s ease-out;
+  }
+
+  .theinmag-bundle-tier-strip__notch {
+    position: absolute;
+    top: -2px;
+    width: 1px;
+    height: 8px;
+    background-color: rgba(217, 120, 58, 0.55);
+    transform: translateX(-0.5px);
+  }
+
+  .theinmag-bundle-tier-strip__total {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+  .theinmag-bundle-tier-strip__strike {
+    font-weight: 400;
+    font-size: 13px;
+    color: rgba(217, 120, 58, 0.6);
+    text-decoration: line-through;
+  }
+  .theinmag-bundle-tier-strip__final {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.2;
+    color: var(--color-sandy-orange-dark, #D9783A);
+  }
+
+  /* On mobile, hide the progress bar visually to give count + label
+     + total breathing room (per brief: "or hide the progress bar
+     entirely on mobile" - we kept stacked layout but dropped the
+     bar itself; label still reads). */
+  @media (max-width: 749px) {
+    .theinmag-bundle-tier-strip__track { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bundle-tier-strip,
+    .theinmag-bundle-tier-strip__fill { transition: none; }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    const strip = document.querySelector('[data-theinmag-bundle-strip]');
+    if (!strip) return;
+
+    const countEl = strip.querySelector('[data-strip-count]');
+    const labelEl = strip.querySelector('[data-strip-label]');
+    const fillEl = strip.querySelector('[data-strip-fill]');
+    const strikeEl = strip.querySelector('[data-strip-strike]');
+    const finalEl = strip.querySelector('[data-strip-final]');
+
+    function tierFor(count) {
+      if (count >= 8) return { rate: 0.15, fill: 100, label: "15% off unlocked - that's the biggest discount we offer." };
+      if (count === 7) return { rate: 0.10, fill: 89, label: '10% off unlocked. Add 1 more for 15%.' };
+      if (count === 6) return { rate: 0.10, fill: 78, label: '10% off unlocked. Add 2 more for 15%.' };
+      if (count === 5) return { rate: 0.10, fill: 67, label: '10% off unlocked. Add 3 more for 15%.' };
+      if (count === 4) return { rate: 0.05, fill: 50, label: '5% off unlocked. Add 1 more for 10%.' };
+      if (count === 3) return { rate: 0.05, fill: 33, label: '5% off unlocked. Add 2 more for 10%.' };
+      if (count === 2) return { rate: 0, fill: 22, label: 'Add 1 more to unlock 5% off.' };
+      if (count === 1) return { rate: 0, fill: 11, label: 'Add 2 more to unlock 5% off.' };
+      return { rate: 0, fill: 0, label: 'Add 3 items to unlock your first 5% discount.' };
+    }
+
+    function formatAud(cents) {
+      const n = (cents / 100).toFixed(2);
+      return '$' + n;
+    }
+
+    function render(cart) {
+      const count = cart && typeof cart.item_count === 'number' ? cart.item_count : 0;
+      const total = cart && typeof cart.total_price === 'number' ? cart.total_price : 0;
+      const tier = tierFor(count);
+
+      if (countEl) countEl.textContent = String(count);
+      if (labelEl) labelEl.textContent = tier.label;
+      if (fillEl) fillEl.style.width = tier.fill + '%';
+
+      if (tier.rate > 0 && total > 0) {
+        const discountedTotal = Math.round(total * (1 - tier.rate));
+        if (strikeEl) {
+          strikeEl.textContent = formatAud(total);
+          strikeEl.hidden = false;
+        }
+        if (finalEl) finalEl.textContent = formatAud(discountedTotal);
+      } else {
+        if (strikeEl) strikeEl.hidden = true;
+        if (finalEl) finalEl.textContent = formatAud(total);
+      }
+    }
+
+    function refresh() {
+      return fetch('/cart.js', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(render)
+        .catch(function () { /* network blip - leave last paint in place */ });
+    }
+
+    /* Find the bottom of whatever persistent chrome is sitting at the
+       top of the viewport (announcement bar + sticky header etc.) and
+       pin the strip directly under it. Strip uses position: fixed so
+       it doesn't matter what the parent overflow/transform context is.
+       Re-measure on scroll + resize so a hide-on-scroll header still
+       lines up. */
+    function persistentChromeBottom() {
+      const candidates = document.querySelectorAll('header, [class*="header"], [class*="announcement"], [class*="Announcement"]');
+      let maxBottom = 0;
+      candidates.forEach(function (el) {
+        if (strip.contains(el) || el.contains(strip)) return;
+        const cs = window.getComputedStyle(el);
+        if (cs.position !== 'fixed' && cs.position !== 'sticky') return;
+        const r = el.getBoundingClientRect();
+        if (r.top <= 8 && r.bottom > 0) {
+          if (r.bottom > maxBottom) maxBottom = r.bottom;
+        }
+      });
+      return maxBottom;
+    }
+
+    function updateStripTop() {
+      const top = persistentChromeBottom();
+      strip.style.setProperty('--bundle-strip-top', top + 'px');
+    }
+
+    /* Visibility logic: show when picker is in view (top of picker
+       has scrolled past the chrome bottom, and bottom of picker is
+       still below the chrome). */
+    const picker = document.getElementById('theinmag-bundle-picker');
+
+    function updateStripVisibility() {
+      if (!picker) return;
+      const rect = picker.getBoundingClientRect();
+      const chromeBottom = persistentChromeBottom();
+      const shouldShow = rect.top <= chromeBottom + 24 && rect.bottom > chromeBottom;
+      strip.classList.toggle('is-sticky', shouldShow);
+    }
+
+    if (picker) {
+      window.addEventListener('scroll', function () {
+        updateStripTop();
+        updateStripVisibility();
+      }, { passive: true });
+      window.addEventListener('resize', function () {
+        updateStripTop();
+        updateStripVisibility();
+      });
+      /* First paint after chrome has settled. */
+      updateStripTop();
+      updateStripVisibility();
+      window.setTimeout(function () {
+        updateStripTop();
+        updateStripVisibility();
+      }, 250);
+    }
+
+    /* Listen for global bundle update events from picker tiles / modal /
+       running-total panel removes. The dispatcher passes the fresh cart
+       object on event.detail when available; otherwise we re-fetch. */
+    window.addEventListener('theinmag-bundle:update', function (event) {
+      if (event && event.detail && typeof event.detail.item_count === 'number') {
+        render(event.detail);
+      } else {
+        refresh();
+      }
+    });
+
+    /* Initial paint. */
+    refresh();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Bundle tier strip",
+  "tag": "section",
+  "class": "shopify-section--theinmag-bundle-tier-strip",
+  "settings": [],
+  "presets": [
+    { "name": "Bundle tier strip" }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

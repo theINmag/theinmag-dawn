@@ -371,3 +371,21 @@ main#MainContent > .shopify-section:first-of-type > .theinmag-hero,
         scroll-behavior: auto !important;
     }
 }
+
+/* PDP rating chip - shop-wide Judge.me score shown under the product
+   title in the buy box. Rendered by a custom_liquid block in
+   product.json; the stars themselves are drawn by Judge.me from the
+   data-score attribute. */
+.theinmag-pdp-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    margin: 4px 0 2px;
+}
+.theinmag-pdp-rating__count {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(42, 31, 61, 0.7);
+}

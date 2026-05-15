@@ -77,15 +77,29 @@
         {%- liquid
           assign default_src = ''
           assign hover_src = ''
+          # When the block links to a product and has no explicit image
+          # set, fall back to that product's own media - keeps cards like
+          # the Mag10 pre-order tile showing the real cover without a
+          # curated asset having to be uploaded first.
+          assign linked_product = nil
+          assign block_link = block.settings.link | default: ''
+          if block_link contains '/products/'
+            assign linked_handle = block_link | split: '/products/' | last | split: '?' | first | split: '#' | first
+            assign linked_product = all_products[linked_handle]
+          endif
           if block.settings.image != blank
             assign default_src = block.settings.image | image_url: width: 1200
           elsif block.settings.fallback_filename != blank
             assign default_src = block.settings.fallback_filename | asset_url
+          elsif linked_product != blank and linked_product.featured_image != blank
+            assign default_src = linked_product.featured_image | image_url: width: 1200
           endif
           if block.settings.hover_image != blank
             assign hover_src = block.settings.hover_image | image_url: width: 1200
           elsif block.settings.fallback_hover_filename != blank
             assign hover_src = block.settings.fallback_hover_filename | asset_url
+          elsif linked_product != blank and linked_product.featured_image != blank
+            assign hover_src = linked_product.featured_image | image_url: width: 1200
           endif
         -%}
         <li class="theinmag-mission__product-item" {{ block.shopify_attributes }}>

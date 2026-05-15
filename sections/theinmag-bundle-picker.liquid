@@ -1,0 +1,1839 @@
+{%- comment -%}
+  theinmag-bundle-picker
+  The pick zone for /pages/build-a-bundle. Owns:
+    3.0  Section wrapper (cream + section-bg snippet + heading)
+    3.1  Horizontal rail of single-issue tiles (Mag10..Mag01 + Snack Pack last)
+    3.3  Two Membership tiles (Print + Digital)
+    3.4  Membership modal (Length pills + Starting Issue radios)
+    3.5  Running-total panel (desktop sticky right column) + fixed mobile
+         bottom action bar
+    Shared updateBundleUI() that re-fetches /cart.js and repaints
+    every dependent surface (tier strip, panel, mobile bar, tile
+    steppers). Dispatches `theinmag-bundle:update` so external surfaces
+    (the tier strip section) can listen.
+
+  Snack Pack ordering: handled in Liquid by skipping the Snack Pack
+  handle inside the newest-first loop and rendering it once as the
+  final tile. No admin date change required.
+{%- endcomment -%}
+
+{%- liquid
+  assign rail_collection_handle = section.settings.rail_collection | default: 'single-issues'
+  assign snack_pack_handle = section.settings.snack_pack_handle | default: 'theinmag-snack-pack'
+  assign digital_stack_handle = section.settings.digital_stack_handle | default: 'theinmag-digital-stack'
+
+  assign rail_products = collections[rail_collection_handle].products | sort: 'title' | reverse
+  assign snack_pack_product = all_products[snack_pack_handle]
+
+  assign membership_product_handle = section.settings.membership_product_handle | default: 'membership'
+  assign membership_product = all_products[membership_product_handle]
+
+  assign print_member_image = section.settings.print_member_image
+  assign digital_member_image = section.settings.digital_member_image
+
+  assign print_member_src = ''
+  assign print_member_input = section.settings.print_member_image_filename
+  if print_member_input != blank
+    if print_member_input contains '//'
+      assign print_member_src = print_member_input
+    else
+      assign print_member_src = print_member_input | asset_url
+    endif
+  endif
+
+  assign digital_member_src = ''
+  assign digital_member_input = section.settings.digital_member_image_filename
+  if digital_member_input != blank
+    if digital_member_input contains '//'
+      assign digital_member_src = digital_member_input
+    else
+      assign digital_member_src = digital_member_input | asset_url
+    endif
+  endif
+
+  assign print_member_image_alt = section.settings.print_member_image_alt | default: 'Letterbox stack of theINmag issues from the Print Membership.'
+  assign digital_member_image_alt = section.settings.digital_member_image_alt | default: 'theINmag opened on an iPad screen.'
+
+  assign current_issue = shop.metafields.theinmag.current_issue_number.value | default: 'Mag09'
+  assign print_in_stock = shop.metafields.theinmag.current_issue_print_in_stock.value
+  assign next_release_value = shop.metafields.theinmag.next_release_date.value
+  assign next_release_formatted = next_release_value | date: '%-d %B %Y'
+
+  assign current_num_str = current_issue | remove: 'Mag'
+  assign current_num = current_num_str | times: 1
+  assign next_num = current_num | plus: 1
+  if next_num < 10
+    assign next_issue = 'Mag0' | append: next_num
+  else
+    assign next_issue = 'Mag' | append: next_num
+  endif
+
+  if print_in_stock
+    assign print_stock_attr = 'true'
+  else
+    assign print_stock_attr = 'false'
+  endif
+-%}
+
+<section
+  id="theinmag-bundle-picker"
+  class="theinmag-bundle-picker"
+  data-theinmag-bundle-picker
+  data-current-issue="{{ current_issue }}"
+  data-next-issue="{{ next_issue }}"
+  data-next-release="{{ next_release_formatted }}"
+  data-print-in-stock="{{ print_stock_attr }}"
+  data-print-member-img="{{ print_member_src | escape }}"
+  data-digital-member-img="{{ digital_member_src | escape }}"
+  aria-labelledby="theinmag-bundle-picker-heading"
+>
+  {% render 'theinmag-section-bg', opacity: 0.4 %}
+
+  <div class="theinmag-bundle-picker__inner">
+    <h2 class="theinmag-bundle-picker__a11y-heading">How do theINmag bundle discounts work?</h2>
+
+    <div class="theinmag-bundle-picker__grid">
+      <div class="theinmag-bundle-picker__zones">
+        <div class="theinmag-bundle-picker__zones-card">
+
+        <header class="theinmag-bundle-picker__intro">
+          <p id="theinmag-bundle-picker-heading" class="theinmag-bundle-picker__heading">{{ section.settings.heading }}</p>
+          {%- if section.settings.subhead != blank -%}
+            <p class="theinmag-bundle-picker__subhead">{{ section.settings.subhead }}</p>
+          {%- endif -%}
+        </header>
+
+        {%- comment -%} 3.1 - Single mag rail {%- endcomment -%}
+        <h3 class="theinmag-bundle-picker__rail-heading">Single mags</h3>
+
+        <div
+          class="theinmag-bundle-picker__rail"
+          role="list"
+          aria-label="Single mags and Snack Pack"
+          data-bundle-rail
+        >
+          {%- comment -%}
+            Snack Pack rendered FIRST (leftmost) so the curated bundle
+            anchors the rail; individual issues follow newest-first.
+          {%- endcomment -%}
+          {%- if snack_pack_product != blank and snack_pack_product != empty -%}
+            <div role="listitem">{% render 'theinmag-bundle-tile', product: snack_pack_product %}</div>
+          {%- endif -%}
+
+          {%- for product in rail_products -%}
+            {%- unless product.handle == digital_stack_handle or product.handle == snack_pack_handle or product.handle == rail_collection_handle -%}
+              <div role="listitem">{% render 'theinmag-bundle-tile', product: product %}</div>
+            {%- endunless -%}
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%} 3.3 - Membership tiles {%- endcomment -%}
+        <h3 class="theinmag-bundle-picker__memberships-heading">Add a Membership</h3>
+
+        <div class="theinmag-bundle-picker__memberships">
+          <article class="theinmag-bundle-picker__member-tile" data-bundle-member-tile data-format="Print">
+            <div class="theinmag-bundle-picker__member-cover">
+              {%- if print_member_image != blank -%}
+                <img
+                  src="{{ print_member_image | image_url: width: 600 }}"
+                  alt="{{ print_member_image_alt | escape }}"
+                  loading="lazy"
+                  width="600"
+                  height="800"
+                >
+              {%- elsif print_member_src != blank -%}
+                <img
+                  src="{{ print_member_src }}"
+                  alt="{{ print_member_image_alt | escape }}"
+                  loading="lazy"
+                  width="600"
+                  height="800"
+                >
+              {%- else -%}
+                <div class="theinmag-bundle-picker__member-cover-placeholder" aria-hidden="true"></div>
+              {%- endif -%}
+            </div>
+            <h4 class="theinmag-bundle-picker__member-title">Print Membership</h4>
+            <p class="theinmag-bundle-picker__member-sub">Real paper, in your kid's hands every drop.</p>
+            <p class="theinmag-bundle-picker__member-price">From $28.90/drop</p>
+            <button type="button" class="theinmag-bundle-picker__member-add" data-bundle-member-open data-format="Print">Add</button>
+          </article>
+
+          <article class="theinmag-bundle-picker__member-tile" data-bundle-member-tile data-format="Digital">
+            <div class="theinmag-bundle-picker__member-cover">
+              {%- if digital_member_image != blank -%}
+                <img
+                  src="{{ digital_member_image | image_url: width: 600 }}"
+                  alt="{{ digital_member_image_alt | escape }}"
+                  loading="lazy"
+                  width="600"
+                  height="800"
+                >
+              {%- elsif digital_member_src != blank -%}
+                <img
+                  src="{{ digital_member_src }}"
+                  alt="{{ digital_member_image_alt | escape }}"
+                  loading="lazy"
+                  width="600"
+                  height="800"
+                >
+              {%- else -%}
+                <div class="theinmag-bundle-picker__member-cover-placeholder" aria-hidden="true"></div>
+              {%- endif -%}
+            </div>
+            <h4 class="theinmag-bundle-picker__member-title">Digital Membership</h4>
+            <p class="theinmag-bundle-picker__member-sub">Yours to share with friends, family, the classroom.</p>
+            <p class="theinmag-bundle-picker__member-price">From $10.45/drop</p>
+            <button type="button" class="theinmag-bundle-picker__member-add" data-bundle-member-open data-format="Digital">Add</button>
+          </article>
+        </div>
+        </div>
+      </div>
+
+      {%- comment -%} 3.5 - Running-total panel (desktop only) {%- endcomment -%}
+      <aside class="theinmag-bundle-picker__panel" data-bundle-panel aria-label="Your bundle">
+        <div class="theinmag-bundle-picker__panel-card">
+          <h3 class="theinmag-bundle-picker__panel-heading">Your bundle</h3>
+
+          <ul class="theinmag-bundle-picker__panel-items" data-panel-items role="list">
+            <li class="theinmag-bundle-picker__panel-empty" data-panel-empty>
+              Nothing in here yet - pick a mag to start.
+            </li>
+          </ul>
+
+          <div class="theinmag-bundle-picker__panel-totals" data-panel-totals hidden>
+            <div class="theinmag-bundle-picker__panel-row">
+              <span>Subtotal</span>
+              <span data-panel-subtotal>$0.00</span>
+            </div>
+            <div class="theinmag-bundle-picker__panel-row theinmag-bundle-picker__panel-row--discount" data-panel-discount-row hidden>
+              <span data-panel-discount-label>Bundle discount</span>
+              <span data-panel-discount-amount>-$0.00</span>
+            </div>
+            <div class="theinmag-bundle-picker__panel-row theinmag-bundle-picker__panel-row--total">
+              <span>Total</span>
+              <span data-panel-total>$0.00</span>
+            </div>
+          </div>
+
+          <a href="/cart" class="theinmag-bundle-picker__panel-cta" data-panel-cta hidden>
+            Review &amp; checkout
+            <span aria-hidden="true"> &rarr;</span>
+          </a>
+
+          <p class="theinmag-bundle-picker__panel-microcopy" data-panel-microcopy hidden>
+            Free shipping over $40. Discount applied at checkout.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  {%- comment -%}
+    Floating mini bundle widget — pops top-right when the main
+    running-total panel scrolls out of view (i.e. once you scroll past
+    the picker section into the quote / pillars / FAQ below). Mirrors
+    the Membership PDP's sticky sales widget visual: white card,
+    deep shadow, compact label + meta + Review CTA. Hidden on mobile
+    where the bottom bar covers the same need.
+  {%- endcomment -%}
+  <aside class="theinmag-bundle-picker__float" data-bundle-float aria-label="Your bundle">
+    <p class="theinmag-bundle-picker__float-label">YOUR BUNDLE</p>
+    <p class="theinmag-bundle-picker__float-meta">
+      <span data-float-count>0</span> items
+      <span class="theinmag-bundle-picker__float-dot" aria-hidden="true">·</span>
+      <span data-float-total>$0.00</span>
+    </p>
+    <a class="theinmag-bundle-picker__float-cta" href="/cart">Review &amp; checkout &rarr;</a>
+  </aside>
+
+  {%- comment -%}
+    Mobile bottom action bar with expandable drawer.
+    Collapsed: count + total + Review CTA + chevron.
+    Expanded: drawer slides up showing item list (read-only) +
+    subtotal/discount/total breakdown. Tap chevron or summary to
+    toggle. Edits still happen on the cart page (Review).
+  {%- endcomment -%}
+  <div class="theinmag-bundle-picker__mobile-bar" data-bundle-mobile-bar hidden>
+    <div class="theinmag-bundle-picker__mobile-drawer" data-mobile-drawer aria-hidden="true">
+      <ul class="theinmag-bundle-picker__mobile-items" data-mobile-items role="list"></ul>
+      <div class="theinmag-bundle-picker__mobile-totals">
+        <div class="theinmag-bundle-picker__mobile-totals-row">
+          <span>Subtotal</span>
+          <span data-mobile-subtotal>$0.00</span>
+        </div>
+        <div class="theinmag-bundle-picker__mobile-totals-row theinmag-bundle-picker__mobile-totals-row--discount" data-mobile-discount-row hidden>
+          <span data-mobile-discount-label>Bundle discount</span>
+          <span data-mobile-discount-amount>-$0.00</span>
+        </div>
+      </div>
+    </div>
+    <div class="theinmag-bundle-picker__mobile-row-main">
+      <button
+        type="button"
+        class="theinmag-bundle-picker__mobile-toggle"
+        data-mobile-toggle
+        aria-expanded="false"
+      >
+        <span class="theinmag-bundle-picker__mobile-summary">
+          <span data-mobile-count>0</span> items &middot; <span data-mobile-total>$0.00</span>
+        </span>
+        <span class="theinmag-bundle-picker__mobile-chevron" aria-hidden="true"></span>
+      </button>
+      <a class="theinmag-bundle-picker__mobile-cta" href="/cart">Review &rarr;</a>
+    </div>
+  </div>
+
+  {%- comment -%} Membership modal {%- endcomment -%}
+  <dialog class="theinmag-bundle-picker__modal" data-bundle-modal aria-labelledby="theinmag-bundle-modal-title">
+    <form method="dialog" class="theinmag-bundle-picker__modal-inner" data-bundle-modal-form>
+      <button type="submit" class="theinmag-bundle-picker__modal-close" aria-label="Close" value="cancel">&times;</button>
+
+      <h2 id="theinmag-bundle-modal-title" class="theinmag-bundle-picker__modal-title" data-modal-title>Print Membership</h2>
+      <p class="theinmag-bundle-picker__modal-sub">Never miss an issue.</p>
+
+      <fieldset class="theinmag-bundle-picker__modal-fieldset">
+        <legend class="theinmag-bundle-picker__modal-legend">How many issues?</legend>
+        <div class="theinmag-bundle-picker__modal-pills" role="radiogroup" aria-label="Length" data-modal-length-group>
+          <button type="button" class="theinmag-bundle-picker__modal-pill is-active" data-modal-length="4-Issue" role="radio" aria-checked="true">
+            <span class="theinmag-bundle-picker__modal-pill-title">4-Issue</span>
+            <span class="theinmag-bundle-picker__modal-pill-price" data-modal-pill-price-4>$89</span>
+          </button>
+          <button type="button" class="theinmag-bundle-picker__modal-pill" data-modal-length="8-Issue" role="radio" aria-checked="false">
+            <span class="theinmag-bundle-picker__modal-pill-title">8-Issue</span>
+            <span class="theinmag-bundle-picker__modal-pill-price" data-modal-pill-price-8>$159</span>
+            <span class="theinmag-bundle-picker__modal-pill-chip">Best value</span>
+          </button>
+          <button type="button" class="theinmag-bundle-picker__modal-pill" data-modal-length="Rolling" role="radio" aria-checked="false">
+            <span class="theinmag-bundle-picker__modal-pill-title">Rolling</span>
+            <span class="theinmag-bundle-picker__modal-pill-price" data-modal-pill-price-rolling>$28.90/drop</span>
+          </button>
+        </div>
+      </fieldset>
+
+      <fieldset class="theinmag-bundle-picker__modal-fieldset">
+        <legend class="theinmag-bundle-picker__modal-legend">Where would you like to start?</legend>
+        <div class="theinmag-bundle-picker__modal-radios" role="radiogroup" aria-label="Starting issue" data-modal-start-group>
+          <label class="theinmag-bundle-picker__modal-radio" data-modal-start-current{% unless print_in_stock %} hidden{% endunless %}>
+            <input type="radio" name="bundle-start" value="current" {% if print_in_stock %}checked{% endif %}>
+            <span>Start with {{ current_issue }} (in stock now)</span>
+          </label>
+          <label class="theinmag-bundle-picker__modal-radio">
+            <input type="radio" name="bundle-start" value="next" {% unless print_in_stock %}checked{% endunless %}>
+            <span>Start with {{ next_issue }} (drops {{ next_release_formatted }})</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <p class="theinmag-bundle-picker__modal-rolling-note" data-modal-rolling-note hidden>
+        Bundle discount applies to your first drop only. Future drops charge at the usual rate.
+      </p>
+
+      <button type="button" class="theinmag-bundle-picker__modal-cta" data-modal-submit>
+        Add to bundle - <span data-modal-cta-price>$89</span>
+      </button>
+    </form>
+  </dialog>
+
+  {%- if membership_product != blank and membership_product != empty -%}
+    <script type="application/json" data-bundle-membership-variants>
+      [
+        {%- for v in membership_product.variants -%}
+          {"id": {{ v.id }}, "format": {{ v.option1 | json }}, "length": {{ v.option2 | json }}, "price": {{ v.price }}, "available": {{ v.available }}}{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ]
+    </script>
+  {%- else -%}
+    <script type="application/json" data-bundle-membership-variants>[]</script>
+  {%- endif -%}
+</section>
+
+{%- stylesheet -%}
+  .theinmag-bundle-picker {
+    position: relative;
+    background-color: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    padding: clamp(48px, 8vw, 96px) clamp(16px, 4vw, 48px);
+    /* No `overflow: hidden` here. It kills `position: sticky` on the
+       running-total panel inside this section. The section-bg snippet
+       is absolutely-positioned with inset:0 and constrained by the
+       section's own bounding box, so it doesn't need clipping. */
+  }
+
+  .theinmag-bundle-picker__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .theinmag-bundle-picker__a11y-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .theinmag-bundle-picker__intro {
+    margin: 0 0 clamp(24px, 3vw, 36px);
+    max-width: 60ch;
+  }
+
+  .theinmag-bundle-picker__heading {
+    margin: 0 0 10px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.5vw, 40px);
+    line-height: 1.15;
+    color: var(--color-inky-purple-navy);
+    text-wrap: balance;
+  }
+  .theinmag-bundle-picker__subhead {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(42, 31, 61, 0.72);
+  }
+
+  .theinmag-bundle-picker__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 3vw, 40px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bundle-picker__grid {
+      grid-template-columns: minmax(0, 1fr) 320px;
+      align-items: start;
+    }
+  }
+
+  .theinmag-bundle-picker__zones {
+    min-width: 0;
+  }
+
+  /* White card wrapping the picker's left column so type stays
+     legible over the busy section-bg pattern. The right-column panel
+     is already its own white card. */
+  .theinmag-bundle-picker__zones-card {
+    background-color: #FFFFFF;
+    border-radius: var(--radius-xl, 28px);
+    padding: clamp(20px, 3vw, 32px);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.10);
+  }
+
+  .theinmag-bundle-picker__rail-heading {
+    margin: 0 0 var(--space-md, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-sandy-orange-dark, #D9783A);
+  }
+
+  /* Rail. */
+  .theinmag-bundle-picker__rail {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: var(--space-md, 16px);
+    padding-right: clamp(40px, 8vw, 96px);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .theinmag-bundle-picker__rail::-webkit-scrollbar { display: none; }
+
+  .theinmag-bundle-picker__rail > [role='listitem'] {
+    flex: 0 0 160px;
+    scroll-snap-align: start;
+  }
+  @media (min-width: 750px) {
+    .theinmag-bundle-picker__rail > [role='listitem'] {
+      flex: 0 0 240px;
+    }
+  }
+
+  /* Memberships block. */
+  .theinmag-bundle-picker__memberships-heading {
+    margin: clamp(40px, 5vw, 64px) 0 var(--space-md, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-sandy-orange-dark, #D9783A);
+  }
+
+  .theinmag-bundle-picker__memberships {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md, 16px);
+  }
+  @media (min-width: 600px) {
+    .theinmag-bundle-picker__memberships {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .theinmag-bundle-picker__member-tile {
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-soft-pink, #F7A092);
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .theinmag-bundle-picker__member-cover {
+    aspect-ratio: 1 / 1;
+    background-color: var(--color-lavender);
+    overflow: hidden;
+  }
+  .theinmag-bundle-picker__member-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .theinmag-bundle-picker__member-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #E8DEEF 0%, #C9E5E8 100%);
+  }
+  .theinmag-bundle-picker__member-title {
+    margin: var(--space-md, 16px) var(--space-md, 16px) 4px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-picker__member-sub {
+    margin: 0 var(--space-md, 16px) 4px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(42, 31, 61, 0.72);
+  }
+  .theinmag-bundle-picker__member-price {
+    margin: 0 var(--space-md, 16px) var(--space-md, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+  .theinmag-bundle-picker__member-add {
+    appearance: none;
+    margin: 0 var(--space-md, 16px) var(--space-md, 16px);
+    padding: 10px 14px;
+    background: transparent;
+    border: 1.5px solid var(--color-purple-dark, #5D3A7A);
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 44px;
+    transition: background-color var(--transition-hover, 0.2s ease), color var(--transition-hover, 0.2s ease);
+  }
+  .theinmag-bundle-picker__member-add:hover,
+  .theinmag-bundle-picker__member-add:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+
+  /* Running-total panel. */
+  .theinmag-bundle-picker__panel {
+    display: none;
+  }
+  @media (min-width: 990px) {
+    .theinmag-bundle-picker__panel {
+      display: block;
+      position: sticky;
+      top: calc(var(--header-height, 80px) + 60px + 16px);
+      align-self: start;
+    }
+  }
+  .theinmag-bundle-picker__panel-card {
+    background-color: #FFFFFF;
+    border-radius: var(--radius-xl, 28px);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
+    padding: var(--space-lg, 24px);
+  }
+  .theinmag-bundle-picker__panel-heading {
+    margin: 0 0 var(--space-md, 16px);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(22px, 2.5vw, 28px);
+    line-height: 1.15;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-picker__panel-items {
+    list-style: none;
+    margin: 0 0 var(--space-md, 16px);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .theinmag-bundle-picker__panel-empty {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(42, 31, 61, 0.6);
+  }
+  .theinmag-bundle-picker__panel-item {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .theinmag-bundle-picker__panel-item img {
+    width: 48px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+  }
+  .theinmag-bundle-picker__panel-item-meta {
+    min-width: 0;
+  }
+  .theinmag-bundle-picker__panel-item-title {
+    display: block;
+    font-weight: 600;
+    color: var(--color-inky-purple-navy);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .theinmag-bundle-picker__panel-item-sub {
+    display: block;
+    font-size: 12px;
+    color: rgba(42, 31, 61, 0.6);
+  }
+  .theinmag-bundle-picker__panel-item-price {
+    font-weight: 600;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-picker__panel-item-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .theinmag-bundle-picker__panel-step {
+    width: 28px;
+    height: 28px;
+    border: 1.5px solid var(--color-purple-dark, #5D3A7A);
+    background: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    border-radius: 9999px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .theinmag-bundle-picker__panel-step:hover {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+  }
+  .theinmag-bundle-picker__panel-step-qty {
+    min-width: 18px;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-bundle-picker__panel-totals {
+    border-top: 1px solid rgba(42, 31, 61, 0.08);
+    padding-top: var(--space-md, 16px);
+    margin-bottom: var(--space-md, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .theinmag-bundle-picker__panel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4px 0;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-picker__panel-row--discount {
+    color: var(--color-sandy-orange-dark, #D9783A);
+    font-weight: 600;
+  }
+  .theinmag-bundle-picker__panel-row--total {
+    font-weight: 700;
+    font-size: 20px;
+    margin-top: 4px;
+  }
+  .theinmag-bundle-picker__panel-cta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 14px;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    border-radius: var(--radius-button, 32px);
+    box-shadow: var(--shadow-button-yellow, 0 4px 0 #D4A02E);
+    min-height: 44px;
+  }
+  .theinmag-bundle-picker__panel-cta:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow, #D4A02E);
+  }
+  .theinmag-bundle-picker__panel-microcopy {
+    margin: var(--space-md, 16px) 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 1.4;
+    color: rgba(42, 31, 61, 0.6);
+    text-align: center;
+  }
+
+  /* Floating mini bundle widget (top-right) - appears once the main
+     panel has scrolled out of view. Position: fixed so it escapes the
+     picker section's containment. JS toggles `.is-visible` based on
+     IntersectionObserver of the main panel + cart item count. */
+  .theinmag-bundle-picker__float {
+    position: fixed;
+    top: var(--bundle-float-top, 100px);
+    right: clamp(16px, 3vw, 32px);
+    z-index: 55;
+    width: clamp(220px, 22vw, 260px);
+    padding: 14px 18px 16px;
+    background-color: #FFFFFF;
+    border-radius: var(--radius-xl, 28px);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+    pointer-events: none;
+  }
+  .theinmag-bundle-picker__float.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  @media (max-width: 989px) {
+    .theinmag-bundle-picker__float { display: none !important; }
+  }
+  .theinmag-bundle-picker__float-label {
+    margin: 0 0 4px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-sandy-orange-dark, #D9783A);
+  }
+  .theinmag-bundle-picker__float-meta {
+    margin: 0 0 10px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-picker__float-dot {
+    margin: 0 4px;
+    color: rgba(42, 31, 61, 0.4);
+  }
+  .theinmag-bundle-picker__float-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 14px;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 13px;
+    text-decoration: none;
+    border-radius: var(--radius-button, 32px);
+    box-shadow: var(--shadow-button-yellow, 0 4px 0 #D4A02E);
+    min-height: 40px;
+  }
+  .theinmag-bundle-picker__float-cta:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow, #D4A02E);
+  }
+
+  /* Mobile bundle "cart" — floats as a pill near the bottom of the
+     viewport. Z-index sits ABOVE the sitewide FREE e-mag flyout
+     (bottom: 24px, left: 24px, z-index 9999) so the pill always
+     covers it when items are in the bundle. With no items in cart
+     the pill hides (JS) and the flyout shows through normally. */
+  .theinmag-bundle-picker__mobile-bar {
+    position: fixed;
+    bottom: clamp(12px, 3vw, 16px);
+    left: clamp(12px, 3vw, 16px);
+    right: clamp(12px, 3vw, 16px);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    background-color: #FFFFFF;
+    border-radius: var(--radius-xl, 28px);
+    box-shadow: 0 16px 40px rgba(42, 31, 61, 0.28);
+    overflow: hidden;
+  }
+  @media (min-width: 990px) {
+    .theinmag-bundle-picker__mobile-bar { display: none !important; }
+  }
+
+  .theinmag-bundle-picker__mobile-drawer {
+    max-height: 0;
+    overflow-y: auto;
+    transition: max-height 0.3s ease;
+  }
+  .theinmag-bundle-picker__mobile-bar.is-expanded .theinmag-bundle-picker__mobile-drawer {
+    max-height: 50vh;
+    border-bottom: 1px solid rgba(42, 31, 61, 0.06);
+  }
+
+  .theinmag-bundle-picker__mobile-items {
+    list-style: none;
+    margin: 0;
+    padding: 12px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .theinmag-bundle-picker__mobile-item {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .theinmag-bundle-picker__mobile-item img {
+    width: 40px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+  }
+  .theinmag-bundle-picker__mobile-item-title {
+    display: block;
+    font-weight: 600;
+    color: var(--color-inky-purple-navy);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .theinmag-bundle-picker__mobile-item-sub {
+    display: block;
+    font-size: 11px;
+    color: rgba(42, 31, 61, 0.6);
+  }
+  .theinmag-bundle-picker__mobile-item-price {
+    font-weight: 600;
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-bundle-picker__mobile-totals {
+    padding: 10px 16px 14px;
+    border-top: 1px solid rgba(42, 31, 61, 0.06);
+    margin-top: 10px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+  }
+  .theinmag-bundle-picker__mobile-totals-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-picker__mobile-totals-row--discount {
+    color: var(--color-sandy-orange-dark, #D9783A);
+    font-weight: 600;
+  }
+
+  .theinmag-bundle-picker__mobile-row-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px clamp(12px, 4vw, 20px) calc(10px + env(safe-area-inset-bottom, 0px));
+    min-height: 64px;
+  }
+
+  .theinmag-bundle-picker__mobile-toggle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    background: transparent;
+    border: 0;
+    padding: 6px 4px;
+    cursor: pointer;
+    font: inherit;
+    color: var(--color-inky-purple-navy);
+    text-align: left;
+    min-height: 44px;
+  }
+  .theinmag-bundle-picker__mobile-summary {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-inky-purple-navy);
+  }
+  /* Chevron: small upward triangle that rotates 180deg when expanded. */
+  .theinmag-bundle-picker__mobile-chevron {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 7px solid var(--color-purple-dark, #5D3A7A);
+    transition: transform 0.2s ease;
+  }
+  .theinmag-bundle-picker__mobile-bar.is-expanded .theinmag-bundle-picker__mobile-chevron {
+    transform: rotate(180deg);
+  }
+
+  .theinmag-bundle-picker__mobile-cta {
+    padding: 10px 18px;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    border-radius: var(--radius-button, 32px);
+    box-shadow: var(--shadow-button-yellow, 0 4px 0 #D4A02E);
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Modal. */
+  .theinmag-bundle-picker__modal {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    max-width: 480px;
+    width: calc(100% - 32px);
+    border-radius: var(--radius-xl, 28px);
+  }
+  .theinmag-bundle-picker__modal::backdrop {
+    background-color: rgba(20, 14, 30, 0.6);
+  }
+  .theinmag-bundle-picker__modal-inner {
+    position: relative;
+    background-color: #FFFFFF;
+    color: var(--color-inky-purple-navy);
+    border-radius: var(--radius-xl, 28px);
+    padding: clamp(24px, 4vw, 40px);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
+    margin: 0;
+  }
+  .theinmag-bundle-picker__modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: rgba(42, 31, 61, 0.6);
+  }
+  .theinmag-bundle-picker__modal-close:hover { color: var(--color-inky-purple-navy); }
+
+  .theinmag-bundle-picker__modal-title {
+    margin: 0 0 6px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(22px, 3vw, 28px);
+    line-height: 1.15;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-picker__modal-sub {
+    margin: 0 0 var(--space-lg, 24px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 15px;
+    color: rgba(42, 31, 61, 0.72);
+  }
+  .theinmag-bundle-picker__modal-fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0 0 var(--space-lg, 24px);
+  }
+  .theinmag-bundle-picker__modal-legend {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+    margin-bottom: 10px;
+    padding: 0;
+  }
+  .theinmag-bundle-picker__modal-pills {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  @media (max-width: 480px) {
+    .theinmag-bundle-picker__modal-pills {
+      grid-template-columns: 1fr;
+    }
+  }
+  .theinmag-bundle-picker__modal-pill {
+    position: relative;
+    background-color: var(--color-cream, #FBF6EA);
+    border: 1px solid var(--color-soft-pink, #F7A092);
+    border-radius: var(--radius-pill, 9999px);
+    padding: 12px 16px;
+    text-align: center;
+    cursor: pointer;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    color: var(--color-inky-purple-navy);
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: background-color var(--transition-standard, 0.15s ease), border-color var(--transition-standard, 0.15s ease), color var(--transition-standard, 0.15s ease);
+  }
+  .theinmag-bundle-picker__modal-pill.is-active {
+    background-color: rgba(93, 58, 122, 0.10);
+    border-color: var(--color-purple-dark, #5D3A7A);
+    border-width: 2px;
+    color: var(--color-purple-dark, #5D3A7A);
+    padding: 11px 15px;
+  }
+  .theinmag-bundle-picker__modal-pill-title {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.2;
+  }
+  .theinmag-bundle-picker__modal-pill-price {
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1.2;
+    color: inherit;
+    opacity: 0.85;
+  }
+  .theinmag-bundle-picker__modal-pill-chip {
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy);
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 9999px;
+  }
+  .theinmag-bundle-picker__modal-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .theinmag-bundle-picker__modal-radio {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-soft-pink, #F7A092);
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: var(--color-inky-purple-navy);
+    min-height: 44px;
+  }
+  .theinmag-bundle-picker__modal-radio input { margin: 0; accent-color: var(--color-purple-dark, #5D3A7A); }
+  .theinmag-bundle-picker__modal-rolling-note {
+    margin: -8px 0 var(--space-lg, 24px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 12px;
+    color: rgba(42, 31, 61, 0.7);
+  }
+  .theinmag-bundle-picker__modal-cta {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 15px;
+    border: 0;
+    border-radius: var(--radius-button, 32px);
+    box-shadow: var(--shadow-button-yellow, 0 4px 0 #D4A02E);
+    cursor: pointer;
+    min-height: 48px;
+  }
+  .theinmag-bundle-picker__modal-cta:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow, #D4A02E);
+  }
+
+  /* Tile snippet styles (paired with theinmag-bundle-tile.liquid - kept
+     here so the rail owns its visual system in one place). */
+  .theinmag-bundle-tile {
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-soft-pink, #F7A092);
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .theinmag-bundle-tile__cover {
+    aspect-ratio: 3 / 4;
+    background-color: var(--color-lavender);
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  .theinmag-bundle-tile__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .theinmag-bundle-tile__cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #E8DEEF 0%, #FCDDB8 100%);
+  }
+  .theinmag-bundle-tile__title {
+    margin: 10px 12px 6px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-tile__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-tile__row.is-sold-out {
+    opacity: 0.4;
+  }
+  .theinmag-bundle-tile__format { font-weight: 500; }
+  .theinmag-bundle-tile__price { font-weight: 500; color: rgba(42, 31, 61, 0.78); text-align: right; }
+  .theinmag-bundle-tile__pill {
+    grid-column: 2 / -1;
+    justify-self: end;
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-peach);
+    border-radius: var(--radius-pill, 9999px);
+    color: var(--color-sandy-orange-dark, #D9783A);
+    font-weight: 500;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  .theinmag-bundle-tile__add {
+    appearance: none;
+    background: transparent;
+    border: 1.5px solid var(--color-purple-dark, #5D3A7A);
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 36px;
+    transition: background-color var(--transition-hover, 0.2s ease), color var(--transition-hover, 0.2s ease);
+  }
+  .theinmag-bundle-tile__add:hover,
+  .theinmag-bundle-tile__add:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+  .theinmag-bundle-tile__stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .theinmag-bundle-tile__step {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--color-purple-dark, #5D3A7A);
+    background: transparent;
+    color: var(--color-purple-dark, #5D3A7A);
+    border-radius: 9999px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .theinmag-bundle-tile__qty {
+    min-width: 16px;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    color: var(--color-inky-purple-navy);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bundle-picker__member-add,
+    .theinmag-bundle-tile__add,
+    .theinmag-bundle-picker__modal-pill { transition: none; }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    const root = document.querySelector('[data-theinmag-bundle-picker]');
+    if (!root) return;
+
+    const variantsScript = root.querySelector('[data-bundle-membership-variants]');
+    let membershipVariants = [];
+    try {
+      membershipVariants = variantsScript ? JSON.parse(variantsScript.textContent) : [];
+    } catch (e) { membershipVariants = []; }
+
+    const currentIssue = root.dataset.currentIssue || 'Mag09';
+    const nextIssue = root.dataset.nextIssue || 'Mag10';
+    const nextRelease = root.dataset.nextRelease || '';
+    const printInStock = root.dataset.printInStock === 'true';
+    const printMemberImg = root.dataset.printMemberImg || '';
+    const digitalMemberImg = root.dataset.digitalMemberImg || '';
+
+    /* For Membership cart lines, the variant carries no image so the
+       cart returns the product's default featured image (often empty
+       or the wrong format). Detect membership items by product handle
+       or by the presence of a `_starting_mag` line item property and
+       swap in the format-specific photo wired to the section. */
+    function thumbnailFor(item) {
+      const handle = item.handle || (item.url || '').split('/products/')[1] || '';
+      const isMembership = handle.indexOf('membership') !== -1 || (item.properties && (item.properties._starting_mag || item.properties['_starting_mag']));
+      if (isMembership) {
+        const opt1 = (item.options_with_values && item.options_with_values[0] && item.options_with_values[0].value) || item.variant_options && item.variant_options[0] || '';
+        const fmt = String(opt1).toLowerCase();
+        if (fmt.indexOf('digital') !== -1) return digitalMemberImg || item.image || '';
+        if (fmt.indexOf('print') !== -1) return printMemberImg || item.image || '';
+        if (fmt.indexOf('combo') !== -1) return printMemberImg || item.image || '';
+      }
+      return item.image || (item.featured_image && item.featured_image.url) || '';
+    }
+
+    /* ============ Cart state + dispatch ============ */
+    function fetchCart() {
+      return fetch('/cart.js', { credentials: 'same-origin' }).then(function (r) { return r.json(); });
+    }
+
+    function dispatchUpdate(cart) {
+      const event = new CustomEvent('theinmag-bundle:update', { detail: cart });
+      window.dispatchEvent(event);
+    }
+
+    function updateBundleUI() {
+      return fetchCart().then(function (cart) {
+        lastCart = cart;
+        repaintPanel(cart);
+        repaintMobileBar(cart);
+        repaintFloat(cart);
+        repaintTiles(cart);
+        updateFloatPosition();
+        updateFloatVisibility(cart);
+        dispatchUpdate(cart);
+        return cart;
+      });
+    }
+
+    function formatAud(cents) {
+      return '$' + (cents / 100).toFixed(2);
+    }
+
+    function tierFor(count) {
+      if (count >= 8) return { rate: 0.15, label: '15% off' };
+      if (count >= 5) return { rate: 0.10, label: '10% off' };
+      if (count >= 3) return { rate: 0.05, label: '5% off' };
+      return { rate: 0, label: '' };
+    }
+
+    /* ============ Tile rendering (Add button label) ============ */
+    function repaintTiles(cart) {
+      const tiles = root.querySelectorAll('[data-bundle-tile]');
+      tiles.forEach(function (tile) {
+        const rows = tile.querySelectorAll('[data-variant-id]');
+        rows.forEach(function (row) {
+          const vid = row.dataset.variantId;
+          if (!vid) return;
+          const inCart = cart.items.find(function (i) { return String(i.variant_id) === String(vid); });
+          const qty = inCart ? inCart.quantity : 0;
+          const addBtn = row.querySelector('[data-bundle-add]');
+          const addLabel = row.querySelector('[data-add-label]');
+          const addedLabel = row.querySelector('[data-added-label]');
+          if (qty > 0) {
+            if (addLabel) addLabel.hidden = true;
+            if (addedLabel) addedLabel.hidden = false;
+            if (addBtn) addBtn.classList.add('is-in-cart');
+          } else {
+            if (addLabel) addLabel.hidden = false;
+            if (addedLabel) addedLabel.hidden = true;
+            if (addBtn) addBtn.classList.remove('is-in-cart');
+          }
+        });
+      });
+    }
+
+    /* ============ Running-total panel ============ */
+    const panelItems = root.querySelector('[data-panel-items]');
+    const panelEmpty = root.querySelector('[data-panel-empty]');
+    const panelTotals = root.querySelector('[data-panel-totals]');
+    const panelSubtotal = root.querySelector('[data-panel-subtotal]');
+    const panelDiscountRow = root.querySelector('[data-panel-discount-row]');
+    const panelDiscountLabel = root.querySelector('[data-panel-discount-label]');
+    const panelDiscountAmount = root.querySelector('[data-panel-discount-amount]');
+    const panelTotal = root.querySelector('[data-panel-total]');
+    const panelCta = root.querySelector('[data-panel-cta]');
+    const panelMicro = root.querySelector('[data-panel-microcopy]');
+
+    function repaintPanel(cart) {
+      if (!panelItems) return;
+      panelItems.innerHTML = '';
+
+      if (!cart.items || cart.items.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'theinmag-bundle-picker__panel-empty';
+        li.textContent = 'Nothing in here yet - pick a mag to start.';
+        panelItems.appendChild(li);
+        if (panelTotals) panelTotals.hidden = true;
+        if (panelCta) panelCta.hidden = true;
+        if (panelMicro) panelMicro.hidden = true;
+        return;
+      }
+
+      cart.items.forEach(function (item) {
+        const li = document.createElement('li');
+        li.className = 'theinmag-bundle-picker__panel-item';
+
+        const img = document.createElement('img');
+        img.src = thumbnailFor(item);
+        img.alt = item.product_title || '';
+        if (img.src) li.appendChild(img); else li.appendChild(document.createElement('span'));
+
+        const meta = document.createElement('div');
+        meta.className = 'theinmag-bundle-picker__panel-item-meta';
+        const title = document.createElement('span');
+        title.className = 'theinmag-bundle-picker__panel-item-title';
+        title.textContent = item.product_title + (item.variant_title && item.variant_title !== 'Default Title' ? ' - ' + item.variant_title : '');
+        meta.appendChild(title);
+        const startingProp = item.properties && (item.properties._starting_mag || item.properties['_starting_mag']);
+        if (startingProp) {
+          const sub = document.createElement('span');
+          sub.className = 'theinmag-bundle-picker__panel-item-sub';
+          sub.textContent = 'Starting: ' + startingProp;
+          meta.appendChild(sub);
+        }
+        const linePrice = document.createElement('span');
+        linePrice.className = 'theinmag-bundle-picker__panel-item-sub';
+        linePrice.textContent = formatAud(item.line_price);
+        meta.appendChild(linePrice);
+        li.appendChild(meta);
+
+        const stepper = document.createElement('div');
+        stepper.className = 'theinmag-bundle-picker__panel-item-stepper';
+        const minus = document.createElement('button');
+        minus.type = 'button';
+        minus.className = 'theinmag-bundle-picker__panel-step';
+        minus.setAttribute('aria-label', 'Decrease quantity');
+        minus.innerHTML = '&minus;';
+        minus.addEventListener('click', function () { changeLine(item.key, Math.max(0, item.quantity - 1)); });
+        const qtyEl = document.createElement('span');
+        qtyEl.className = 'theinmag-bundle-picker__panel-step-qty';
+        qtyEl.textContent = String(item.quantity);
+        const plus = document.createElement('button');
+        plus.type = 'button';
+        plus.className = 'theinmag-bundle-picker__panel-step';
+        plus.setAttribute('aria-label', 'Increase quantity');
+        plus.textContent = '+';
+        plus.addEventListener('click', function () { changeLine(item.key, item.quantity + 1); });
+        stepper.appendChild(minus);
+        stepper.appendChild(qtyEl);
+        stepper.appendChild(plus);
+        li.appendChild(stepper);
+
+        panelItems.appendChild(li);
+      });
+
+      const tier = tierFor(cart.item_count);
+      const subtotal = cart.total_price;
+      const discountAmount = Math.round(subtotal * tier.rate);
+      const finalTotal = subtotal - discountAmount;
+
+      if (panelSubtotal) panelSubtotal.textContent = formatAud(subtotal);
+
+      if (tier.rate > 0) {
+        if (panelDiscountRow) panelDiscountRow.hidden = false;
+        if (panelDiscountLabel) panelDiscountLabel.textContent = 'Bundle discount (' + tier.label + ')';
+        if (panelDiscountAmount) panelDiscountAmount.textContent = '-' + formatAud(discountAmount);
+      } else if (panelDiscountRow) {
+        panelDiscountRow.hidden = true;
+      }
+      if (panelTotal) panelTotal.textContent = formatAud(finalTotal);
+      if (panelTotals) panelTotals.hidden = false;
+      if (panelCta) panelCta.hidden = false;
+      if (panelMicro) panelMicro.hidden = false;
+    }
+
+    /* ============ Mobile bottom bar ============ */
+    const mobileBar = root.querySelector('[data-bundle-mobile-bar]');
+    const mobileCount = root.querySelector('[data-mobile-count]');
+    const mobileTotal = root.querySelector('[data-mobile-total]');
+
+    const mobileToggle = root.querySelector('[data-mobile-toggle]');
+    const mobileDrawer = root.querySelector('[data-mobile-drawer]');
+    const mobileItems = root.querySelector('[data-mobile-items]');
+    const mobileSubtotal = root.querySelector('[data-mobile-subtotal]');
+    const mobileDiscountRow = root.querySelector('[data-mobile-discount-row]');
+    const mobileDiscountLabel = root.querySelector('[data-mobile-discount-label]');
+    const mobileDiscountAmount = root.querySelector('[data-mobile-discount-amount]');
+
+    function repaintMobileBar(cart) {
+      if (!mobileBar) return;
+      if (!cart.item_count) {
+        mobileBar.hidden = true;
+        mobileBar.classList.remove('is-expanded');
+        if (mobileToggle) mobileToggle.setAttribute('aria-expanded', 'false');
+        if (mobileDrawer) mobileDrawer.setAttribute('aria-hidden', 'true');
+        return;
+      }
+      mobileBar.hidden = false;
+      const tier = tierFor(cart.item_count);
+      const subtotal = cart.total_price || 0;
+      const discountAmount = Math.round(subtotal * tier.rate);
+      const finalTotal = subtotal - discountAmount;
+
+      if (mobileCount) mobileCount.textContent = String(cart.item_count);
+      if (mobileTotal) mobileTotal.textContent = formatAud(finalTotal);
+
+      /* Drawer contents: item list + subtotal + discount line. */
+      if (mobileItems) {
+        mobileItems.innerHTML = '';
+        cart.items.forEach(function (item) {
+          const li = document.createElement('li');
+          li.className = 'theinmag-bundle-picker__mobile-item';
+
+          const img = document.createElement('img');
+          img.src = thumbnailFor(item);
+          img.alt = item.product_title || '';
+          if (img.src) li.appendChild(img); else li.appendChild(document.createElement('span'));
+
+          const meta = document.createElement('div');
+          const title = document.createElement('span');
+          title.className = 'theinmag-bundle-picker__mobile-item-title';
+          title.textContent = item.product_title + (item.variant_title && item.variant_title !== 'Default Title' ? ' - ' + item.variant_title : '');
+          meta.appendChild(title);
+          if (item.quantity > 1) {
+            const qty = document.createElement('span');
+            qty.className = 'theinmag-bundle-picker__mobile-item-sub';
+            qty.textContent = 'Qty ' + item.quantity;
+            meta.appendChild(qty);
+          }
+          const startingProp = item.properties && (item.properties._starting_mag || item.properties['_starting_mag']);
+          if (startingProp) {
+            const sub = document.createElement('span');
+            sub.className = 'theinmag-bundle-picker__mobile-item-sub';
+            sub.textContent = 'Starting: ' + startingProp;
+            meta.appendChild(sub);
+          }
+          li.appendChild(meta);
+
+          const price = document.createElement('span');
+          price.className = 'theinmag-bundle-picker__mobile-item-price';
+          price.textContent = formatAud(item.line_price);
+          li.appendChild(price);
+
+          mobileItems.appendChild(li);
+        });
+      }
+
+      if (mobileSubtotal) mobileSubtotal.textContent = formatAud(subtotal);
+      if (tier.rate > 0 && mobileDiscountRow) {
+        mobileDiscountRow.hidden = false;
+        if (mobileDiscountLabel) mobileDiscountLabel.textContent = 'Bundle discount (' + tier.label + ')';
+        if (mobileDiscountAmount) mobileDiscountAmount.textContent = '-' + formatAud(discountAmount);
+      } else if (mobileDiscountRow) {
+        mobileDiscountRow.hidden = true;
+      }
+    }
+
+    /* Tap to expand drawer. */
+    if (mobileToggle) {
+      mobileToggle.addEventListener('click', function () {
+        const expanded = mobileBar.classList.toggle('is-expanded');
+        mobileToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        if (mobileDrawer) mobileDrawer.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+      });
+    }
+
+    /* ============ Floating top-right widget ============ */
+    const floatWidget = root.querySelector('[data-bundle-float]');
+    const floatCount = root.querySelector('[data-float-count]');
+    const floatTotal = root.querySelector('[data-float-total]');
+
+    function repaintFloat(cart) {
+      if (!floatWidget) return;
+      const count = cart.item_count || 0;
+      const tier = tierFor(count);
+      const discountAmount = Math.round((cart.total_price || 0) * tier.rate);
+      const finalTotal = (cart.total_price || 0) - discountAmount;
+      if (floatCount) floatCount.textContent = String(count);
+      if (floatTotal) floatTotal.textContent = formatAud(finalTotal);
+    }
+
+    /* Toggle visibility: show when the main panel scrolls out of view
+       AND cart has items. Hides when panel is back in view (= user
+       returned to the picker). Position-top is computed from the
+       persistent chrome bottom so it sits below any sticky header. */
+    function persistentChromeBottom() {
+      /* Query the exact two chrome elements rather than `[class*=
+         "header"]` etc. - the announcement bar sits in natural flow
+         (NOT position:sticky) at scroll=0, and a generic header-name
+         filter also matches inner `<header>` elements inside content
+         sections, causing both false misses and false hits. Both
+         theinmag-announcement and theinmag-header are unique on
+         the page. */
+      const targets = [
+        document.querySelector('.theinmag-announcement'),
+        document.querySelector('.theinmag-header')
+      ];
+      let maxBottom = 0;
+      targets.forEach(function (el) {
+        if (!el) return;
+        if (el.contains(floatWidget) || (floatWidget && floatWidget.contains(el))) return;
+        const r = el.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < window.innerHeight / 2) {
+          if (r.bottom > maxBottom) maxBottom = r.bottom;
+        }
+      });
+      return maxBottom;
+    }
+
+    function updateFloatPosition() {
+      if (!floatWidget) return;
+      const chrome = persistentChromeBottom();
+      /* Tier strip pins right below chrome. The float should clear the
+         tier strip too, so add its height (52-64px) + a small gap. */
+      const tierStrip = document.querySelector('[data-theinmag-bundle-strip].is-sticky');
+      const tierStripHeight = tierStrip ? tierStrip.offsetHeight : 0;
+      const top = (chrome || 88) + tierStripHeight + 16;
+      floatWidget.style.setProperty('--bundle-float-top', top + 'px');
+    }
+
+    function updateFloatVisibility(cart) {
+      if (!floatWidget) return;
+      const panel = root.querySelector('[data-bundle-panel]');
+      if (!panel || !cart || !cart.item_count) {
+        floatWidget.classList.remove('is-visible');
+        return;
+      }
+      const rect = panel.getBoundingClientRect();
+      const offScreen = rect.bottom < 0 || rect.top > window.innerHeight;
+      floatWidget.classList.toggle('is-visible', offScreen);
+    }
+
+    let lastCart = { item_count: 0, total_price: 0, items: [] };
+    window.addEventListener('scroll', function () {
+      updateFloatPosition();
+      updateFloatVisibility(lastCart);
+    }, { passive: true });
+    window.addEventListener('resize', updateFloatPosition);
+
+    /* ============ Cart writes ============ */
+    function addToCart(variantId, properties) {
+      const body = { id: variantId, quantity: 1 };
+      if (properties) body.properties = properties;
+      return fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(body)
+      }).then(function (r) { return r.json(); }).then(function () { return updateBundleUI(); });
+    }
+
+    function changeLine(key, qty) {
+      return fetch('/cart/change.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ id: key, quantity: qty })
+      }).then(function (r) { return r.json(); }).then(function () { return updateBundleUI(); });
+    }
+
+    function changeVariantQty(variantId, qty) {
+      return fetch('/cart/change.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ id: variantId, quantity: qty })
+      }).then(function (r) { return r.json(); }).then(function () { return updateBundleUI(); });
+    }
+
+    /* ============ Tile click wiring ============ */
+    root.addEventListener('click', function (e) {
+      const addBtn = e.target.closest('[data-bundle-add]');
+      if (addBtn) {
+        e.preventDefault();
+        addToCart(addBtn.dataset.variantId);
+        return;
+      }
+    });
+
+    /* ============ Membership modal ============ */
+    const modal = root.querySelector('[data-bundle-modal]');
+    const modalTitle = root.querySelector('[data-modal-title]');
+    const modalRollingNote = root.querySelector('[data-modal-rolling-note]');
+    const modalLengthGroup = root.querySelector('[data-modal-length-group]');
+    const modalStartGroup = root.querySelector('[data-modal-start-group]');
+    const modalCtaPrice = root.querySelector('[data-modal-cta-price]');
+    const modalSubmit = root.querySelector('[data-modal-submit]');
+
+    let activeFormat = 'Print';
+    let activeLength = '4-Issue';
+
+    function findVariant(format, length) {
+      return membershipVariants.find(function (v) {
+        return (v.format || '').toLowerCase() === format.toLowerCase()
+            && (v.length || '').toLowerCase() === length.toLowerCase();
+      });
+    }
+
+    function priceForPill(format, length) {
+      const v = findVariant(format, length);
+      if (!v) return '';
+      if (length === 'Rolling') return formatAud(v.price) + '/drop';
+      return formatAud(v.price);
+    }
+
+    function updateModalForFormat() {
+      /* Repaint pill prices with format-specific values. */
+      const pills = modalLengthGroup ? modalLengthGroup.querySelectorAll('[data-modal-length]') : [];
+      pills.forEach(function (pill) {
+        const length = pill.dataset.modalLength;
+        const priceEl = pill.querySelector('.theinmag-bundle-picker__modal-pill-price');
+        if (priceEl) priceEl.textContent = priceForPill(activeFormat, length);
+      });
+      refreshCta();
+    }
+
+    function refreshCta() {
+      const v = findVariant(activeFormat, activeLength);
+      if (modalCtaPrice && v) {
+        const label = activeLength === 'Rolling' ? formatAud(v.price) + '/drop' : formatAud(v.price);
+        modalCtaPrice.textContent = label;
+      }
+      if (modalRollingNote) modalRollingNote.hidden = activeLength !== 'Rolling';
+    }
+
+    function openModal(format) {
+      activeFormat = format;
+      activeLength = '4-Issue';
+      if (modalTitle) modalTitle.textContent = format + ' Membership';
+      /* Reset length pills. */
+      if (modalLengthGroup) {
+        modalLengthGroup.querySelectorAll('[data-modal-length]').forEach(function (p) {
+          const isActive = p.dataset.modalLength === activeLength;
+          p.classList.toggle('is-active', isActive);
+          p.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        });
+      }
+      /* Reset starting radios - default to current if available, else next. */
+      if (modalStartGroup) {
+        const radios = modalStartGroup.querySelectorAll('input[type="radio"]');
+        radios.forEach(function (r) {
+          if (printInStock || format === 'Digital') {
+            r.checked = r.value === 'current';
+          } else {
+            r.checked = r.value === 'next';
+          }
+        });
+        /* Hide "current" option only when format=Print AND print not in
+           stock. Digital format always shows both options. */
+        const currentLabel = modalStartGroup.querySelector('[data-modal-start-current]');
+        if (currentLabel) {
+          if (format === 'Print' && !printInStock) {
+            currentLabel.hidden = true;
+            const nextRadio = modalStartGroup.querySelector('input[value="next"]');
+            if (nextRadio) nextRadio.checked = true;
+          } else {
+            currentLabel.hidden = false;
+          }
+        }
+      }
+      updateModalForFormat();
+
+      if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+      } else if (modal) {
+        modal.setAttribute('open', '');
+      }
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      if (typeof modal.close === 'function') modal.close('cancel');
+      else modal.removeAttribute('open');
+    }
+
+    /* Open buttons. */
+    root.querySelectorAll('[data-bundle-member-open]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openModal(btn.dataset.format);
+      });
+    });
+
+    /* Length pill clicks. */
+    if (modalLengthGroup) {
+      modalLengthGroup.addEventListener('click', function (e) {
+        const pill = e.target.closest('[data-modal-length]');
+        if (!pill) return;
+        activeLength = pill.dataset.modalLength;
+        modalLengthGroup.querySelectorAll('[data-modal-length]').forEach(function (p) {
+          const isActive = p === pill;
+          p.classList.toggle('is-active', isActive);
+          p.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        });
+        refreshCta();
+      });
+    }
+
+    /* Click-outside-to-close (native dialog backdrop fires click on dialog). */
+    if (modal) {
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+      });
+    }
+
+    /* Submit CTA. */
+    function magNumberToString(num) {
+      if (num < 10) return 'Mag0' + num;
+      return 'Mag' + num;
+    }
+
+    function buildMagsIncluded(startingMag, length) {
+      const startNum = parseInt(startingMag.replace('Mag', ''), 10) || 1;
+      if (length === 'Rolling') return startingMag;
+      const count = length === '8-Issue' ? 8 : 4;
+      const mags = [];
+      for (let i = 0; i < count; i++) {
+        mags.push(magNumberToString(startNum + i));
+      }
+      return mags.join(', ');
+    }
+
+    function remainingAfterFirst(length) {
+      if (length === 'Rolling') return '0';
+      if (length === '8-Issue') return '7';
+      return '3';
+    }
+
+    if (modalSubmit) {
+      modalSubmit.addEventListener('click', function () {
+        const v = findVariant(activeFormat, activeLength);
+        if (!v) return;
+        const startingValue = (function () {
+          const checked = modalStartGroup ? modalStartGroup.querySelector('input[type="radio"]:checked') : null;
+          return checked ? checked.value : 'next';
+        })();
+        const startingMag = startingValue === 'current' ? currentIssue : nextIssue;
+
+        const properties = {
+          _starting_mag: startingMag,
+          _remaining_after_first: remainingAfterFirst(activeLength),
+          _mags_included: buildMagsIncluded(startingMag, activeLength)
+        };
+
+        addToCart(v.id, properties).then(function () {
+          closeModal();
+        });
+      });
+    }
+
+    /* Suppress unused `nextRelease` warning - we surface the formatted
+       string in Liquid-rendered radio labels, but JS doesn't repaint
+       them so we just hold the reference for future use. */
+    void nextRelease;
+
+    /* ============ Initial paint ============ */
+    updateBundleUI();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Bundle picker",
+  "tag": "section",
+  "class": "shopify-section--theinmag-bundle-picker",
+  "settings": [
+    { "type": "header", "content": "Section copy" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Pick your mags. Pick your Memberships." },
+    { "type": "text", "id": "subhead", "label": "Subhead", "default": "Tap Add on anything you want. Adjust quantities in your bundle on the right. The discount appears at checkout." },
+    { "type": "header", "content": "Sources" },
+    { "type": "text", "id": "rail_collection", "label": "Rail collection handle", "info": "Single-issues collection. All Print/Digital mags + Snack Pack.", "default": "single-issues" },
+    { "type": "text", "id": "snack_pack_handle", "label": "Snack Pack product handle", "default": "snack-pack" },
+    { "type": "text", "id": "digital_stack_handle", "label": "Digital Stack handle (excluded)", "default": "theinmag-digital-stack" },
+    { "type": "text", "id": "membership_product_handle", "label": "Membership product handle", "default": "membership" },
+    { "type": "header", "content": "Membership covers" },
+    { "type": "image_picker", "id": "print_member_image", "label": "Print Membership tile cover" },
+    { "type": "text", "id": "print_member_image_filename", "label": "Print Membership fallback image", "info": "Either a filename in /assets/ (e.g. product-membership.jpg) OR a full Shopify Files / CDN URL.", "default": "product-membership.jpg" },
+    { "type": "text", "id": "print_member_image_alt", "label": "Print Membership cover alt" },
+    { "type": "image_picker", "id": "digital_member_image", "label": "Digital Membership tile cover" },
+    { "type": "text", "id": "digital_member_image_filename", "label": "Digital Membership fallback image", "info": "Either a filename in /assets/ (e.g. digi_membership.jpg) OR a full Shopify Files / CDN URL.", "default": "digi_membership.jpg" },
+    { "type": "text", "id": "digital_member_image_alt", "label": "Digital Membership cover alt" }
+  ],
+  "presets": [
+    { "name": "Bundle picker" }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

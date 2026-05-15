@@ -66,6 +66,19 @@
       endfor
     endif
     assign is_pre_order = product.metafields.theinmag.is_pre_order | default: false
+    # Current-issue badge - driven by the theinmag.current_issue_number
+    # shop metafield (stored like "Mag09"). Matched against the product
+    # handle (lowercased). A pre-order issue is never the current issue,
+    # so that case is excluded. Update the one metafield each drop and
+    # the badge moves itself - no theme edit needed.
+    assign is_current_issue = false
+    assign current_issue_mf = shop.metafields.theinmag.current_issue_number.value
+    if current_issue_mf != blank and is_pre_order == false
+      assign current_issue_handle = current_issue_mf | downcase
+      if product.handle == current_issue_handle
+        assign is_current_issue = true
+      endif
+    endif
     assign pdp_url = '/products/' | append: product.handle
     assign add_suffix = ' to cart'
     assign add_attr = 'data-shop-add'
@@ -124,6 +137,8 @@
       </a>
       {%- if is_pre_order -%}
         <span class="theinmag-bundle-tile__badge" aria-label="Pre-order open">Pre-order</span>
+      {%- elsif is_current_issue -%}
+        <span class="theinmag-bundle-tile__badge theinmag-bundle-tile__badge--current" aria-label="Current issue">Current issue</span>
       {%- endif -%}
     {%- else -%}
       {%- if cover_image != blank -%}

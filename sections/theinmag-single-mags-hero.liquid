@@ -41,6 +41,24 @@
   assign bg_opacity_pct = section.settings.section_bg_opacity | default: 35
   assign bg_opacity = bg_opacity_pct | times: 0.01
 
+  # Picker visibility. ON for the umbrella reference page; OFF on the
+  # individual product pages, where the separate issue strip handles
+  # navigation. Belt-and-braces boolean so a missing setting defaults
+  # to true (the | default filter would wrongly flip an explicit false).
+  assign show_picker = true
+  if section.settings.show_picker == false
+    assign show_picker = false
+  endif
+
+  # Card surface. ON for the umbrella reference page (the off-white
+  # card holds the picker + widget together). OFF on product pages -
+  # Ryan's call - so the widget sits flat on the page background.
+  # Belt-and-braces boolean, same reason as show_picker above.
+  assign show_card = true
+  if section.settings.show_card == false
+    assign show_card = false
+  endif
+
   assign trust_1 = section.settings.trust_1
   assign trust_2 = section.settings.trust_2
   assign trust_3 = section.settings.trust_3
@@ -72,31 +90,44 @@
   assign hero_rating = hero_jm.all_reviews_rating | default: 0
   assign hero_count = hero_jm.all_reviews_count | default: 0
 
-  # Sort issues newest-first by issue_number metafield so the initial
-  # picker order matches the Digital / Snack Pack rule. JS reorders on
-  # the fly when the user flips to Print and a sold-out issue lands.
+  # Sort issues newest-first by issue_number metafield. Magazines use
+  # 1+; the two curated bundles use negatives (Snack Pack -1, Digital
+  # Stack -2). The picker renders straight from this list, then the JS
+  # sortPicker re-orders the tiles on load (and on every Print/Digital
+  # flip) to: Snack Pack first, magazines in the middle, Digital Stack
+  # last. Rendering straight from sorted_issues guarantees every
+  # collection product appears exactly once - no drops, no dupes.
   assign sorted_issues = issues | sort: 'metafields.single_mag.issue_number.value' | reverse
 
-  # First active issue: newest issue whose Print variant is available,
-  # otherwise the newest issue overall. JS re-runs this same pick on
-  # variant flip so the rule is consistent client-side. Stage 3.1 -
-  # source of truth flipped from the print_in_stock metafield to the
-  # per-issue Print variant's actual stock (variant.available). The
-  # metafield is now redundant - drop in Stage 5.
-  assign initial_issue = sorted_issues.first
+  # Active issue on load. If the current product is itself one of the
+  # issues (you navigated to /products/mag03 or /products/snack-pack),
+  # select that one - the picker should reflect the page you're on.
+  # Otherwise fall back to the newest issue whose Print is available,
+  # else the newest issue overall. JS re-runs the fallback pick on
+  # variant flip so the rule stays consistent client-side.
+  assign initial_issue = nil
   for issue in sorted_issues
-    assign issue_print_available = false
-    for v in issue.variants
-      if v.option1 == 'Print' and v.available
-        assign issue_print_available = true
-        break
-      endif
-    endfor
-    if issue_print_available
+    if issue.handle == product.handle
       assign initial_issue = issue
       break
     endif
   endfor
+  if initial_issue == nil
+    assign initial_issue = sorted_issues.first
+    for issue in sorted_issues
+      assign issue_print_available = false
+      for v in issue.variants
+        if v.option1 == 'Print' and v.available
+          assign issue_print_available = true
+          break
+        endif
+      endfor
+      if issue_print_available
+        assign initial_issue = issue
+        break
+      endif
+    endfor
+  endif
 
   # first_variant = initial issue's Print variant if available, else
   # Digital. Drives server-rendered price + the cart form's hidden
@@ -124,7 +155,7 @@
 -%}
 
 <section
-  class="theinmag-single-mags-hero"
+  class="theinmag-single-mags-hero{% unless show_card %} theinmag-single-mags-hero--flat{% endunless %}"
   data-theinmag-single-mags
   aria-labelledby="theinmag-single-mags-hero-heading"
   style="{{ section_style }}"
@@ -135,12 +166,22 @@
   {%- endif -%}
 
   {%- comment -%}
-    Visually-hidden H1 carries the SEO / AEO keyword load. The visible
-    chrome (eyebrow, title in the widget, picker) handles the actual
-    UX. Pattern lifted from competitions choice-gate + behind-the-mag
-    hero (see design-system §3.8).
+    Visually-hidden H1 carries the SEO / AEO keyword load. On a real
+    product page this is the product's own title (one unique H1 per
+    page); aeo_heading is the fallback for the umbrella reference page.
+    The visible chrome (eyebrow, title in the widget) handles the UX.
   {%- endcomment -%}
-  <h1 id="theinmag-single-mags-hero-heading" class="theinmag-single-mags-hero__a11y-heading">{{ aeo_heading }}</h1>
+  <h1 id="theinmag-single-mags-hero-heading" class="theinmag-single-mags-hero__a11y-heading">{{ product.title | default: aeo_heading }}</h1>
+
+  {%- comment -%}
+    Product structured data (JSON-LD). Dawn's main-product section
+    normally emits this; since this section replaces the standard buy
+    box on the PDP, it carries the schema so Google shopping / rich
+    results still work.
+  {%- endcomment -%}
+  {%- if product != blank -%}
+    <script type="application/ld+json">{{ product | structured_data }}</script>
+  {%- endif -%}
 
   <div class="theinmag-single-mags-hero__inner">
 
@@ -155,10 +196,13 @@
     {%- comment -%}
       ISSUE PICKER. Each tile carries data attributes the JS reads to
       re-sort + flip active state. Cover thumbnail = product.featured_image.
-      Mobile scroll-snaps horizontally with a peek of the next thumb;
-      desktop stays in a single row with wrap if too many issues.
+      Always a single row - scroll-snaps horizontally with a peek of the
+      next thumb on mobile, horizontal scroll on desktop if the issue
+      count overflows the card. Never wraps to two rows.
+      Rendered straight from sorted_issues; JS sortPicker re-orders the
+      tiles to Snack Pack first, magazines, Digital Stack last.
     {%- endcomment -%}
-    {%- if sorted_issues.size > 0 -%}
+    {%- if show_picker and sorted_issues.size > 0 -%}
       <div class="theinmag-single-mags-hero__picker-wrap">
         {%- if visible_eyebrow != blank -%}
           <p class="theinmag-single-mags-hero__eyebrow">{{ visible_eyebrow }}</p>
@@ -194,6 +238,10 @@
               if issue_num <= 0
                 assign is_bundle = true
               endif
+              # Pre-order flag - same metafield the shop grid + bundle
+              # tile use (theinmag.is_pre_order). Drives the "Pre-sale"
+              # sub-label under the tile (e.g. Mag10 before it drops).
+              assign is_pre_order = issue.metafields.theinmag.is_pre_order | default: false
               assign cover_img = issue.featured_image
               # Digital media images metafield (list.file_reference). First
               # image doubles as the picker tile thumbnail when Format =
@@ -253,6 +301,9 @@
                 </span>
                 <span class="theinmag-single-mags-hero__picker-label">{{ issue_label_short }}</span>
                 <span class="theinmag-single-mags-hero__picker-soldout" data-soldout-label aria-hidden="true">Digital only</span>
+                {%- if is_pre_order -%}
+                  <span class="theinmag-single-mags-hero__picker-presale">Pre-sale</span>
+                {%- endif -%}
               </button>
             </li>
           {%- endfor -%}
@@ -885,6 +936,8 @@
     const backInStockLink = root.querySelector('[data-back-in-stock]');
     const variantTiles = Array.from(root.querySelectorAll('[data-variant-format]'));
     const variantSoldEl = root.querySelector('[data-variant-sold]');
+    const primaryCta = root.querySelector('[data-primary-cta]');
+    const buyNowCta = root.querySelector('[data-buy-now-cta]');
 
     /* Stage 3.3 - snack-pack mode retired. Every picker tile is now a
        per-issue/per-bundle product; the variant lookup keys on the active
@@ -918,10 +971,19 @@
       return parts.length > 1 ? parts[parts.length - 1] : title;
     }
 
+    /* Picker rank: Snack Pack first, magazines in the middle, Digital
+       Stack last (Ryan's order). Snack Pack is the bundle WITH a Print
+       variant; Digital Stack is the bundle with none. */
+    function pickerRank(item) {
+      if (item.dataset.isBundle !== 'true') return 1;
+      return item.dataset.hasPrint === 'true' ? 0 : 2;
+    }
+
     /* Picker sort:
-         Print-format - in-stock magazines first (newest by issue_number),
-         then sold-out magazines, then bundles (issue_number <= 0).
-         Digital-format - strict newest-first; bundles still trail.
+         Snack Pack (rank 0) always first, Digital Stack (rank 2) always
+         last. Magazines (rank 1) in between - Print-format floats
+         in-stock issues to the front, then newest-first by issue_number;
+         Digital-format is strict newest-first.
        Bundles never get the sold-out treatment - their print component
        availability is what determines the bundle's stock, handled per-
        click by updateVariantState (not here). */
@@ -930,19 +992,21 @@
       const applyStockSort = format === 'Print';
       const items = pickerItems.slice();
       items.sort(function (a, b) {
-        const numA = parseInt(a.dataset.issueNumber, 10) || 0;
-        const numB = parseInt(b.dataset.issueNumber, 10) || 0;
-        const isBundleA = a.dataset.isBundle === 'true';
-        const isBundleB = b.dataset.isBundle === 'true';
-        // Bundles always trail magazines, regardless of stock or format.
-        if (isBundleA !== isBundleB) return isBundleA ? 1 : -1;
-        // Within magazines: in-Print-mode, in-stock first.
-        if (applyStockSort && !isBundleA) {
-          const inStockA = a.dataset.printInStock === 'true';
-          const inStockB = b.dataset.printInStock === 'true';
-          if (inStockA !== inStockB) return inStockA ? -1 : 1;
+        const rankA = pickerRank(a);
+        const rankB = pickerRank(b);
+        if (rankA !== rankB) return rankA - rankB;
+        // Same rank. Stock + issue-number ordering applies to magazines only.
+        if (rankA === 1) {
+          if (applyStockSort) {
+            const inStockA = a.dataset.printInStock === 'true';
+            const inStockB = b.dataset.printInStock === 'true';
+            if (inStockA !== inStockB) return inStockA ? -1 : 1;
+          }
+          const numA = parseInt(a.dataset.issueNumber, 10) || 0;
+          const numB = parseInt(b.dataset.issueNumber, 10) || 0;
+          return numB - numA;
         }
-        return numB - numA;
+        return 0;
       });
       items.forEach(function (item) { picker.appendChild(item); });
       pickerItems.forEach(function (item) {
@@ -1018,13 +1082,21 @@
          sold-out  - print exists + not in stock    (is-soldout class + sold-out copy)
          absent    - no Print variant at all        (is-soldout class + "Digital only" copy)
        The last two both force activeFormat to Digital. */
-    function updateVariantState() {
+    function updateVariantState(opts) {
+      const userPicked = !!(opts && opts.userPicked);
       const issueVariants = (variants.issues || {})[activeIssueHandle] || {};
       const printVariant = issueVariants.Print;
       const printExists = !!printVariant;
       const printInStock = printExists && printVariant.available;
       const printUnavailable = !printInStock; // covers both absent + sold-out
-      const printForcedDigital = printUnavailable && activeFormat === 'Print';
+      // Auto-flip Print -> Digital only when the visitor did NOT
+      // explicitly click Print (initial load, picker change). An
+      // explicit Print click on an issue that HAS a Print variant is
+      // honoured even when sold out - the sold-out copy + disabled CTA
+      // communicate availability, and the visitor can see which issues
+      // exist in print. Digital-only products (no Print variant at all)
+      // always flip - there's no Print state worth showing.
+      const printForcedDigital = printUnavailable && activeFormat === 'Print' && (!userPicked || !printExists);
 
       if (printForcedDigital) {
         activeFormat = 'Digital';
@@ -1045,17 +1117,28 @@
       });
 
       const variant = findVariant(activeFormat, activeIssueHandle);
+      const variantAvailable = !!(variant && variant.available);
       if (variant) {
         if (variantInput) variantInput.value = variant.id;
         if (priceDisplay) priceDisplay.textContent = formatMoney(variant.price);
-        if (ctaLabel) {
-          if (printForcedDigital && printExists) {
-            ctaLabel.textContent = 'Get it digital - ' + formatMoney(variant.price);
-          } else {
-            ctaLabel.textContent = 'Add to cart';
-          }
+      }
+
+      // CTA state. A sold-out selection (only reachable by an explicit
+      // Print click on a sold-out issue) disables the buy buttons and
+      // relabels - the visitor can still SEE the Print state, they just
+      // can't buy it.
+      if (ctaLabel) {
+        if (!variantAvailable) {
+          ctaLabel.textContent = 'Sold out';
+        } else if (printForcedDigital && printExists) {
+          ctaLabel.textContent = 'Get it digital - ' + formatMoney(variant.price);
+        } else {
+          ctaLabel.textContent = 'Add to cart';
         }
       }
+      if (primaryCta) primaryCta.disabled = !variantAvailable;
+      if (buyNowCta) buyNowCta.disabled = !variantAvailable;
+      if (floatingCta) floatingCta.disabled = !variantAvailable;
 
       if (backInStockLink) {
         // Only offer back-in-stock when print exists but is sold out.
@@ -1083,11 +1166,14 @@
       });
     });
 
-    /* Wire up the variant tiles. */
+    /* Wire up the variant tiles. userPicked tells updateVariantState
+       this was an explicit click, so a sold-out Print selection is
+       honoured instead of bouncing straight back to Digital - the
+       visitor asked to see the Print state. */
     variantTiles.forEach(function (tile) {
       tile.addEventListener('click', function () {
         activeFormat = tile.dataset.variantFormat;
-        updateVariantState();
+        updateVariantState({ userPicked: true });
       });
     });
 
@@ -1348,6 +1434,18 @@
     overflow: visible;
   }
 
+  /* Flat variant (product pages) - drop the card surface entirely so
+     the widget sits straight on the page background. The section's own
+     padding still supplies the breathing room. */
+  .theinmag-single-mags-hero--flat .theinmag-single-mags-hero__card {
+    background-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
+  }
+
   /* Tighter padding on mobile so internal columns get more room. */
   @media (max-width: 749px) {
     .theinmag-single-mags-hero__card {
@@ -1391,12 +1489,18 @@
   }
   .theinmag-single-mags-hero__picker::-webkit-scrollbar { display: none; }
 
+  /* Desktop keeps the picker on ONE row (Ryan: never wrap to two
+     rows). Inherits flex-wrap:nowrap + overflow-x:auto from the base
+     rule, so it horizontal-scrolls when the issue count overflows.
+     width:max-content + margin-inline:auto centres the row when the
+     tiles fit and lets it scroll cleanly (no clipped start) when they
+     don't. */
   @media (min-width: 750px) {
     .theinmag-single-mags-hero__picker {
-      flex-wrap: wrap;
-      justify-content: center;
-      overflow: visible;
-      padding: var(--space-sm) 0;
+      width: max-content;
+      max-width: 100%;
+      margin-inline: auto;
+      padding: var(--space-sm) var(--space-xs);
     }
   }
 
@@ -1489,6 +1593,19 @@
     display: block;
   }
 
+  /* Pre-sale sub-label - rendered in Liquid only for pre-order issues
+     (Mag10 before it drops), so it's always visible. Purple-dark reads
+     as a positive status, distinct from the coral sold-out label. */
+  .theinmag-single-mags-hero__picker-presale {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark);
+    line-height: 1;
+  }
+
   /* Snack Pack picker tile - visually distinct from the issue covers
      so it reads as a curated option, not just another mag. Soft-pink
      surface (matches the variant-tile pressed state) when no image
@@ -1523,7 +1640,8 @@
     .theinmag-single-mags-hero__picker-label {
       font-size: 11px;
     }
-    .theinmag-single-mags-hero__picker-soldout {
+    .theinmag-single-mags-hero__picker-soldout,
+    .theinmag-single-mags-hero__picker-presale {
       font-size: 8px;
       letter-spacing: 0.04em;
     }
@@ -1872,6 +1990,16 @@
     border-radius: var(--radius-button);
     cursor: pointer;
     transition: background var(--transition-standard), color var(--transition-standard), translate var(--transition-standard), box-shadow var(--transition-standard);
+  }
+
+  /* Disabled = the active format's variant is sold out. pointer-events
+     :none also kills the hover state for both primary + secondary. */
+  .theinmag-single-mags-hero__cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    box-shadow: none;
+    translate: none;
+    pointer-events: none;
   }
 
   .theinmag-single-mags-hero__cta--primary {
@@ -2354,6 +2482,11 @@
     background: var(--color-yellow);
     translate: 0 -1px;
   }
+  .theinmag-single-mags-hero__floating-cart-cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    pointer-events: none;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .theinmag-single-mags-hero__floating-cart { transition: none; }
@@ -2410,6 +2543,20 @@
       "id": "issues_collection",
       "label": "Issues collection",
       "info": "Collection of per-issue products with single_mag metafields."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_picker",
+      "label": "Show issue picker",
+      "default": true,
+      "info": "On for the umbrella reference page. Off on individual product pages, where the issue strip handles navigation."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_card",
+      "label": "Show card surface",
+      "default": true,
+      "info": "On for the umbrella reference page. Off on product pages so the widget sits flat on the page background."
     },
     {
       "type": "header",

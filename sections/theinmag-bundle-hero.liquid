@@ -1,0 +1,421 @@
+{%- comment -%}
+  theinmag-bundle-hero
+  Story-first photo split for /pages/build-a-bundle. Left pane: tiered offer
+  ladder + single yellow stamp CTA. Right pane: full-bleed photo with scrim
+  + white attribution chip.
+
+  Carries the page-level BreadcrumbList + WebPage JSON-LD because this
+  section is always present on the page. FAQPage JSON-LD lives in the
+  FAQ section.
+
+  Archetype: §6.1 hero story-first photo split, modified (offer ladder
+  instead of two-button CTA stack).
+{%- endcomment -%}
+
+{%- liquid
+  assign eyebrow = section.settings.eyebrow
+  assign headline = section.settings.headline
+  assign subhead = section.settings.subhead
+  assign cta_label = section.settings.cta_label | default: 'Start building'
+  assign cta_anchor = section.settings.cta_anchor | default: '#theinmag-bundle-picker'
+
+  assign hero_image = section.settings.hero_image
+  assign hero_image_filename = section.settings.hero_image_filename
+  assign hero_image_alt = section.settings.hero_image_alt | default: 'Aussie kids reading a stack of theINmag issues together.'
+  assign attribution_name = section.settings.attribution_name
+  assign attribution_location = section.settings.attribution_location
+
+  assign pad_top = section.settings.padding_top | default: 0
+  assign pad_bottom = section.settings.padding_bottom | default: 0
+-%}
+
+<section
+  class="theinmag-bundle-hero"
+  aria-labelledby="theinmag-bundle-hero-heading"
+  style="--bh-pt: {{ pad_top }}px; --bh-pb: {{ pad_bottom }}px;"
+>
+  <div class="theinmag-bundle-hero__title">
+    {%- if eyebrow != blank -%}
+      <p class="theinmag-bundle-hero__eyebrow">{{ eyebrow }}</p>
+    {%- endif -%}
+
+    <h1 id="theinmag-bundle-hero-heading" class="theinmag-bundle-hero__headline">{{ headline }}</h1>
+  </div>
+
+  <div class="theinmag-bundle-hero__body">
+    {%- if subhead != blank -%}
+      <p class="theinmag-bundle-hero__subhead">{{ subhead }}</p>
+    {%- endif -%}
+
+    <ul class="theinmag-bundle-hero__ladder" role="list" aria-label="Bundle discount tiers">
+      <li class="theinmag-bundle-hero__pill"><strong>3 items</strong> - 5% off</li>
+      <li class="theinmag-bundle-hero__pill"><strong>5 items</strong> - 10% off</li>
+      <li class="theinmag-bundle-hero__pill"><strong>8+ items</strong> - 15% off</li>
+    </ul>
+
+    <p class="theinmag-bundle-hero__micro">Discount applied automatically at checkout.</p>
+
+    <a class="theinmag-bundle-hero__cta" href="{{ cta_anchor }}" data-bundle-hero-cta>
+      {{ cta_label }}
+      <span aria-hidden="true"> &rarr;</span>
+    </a>
+  </div>
+
+  <div class="theinmag-bundle-hero__media">
+    {%- if hero_image != blank -%}
+      <img
+        class="theinmag-bundle-hero__image"
+        src="{{ hero_image | image_url: width: 1600 }}"
+        srcset="{{ hero_image | image_url: width: 800 }} 800w, {{ hero_image | image_url: width: 1200 }} 1200w, {{ hero_image | image_url: width: 1600 }} 1600w"
+        sizes="(min-width: 990px) 50vw, 100vw"
+        alt="{{ hero_image_alt | escape }}"
+        width="1600"
+        height="2000"
+        loading="eager"
+        fetchpriority="high"
+      >
+    {%- elsif hero_image_filename != blank -%}
+      <img
+        class="theinmag-bundle-hero__image"
+        src="{{ hero_image_filename | asset_url }}"
+        alt="{{ hero_image_alt | escape }}"
+        width="1600"
+        height="2000"
+        loading="eager"
+        fetchpriority="high"
+      >
+    {%- else -%}
+      <div class="theinmag-bundle-hero__image theinmag-bundle-hero__image--placeholder" aria-hidden="true"></div>
+    {%- endif -%}
+
+    {%- if attribution_name != blank -%}
+      <p class="theinmag-bundle-hero__attribution" aria-hidden="true">
+        {{ attribution_name }}{%- if attribution_location != blank %} - {{ attribution_location }}{%- endif -%}
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": {{ shop.url | json }}},
+      {"@type": "ListItem", "position": 2, "name": "Shop", "item": {{ shop.url | append: '/collections/shop' | json }}},
+      {"@type": "ListItem", "position": 3, "name": "Build a Bundle", "item": {{ shop.url | append: page.url | json }}}
+    ]
+  }
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": {{ page.title | default: 'Build a Bundle' | json }},
+    "description": {{ section.settings.subhead | default: 'Mix any mags, the Snack Pack, and Memberships. The more you add, the more you save.' | json }},
+    "url": {{ shop.url | append: page.url | json }}
+  }
+</script>
+
+{%- stylesheet -%}
+  .theinmag-bundle-hero {
+    background-color: var(--color-cream);
+    padding: var(--bh-pt, 0) 0 var(--bh-pb, 0);
+    display: grid;
+    /* Mobile: media as row 1, body as row 2. Title shares cell with
+       media (z-index above), so the eyebrow + headline read in white
+       over the photo. Desktop swaps to a two-column split. */
+    grid-template-columns: 1fr;
+    color: var(--color-inky-purple-navy);
+  }
+
+  .theinmag-bundle-hero__media {
+    grid-row: 1;
+    grid-column: 1;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-lavender);
+  }
+
+  .theinmag-bundle-hero__title {
+    /* Mobile: overlays bottom of media, white text + shadow on photo. */
+    grid-row: 1;
+    grid-column: 1;
+    align-self: end;
+    z-index: 3;
+    padding: clamp(24px, 6vw, 48px) clamp(20px, 6vw, 64px);
+    color: #FFFFFF;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .theinmag-bundle-hero__body {
+    grid-row: 2;
+    grid-column: 1;
+    padding: clamp(28px, 6vw, 56px) clamp(20px, 6vw, 64px) clamp(96px, 14vw, 160px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(12px, 1.5vw, 18px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bundle-hero {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      min-height: clamp(480px, 65vh, 720px);
+    }
+    .theinmag-bundle-hero__media {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+    /* Title back to left column, dark on cream. No scrim. */
+    .theinmag-bundle-hero__title {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: end;
+      z-index: auto;
+      color: var(--color-inky-purple-navy);
+      text-shadow: none;
+      pointer-events: auto;
+      padding: clamp(32px, 7vw, 80px) clamp(20px, 6vw, 64px) 0;
+    }
+    .theinmag-bundle-hero__body {
+      grid-column: 1;
+      grid-row: 2;
+      align-self: start;
+      padding: clamp(12px, 2vw, 24px) clamp(20px, 6vw, 64px) clamp(40px, 7vw, 80px);
+    }
+  }
+
+  .theinmag-bundle-hero__eyebrow {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    /* Mobile: inherits white from .theinmag-bundle-hero__title. */
+    color: inherit;
+  }
+
+  .theinmag-bundle-hero__headline {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(38px, 6vw, 64px);
+    line-height: 1.05;
+    color: inherit;
+    text-wrap: balance;
+    max-width: 14ch;
+  }
+
+  /* Desktop: eyebrow returns to sandy-orange-dark on cream. */
+  @media (min-width: 990px) {
+    .theinmag-bundle-hero__eyebrow {
+      color: var(--color-sandy-orange-dark);
+    }
+  }
+
+  .theinmag-bundle-hero__subhead {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.5;
+    color: rgba(42, 31, 61, 0.72);
+    max-width: 32ch;
+  }
+
+  .theinmag-bundle-hero__ladder {
+    list-style: none;
+    margin: clamp(8px, 1vw, 12px) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-bundle-hero__ladder {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  }
+
+  .theinmag-bundle-hero__pill {
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-peach);
+    border-radius: var(--radius-pill, 9999px);
+    padding: 8px 16px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.2;
+    color: var(--color-sandy-orange-dark);
+  }
+
+  .theinmag-bundle-hero__pill strong {
+    font-weight: 700;
+  }
+
+  .theinmag-bundle-hero__micro {
+    margin: 4px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(42, 31, 61, 0.72);
+  }
+
+  .theinmag-bundle-hero__cta {
+    align-self: flex-start;
+    margin-top: clamp(8px, 1.5vw, 16px);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 28px;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    border-radius: var(--radius-button, 32px);
+    box-shadow: var(--shadow-button-yellow, 0 4px 0 #D4A02E);
+    min-height: 44px;
+    transition: transform var(--transition-standard, 0.15s ease), box-shadow var(--transition-standard, 0.15s ease);
+  }
+  .theinmag-bundle-hero__cta:hover,
+  .theinmag-bundle-hero__cta:focus-visible {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow, #D4A02E);
+    outline: none;
+  }
+
+  /* Media pane image + scrim. The .theinmag-bundle-hero__media block
+     itself is defined earlier in the stylesheet with the new
+     grid placement; this section just styles the image and overlays. */
+
+  .theinmag-bundle-hero__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: 4 / 5;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-bundle-hero__image {
+      aspect-ratio: 16 / 10;
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-bundle-hero__image {
+      aspect-ratio: auto;
+      min-height: clamp(480px, 65vh, 720px);
+    }
+  }
+
+  .theinmag-bundle-hero__image--placeholder {
+    background: linear-gradient(135deg, #E8DEEF 0%, #FCDDB8 100%);
+    aspect-ratio: 4 / 5;
+  }
+
+  /* Flat darken + scrim. */
+  .theinmag-bundle-hero__media::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(42, 31, 61, 0.20);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .theinmag-bundle-hero__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(42, 31, 61, 0.55) 0%, rgba(42, 31, 61, 0) 80%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .theinmag-bundle-hero__attribution {
+    position: absolute;
+    bottom: clamp(12px, 2vw, 24px);
+    left: clamp(12px, 2vw, 24px);
+    z-index: 2;
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 1.3;
+    color: #FFFFFF;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    /* Sticky-header-aware anchor scroll for the Start building CTA.
+       Subtracts current header height (+12px breathing room) from the
+       target position so the picker section doesn't slide behind the
+       fixed header on click. */
+    const cta = document.querySelector('[data-bundle-hero-cta]');
+    if (!cta) return;
+
+    cta.addEventListener('click', function (event) {
+      const href = cta.getAttribute('href') || '';
+      if (!href.startsWith('#')) return;
+      const target = document.querySelector(href);
+      if (!target) return;
+
+      event.preventDefault();
+      const header = document.querySelector('header') || document.querySelector('.theinmag-header');
+      const headerHeight = header ? header.offsetHeight : 0;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 12;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Bundle hero",
+  "tag": "section",
+  "class": "shopify-section--theinmag-bundle-hero",
+  "settings": [
+    { "type": "header", "content": "Offer" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Build a bundle" },
+    { "type": "textarea", "id": "headline", "label": "Headline (H1)", "default": "Mix mags. Save more." },
+    { "type": "textarea", "id": "subhead", "label": "Subhead", "default": "Mix any mags, the Snack Pack, and Memberships. The more you add, the more you save." },
+    { "type": "text", "id": "cta_label", "label": "CTA label", "default": "Start building" },
+    { "type": "text", "id": "cta_anchor", "label": "CTA anchor", "info": "Anchor link (e.g. #theinmag-bundle-picker).", "default": "#theinmag-bundle-picker" },
+    { "type": "header", "content": "Photo" },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero image" },
+    { "type": "text", "id": "hero_image_filename", "label": "Fallback image filename", "info": "Filename in /assets/. Used when no image picker is set.", "default": "product-bundle-hover.jpg" },
+    { "type": "text", "id": "hero_image_alt", "label": "Hero image alt text", "default": "Aussie kids reading a stack of theINmag issues together." },
+    { "type": "text", "id": "attribution_name", "label": "Attribution name", "info": "Kid attribution, e.g. \"Maya, age 9\"." },
+    { "type": "text", "id": "attribution_location", "label": "Attribution location", "info": "e.g. \"Fremantle WA\"." },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_top", "label": "Padding top", "min": 0, "max": 120, "step": 8, "default": 0, "unit": "px" },
+    { "type": "range", "id": "padding_bottom", "label": "Padding bottom", "min": 0, "max": 120, "step": 8, "default": 0, "unit": "px" }
+  ],
+  "presets": [
+    { "name": "Bundle hero" }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

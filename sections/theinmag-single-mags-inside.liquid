@@ -39,13 +39,49 @@
   # the picker fires a custom event.
   assign sorted_issues = issues | sort: 'metafields.single_mag.issue_number.value' | reverse
 
-  assign initial_issue = sorted_issues.first
+  # Pick which gallery of IMAGES to show on load. The pill LABEL is
+  # always the current product's own name (set in the markup below) -
+  # so the Digital Stack page reads "Inside Digital Stack" even though
+  # the images it shows are borrowed from a magazine.
+  #   1. If the current product is itself an issue WITH its own inside
+  #      gallery, show that - a mag's own page shows its own pages.
+  #   2. Otherwise (Snack Pack, Digital Stack, anything with no gallery)
+  #      fall back to the current issue from the theinmag.current_issue
+  #      _number shop metafield - a taste of the latest mag.
+  #   3. Last resort: newest issue with print in stock, else newest.
+  # On the single-mags reference page the picker JS swaps both the
+  # gallery and the label via the single-mags:issue-changed event.
+  assign initial_issue = nil
   for issue in sorted_issues
-    if issue.metafields.single_mag.print_in_stock == true
-      assign initial_issue = issue
+    if issue.handle == product.handle
+      assign product_inside_images = issue.metafields.single_mag.inside_gallery_images.value
+      if product_inside_images != blank
+        assign initial_issue = issue
+      endif
       break
     endif
   endfor
+  if initial_issue == nil
+    assign current_issue_mf = shop.metafields.theinmag.current_issue_number.value
+    if current_issue_mf != blank
+      assign current_issue_handle = current_issue_mf | downcase
+      for issue in sorted_issues
+        if issue.handle == current_issue_handle
+          assign initial_issue = issue
+          break
+        endif
+      endfor
+    endif
+  endif
+  if initial_issue == nil
+    assign initial_issue = sorted_issues.first
+    for issue in sorted_issues
+      if issue.metafields.single_mag.print_in_stock == true
+        assign initial_issue = issue
+        break
+      endif
+    endfor
+  endif
 
   assign heading_in_prefix = ''
   assign heading_in_suffix = ''
@@ -75,7 +111,7 @@
   {%- endcomment -%}
   <div class="theinmag-single-mags-inside__rail-wrap">
     <span class="theinmag-single-mags-inside__pill" data-pill aria-hidden="true">
-      Inside <span data-issue-label>{{ initial_issue.title | replace: 'theINmag - ', '' | replace: 'theINmag ', '' }}</span>
+      Inside <span data-issue-label>{{ product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', '' }}</span>
     </span>
 
     <div class="theinmag-single-mags-inside__galleries" data-galleries>
@@ -272,7 +308,10 @@
     color: var(--color-inky-purple-navy);
     padding: var(--tmsi-pt, 64px) 0 var(--tmsi-pb, 64px);
     position: relative;
-    overflow: hidden;
+    /* overflow:visible so the centred pill can straddle the section's
+       top edge - half over the section above, half over the images.
+       The rail keeps its own overflow-x:auto, so nothing else leaks. */
+    overflow: visible;
   }
 
   .theinmag-single-mags-inside__a11y-heading {
@@ -287,8 +326,9 @@
     border: 0;
   }
 
-  /* Full-bleed rail wrap. Pill overlays the rail in the top-left
-     corner, mirroring the Membership UGC banner pill placement. */
+  /* Full-bleed rail wrap. The pill is centred and straddles the wrap's
+     top edge - bottom half over the sliding images, top half lifting
+     onto the section above, so it reads as a label FOR these pages. */
   .theinmag-single-mags-inside__rail-wrap {
     position: relative;
     width: 100%;
@@ -296,9 +336,10 @@
 
   .theinmag-single-mags-inside__pill {
     position: absolute;
-    top: clamp(16px, 2vw, 28px);
-    left: clamp(20px, 3vw, 40px);
-    z-index: 2;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 4;
     background: var(--color-cream);
     color: var(--color-inky-purple-navy);
     font-family: var(--font-heading);
@@ -371,8 +412,6 @@
 
   @media (max-width: 749px) {
     .theinmag-single-mags-inside__pill {
-      top: 12px;
-      left: var(--space-md);
       padding: 8px 14px;
     }
   }

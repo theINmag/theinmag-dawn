@@ -1,0 +1,43 @@
+{%- comment -%}
+  theinmag-issue-strip-tile
+  One linked tile in the product-page issue strip. Unlike the old
+  single-mags picker, this is plain navigation - the tile is an <a>
+  straight to the product's page, no JS content-swapping.
+
+  Params:
+    product        - the product to render as a tile
+    current_handle - handle of the product whose page we are on
+{%- endcomment -%}
+{%- liquid
+  assign tile_label = product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
+  assign tile_cover = product.featured_image
+  assign tile_is_pre = product.metafields.theinmag.is_pre_order | default: false
+  assign is_current = false
+  if product.handle == current_handle
+    assign is_current = true
+  endif
+-%}
+<li class="theinmag-issue-strip__item{% if is_current %} is-current{% endif %}">
+  <a
+    class="theinmag-issue-strip__link"
+    href="{{ product.url }}"
+    {% if is_current %}aria-current="page"{% endif %}
+  >
+    <span class="theinmag-issue-strip__cover">
+      {%- if tile_cover != blank -%}
+        <img
+          class="theinmag-issue-strip__cover-img"
+          src="{{ tile_cover | image_url: width: 280 }}"
+          alt="{{ tile_label | escape }} cover"
+          loading="lazy"
+          width="100"
+          height="130"
+        >
+      {%- endif -%}
+    </span>
+    <span class="theinmag-issue-strip__label">{{ tile_label }}</span>
+    {%- if tile_is_pre -%}
+      <span class="theinmag-issue-strip__presale">Pre-order</span>
+    {%- endif -%}
+  </a>
+</li>
