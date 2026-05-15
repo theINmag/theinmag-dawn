@@ -145,20 +145,25 @@
           .then(function (response) {
             btn.textContent = 'Added ✓';
 
-            /* Refresh the drawer DOM from the returned sections (same
-               mechanism PDP product-form.js uses). */
-            if (cartDrawer && response.sections && typeof cartDrawer.renderContents === 'function') {
-              cartDrawer.renderContents(response);
+            var onCartPage = window.location.pathname.replace(/\/$/, '') === '/cart';
+
+            /* On /cart page, just reload the page. Calling
+               cartDrawer.renderContents would briefly OPEN the drawer
+               over the cart we're already looking at (renderContents
+               ends in this.open()), which reads as a flicker before
+               the reload kicks in. Skip the drawer step entirely on
+               /cart and let the reload refresh line items + totals. */
+            if (onCartPage) {
+              setTimeout(function () { window.location.reload(); }, 250);
+              return;
             }
 
-            /* On /cart page, force a full page reload after a beat so
-               the line items + totals fully refresh. cart.js already
-               powers the drawer/quantity flow but doesn't listen to
-               external /cart/add.js calls, and pretending otherwise
-               leaks stale UI. Only do this on /cart, not on PDPs. */
-            if (window.location.pathname.replace(/\/$/, '') === '/cart') {
-              setTimeout(function () { window.location.reload(); }, 350);
-              return;
+            /* Off /cart (PDPs, /pages/shop, homepage): refresh the
+               drawer DOM from the returned sections and let
+               cartDrawer.renderContents reopen it with the new item
+               visible. Same mechanism PDP product-form.js uses. */
+            if (cartDrawer && response.sections && typeof cartDrawer.renderContents === 'function') {
+              cartDrawer.renderContents(response);
             }
 
             /* Publish cartUpdate so shipping bar + any other listeners
