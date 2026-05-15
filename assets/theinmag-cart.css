@@ -180,42 +180,31 @@ cart-drawer.is-empty .drawer__footer {
 }
 
 /* /cart surface: full-width banner across the top, 5 columns on
-   desktop with hairline separators. Wraps to 2-col on tablet,
-   compact 2-col on phone (was single-column - Ryan flagged it
-   dominating the top of the mobile viewport). */
+   desktop with hairline separators. Hidden entirely on mobile
+   (<750px) per Ryan's "way too overwhelming" feedback - the
+   shipping bar + line items + cross-sell + gift note + total
+   already crowd the phone viewport, and the trust signals are
+   redundant with the announcement bar's "Free shipping" message. */
 .theinmag-cart-trust--page {
-  margin: 0 0 16px;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0;
-  padding: 8px 12px;
-}
-.theinmag-cart-trust--page .theinmag-cart-trust__item {
-  flex: 1 1 calc(50% - 6px);
-  border-bottom: 0;
-  padding: 4px 8px;
-  justify-content: flex-start;
-  font-size: 11px;
-  line-height: 1.25;
-  gap: 6px;
-}
-.theinmag-cart-trust--page .theinmag-cart-trust__icon {
-  width: 12px;
-  height: 12px;
+  display: none;
 }
 @media (min-width: 750px) {
   .theinmag-cart-trust--page {
+    display: flex;
+    margin: 0 0 16px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0;
     padding: 14px 20px;
   }
   .theinmag-cart-trust--page .theinmag-cart-trust__item {
+    flex: 1 1 calc(50% - 12px);
+    border-bottom: 0;
+    padding: 6px 12px 6px 0;
     font-size: 13px;
     line-height: 1.35;
     gap: 10px;
-    padding: 6px 12px 6px 0;
-  }
-  .theinmag-cart-trust--page .theinmag-cart-trust__icon {
-    width: 16px;
-    height: 16px;
+    justify-content: flex-start;
   }
 }
 @media (min-width: 990px) {

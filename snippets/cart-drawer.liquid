@@ -95,9 +95,13 @@
           </span>
         </button>
       </div>
-      <div class="theinmag-cart-drawer__top-wrap">
-        {% render 'theinmag-cart-trust-strip', surface: 'drawer' %}
-      </div>
+      {%- comment -%}
+        Trust strip intentionally NOT rendered in the drawer - the
+        drawer is always narrow (~400px even on desktop), so 5 tick
+        items read as clutter before the customer sees what they
+        actually bought. The /cart page keeps the trust strip on
+        desktop only. Ryan flagged "way too overwhelming" 2026-05-15.
+      {%- endcomment -%}
       <div class="theinmag-cart-drawer__shipping-bar-wrap">
         {% render 'theinmag-cart-shipping-bar' %}
       </div>
