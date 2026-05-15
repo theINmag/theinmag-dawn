@@ -629,7 +629,7 @@
     position: fixed;
     left: 50%;
     bottom: calc(clamp(16px, 4vw, 32px) + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%) translateY(12px);
+    transform: translateX(-50%);
     background-color: rgba(251, 246, 234, 0.96);
     color: var(--color-inky-purple-navy);
     border: 1.5px solid var(--color-soft-pink);
@@ -645,7 +645,7 @@
     z-index: 60;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s ease, transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+    transition: opacity 0.25s ease;
     max-width: min(420px, calc(100vw - 32px));
     /* Flex so the ::before chip aligns to the text middle, not the
        baseline (vertical-align hacks were leaving the tick sitting
@@ -659,7 +659,6 @@
 
   .theinmag-shop-grid__feedback:not([hidden]) {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
   }
 
   /* Tiny sage check chip to soften the message. Flex item of the
@@ -684,11 +683,6 @@
     display: none;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .theinmag-shop-grid__feedback {
-      transition: opacity 0.15s ease;
-    }
-  }
 
   /* ---------- Tile styles (paired with theinmag-bundle-tile.liquid).
      Copied from theinmag-bundle-picker.liquid so the tile renders identically
