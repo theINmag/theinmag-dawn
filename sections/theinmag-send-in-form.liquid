@@ -29,6 +29,15 @@
   assign section_style = '--sif-pt: ' | append: section.settings.padding_top | append: 'px; --sif-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
 
+{%- comment -%}
+  Sitewide kid-character pool. Drops a JSON config + the pool JS that
+  auto-discovers /assets/character-N.png files, shuffles, and fills any
+  [data-theinmag-pool-character] slot on the page with a unique random
+  character per visit. We use it here to randomise the JotForm loader
+  character so kids see something different each time they land.
+{%- endcomment -%}
+{% render 'theinmag-character-pool' %}
+
 <section
   class="theinmag-send-in-form-section"
   id="send-in-form"
@@ -77,14 +86,14 @@
           Eager-loaded image so it actually paints during the gap.
         {%- endcomment -%}
         <div class="theinmag-send-in-form-section__loader" data-jotform-loader>
-          <img
-            class="theinmag-send-in-form-section__loader-character"
-            src="{{ 'character-1.png' | asset_url }}"
-            alt=""
-            width="160"
-            height="160"
-            fetchpriority="high"
-          >
+          {%- comment -%}
+            Empty slot - the character-pool snippet's JS picks a random
+            valid /assets/character-N.png on page load and appends an
+            <img class="theinmag-pool-character__img"> inside this span.
+            The bobbing animation lives on this wrapper so it applies
+            regardless of which character lands.
+          {%- endcomment -%}
+          <span class="theinmag-send-in-form-section__loader-character" data-theinmag-pool-character aria-hidden="true"></span>
           <p class="theinmag-send-in-form-section__loader-label">Loading the submission form...</p>
         </div>
         <script type="text/javascript" src="https://form.jotform.com/jsform/{{ jotform_id }}"></script>
@@ -328,10 +337,18 @@
     display: none;
   }
   .theinmag-send-in-form-section__loader-character {
+    display: inline-block;
     width: clamp(120px, 18vw, 180px);
-    height: auto;
+    aspect-ratio: 1 / 1;
     animation: theinmag-sif-loader-bob 1.6s ease-in-out infinite;
     transform-origin: 50% 80%;
+  }
+  .theinmag-send-in-form-section__loader-character img,
+  .theinmag-send-in-form-section__loader-character .theinmag-pool-character__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
   }
   .theinmag-send-in-form-section__loader-label {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
