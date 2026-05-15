@@ -1,0 +1,333 @@
+{%- comment -%}
+  theinmag-floating-cart.liquid
+
+  Sitewide floating mini-cart pill. Rendered once in layout/theme.liquid
+  immediately before </body>, so it appears on every page.
+
+  Two responsibilities:
+
+  1) Persistent pill at the bottom of the viewport showing the running
+     cart total + "View cart" link. Hidden when cart is empty. Updates
+     live via PUB_SUB_EVENTS.cartUpdate.
+
+  2) AJAX-add intercept. Any form with `data-theinmag-ajax-add` gets
+     its submit hijacked: POST /cart/add.js + flash a toast on top of
+     the pill + publish cartUpdate so the pill refreshes. Buy Now
+     buttons (name="checkout") are NOT intercepted - they navigate to
+     /checkout via Shopify's skip-cart pattern.
+
+  CSS lives inline (snippet-level {% stylesheet %} blocks aren't
+  reliably extracted by Shopify - same gotcha that left the shipping
+  bar fill uncoloured earlier).
+
+  Coexistence note: the membership PDP and single-mag PDP have their
+  own "your order" floating cards (variant configurator helpers). When
+  the cart has items, this sitewide floating cart takes over and the
+  per-PDP helpers hide via the body[data-theinmag-cart-count] CSS rule
+  below - so we never have two floats fighting for the same screen
+  space.
+{%- endcomment -%}
+
+<div
+  class="theinmag-floating-cart{% if cart == empty %} is-empty{% endif %}"
+  data-theinmag-floating-cart
+  data-item-count="{{ cart.item_count }}"
+  aria-live="polite"
+>
+  <a href="{{ routes.cart_url }}" class="theinmag-floating-cart__pill" data-fc-pill>
+    <span class="theinmag-floating-cart__icon" aria-hidden="true">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+        <path d="M4 6h12l-1 10a1.6 1.6 0 0 1-1.6 1.4H6.6A1.6 1.6 0 0 1 5 16L4 6Z"></path>
+        <path d="M7 6V4.5a3 3 0 0 1 6 0V6"></path>
+      </svg>
+    </span>
+    <span class="theinmag-floating-cart__summary">
+      <strong data-fc-count>{{ cart.item_count }}</strong>
+      <span data-fc-noun>{% if cart.item_count == 1 %}item{% else %}items{% endif %}</span>
+      <span class="theinmag-floating-cart__sep" aria-hidden="true">·</span>
+      <strong data-fc-total>{{ cart.total_price | money }}</strong>
+    </span>
+    <span class="theinmag-floating-cart__view">View cart →</span>
+  </a>
+  <div class="theinmag-floating-cart__toast" data-fc-toast hidden role="status">
+    <span class="theinmag-floating-cart__toast-check" aria-hidden="true">✓</span>
+    <span data-fc-toast-text>Added to your cart</span>
+  </div>
+</div>
+
+<style>
+  /* Persistent mini-cart pill. */
+  .theinmag-floating-cart {
+    position: fixed;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 55;
+    pointer-events: auto;
+    transition: opacity 0.25s ease, transform 0.3s ease;
+    max-width: calc(100vw - 24px);
+  }
+  .theinmag-floating-cart.is-empty {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(8px);
+  }
+
+  .theinmag-floating-cart__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 6px 10px 16px;
+    background: rgba(251, 246, 234, 0.96);
+    color: var(--color-inky-purple-navy);
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: 999px;
+    text-decoration: none;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: 0 12px 32px rgba(42, 31, 61, 0.18), 0 2px 8px rgba(42, 31, 61, 0.08);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    white-space: nowrap;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .theinmag-floating-cart__pill:hover,
+  .theinmag-floating-cart__pill:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(42, 31, 61, 0.22), 0 4px 12px rgba(42, 31, 61, 0.10);
+  }
+  .theinmag-floating-cart__icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-purple-dark);
+  }
+  .theinmag-floating-cart__summary {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .theinmag-floating-cart__summary strong {
+    font-weight: 700;
+  }
+  .theinmag-floating-cart__sep {
+    opacity: 0.55;
+    padding: 0 2px;
+  }
+  .theinmag-floating-cart__view {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    margin-left: 4px;
+    background: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    font-weight: 700;
+    border-radius: 999px;
+  }
+  .theinmag-floating-cart__pill:hover .theinmag-floating-cart__view,
+  .theinmag-floating-cart__pill:focus-visible .theinmag-floating-cart__view {
+    background: var(--color-purple-dark);
+    color: #fff;
+  }
+
+  /* Toast bubble sits ABOVE the pill on add. */
+  .theinmag-floating-cart__toast {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(251, 246, 234, 0.96);
+    color: var(--color-inky-purple-navy);
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: 14px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: 0 12px 28px rgba(42, 31, 61, 0.18);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .theinmag-floating-cart__toast:not([hidden]) {
+    opacity: 1;
+  }
+  .theinmag-floating-cart__toast-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: var(--color-sage-dark);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    flex: 0 0 auto;
+  }
+
+  /* When the cart has items, hide the per-PDP "your order"
+     variant-configurator floats so we don't stack two floats at the
+     bottom of the screen on mobile. The sitewide pill is the
+     primary surface once the customer has committed to buying. */
+  body[data-theinmag-cart-count]:not([data-theinmag-cart-count="0"]) .theinmag-single-mags-hero__floating-cart,
+  body[data-theinmag-cart-count]:not([data-theinmag-cart-count="0"]) .theinmag-membership-hero__floating-cart {
+    display: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-floating-cart {
+      transition: opacity 0.15s ease;
+    }
+    .theinmag-floating-cart__pill {
+      transition: none;
+    }
+    .theinmag-floating-cart__toast {
+      transition: opacity 0.15s ease;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    if (window.__theinmagFloatingCartInit) return;
+    window.__theinmagFloatingCartInit = true;
+
+    function ready(fn) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn);
+      } else {
+        fn();
+      }
+    }
+
+    ready(function init() {
+      var pill = document.querySelector('[data-theinmag-floating-cart]');
+      if (!pill) return;
+      var countEl = pill.querySelector('[data-fc-count]');
+      var nounEl = pill.querySelector('[data-fc-noun]');
+      var totalEl = pill.querySelector('[data-fc-total]');
+      var toastEl = pill.querySelector('[data-fc-toast]');
+      var toastText = pill.querySelector('[data-fc-toast-text]');
+      var toastTimer;
+
+      function formatMoney(cents) {
+        if (typeof cents !== 'number') cents = parseInt(cents, 10) || 0;
+        var dollars = cents / 100;
+        return '$' + dollars.toFixed(dollars % 1 === 0 ? 0 : 2);
+      }
+
+      function refresh(cart) {
+        if (!cart) return;
+        var count = cart.item_count || 0;
+        var total = cart.total_price || 0;
+        if (countEl) countEl.textContent = count;
+        if (nounEl) nounEl.textContent = count === 1 ? 'item' : 'items';
+        if (totalEl) totalEl.textContent = formatMoney(total);
+        pill.classList.toggle('is-empty', count === 0);
+        pill.setAttribute('data-item-count', count);
+        document.body.setAttribute('data-theinmag-cart-count', count);
+      }
+
+      function flashToast(message) {
+        if (!toastEl || !toastText) return;
+        toastText.textContent = message;
+        toastEl.removeAttribute('hidden');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          toastEl.setAttribute('hidden', '');
+        }, 2200);
+      }
+
+      // Subscribe to cart updates from anywhere in the app.
+      if (typeof subscribe === 'function' && typeof PUB_SUB_EVENTS !== 'undefined') {
+        subscribe(PUB_SUB_EVENTS.cartUpdate, function (event) {
+          if (!event) return;
+          var cart = event.cartData;
+          if (cart) refresh(cart);
+          var title = event.productTitle || (cart && cart.product_title) || '';
+          if (title) {
+            var pretty = title.replace(/^theINmag\s*[-–]\s*/i, '');
+            flashToast(pretty + ' added to your cart');
+          }
+        });
+      }
+
+      // AJAX intercept. Forms tagged with `data-theinmag-ajax-add`
+      // submit through here instead of doing the default POST + nav.
+      document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (!form.matches || !form.matches('[data-theinmag-ajax-add]')) return;
+
+        // Don't intercept Buy Now (name="checkout") - that's the
+        // intentional skip-cart -> /checkout path.
+        var submitter = event.submitter;
+        if (submitter && submitter.name === 'checkout') return;
+
+        event.preventDefault();
+
+        var btn = submitter || form.querySelector('[type="submit"]:not([name="checkout"])');
+        var originalLabel = btn ? btn.textContent : '';
+        if (btn) {
+          btn.disabled = true;
+          var label = btn.querySelector('[data-cta-label]');
+          if (label) label.textContent = 'Adding...';
+        }
+
+        var formData = new FormData(form);
+
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: formData
+        })
+          .then(function (r) {
+            if (!r.ok) throw new Error('add failed');
+            return r.json();
+          })
+          .then(function (addResponse) {
+            // /cart/add.js returns the line item that was added, not
+            // the full cart. Fetch /cart.js for accurate totals.
+            return fetch('/cart.js', { headers: { Accept: 'application/json' } })
+              .then(function (r) { return r.json(); })
+              .then(function (cart) {
+                if (typeof publish === 'function' && typeof PUB_SUB_EVENTS !== 'undefined') {
+                  publish(PUB_SUB_EVENTS.cartUpdate, {
+                    source: 'theinmag-floating-cart',
+                    cartData: cart,
+                    productTitle: addResponse.product_title
+                  });
+                } else {
+                  refresh(cart);
+                  flashToast((addResponse.product_title || 'Item').replace(/^theINmag\s*[-–]\s*/i, '') + ' added to your cart');
+                }
+                if (btn) {
+                  if (label) label.textContent = 'Added ✓';
+                  setTimeout(function () {
+                    btn.disabled = false;
+                    if (label) label.textContent = originalLabel || 'Add to cart';
+                  }, 1400);
+                }
+              });
+          })
+          .catch(function () {
+            flashToast('Could not add to cart. Try again.');
+            if (btn) {
+              btn.disabled = false;
+              var label = btn.querySelector('[data-cta-label]');
+              if (label) label.textContent = originalLabel || 'Add to cart';
+            }
+          });
+      }, true);
+    });
+  })();
+</script>
