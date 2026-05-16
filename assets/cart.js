@@ -315,3 +315,27 @@ if (!customElements.get('cart-note')) {
     }
   );
 }
+
+(function () {
+  if (window.__theinmagCartNoteCounter) return;
+  window.__theinmagCartNoteCounter = true;
+  function bind() {
+    document.querySelectorAll('[data-theinmag-note-counter]').forEach(function (input) {
+      var display = input.parentElement.querySelector('[data-theinmag-note-counter-display]');
+      if (!display) return;
+      function update() {
+        var len = input.value.length;
+        var max = parseInt(input.getAttribute('maxlength'), 10) || 50;
+        display.textContent = len + ' / ' + max;
+        display.classList.toggle('is-near', len >= max - 10);
+      }
+      input.addEventListener('input', update);
+      update();
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+})();
