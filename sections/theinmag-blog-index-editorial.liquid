@@ -189,11 +189,12 @@
     .theinmag-editorial__inner .theinmag-editorial__card--feature .theinmag-editorial__card-cover {
       border-radius: 0;
       box-shadow: none;
-      /* Hero takes 75vh so the FIELD NOTES wordmark just peeks below
-         the fold - reader scrolls a touch and sees the section
-         identity. aspect-ratio cleared so height is viewport-driven. */
+      /* Hero takes 60vh so the next two cards peek meaningfully below
+         the fold - 75vh + announcement bar + sticky header was eating
+         all visible viewport on Pixel and killing scroll discoverability.
+         aspect-ratio cleared so height is viewport-driven. */
       aspect-ratio: auto;
-      height: 75vh;
+      height: 60vh;
     }
 
     /* Darker bottom-of-image scrim on mobile for white-text overlay
@@ -555,7 +556,7 @@
   .theinmag-editorial__card-title--on-photo {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
-    font-size: clamp(28px, 4.8vw, 56px);
+    font-size: clamp(32px, 5.2vw, 56px);
     line-height: 1.12;
     letter-spacing: -0.015em;
     color: #FFFFFF;
@@ -629,8 +630,12 @@
     aspect-ratio: 4 / 3;
   }
 
+  /* Regular card title size unified across large_left, bottom_small,
+     and right_small (previously 22 / 17 / 16px min on mobile - a 6px
+     spread that read as inconsistent in the listing). One clamp keeps
+     them visually a family while still scaling with viewport. */
   .theinmag-editorial__card--large_left .theinmag-editorial__card-title {
-    font-size: clamp(22px, 2.2vw, 30px);
+    font-size: clamp(21px, 1.9vw, 24px);
   }
 
   /* ================================================================
@@ -653,13 +658,13 @@
   }
 
   .theinmag-editorial__card--bottom_small .theinmag-editorial__card-title {
-    font-size: clamp(17px, 1.6vw, 20px);
+    font-size: clamp(21px, 1.9vw, 24px);
     -webkit-line-clamp: 2;
   }
 
   .theinmag-editorial__card--bottom_small .theinmag-editorial__card-excerpt {
     -webkit-line-clamp: 2;
-    font-size: 13.5px;
+    font-size: 14px;
   }
 
   /* ================================================================
@@ -692,13 +697,13 @@
   }
 
   .theinmag-editorial__card--right_small .theinmag-editorial__card-title {
-    font-size: clamp(16px, 1.4vw, 19px);
+    font-size: clamp(21px, 1.9vw, 24px);
     -webkit-line-clamp: 2;
   }
 
   .theinmag-editorial__card--right_small .theinmag-editorial__card-excerpt {
     -webkit-line-clamp: 2;
-    font-size: 13.5px;
+    font-size: 14px;
   }
 
   @media (min-width: 990px) {

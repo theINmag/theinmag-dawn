@@ -557,6 +557,14 @@
 
   .theinmag-membership-hero__media-col {
     width: 100%;
+    /* min-width:0 + overflow-x:clip stops the media gallery's intrinsic
+       content width from inflating the grid track on mobile, which was
+       pushing the entire __inner column to ~508px wide on a 375px
+       viewport and clipping the picker. Grid items default to min-width:
+       auto (= min-content sized), so without this the gallery's
+       internal min-content wins over the parent's available space. */
+    min-width: 0;
+    overflow-x: clip;
   }
 
   .theinmag-membership-hero__media-main {
@@ -689,9 +697,21 @@
 
   /* Flat - no card surface (matches the typical product page). The
      section bg + padding carry it; the widget just needs internal
-     spacing off the media column. */
+     spacing off the media column.
+
+     min-width: 0 + overflow-x: clip is load-bearing: without them, the
+     widget's grid track expands to fit its widest descendant (the
+     Judge.me featured-carousel ships ~416px-wide markup that can't be
+     shrunk via theme CSS), which on mobile bloats the column to ~508px
+     wide and pushes the picker (Format / Length / Starting Issue) past
+     the viewport edge. min-width:0 lets grid's 1fr actually win on
+     narrow screens; the clip contains any remaining third-party
+     overflow without breaking the desktop sticky behaviour. */
   .theinmag-membership-hero__widget {
     padding: var(--space-md) 0 0;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
   }
 
   @media (min-width: 750px) {
@@ -845,45 +865,57 @@
     cursor: pointer;
     transition: background var(--transition-standard), color var(--transition-standard);
   }
-  .theinmag-membership-hero__pill:hover { background: rgba(247, 160, 146, 0.18); }
+  .theinmag-membership-hero__pill:hover { background: rgba(247, 160, 146, 0.14); }
+  /* Active state: pink tint inside, solid pink border outside. Tint sits
+     at 0.45 so the selected pill clearly stands out against the white
+     resting state (grandparents + kids need an obvious cue). Border is
+     already 2px so no layout shift on toggle. */
   .theinmag-membership-hero__pill[aria-pressed='true'] {
-    background: var(--color-soft-pink);
+    background: rgba(247, 160, 146, 0.45);
     color: var(--color-inky-purple-navy);
   }
   .theinmag-membership-hero__pill[hidden] { display: none; }
 
-  /* Starting issue tiles - stacked vertically per Ryan's preference (reverting
-     the earlier side-by-side experiment - the stacked treatment reads cleaner
-     and lets the two-line tile content breathe). Tiles shrink to fit their
-     content width so there's no dead space on the right - matches the rest
-     of the widget's tight rhythm. */
+  /* Starting issue tiles - stacked vertically per Ryan's preference (side-by-side
+     was tried and rejected). Card-shape (not pill) so the two-line content has
+     room to breathe; tiles stretch to fill the column so the longer subline
+     ("drops 15 June 2026") doesn't push its tile wider than the other.
+     Active state is a soft pink tint + 2px pink border rather than a solid
+     fill - reads as "selected card" instead of "button being pressed." */
   .theinmag-membership-hero__starting {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-xs);
+    align-items: stretch;
+    gap: 10px;
   }
   .theinmag-membership-hero__start-tile {
     background: #ffffff;
-    border: 1.5px solid var(--color-soft-pink);
-    border-radius: var(--radius-pill);
-    padding: 8px 16px;
+    border: 1.5px solid rgba(247, 160, 146, 0.55);
+    border-radius: 16px;
+    padding: 12px 16px;
     cursor: pointer;
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 4px;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
-    transition: background var(--transition-standard), color var(--transition-standard);
+    transition: background var(--transition-standard), border-color var(--transition-standard);
+  }
+  .theinmag-membership-hero__start-tile:hover,
+  .theinmag-membership-hero__start-tile:focus-visible {
+    border-color: var(--color-soft-pink);
+    outline: none;
   }
   .theinmag-membership-hero__start-tile[aria-pressed='true'] {
-    background: var(--color-soft-pink);
-    color: var(--color-inky-purple-navy);
+    background: rgba(247, 160, 146, 0.45);
+    border-color: var(--color-soft-pink);
+    border-width: 2px;
+    padding: 11.5px 15.5px;
   }
   .theinmag-membership-hero__start-tile[hidden] { display: none; }
-  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 13px; line-height: 1.3; }
-  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 12px; opacity: 0.85; line-height: 1.3; }
+  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 14px; line-height: 1.3; }
+  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 12.5px; opacity: 0.78; line-height: 1.35; }
 
   /* CTA row holds the yellow ADD TO CART + outlined BUY NOW side by side.
      Pattern matches the typical product page (theinmag-single-mags-hero). */

@@ -165,41 +165,60 @@
     <h3 class="theinmag-bundle-tile__title">{{ tile_title }}</h3>
   {%- endif -%}
 
-  {%- if print_variant -%}
-    {%- liquid
-      assign print_sold_out = false
-      if print_variant.available == false
-        assign print_sold_out = true
-      endif
-    -%}
-    <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--print{% if print_sold_out %} is-sold-out{% endif %}" data-variant-id="{{ print_variant.id }}">
-      <span class="theinmag-bundle-tile__format">Print</span>
-      {%- if print_sold_out -%}
-        <span class="theinmag-bundle-tile__pill" aria-label="Print sold out">Sold out</span>
-      {%- else -%}
-        <span class="theinmag-bundle-tile__price">{{ print_variant.price | money }}</span>
+  {%- comment -%}
+    Membership tile has 3 selector axes (Format / Length / Starting Issue)
+    that don't fit a two-row add-to-cart pattern, so on /shop it gets a
+    single CTA that opens the membership picker popup
+    (snippets/theinmag-membership-popup.liquid). Only triggered in shop
+    context - the BaB picker never includes the membership product.
+  {%- endcomment -%}
+  {%- if tile_context == 'shop' and product.handle == 'membership' -%}
+    <button
+      type="button"
+      class="theinmag-bundle-tile__join"
+      data-membership-popup-trigger
+      aria-haspopup="dialog"
+      aria-label="Choose options and join the club"
+    >Join the club</button>
+  {%- else -%}
+
+    {%- if print_variant -%}
+      {%- liquid
+        assign print_sold_out = false
+        if print_variant.available == false
+          assign print_sold_out = true
+        endif
+      -%}
+      <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--print{% if print_sold_out %} is-sold-out{% endif %}" data-variant-id="{{ print_variant.id }}">
+        <span class="theinmag-bundle-tile__format">Print</span>
+        {%- if print_sold_out -%}
+          <span class="theinmag-bundle-tile__pill" aria-label="Print sold out">Sold out</span>
+        {%- else -%}
+          <span class="theinmag-bundle-tile__price">{{ print_variant.price | money }}</span>
+          <button
+            type="button"
+            class="theinmag-bundle-tile__add"
+            {{ add_attr }}
+            data-variant-id="{{ print_variant.id }}"
+            aria-label="Add {{ tile_title }} Print{{ add_suffix }}"
+          ><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if digital_variant -%}
+      <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--digital" data-variant-id="{{ digital_variant.id }}">
+        <span class="theinmag-bundle-tile__format">Digital</span>
+        <span class="theinmag-bundle-tile__price">{{ digital_variant.price | money }}</span>
         <button
           type="button"
           class="theinmag-bundle-tile__add"
           {{ add_attr }}
-          data-variant-id="{{ print_variant.id }}"
-          aria-label="Add {{ tile_title }} Print{{ add_suffix }}"
+          data-variant-id="{{ digital_variant.id }}"
+          aria-label="Add {{ tile_title }} Digital{{ add_suffix }}"
         ><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
-      {%- endif -%}
-    </div>
-  {%- endif -%}
+      </div>
+    {%- endif -%}
 
-  {%- if digital_variant -%}
-    <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--digital" data-variant-id="{{ digital_variant.id }}">
-      <span class="theinmag-bundle-tile__format">Digital</span>
-      <span class="theinmag-bundle-tile__price">{{ digital_variant.price | money }}</span>
-      <button
-        type="button"
-        class="theinmag-bundle-tile__add"
-        {{ add_attr }}
-        data-variant-id="{{ digital_variant.id }}"
-        aria-label="Add {{ tile_title }} Digital{{ add_suffix }}"
-      ><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
-    </div>
   {%- endif -%}
 </article>

@@ -977,6 +977,13 @@
       try {
         sessionStorage.setItem(FORMAT_STORAGE_KEY, format);
       } catch (e) { /* swallow */ }
+      // Keep <html data-theinmag-format> in sync with the user's choice.
+      // The load-flicker CSS rule below (look for [data-theinmag-format='Digital'])
+      // wins via higher specificity than the JS-set [hidden] attribute on
+      // the media containers, so without this line clicking Print after
+      // Digital was persisted leaves the Digital media visible even
+      // though the JS state and aria-pressed both say Print.
+      document.documentElement.setAttribute('data-theinmag-format', format);
     }
 
     function metaFor(handle) {
@@ -1731,6 +1738,13 @@
 
   .theinmag-single-mags-hero__media-col {
     width: 100%;
+    /* min-width:0 + overflow-x:clip stops the gallery's intrinsic
+       content width from inflating the grid track on mobile (same
+       root cause as the Membership PDP fix - grid items default to
+       min-width:auto so a wide child can push the column past
+       viewport, clipping the picker). */
+    min-width: 0;
+    overflow-x: clip;
   }
 
   .theinmag-single-mags-hero__media[hidden] { display: none; }
@@ -1846,6 +1860,12 @@
      the card edges + a clean separator from the media column. */
   .theinmag-single-mags-hero__widget {
     padding: 0 0 0 var(--space-md);
+    /* See media-col comment - same min-width:0 fix so the widget
+       can shrink to the grid track on mobile without being held
+       wider by any third-party child markup. */
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
   }
 
   @media (max-width: 749px) {
@@ -1989,10 +2009,16 @@
     transition: background 0.15s ease;
   }
   .theinmag-single-mags-hero__variant-tile:hover {
-    background: rgba(247, 160, 146, 0.18);
+    background: rgba(247, 160, 146, 0.14);
   }
+  /* Active state uses a 0.45 pink tint rather than a solid soft-pink
+     fill so the variant tile reads as part of the same picker family
+     as the Membership PDP pills (Format / Length) and Starting Issue
+     tiles. The 2px solid pink border (set on the base rule) provides
+     the strong edge - tint + border together make the selected state
+     obvious without the punch of a solid coloured button. */
   .theinmag-single-mags-hero__variant-tile[aria-pressed='true'] {
-    background: var(--color-soft-pink);
+    background: rgba(247, 160, 146, 0.45);
   }
   .theinmag-single-mags-hero__variant-title {
     font-weight: 700;
@@ -2013,6 +2039,17 @@
     background: rgba(0, 0, 0, 0.04);
     border-color: rgba(0, 0, 0, 0.10);
     color: rgba(42, 31, 61, 0.5);
+  }
+  /* Sold-out + selected: keeps the muted gray fill + strikethrough so
+     the tile still reads as "not buyable", but the soft-pink border
+     comes back so the visitor can SEE they've selected it. Without
+     this rule the .is-soldout background would override the
+     [aria-pressed='true'] pink fill (equal specificity, later in source),
+     leaving the selected state invisible - the visitor clicks Print on
+     a sold-out issue and nothing visible happens. */
+  .theinmag-single-mags-hero__variant-tile.is-soldout[aria-pressed='true'] {
+    border-color: var(--color-soft-pink);
+    color: var(--color-inky-purple-navy);
   }
   .theinmag-single-mags-hero__variant-tile.is-soldout .theinmag-single-mags-hero__variant-sold {
     display: block;

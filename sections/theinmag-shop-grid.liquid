@@ -187,6 +187,14 @@
     {%- endif -%}
 
   </div>
+
+  {%- comment -%}
+    Membership picker popup. Rendered once per page. Triggered by the
+    "Join the club" CTA on the Membership tile (set in bundle-tile.liquid
+    when product.handle == 'membership' and tile_context == 'shop').
+    Snippet silently no-ops if the membership product isn't found.
+  {%- endcomment -%}
+  {% render 'theinmag-membership-popup', membership_product: all_products['membership'] %}
 </section>
 
 {%- if render_count > 0 -%}
@@ -412,6 +420,11 @@
     background-color: var(--color-cream);
     color: var(--color-inky-purple-navy);
     padding: var(--tsg-pt, 48px) clamp(16px, 4vw, 48px) var(--tsg-pb, 96px);
+    /* Defensive clip - some descendant (likely a tile image or grid
+       cell) is pushing past the section's right edge on mobile, eating
+       the right gutter while the left holds firm. Clipping here
+       restores the symmetric padding that the rule above specifies. */
+    overflow-x: clip;
   }
 
   .theinmag-shop-grid__inner {
@@ -869,8 +882,34 @@
     outline: none;
   }
 
+  /* Membership-only CTA. Replaces the Print/Digital rows on the Membership
+     tile and opens the picker popup. Yellow stamp colour (CTA-only per
+     brand rules), full-width within the tile footer. */
+  .theinmag-bundle-tile__join {
+    appearance: none;
+    background-color: var(--color-yellow);
+    border: none;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    padding: 12px 14px;
+    margin: 8px 12px 12px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 44px;
+    transition: filter 0.2s ease;
+  }
+  .theinmag-bundle-tile__join:hover,
+  .theinmag-bundle-tile__join:focus-visible {
+    filter: brightness(0.94);
+    outline: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .theinmag-bundle-tile__add,
+    .theinmag-bundle-tile__join,
     .theinmag-bundle-tile__cover-img,
     .theinmag-shop-grid__filter-pill,
     .theinmag-shop-grid__show-more {

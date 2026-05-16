@@ -127,6 +127,19 @@
 
 }
 
+/* ----- Sitewide horizontal-scroll lockdown -----
+   `overflow-x: clip` (NOT `hidden`) so descendants using position:sticky
+   keep working - clip does not create a scroll container, hidden does.
+   Defends against any section that accidentally overflows past viewport
+   width on mobile (a recurring symptom on PDPs - thumbnail strips,
+   full-bleed media, off-screen overlays). Fixes the visible left-right
+   scroll without touching individual section code; the underlying
+   offender should still be tracked down and fixed at source as needed. */
+html,
+body {
+    overflow-x: clip;
+}
+
 /* ----- Sitewide typographic defaults ----- */
 
 body {
