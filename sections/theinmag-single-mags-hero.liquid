@@ -345,7 +345,7 @@
             Format - logic in updateVariantState() / setActiveIssue().
           {%- endcomment -%}
           <div
-            class="theinmag-single-mags-hero__media"
+            class="theinmag-single-mags-hero__media{% if is_active_issue %} is-active-issue{% endif %}"
             data-issue-handle="{{ issue.handle }}"
             data-media
             data-format="Print"
@@ -530,7 +530,7 @@
               endif
             -%}
             <div
-              class="theinmag-single-mags-hero__media"
+              class="theinmag-single-mags-hero__media{% if is_active_issue %} is-active-issue{% endif %}"
               data-issue-handle="{{ issue.handle }}"
               data-media
               data-format="Digital"
@@ -644,8 +644,22 @@
         <div class="theinmag-single-mags-hero__tagline-row">
           <p class="theinmag-single-mags-hero__tagline" data-issue-subtagline>{{ initial_subtag }}</p>
           {%- if show_rating_chip and hero_count != 0 and hero_count != blank -%}
-            <a href="#theinmag-membership-reviews-heading" class="theinmag-single-mags-hero__rating-link" aria-label="Read {{ hero_count }} customer reviews">
-              <span data-score="{{ hero_rating }}" class="jdgm-all-reviews-rating" aria-label="{{ hero_rating | round: 1 }} stars" role="img"></span>
+            {%- liquid
+              # Inline unicode-star rendering. Judge.me's preview-badge JS was
+              # intermittent; this Liquid-only fallback always renders and
+              # never depends on a script firing in the right order. Half-stars
+              # round to nearest full for simplicity (3.4 -> 3 filled, 3.6 -> 4).
+              assign rating_full = hero_rating | round
+              if rating_full > 5
+                assign rating_full = 5
+              endif
+              assign rating_empty = 5 | minus: rating_full
+            -%}
+            <a href="#theinmag-membership-reviews-heading" class="theinmag-single-mags-hero__rating-link" aria-label="Rated {{ hero_rating | round: 1 }} out of 5 from {{ hero_count }} reviews">
+              <span class="theinmag-single-mags-hero__rating-stars" role="img" aria-hidden="true">
+                {%- if rating_full > 0 -%}{%- for i in (1..rating_full) -%}★{%- endfor -%}{%- endif -%}
+                {%- if rating_empty > 0 -%}<span class="theinmag-single-mags-hero__rating-stars--empty">{%- for i in (1..rating_empty) -%}★{%- endfor -%}</span>{%- endif -%}
+              </span>
               <span class="theinmag-single-mags-hero__rating-count">({{ hero_count }})</span>
             </a>
           {%- endif -%}
@@ -946,7 +960,24 @@
        Digital Stack) emit Print: null and the variant-tile state +
        sold-out messaging adapts accordingly. */
     let activeIssueHandle = root.dataset.initialIssue;
+    /* Persist Print/Digital selection across PDP navigation. If a visitor
+       picks Digital on Mag05, landing on Mag03 should stay on Digital - not
+       silently reset to Print. sessionStorage scopes to the tab so a fresh
+       window starts on the default Print again. */
+    const FORMAT_STORAGE_KEY = 'theinmag.activeFormat';
     let activeFormat = 'Print';
+    try {
+      const saved = sessionStorage.getItem(FORMAT_STORAGE_KEY);
+      if (saved === 'Print' || saved === 'Digital') {
+        activeFormat = saved;
+      }
+    } catch (e) { /* sessionStorage disabled (private mode etc.) - keep default */ }
+
+    function persistFormat(format) {
+      try {
+        sessionStorage.setItem(FORMAT_STORAGE_KEY, format);
+      } catch (e) { /* swallow */ }
+    }
 
     function metaFor(handle) {
       return issuesMeta.find(function (m) { return m.handle === handle; });
@@ -1090,14 +1121,15 @@
       const printExists = !!printVariant;
       const printInStock = printExists && printVariant.available;
       const printUnavailable = !printInStock; // covers both absent + sold-out
-      // Auto-flip Print -> Digital only when the visitor did NOT
-      // explicitly click Print (initial load, picker change). An
-      // explicit Print click on an issue that HAS a Print variant is
-      // honoured even when sold out - the sold-out copy + disabled CTA
-      // communicate availability, and the visitor can see which issues
-      // exist in print. Digital-only products (no Print variant at all)
-      // always flip - there's no Print state worth showing.
-      const printForcedDigital = printUnavailable && activeFormat === 'Print' && (!userPicked || !printExists);
+      // Auto-flip Print -> Digital ONLY for products with no Print variant
+      // at all (Digital Stack). Print-sold-out issues stay on Print so the
+      // visitor sees the sold-out label + can choose to switch manually.
+      // Previous behaviour: also auto-flipped sold-out Print -> Digital,
+      // which caused a visual flicker on load (Print images render, then
+      // JS swaps to Digital) and silently changed the format pick away
+      // from what the visitor was looking at. Ryan's call: trust the
+      // "PRINT SOLD OUT - GRAB DIGITAL" label to communicate availability.
+      const printForcedDigital = printUnavailable && activeFormat === 'Print' && !printExists;
 
       if (printForcedDigital) {
         activeFormat = 'Digital';
@@ -1174,6 +1206,7 @@
     variantTiles.forEach(function (tile) {
       tile.addEventListener('click', function () {
         activeFormat = tile.dataset.variantFormat;
+        persistFormat(activeFormat);
         updateVariantState({ userPicked: true });
       });
     });
@@ -1560,6 +1593,19 @@
   .theinmag-single-mags-hero[data-active-format='Digital'] .theinmag-single-mags-hero__picker-item[data-has-digital-media='true'] .theinmag-single-mags-hero__picker-cover-img--print { display: none; }
   .theinmag-single-mags-hero[data-active-format='Digital'] .theinmag-single-mags-hero__picker-item[data-has-digital-media='true'] .theinmag-single-mags-hero__picker-cover-img--digital { display: block; }
 
+  /* First-paint flash fix: <html data-theinmag-format="Digital"> is set by
+     an inline <head> script reading sessionStorage BEFORE the section
+     renders. CSS swaps the active issue's media container immediately so
+     visitors who toggled Digital on a previous PDP don't see a Print flash
+     when they navigate to a new issue. JS later does the same thing for
+     the per-issue swap, but CSS gets there first. */
+  html[data-theinmag-format='Digital'] .theinmag-single-mags-hero__media.is-active-issue[data-format='Print'] {
+    display: none;
+  }
+  html[data-theinmag-format='Digital'] .theinmag-single-mags-hero__media.is-active-issue[data-format='Digital'] {
+    display: block;
+  }
+
   .theinmag-single-mags-hero__picker-btn[aria-pressed='true'] .theinmag-single-mags-hero__picker-cover {
     transform: scale(1.05);
     box-shadow: 0 4px 16px rgba(123, 79, 158, 0.30);
@@ -1858,6 +1904,17 @@
     display: inline-block;
     font-size: 16px;
     line-height: 1;
+  }
+  .theinmag-single-mags-hero__rating-stars {
+    display: inline-flex;
+    align-items: center;
+    font-size: 16px;
+    line-height: 1;
+    color: var(--color-yellow);
+    letter-spacing: 1px;
+  }
+  .theinmag-single-mags-hero__rating-stars--empty {
+    color: rgba(42, 31, 61, 0.2);
   }
   .theinmag-single-mags-hero__rating-sep {
     font-family: var(--font-body);

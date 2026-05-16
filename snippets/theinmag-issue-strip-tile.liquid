@@ -1,8 +1,12 @@
 {%- comment -%}
   theinmag-issue-strip-tile
-  One linked tile in the product-page issue strip. Unlike the old
-  single-mags picker, this is plain navigation - the tile is an <a>
-  straight to the product's page, no JS content-swapping.
+  One linked tile in the product-page issue strip. The tile is an <a>
+  straight to the product's page (real navigation), but when the parent
+  section is in Digital mode (data-active-format="Digital") and the
+  product has a digital_media_images metafield, the print cover img
+  hides and the digital iPad-mockup img shows in its place. Format
+  state is driven by the single-mags-hero variant toggle further down
+  the page (see the JS at the bottom of theinmag-issue-strip.liquid).
 
   Params:
     product        - the product to render as a tile
@@ -16,8 +20,54 @@
   if product.handle == current_handle
     assign is_current = true
   endif
+
+  # Digital iPad-mockup cover: first image of the digital_media_images metafield.
+  # Used as the picker thumbnail when the hero's Format toggle is set to Digital.
+  # Absent for bundles / Membership - those tiles always show their featured_image.
+  assign digital_media_images = product.metafields.single_mag.digital_media_images.value
+  assign digital_cover = nil
+  if digital_media_images != blank
+    for img in digital_media_images
+      if forloop.first
+        assign digital_cover = img
+      endif
+    endfor
+  endif
+  assign has_digital_media = false
+  if digital_cover != blank
+    assign has_digital_media = true
+  endif
+
+  # Print-availability detection. Two states drive the "Digital only" cue:
+  #   1. Single magazine where every Print variant is sold out (issue_num > 0).
+  #   2. Product with no Print variant at all (e.g. Digital Stack).
+  # In Digital format mode, neither cue shows because Digital is always in stock.
+  assign issue_num = product.metafields.single_mag.issue_number.value | default: 0
+  assign has_print = false
+  for v in product.variants
+    if v.option1 == 'Print'
+      assign has_print = true
+    endif
+  endfor
+  assign print_sold_out = false
+  if issue_num > 0 and has_print
+    assign print_sold_out = true
+    for v in product.variants
+      if v.option1 == 'Print' and v.available
+        assign print_sold_out = false
+        break
+      endif
+    endfor
+  endif
+  assign digital_only_product = false
+  if has_print == false and has_digital_media
+    assign digital_only_product = true
+  endif
 -%}
-<li class="theinmag-issue-strip__item{% if is_current %} is-current{% endif %}">
+<li
+  class="theinmag-issue-strip__item{% if is_current %} is-current{% endif %}{% if print_sold_out %} is-print-sold-out{% endif %}{% if digital_only_product %} is-digital-only{% endif %}"
+  data-has-digital-media="{% if has_digital_media %}true{% else %}false{% endif %}"
+>
   <a
     class="theinmag-issue-strip__link"
     href="{{ product.url }}"
@@ -26,7 +76,8 @@
     <span class="theinmag-issue-strip__cover">
       {%- if tile_cover != blank -%}
         <img
-          class="theinmag-issue-strip__cover-img"
+          class="theinmag-issue-strip__cover-img theinmag-issue-strip__cover-img--print"
+          data-cover-format="Print"
           src="{{ tile_cover | image_url: width: 280 }}"
           alt="{{ tile_label | escape }} cover"
           loading="lazy"
@@ -34,8 +85,22 @@
           height="130"
         >
       {%- endif -%}
+      {%- if digital_cover != blank -%}
+        <img
+          class="theinmag-issue-strip__cover-img theinmag-issue-strip__cover-img--digital"
+          data-cover-format="Digital"
+          src="{{ digital_cover | image_url: width: 280 }}"
+          alt="{{ tile_label | escape }} digital edition"
+          loading="lazy"
+          width="100"
+          height="130"
+        >
+      {%- endif -%}
     </span>
     <span class="theinmag-issue-strip__label">{{ tile_label }}</span>
+    {%- if print_sold_out or digital_only_product -%}
+      <span class="theinmag-issue-strip__digital-only" aria-hidden="true">Digital only</span>
+    {%- endif -%}
     {%- if tile_is_pre -%}
       <span class="theinmag-issue-strip__presale">Pre-order</span>
     {%- endif -%}

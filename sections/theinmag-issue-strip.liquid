@@ -36,6 +36,8 @@
   class="theinmag-issue-strip"
   style="{{ section_style }}"
   aria-label="Browse theINmag issues"
+  data-active-format="Print"
+  data-theinmag-issue-strip
 >
   <div class="theinmag-issue-strip__inner">
     {%- if section.settings.heading != blank -%}
@@ -108,6 +110,7 @@
   .theinmag-issue-strip {
     background-color: #FFFFFF;
     padding: var(--tmis-pt, 24px) var(--space-lg) var(--tmis-pb, 24px);
+    overflow-x: hidden;
   }
 
   .theinmag-issue-strip__inner {
@@ -129,15 +132,20 @@
   .theinmag-issue-strip__list {
     list-style: none;
     margin: 0;
-    padding: 4px;
+    /* 12px top padding accommodates the current-tile outline (3px + 2px offset
+       = 5px above the cover) plus the 2px hover translateY lift, with buffer.
+       Without it overflow-x:auto silently clips overflow-y too and the pink
+       frame loses its top edge. */
+    padding: 12px 4px 4px;
     display: flex;
     flex-wrap: nowrap;
     align-items: flex-start;
     gap: var(--space-sm);
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    overscroll-behavior-x: contain;
   }
   .theinmag-issue-strip__list::-webkit-scrollbar { display: none; }
 
@@ -155,6 +163,12 @@
     flex: 0 0 auto;
     scroll-snap-align: start;
   }
+  /* Current tile sits above neighbours so its pink frame can't be visually
+     overlapped by an adjacent tile during hover lift. */
+  .theinmag-issue-strip__item.is-current {
+    position: relative;
+    z-index: 2;
+  }
 
   .theinmag-issue-strip__link {
     display: flex;
@@ -168,10 +182,12 @@
     transform: translateY(-2px);
   }
 
-  /* Non-current tile: a compact square thumbnail, cover-cropped. */
+  /* Non-current tile: portrait thumbnail to match magazine cover aspect ratio.
+     Bundles like Membership / Snack Pack / Digital Stack have squarer source
+     images and get cropped to portrait by object-fit:cover. */
   .theinmag-issue-strip__cover {
     width: 62px;
-    height: 62px;
+    height: 82px;
     overflow: hidden;
     background-color: var(--color-cream);
     box-shadow: 0 2px 8px rgba(42, 31, 61, 0.10);
@@ -186,14 +202,14 @@
     display: block;
   }
 
-  /* Current tile: bigger, portrait rectangle - the visual cue for
-     "you're on this one". The cover-img inherits object-fit:cover from
-     the base rule so it fills the taller box edge-to-edge (no contain
-     letterbox bar, which was leaving a thin line along the bottom). */
+  /* Current tile: noticeably bigger + soft-pink frame as the "you're here"
+     cue. Same portrait aspect ratio as inactive tiles for visual rhythm. */
   .theinmag-issue-strip__item.is-current .theinmag-issue-strip__cover {
-    width: 82px;
-    height: 108px;
+    width: 92px;
+    height: 122px;
     box-shadow: 0 4px 16px rgba(123, 79, 158, 0.30);
+    outline: 3px solid var(--color-soft-pink);
+    outline-offset: 2px;
   }
 
   /* Label: not bold by default, bold for the current product. */
@@ -220,14 +236,87 @@
     line-height: 1;
   }
 
+  /* Print-sold-out single magazines + digital-only products: dimmed cover +
+     label so the row reads "click in for Digital." Still fully clickable. */
+  .theinmag-issue-strip__item.is-print-sold-out .theinmag-issue-strip__cover,
+  .theinmag-issue-strip__item.is-digital-only .theinmag-issue-strip__cover {
+    opacity: 0.45;
+  }
+  .theinmag-issue-strip__item.is-print-sold-out .theinmag-issue-strip__label,
+  .theinmag-issue-strip__item.is-digital-only .theinmag-issue-strip__label {
+    opacity: 0.6;
+  }
+
+  /* Digital-only sub-label - shown under tile when print is sold out OR product
+     has no print variant. Same visual treatment as the pre-order chip. */
+  .theinmag-issue-strip__digital-only {
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark);
+    line-height: 1;
+  }
+
+  /* Digital cover image - hidden by default, revealed when the section is in
+     Digital format mode AND the tile has a digital iPad-mockup available. */
+  .theinmag-issue-strip__cover-img--digital {
+    display: none;
+  }
+  .theinmag-issue-strip[data-active-format='Digital'] .theinmag-issue-strip__item[data-has-digital-media='true'] .theinmag-issue-strip__cover-img--print {
+    display: none;
+  }
+  .theinmag-issue-strip[data-active-format='Digital'] .theinmag-issue-strip__item[data-has-digital-media='true'] .theinmag-issue-strip__cover-img--digital {
+    display: block;
+  }
+
+  /* In Digital mode the sold-out / digital-only cues stop applying because
+     Digital is always in stock. Restore full opacity + hide the sub-label. */
+  .theinmag-issue-strip[data-active-format='Digital'] .theinmag-issue-strip__item.is-print-sold-out .theinmag-issue-strip__cover,
+  .theinmag-issue-strip[data-active-format='Digital'] .theinmag-issue-strip__item.is-digital-only .theinmag-issue-strip__cover {
+    opacity: 1;
+  }
+  .theinmag-issue-strip[data-active-format='Digital'] .theinmag-issue-strip__item.is-print-sold-out .theinmag-issue-strip__label,
+  .theinmag-issue-strip[data-active-format='Digital'] .theinmag-issue-strip__item.is-digital-only .theinmag-issue-strip__label {
+    opacity: 1;
+  }
+  .theinmag-issue-strip[data-active-format='Digital'] .theinmag-issue-strip__digital-only {
+    display: none;
+  }
+
+  /* First-paint flash fix: <html data-theinmag-format="Digital"> is set by
+     an inline <head> script reading sessionStorage BEFORE the picker
+     renders. These rules mirror the .theinmag-issue-strip[data-active-format]
+     rules above so the picker shows the right covers / opacity / sub-label
+     from the very first paint, instead of flashing Print then swapping. */
+  html[data-theinmag-format='Digital'] .theinmag-issue-strip__item[data-has-digital-media='true'] .theinmag-issue-strip__cover-img--print {
+    display: none;
+  }
+  html[data-theinmag-format='Digital'] .theinmag-issue-strip__item[data-has-digital-media='true'] .theinmag-issue-strip__cover-img--digital {
+    display: block;
+  }
+  html[data-theinmag-format='Digital'] .theinmag-issue-strip__item.is-print-sold-out .theinmag-issue-strip__cover,
+  html[data-theinmag-format='Digital'] .theinmag-issue-strip__item.is-digital-only .theinmag-issue-strip__cover {
+    opacity: 1;
+  }
+  html[data-theinmag-format='Digital'] .theinmag-issue-strip__item.is-print-sold-out .theinmag-issue-strip__label,
+  html[data-theinmag-format='Digital'] .theinmag-issue-strip__item.is-digital-only .theinmag-issue-strip__label {
+    opacity: 1;
+  }
+  html[data-theinmag-format='Digital'] .theinmag-issue-strip__digital-only {
+    display: none;
+  }
+
   @media (max-width: 480px) {
     .theinmag-issue-strip__cover {
       width: 48px;
-      height: 48px;
+      height: 64px;
     }
     .theinmag-issue-strip__item.is-current .theinmag-issue-strip__cover {
-      width: 64px;
-      height: 84px;
+      width: 72px;
+      height: 96px;
+      outline-width: 2px;
     }
     .theinmag-issue-strip__label {
       font-size: 10px;
@@ -237,6 +326,72 @@
     }
   }
 {% endstylesheet %}
+
+{% javascript %}
+  /* Listen for the single-mags-hero Format toggle and mirror the active
+     format onto each issue-strip section so the picker tiles can swap
+     between print covers and iPad-mockup digital covers via CSS.
+
+     The hero's toggle markup is:
+       <div data-variant-group>
+         <button data-variant-format="Print" aria-pressed="true">...</button>
+         <button data-variant-format="Digital" aria-pressed="false">...</button>
+       </div>
+
+     We don't own that markup so we passively listen for clicks on it. If
+     the hero isn't on the page (e.g. /products/membership which has its
+     own picker but no single-mags-hero), there's nothing to listen for
+     and the section stays in default "Print" mode. */
+  (function () {
+    function syncStrips(format) {
+      var strips = document.querySelectorAll('[data-theinmag-issue-strip]');
+      for (var i = 0; i < strips.length; i++) {
+        strips[i].setAttribute('data-active-format', format);
+      }
+    }
+
+    function init() {
+      var group = document.querySelector('[data-variant-group]');
+      if (!group) return;
+
+      // Pick up any format that's already pressed at load (e.g. Print sold out
+      // → JS bumps to Digital before our listener fires).
+      var pressed = group.querySelector('[data-variant-format][aria-pressed="true"]');
+      if (pressed && pressed.dataset.variantFormat) {
+        syncStrips(pressed.dataset.variantFormat);
+      }
+
+      group.addEventListener('click', function (event) {
+        var tile = event.target.closest('[data-variant-format]');
+        if (!tile || !tile.dataset.variantFormat) return;
+        syncStrips(tile.dataset.variantFormat);
+      });
+
+      // Belt-and-braces: the hero's own JS may flip aria-pressed without a
+      // click event (e.g. when forcing Digital on a sold-out Print). Watch
+      // for that and re-sync.
+      var observer = new MutationObserver(function (mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+          var target = mutations[i].target;
+          if (target.getAttribute('aria-pressed') === 'true' && target.dataset.variantFormat) {
+            syncStrips(target.dataset.variantFormat);
+            return;
+          }
+        }
+      });
+      var tiles = group.querySelectorAll('[data-variant-format]');
+      for (var j = 0; j < tiles.length; j++) {
+        observer.observe(tiles[j], { attributes: true, attributeFilter: ['aria-pressed'] });
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+{% endjavascript %}
 
 {% schema %}
 {
@@ -252,7 +407,7 @@
       "type": "text",
       "id": "heading",
       "label": "Heading (optional)",
-      "default": "Browse the issues"
+      "default": "So many issues..."
     },
     {
       "type": "collection",

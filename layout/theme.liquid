@@ -302,6 +302,27 @@
         document.documentElement.classList.add('shopify-design-mode');
       }
     </script>
+
+    {%- comment -%}
+      Read the sticky Print/Digital format from sessionStorage BEFORE the page
+      renders. Synchronously sets data-theinmag-format on <html> so the
+      single-mags-hero CSS can hide the wrong-format media + picker tiles
+      from the first paint - no flash of Print images on a Digital visit.
+    {%- endcomment -%}
+    <script>
+      (function () {
+        try {
+          var saved = sessionStorage.getItem('theinmag.activeFormat');
+          if (saved === 'Print' || saved === 'Digital') {
+            document.documentElement.setAttribute('data-theinmag-format', saved);
+          } else {
+            document.documentElement.setAttribute('data-theinmag-format', 'Print');
+          }
+        } catch (e) {
+          document.documentElement.setAttribute('data-theinmag-format', 'Print');
+        }
+      })();
+    </script>
   </head>
 
   <body class="gradient{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}" data-theinmag-cart-count="{{ cart.item_count }}">
