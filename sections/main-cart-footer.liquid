@@ -158,6 +158,19 @@
                   {{ content_for_additional_checkout_buttons }}
                 </div>
               {%- endif -%}
+
+              {%- comment -%}
+                School invoice CTA. Sits below the standard + accelerated
+                checkout buttons as a clearly secondary option. Only renders
+                on a non-empty cart - empty cart shouldn't tease an order
+                path. Links to /pages/school-order (page.school-order.json).
+              {%- endcomment -%}
+              {%- unless cart == empty -%}
+                <a class="theinmag-school-cta" href="/pages/school-order">
+                  <span class="theinmag-school-cta__primary">School invoice - bank transfer</span>
+                  <span class="theinmag-school-cta__sub">For schools paying by invoice</span>
+                </a>
+              {%- endunless -%}
           {%- endcase -%}
         {% endfor %}
 

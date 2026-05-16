@@ -1,0 +1,34 @@
+{
+  "sections": {
+    "main": {
+      "type": "theinmag-school-order-form",
+      "settings": {
+        "heading": "School invoice order",
+        "subhead": "Order now. Pay by bank transfer within 14 days.",
+        "callout_html": "<p>This is an order, not a quote. Your mags ship the day you submit this. <strong>You'll have 14 days to pay by bank transfer.</strong></p>",
+        "vendor_heading": "What you'll need for your school's PO",
+        "vendor_intro": "Tap any line to copy. Drop these straight into your school's purchase order system.",
+        "entity_name_fallback": "theINmag (T.J Branch & R.M Gow)",
+        "abn_fallback": "95 229 012 388",
+        "address_fallback": "9 Birdwood Close\nEaglehawk VIC 3556",
+        "bank_bsb_fallback": "083-543",
+        "bank_account_fallback": "72-987-6816",
+        "bank_account_name_fallback": "theINmag",
+        "cart_heading": "What you're ordering",
+        "cart_empty_heading": "Your cart is empty.",
+        "cart_empty_body": "Add the mags you'd like to order, then come back to fill out the school details.",
+        "cart_empty_cta_label": "Browse the shop",
+        "cart_empty_cta_url": "/pages/shop",
+        "submit_label": "Place order + email me the invoice",
+        "trust_line": "You'll be taken to checkout next - pick Bank transfer - school invoice as your payment method.",
+        "email_blocklist": "[\"gmail.com\",\"googlemail.com\",\"outlook.com\",\"outlook.com.au\",\"hotmail.com\",\"hotmail.com.au\",\"live.com\",\"live.com.au\",\"yahoo.com\",\"yahoo.com.au\",\"icloud.com\",\"me.com\",\"mac.com\",\"proton.me\",\"protonmail.com\",\"aol.com\",\"bigpond.com\",\"bigpond.net.au\",\"optusnet.com.au\",\"tpg.com.au\",\"internode.on.net\",\"iinet.net.au\"]",
+        "blocked_email_error": "Please use your school email address - it's needed for the invoice to be valid for your accounts department. If your school uses a personal-domain email for some reason, please contact heyhey@theinmag.com.au.",
+        "padding_top": 56,
+        "padding_bottom": 64
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
