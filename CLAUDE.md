@@ -15,14 +15,15 @@ Critical deadline: site live before mid-June 2026 (Queensland trip + Dept of Edu
 
 ---
 
-## Current build state (as of 14 May 2026)
+## Current build state (as of 16 May 2026)
 
 Canonical source is `../theinmag-docs/build-state.md` — read it at session start. Snapshot:
 
 - **Membership PDP** (canonical Stage 2): complete, live at `/products/membership`. Section order: `hero → ugc → pillars → pull_quote → reviews → faq → cross-sells`.
 - **Single Issue PDPs** (canonical Stage 4): complete. Every mag (Mag01-Mag10), Digital Stack and Snack Pack are their own products with Print/Digital variants. They ALL share ONE template — `templates/product.single-mags.json` — which loops the `single-issues` collection and swaps issue content client-side. Do not make per-mag template files.
 - **/shop page** (canonical Stage 5): complete, live at `/pages/shop`. New sections `theinmag-shop-hero/-trust-strip/-grid`; `theinmag-bundle-tile.liquid` extended with a `context` param; `templates/page.shop.json`. Header "Shop" nav points here.
-- **Next build target: Stage 4 follow-up — Single Issue PDP picker + pre-sale state** (picker thumbnails to one line, Mag10-first + "presale" label, `is_pre_order` logic). Then Stage 3 close-out (push the local-only Build a Bundle infrastructure) and Stage 14 audit (new-issue release flow). See build-state.md "Right now" for full scope.
+- **Cart** (canonical Stage 6): complete (16 May). Final shape is `cart_type=page` + sitewide floating mini-cart pill (`snippets/theinmag-floating-cart.liquid` rendered from `layout/theme.liquid`) + AJAX-add toasts on PDP and /pages/shop tiles. Drawer pattern shipped 15 May then killed same evening (added friction). `/cart` carries trust strip → shipping bar → items → gift cart-note → cross-sell → totals → gift-address callout → "More to explore" tile row. Free-shipping bar AND gift callout auto-hide on `cart.requires_shipping = false` (digital-only carts).
+- **Next build target: Stage 4 follow-up — Single Issue PDP picker + pre-sale state** (picker thumbnails to one line, Mag10-first + "presale" label, `is_pre_order` logic). Then Stage 7 (Checkout config — first-name required flip, marketing opt-in copy, soft-pink button colour in Checkout Editor, $9.99 flat-rate shipping setup) and Stage 14 audit (new-issue release flow). See build-state.md "Right now" for full scope.
 
 ---
 

@@ -9,7 +9,7 @@
     current_handle - handle of the product whose page we are on
 {%- endcomment -%}
 {%- liquid
-  assign tile_label = product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
+  assign tile_label = product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', '' | split: ' (' | first | strip
   assign tile_cover = product.featured_image
   assign tile_is_pre = product.metafields.theinmag.is_pre_order | default: false
   assign is_current = false
