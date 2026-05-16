@@ -236,6 +236,13 @@
         pill.classList.toggle('is-empty', count === 0);
         pill.setAttribute('data-item-count', count);
         document.body.setAttribute('data-theinmag-cart-count', count);
+        // Mirror the count into every [data-cart-count] target
+        // (header badge, future surfaces) so any subscriber can read
+        // the current count without re-fetching the header section.
+        var badges = document.querySelectorAll('[data-cart-count]');
+        for (var i = 0; i < badges.length; i++) {
+          badges[i].textContent = count;
+        }
       }
 
       function flashToast(message) {

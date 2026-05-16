@@ -122,16 +122,22 @@
                 checkout. Wording deliberately blunt: Ryan was getting
                 ~2 emails/day from gift buyers who used their own
                 address by mistake.
+
+                Hidden on digital-only carts (cart.requires_shipping
+                is false) - no shipping fields to fill out at checkout
+                so the warning would just confuse the customer.
               {%- endcomment -%}
-              <aside class="theinmag-gift-callout" role="note" aria-label="Gift shipping reminder">
-                <p class="theinmag-gift-callout__heading">
-                  <span class="theinmag-gift-callout__icon" aria-hidden="true">🎁</span>
-                  Sending this as a gift?
-                </p>
-                <p class="theinmag-gift-callout__body">
-                  On the next page, enter the <strong>kid's name and address</strong> in the shipping fields - not yours. Otherwise the mag lands in your letterbox, not theirs.
-                </p>
-              </aside>
+              {%- if cart.requires_shipping -%}
+                <aside class="theinmag-gift-callout" role="note" aria-label="Gift shipping reminder">
+                  <p class="theinmag-gift-callout__heading">
+                    <span class="theinmag-gift-callout__icon" aria-hidden="true">🎁</span>
+                    Sending this as a gift?
+                  </p>
+                  <p class="theinmag-gift-callout__body">
+                    On the next page, enter the <strong>kid's name and address</strong> in the shipping fields - not yours. Otherwise the mag lands in your letterbox, not theirs.
+                  </p>
+                </aside>
+              {%- endif -%}
               <div class="cart__ctas" {{ block.shopify_attributes }}>
                 <button
                   type="submit"

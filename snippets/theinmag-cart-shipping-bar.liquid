@@ -38,7 +38,7 @@
 -%}
 
 <div
-  class="theinmag-shipping-bar{% if unlocked %} is-unlocked{% endif %}{% if cart == empty %} is-hidden{% endif %}"
+  class="theinmag-shipping-bar{% if unlocked %} is-unlocked{% endif %}{% unless cart.requires_shipping %} is-hidden{% endunless %}"
   data-theinmag-shipping-bar
   data-threshold-cents="{{ threshold_cents }}"
   role="status"
@@ -86,6 +86,9 @@
 
         var total = event.cartData.total_price || 0;
         var itemCount = event.cartData.item_count;
+        /* Digital-only carts (and empty carts) report requires_shipping=false.
+           Hide the bar in both cases - no shipping context to communicate. */
+        var requiresShipping = event.cartData.requires_shipping !== false && itemCount > 0;
         Array.prototype.forEach.call(bars, function (bar) {
           var threshold = parseInt(bar.dataset.thresholdCents, 10) || 4000;
           var pct = Math.min(100, (total / threshold) * 100);
@@ -93,7 +96,7 @@
           var unlocked = total >= threshold;
 
           bar.classList.toggle('is-unlocked', unlocked);
-          bar.classList.toggle('is-hidden', itemCount === 0);
+          bar.classList.toggle('is-hidden', !requiresShipping);
 
           var fill = bar.querySelector('[data-shipping-bar-fill]');
           if (fill) fill.style.width = pct + '%';

@@ -322,16 +322,26 @@
       }
     }
 
-    function refreshCartCount() {
-      /* Refresh the storefront's cart count badge if a sitewide handler
-         exists. Otherwise the badge updates on the next page load. */
+    function refreshCartCount(productTitle) {
+      /* Refresh the storefront's cart count badge + publish cartUpdate
+         so the sitewide floating pill (theinmag-floating-cart) picks
+         up the new count and total. Falls back to direct DOM update
+         if pub/sub isn't loaded. */
       fetch('/cart.js', { headers: { Accept: 'application/json' } })
         .then(function (r) { return r.json(); })
         .then(function (cart) {
           document.querySelectorAll('[data-cart-count]').forEach(function (el) {
             el.textContent = cart.item_count;
           });
+          document.body.setAttribute('data-theinmag-cart-count', cart.item_count);
           document.dispatchEvent(new CustomEvent('cart:updated', { detail: cart }));
+          if (typeof publish === 'function' && typeof PUB_SUB_EVENTS !== 'undefined') {
+            publish(PUB_SUB_EVENTS.cartUpdate, {
+              source: 'theinmag-shop-grid',
+              cartData: cart,
+              productTitle: productTitle || ''
+            });
+          }
         })
         .catch(function () { /* swallow - graceful degradation */ });
     }
@@ -376,7 +386,7 @@
           flipButton(btn, true);
           var prettyTitle = (data.product_title || 'Item').replace(/^theINmag\s*[-–]\s*/i, '');
           flashFeedback(prettyTitle + ' added to your cart');
-          refreshCartCount();
+          refreshCartCount(data.product_title);
 
           /* Drawer pop. Per Ryan's Stage 6 brief: ADD TO CART ->
              drawer slides out -> Check out is one tap away. Skip

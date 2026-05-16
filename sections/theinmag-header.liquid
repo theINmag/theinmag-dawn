@@ -182,9 +182,7 @@
         <path d="M5 7h14l-1.2 12.2A2 2 0 0 1 15.81 21H8.19a2 2 0 0 1-1.99-1.8L5 7Z"></path>
         <path d="M9 7V5.5a3 3 0 0 1 6 0V7"></path>
       </svg>
-      {%- if cart_count > 0 -%}
-        <span class="theinmag-header__cart-count" data-cart-count>{{ cart_count }}</span>
-      {%- endif -%}
+      <span class="theinmag-header__cart-count" data-cart-count>{{ cart_count }}</span>
     </a>
 
     <a class="theinmag-btn theinmag-btn--primary theinmag-header__cta" href="{{ cta_link }}">
@@ -745,6 +743,16 @@
     line-height: 18px;
     text-align: center;
     box-shadow: 0 1px 0 var(--color-yellow-shadow);
+  }
+  /* Hide the badge when the cart is empty. The span is always
+     rendered so JS can update it on AJAX adds without re-fetching
+     the header section. */
+  .theinmag-header__cart-count[data-cart-count]:empty,
+  .theinmag-header__cart:not([data-item-count]) .theinmag-header__cart-count:empty {
+    display: none;
+  }
+  body[data-theinmag-cart-count="0"] .theinmag-header__cart-count {
+    display: none;
   }
 
   /* Persistent CTA - desktop only. Phone + tablet use the drawer

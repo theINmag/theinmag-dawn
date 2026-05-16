@@ -476,9 +476,9 @@ cart-drawer.is-empty .drawer__footer {
 .theinmag-gift-callout {
   margin: 0 0 12px;
   padding: 14px 16px;
-  background: var(--color-peach);
-  border: 1.5px solid var(--color-sandy-orange-dark);
+  background: #FFFFFF;
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
   font-family: var(--font-body);
 }
 .theinmag-gift-callout__heading {
@@ -490,7 +490,7 @@ cart-drawer.is-empty .drawer__footer {
   font-size: 15px;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--color-sandy-orange-dark);
+  color: var(--color-inky-purple-navy);
 }
 .theinmag-gift-callout__icon {
   font-size: 18px;
@@ -506,7 +506,7 @@ cart-drawer.is-empty .drawer__footer {
 }
 .theinmag-gift-callout__body strong {
   font-weight: 700;
-  color: var(--color-sandy-orange-dark);
+  color: var(--color-inky-purple-navy);
 }
 
 /* ---------------------------------------------------------------
