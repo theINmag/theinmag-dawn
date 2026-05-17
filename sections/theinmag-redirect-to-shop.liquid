@@ -1,19 +1,37 @@
 {%- comment -%}
   theinmag-redirect-to-shop
-  Bounces /collections/all (and any collection page that uses this
-  section) to /pages/shop. Used via templates/collection.all.json
-  to override Shopify's auto-everything collection.
+  Bounces /collections/all to /pages/shop.
+
+  Two failure modes Shopify exhibits that this works around:
+    1. templates/collection.all.json overrides are silently ignored
+       for the synthetic /collections/all (no real Collection object
+       with handle "all" exists in admin).
+    2. Shopify admin URL redirects only fire on 404s, not on
+       URLs that Shopify natively serves like /collections/all.
+
+  So the fix is to add THIS section to the default
+  templates/collection.json (which DOES run on /collections/all) and
+  gate the redirect output on collection.handle == 'all' or the URL
+  path. On any other collection page the section renders nothing -
+  zero-cost on the 99% of collection requests that aren't /all.
 
   Belt-and-braces: meta refresh (no-JS), JS redirect (modern browsers),
   visible message (slow connections / search engines).
-
-  Real fix for SEO + checkout flow + cross-domain hits is a Shopify
-  admin URL redirect (Online Store -> Navigation -> URL redirects).
-  This section is the theme-side safety net.
 {%- endcomment -%}
 
-{%- assign destination = section.settings.destination | default: '/pages/shop' -%}
+{%- liquid
+  assign destination = section.settings.destination | default: '/pages/shop'
+  assign should_redirect = false
+  if collection.handle == 'all'
+    assign should_redirect = true
+  endif
+  assign current_path = request.path | default: ''
+  if current_path == '/collections/all'
+    assign should_redirect = true
+  endif
+-%}
 
+{%- if should_redirect -%}
 <meta http-equiv="refresh" content="0; url={{ destination }}">
 <link rel="canonical" href="{{ destination }}">
 
@@ -26,6 +44,7 @@
 <script>
   window.location.replace({{ destination | json }});
 </script>
+{%- endif -%}
 
 {%- stylesheet -%}
   .theinmag-redirect-to-shop {
