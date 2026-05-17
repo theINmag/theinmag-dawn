@@ -523,9 +523,12 @@
       <div class="theinmag-article__recommend-grid">
         {%- liquid
           comment
-            Three-slot recommendation grid. Each slot is independently
-            curatable via field_notes.recommendation_{1,2,3}_handle.
-            Blank slots auto-fill: same primary_topic newest-first, then
+            Four-slot recommendation grid (bumped from 3 -> 4 on
+            2026-05-18 - desktop grid already supports 4 columns, the
+            cap was purely a Liquid constraint). Slots 1-3 are
+            independently curatable via field_notes.recommendation_
+            {1,2,3}_handle. Slot 4 always auto-fills. Any blank curated
+            slot also auto-fills: same primary_topic newest-first, then
             any recent post. The current article is always excluded.
 
             Dedupe by article ID — every rendered card's id is appended
@@ -534,7 +537,7 @@
             twice, whether the dupe came from a typo in the curated
             handles or a logic gap in the auto-fill.
           endcomment
-          assign target = 3
+          assign target = 4
           assign filled_count = 0
           assign rendered_ids = ','
         -%}
@@ -610,13 +613,13 @@
         {%- endif -%}
 
         {%- comment -%} Visual placeholder if the grid is still empty
-          (no curated picks AND no other posts in the blog). Three cards
+          (no curated picks AND no other posts in the blog). Four cards
           to match the new target; each links to the field-notes index. {%- endcomment -%}
         {%- if filled_count == 0 -%}
-          {%- assign placeholder_topics = 'Wellbeing|Creativity|Behind the mag' | split: '|' -%}
-          {%- assign placeholder_titles = "the case for boredom|things to draw when you're stuck|behind mag10" | split: '|' -%}
-          {%- assign placeholder_images = 'blog-image-universal-05.jpg|blog-image-universal-04.jpg|blog-image-universal-08.jpg' | split: '|' -%}
-          {%- for slot in (0..2) -%}
+          {%- assign placeholder_topics = 'Wellbeing|Creativity|Behind the mag|Outdoors' | split: '|' -%}
+          {%- assign placeholder_titles = "the case for boredom|things to draw when you're stuck|behind mag10|100 things to spot on a walk" | split: '|' -%}
+          {%- assign placeholder_images = 'blog-image-universal-05.jpg|blog-image-universal-04.jpg|blog-image-universal-08.jpg|blog-image-universal-02.jpg' | split: '|' -%}
+          {%- for slot in (0..3) -%}
             {%- liquid
               assign p_topic = placeholder_topics[slot]
               assign p_title = placeholder_titles[slot]

@@ -630,12 +630,14 @@
     aspect-ratio: 4 / 3;
   }
 
-  /* Regular card title size unified across large_left, bottom_small,
-     and right_small (previously 22 / 17 / 16px min on mobile - a 6px
-     spread that read as inconsistent in the listing). One clamp keeps
-     them visually a family while still scaling with viewport. */
+  /* Card title hierarchy re-established 2026-05-18 (was unified at
+     21-24px across all variants - read too flat against the visual
+     hierarchy where large_left + bottom_small carry bigger imagery
+     than the right filmstrip). Now: large/bottom = bigger heading
+     matching their image weight; right_small = smaller heading
+     matching their tighter card footprint. */
   .theinmag-editorial__card--large_left .theinmag-editorial__card-title {
-    font-size: clamp(21px, 1.9vw, 24px);
+    font-size: clamp(24px, 2.4vw, 30px);
   }
 
   /* ================================================================
@@ -658,7 +660,7 @@
   }
 
   .theinmag-editorial__card--bottom_small .theinmag-editorial__card-title {
-    font-size: clamp(21px, 1.9vw, 24px);
+    font-size: clamp(24px, 2.4vw, 30px);
     -webkit-line-clamp: 2;
   }
 
@@ -697,7 +699,7 @@
   }
 
   .theinmag-editorial__card--right_small .theinmag-editorial__card-title {
-    font-size: clamp(21px, 1.9vw, 24px);
+    font-size: clamp(17px, 1.4vw, 20px);
     -webkit-line-clamp: 2;
   }
 
