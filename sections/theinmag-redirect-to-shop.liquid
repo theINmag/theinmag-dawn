@@ -1,0 +1,68 @@
+{%- comment -%}
+  theinmag-redirect-to-shop
+  Bounces /collections/all (and any collection page that uses this
+  section) to /pages/shop. Used via templates/collection.all.json
+  to override Shopify's auto-everything collection.
+
+  Belt-and-braces: meta refresh (no-JS), JS redirect (modern browsers),
+  visible message (slow connections / search engines).
+
+  Real fix for SEO + checkout flow + cross-domain hits is a Shopify
+  admin URL redirect (Online Store -> Navigation -> URL redirects).
+  This section is the theme-side safety net.
+{%- endcomment -%}
+
+{%- assign destination = section.settings.destination | default: '/pages/shop' -%}
+
+<meta http-equiv="refresh" content="0; url={{ destination }}">
+<link rel="canonical" href="{{ destination }}">
+
+<div class="theinmag-redirect-to-shop" role="status" aria-live="polite">
+  <p class="theinmag-redirect-to-shop__body">
+    Taking you to <a href="{{ destination }}">the shop</a>...
+  </p>
+</div>
+
+<script>
+  window.location.replace({{ destination | json }});
+</script>
+
+{%- stylesheet -%}
+  .theinmag-redirect-to-shop {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(40px, 8vw, 80px) clamp(16px, 4vw, 32px);
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-align: center;
+  }
+  .theinmag-redirect-to-shop__body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(16px, 1.6vw, 18px);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .theinmag-redirect-to-shop__body a {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration: underline;
+    font-weight: 600;
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag Redirect to shop",
+  "tag": "section",
+  "class": "theinmag-redirect-to-shop-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "destination",
+      "label": "Destination URL",
+      "default": "/pages/shop"
+    }
+  ]
+}
+{% endschema %}
