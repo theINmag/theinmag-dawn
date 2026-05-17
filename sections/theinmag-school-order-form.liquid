@@ -95,7 +95,7 @@
     {%- comment -%} ========= Vendor block - what to put on the school's PO ========= {%- endcomment -%}
     <details class="theinmag-school-order-form__vendor" open>
       <summary class="theinmag-school-order-form__vendor-summary">
-        <span class="theinmag-school-order-form__vendor-summary-label">{{ vendor_heading | default: "What you'll need for your school's PO" }}</span>
+        <span class="theinmag-school-order-form__vendor-summary-label">{{ vendor_heading | default: "What you'll need for your school's purchase order" }}</span>
         <svg class="theinmag-school-order-form__vendor-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
           <path d="M7 10l5 5 5-5z"></path>
         </svg>
@@ -675,7 +675,11 @@
 
   .theinmag-school-order-form {
     background-color: var(--color-cream, #FBF6EA);
-    background-image: var(--sof-bg);
+    /* Cream-tinted overlay above the pattern softens the bg so the
+       cream card on top still has enough contrast to pop. Tweak the
+       0.55 alpha to taste - higher = lighter pattern. */
+    background-image: linear-gradient(rgba(251, 246, 234, 0.55), rgba(251, 246, 234, 0.55)),
+                      var(--sof-bg);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -1228,6 +1232,13 @@
   .theinmag-school-order-form .theinmag-school-order-form__submit {
     min-width: 280px;
     position: relative;
+    /* Post Regular renders shorter than Inter at the same px size -
+       bump up so the button text reads as the same visual weight as
+       the rest of the page copy. */
+    font-size: clamp(18px, 1.9vw, 22px);
+    line-height: 1.15;
+    padding-top: clamp(14px, 1.6vw, 18px);
+    padding-bottom: clamp(14px, 1.6vw, 18px);
   }
 
   .theinmag-school-order-form__submit[disabled] {
@@ -1313,7 +1324,7 @@
       "type": "text",
       "id": "vendor_heading",
       "label": "Heading",
-      "default": "What you'll need for your school's PO"
+      "default": "What you'll need for your school's purchase order"
     },
     {
       "type": "textarea",
