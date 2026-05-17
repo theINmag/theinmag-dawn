@@ -566,13 +566,26 @@
 
   /* ---------- Grid layout ---------- */
 
+  /* Breakpoint ladder locked 17 May after the mobile tiles were reading
+     squashed in 2-column at 400px viewport (Add button + price + label
+     fighting for ~140px of inner row width). Single column under 600px
+     gives each tile the full width so the kid-art cover breathes and
+     the picker row has room. Two cols 600-749px (small tablet), three
+     at 750-1199px, four at 1200+. */
   .theinmag-shop-grid__list {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-shop-grid__list {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
   }
 
   @media (min-width: 750px) {
