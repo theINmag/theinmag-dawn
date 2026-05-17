@@ -30,8 +30,6 @@
   assign heading = section.settings.heading
   assign subhead = section.settings.subhead
 
-  assign callout_html = section.settings.callout_html
-
   assign vendor_heading = section.settings.vendor_heading
   assign vendor_intro = section.settings.vendor_intro
 
@@ -58,7 +56,11 @@
   assign bank_account = shop.metafields.theinmag.bank_account | default: section.settings.bank_account_fallback
   assign bank_account_name = shop.metafields.theinmag.bank_account_name | default: section.settings.bank_account_name_fallback
 
-  assign section_style = '--sof-pt: ' | append: section.settings.padding_top | append: 'px; --sof-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  # Background pattern - same family as theinmag-bundle-pillars.
+  assign bg_filename = section.settings.bg_filename | default: 'section_background_topblogs.jpg'
+  assign bg_src = bg_filename | asset_url
+
+  assign section_style = '--sof-pt: ' | append: section.settings.padding_top | append: 'px; --sof-pb: ' | append: section.settings.padding_bottom | append: 'px; --sof-bg: url(' | append: bg_src | append: ');'
 
   # Page-level JSON-LD URL stub
   assign page_origin = request.origin | default: 'https://theinmag.com.au'
@@ -73,22 +75,22 @@
 >
   <div class="theinmag-school-order-form__inner">
 
-    {%- comment -%} ========= Header ========= {%- endcomment -%}
+    {%- comment -%} ========= Header (sits over the bg pattern, outside the card) ========= {%- endcomment -%}
     <header class="theinmag-school-order-form__header">
       {%- if heading != blank -%}
         <h1 id="theinmag-school-order-form-heading" class="theinmag-school-order-form__heading">{{ heading }}</h1>
       {%- endif -%}
       {%- if subhead != blank -%}
-        <p class="theinmag-school-order-form__subhead">{{ subhead }}</p>
+        <div class="theinmag-school-order-form__subhead">{{ subhead }}</div>
       {%- endif -%}
     </header>
 
-    {%- comment -%} ========= Bold callout - order not quote, 14 days to pay ========= {%- endcomment -%}
-    {%- if callout_html != blank -%}
-      <aside class="theinmag-school-order-form__callout" role="note">
-        {{ callout_html }}
-      </aside>
-    {%- endif -%}
+    {%- comment -%}
+      ========= Cream card (drop shadow) wraps vendor + cart + form =========
+      Inner sub-blocks stay white so input fields sit on white inside the
+      cream container. Pattern bg shows around the card edges.
+    {%- endcomment -%}
+    <div class="theinmag-school-order-form__card">
 
     {%- comment -%} ========= Vendor block - what to put on the school's PO ========= {%- endcomment -%}
     <details class="theinmag-school-order-form__vendor" open>
@@ -376,6 +378,8 @@
         {%- endif -%}
       </div>
     </form>
+
+    </div>{%- comment -%} /__card -{%- endcomment -%}
 
   </div>
 </section>
@@ -671,6 +675,10 @@
 
   .theinmag-school-order-form {
     background-color: var(--color-cream, #FBF6EA);
+    background-image: var(--sof-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: var(--color-inky-purple-navy, #2A1F3D);
     padding: var(--sof-pt, 56px) clamp(16px, 4vw, 32px) var(--sof-pb, 56px);
     position: relative;
@@ -680,6 +688,26 @@
     .theinmag-school-order-form {
       padding-top: calc(var(--sof-pt, 56px) * 1.2);
       padding-bottom: calc(var(--sof-pb, 56px) * 1.2);
+    }
+  }
+
+  /* ----- Cream card ------------------------------------------------ */
+  /* Wraps vendor + cart + form. Drop shadow gives 3D pop over the
+     pattern background. Inner sub-blocks stay white. */
+  .theinmag-school-order-form__card {
+    background-color: var(--color-cream, #FBF6EA);
+    border-radius: var(--radius-xl, 28px);
+    padding: clamp(20px, 3vw, 32px) clamp(16px, 2.6vw, 28px);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.16),
+                0 2px 6px rgba(42, 31, 61, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(20px, 2.6vw, 28px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-school-order-form__card {
+      padding: clamp(28px, 3.6vw, 40px) clamp(24px, 3.4vw, 36px);
     }
   }
 
@@ -710,29 +738,17 @@
   .theinmag-school-order-form__subhead {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-size: clamp(16px, 1.5vw, 18px);
-    line-height: 1.45;
+    line-height: 1.5;
     color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.85;
-    margin: 0;
+    opacity: 0.92;
+    max-width: 58ch;
+    margin: 0 auto;
     text-wrap: balance;
   }
 
-  /* ----- Bold callout --------------------------------------------- */
-
-  .theinmag-school-order-form__callout {
-    background-color: var(--color-soft-pink, #F7A092);
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    border-radius: var(--radius-lg, 20px);
-    padding: clamp(18px, 2.4vw, 24px) clamp(20px, 2.8vw, 28px);
-    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-size: clamp(16px, 1.5vw, 18px);
-    line-height: 1.5;
-  }
-
-  .theinmag-school-order-form__callout p { margin: 0; }
-  .theinmag-school-order-form__callout p + p { margin-top: 10px; }
-  .theinmag-school-order-form__callout strong { font-weight: 700; }
+  .theinmag-school-order-form__subhead p { margin: 0; }
+  .theinmag-school-order-form__subhead p + p { margin-top: 8px; }
+  .theinmag-school-order-form__subhead strong { font-weight: 700; opacity: 1; }
 
   /* ----- Vendor block (collapsible) ------------------------------- */
 
@@ -749,13 +765,17 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: clamp(16px, 2vw, 20px) clamp(18px, 2.4vw, 24px);
+    padding: clamp(14px, 1.8vw, 18px) clamp(16px, 2.2vw, 22px);
     cursor: pointer;
     list-style: none;
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(20px, 2.4vw, 26px);
-    line-height: 1.2;
+    /* Inter rather than Post Regular - Post renders all-caps glyphs
+       which reads as shouty on a 4-word collapsible header. Inter
+       semi-bold matches the form-section visual register. */
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.3;
+    letter-spacing: 0;
     color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
@@ -1269,20 +1289,21 @@
       "default": "School invoice order"
     },
     {
-      "type": "textarea",
+      "type": "richtext",
       "id": "subhead",
       "label": "Subhead",
-      "default": "Order now. Pay by bank transfer within 14 days."
+      "default": "<p>This is an order, not a quote. Your mags ship the day you submit this. <strong>You'll have 14 days to pay by bank transfer.</strong></p>"
     },
     {
       "type": "header",
-      "content": "Bold callout"
+      "content": "Background pattern"
     },
     {
-      "type": "richtext",
-      "id": "callout_html",
-      "label": "Callout body",
-      "default": "<p>This is an order, not a quote. Your mags ship the day you submit this. <strong>You'll have 14 days to pay by bank transfer.</strong></p>"
+      "type": "text",
+      "id": "bg_filename",
+      "label": "Background filename",
+      "default": "section_background_topblogs.jpg",
+      "info": "File inside theme assets/. Cream solid shows as fallback if blank or missing."
     },
     {
       "type": "header",
