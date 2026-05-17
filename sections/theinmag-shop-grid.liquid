@@ -419,10 +419,10 @@
   .theinmag-shop-grid {
     background-color: var(--color-cream);
     color: var(--color-inky-purple-navy);
-    /* Horizontal padding bumped 17 May from 16px to 24px min so the
-       single-column tiles aren't kissing the screen edge on Pixel 6.
-       Scales up via 5vw to a 48px max on desktop. */
-    padding: var(--tsg-pt, 48px) clamp(24px, 5vw, 48px) var(--tsg-pb, 96px);
+    /* Horizontal padding bumped 17 May from 16px -> 24px -> 32px min
+       so the single-column tiles sit comfortably back from the screen
+       edge on Pixel 6. Scales up via 6vw to a 48px max on desktop. */
+    padding: var(--tsg-pt, 48px) clamp(32px, 6vw, 48px) var(--tsg-pb, 96px);
     /* Defensive clip - some descendant (likely a tile image or grid
        cell) is pushing past the section's right edge on mobile, eating
        the right gutter while the left holds firm. Clipping here
