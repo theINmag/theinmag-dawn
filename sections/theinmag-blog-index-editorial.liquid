@@ -46,62 +46,6 @@
     endif
   endfor
 
-  comment
-  Auto-pull config (2026-05-18 reframe): feature stays curated; large_
-  left / bottom_small / right_small slots all auto-pull from blog.
-  articles most-recent-first. The curated-block iterations for those
-  three variants were removed - any large_left/bottom_small/right_
-  small blocks left in templates/blog.json now sit dormant in the
-  schema (kept defined so re-enabling curation later is a one-edit
-  rollback, not a schema migration).
-
-  Exclusion: if the feature block's link_override points at a real
-  article in this blog, we extract its handle and skip it during auto-
-  pull so the same article doesn't appear twice. If link_override is
-  just '/blogs/field-notes' (placeholder pattern) no exclusion fires.
-
-  Slot counts: 2 large_left, 2 bottom_small, 8 right_small = 12 cards
-  auto-pulled. If the blog has fewer articles, the layout renders what
-  it has and stops.
-  endcomment
-  assign feature_link = ''
-  if feature_block != blank
-    assign feature_link = feature_block.settings.link_override
-  endif
-  assign feature_handle = ''
-  if feature_link != blank and feature_link contains '/blogs/'
-    assign link_parts = feature_link | split: '/'
-    assign feature_handle_candidate = link_parts | last
-    if feature_handle_candidate != blog.handle and feature_handle_candidate != ''
-      assign feature_handle = feature_handle_candidate
-    endif
-  endif
-
-  assign large_left_count = 2
-  assign bottom_small_count = 2
-  assign right_small_count = 8
-
-  comment
-  Build an ordered list of articles to render, skipping the feature
-  article (by handle) and de-duping by article id. blog.articles is
-  ordered published_at DESC so this gives most-recent-first. Cap at
-  large + bottom + right counts so we never iterate more than needed.
-  endcomment
-  assign auto_total = large_left_count | plus: bottom_small_count | plus: right_small_count
-  assign auto_collected = 0
-  assign auto_handles = ''
-  for article in blog.articles
-    if auto_collected >= auto_total
-      break
-    endif
-    if article.handle == feature_handle
-      continue
-    endif
-    assign auto_handles = auto_handles | append: article.handle | append: '|'
-    assign auto_collected = auto_collected | plus: 1
-  endfor
-  assign auto_handles_arr = auto_handles | split: '|'
-
   capture editorial_style
     echo '--editorial-bg-color: '
     echo bg_color
@@ -153,28 +97,16 @@
 
     <div class="theinmag-editorial__grid">
       <div class="theinmag-editorial__col theinmag-editorial__col--left">
-        {%- comment -%} Large_left: 2 most-recent articles after feature. {%- endcomment -%}
-        {%- for i in (0..1) -%}
-          {%- assign h = auto_handles_arr[i] -%}
-          {%- if h != blank -%}
-            {%- assign auto_article_key = blog.handle | append: '/' | append: h -%}
-            {%- assign auto_article = articles[auto_article_key] -%}
-            {%- if auto_article != blank -%}
-              {%- render 'theinmag-editorial-card', article: auto_article, variant: 'large_left' -%}
-            {%- endif -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'large_left' -%}
+            {%- render 'theinmag-editorial-card', block: block, variant: 'large_left' -%}
           {%- endif -%}
         {%- endfor -%}
 
         <div class="theinmag-editorial__bottom-row">
-          {%- comment -%} Bottom_small: next 2 articles. {%- endcomment -%}
-          {%- for i in (2..3) -%}
-            {%- assign h = auto_handles_arr[i] -%}
-            {%- if h != blank -%}
-              {%- assign auto_article_key = blog.handle | append: '/' | append: h -%}
-              {%- assign auto_article = articles[auto_article_key] -%}
-              {%- if auto_article != blank -%}
-                {%- render 'theinmag-editorial-card', article: auto_article, variant: 'bottom_small' -%}
-              {%- endif -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'bottom_small' -%}
+              {%- render 'theinmag-editorial-card', block: block, variant: 'bottom_small' -%}
             {%- endif -%}
           {%- endfor -%}
         </div>
@@ -182,15 +114,9 @@
 
       <div class="theinmag-editorial__col theinmag-editorial__col--right" data-parallax-window>
         <div class="theinmag-editorial__col-inner" data-parallax-target>
-          {%- comment -%} Right_small filmstrip: next 8 articles. {%- endcomment -%}
-          {%- for i in (4..11) -%}
-            {%- assign h = auto_handles_arr[i] -%}
-            {%- if h != blank -%}
-              {%- assign auto_article_key = blog.handle | append: '/' | append: h -%}
-              {%- assign auto_article = articles[auto_article_key] -%}
-              {%- if auto_article != blank -%}
-                {%- render 'theinmag-editorial-card', article: auto_article, variant: 'right_small' -%}
-              {%- endif -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'right_small' -%}
+              {%- render 'theinmag-editorial-card', block: block, variant: 'right_small' -%}
             {%- endif -%}
           {%- endfor -%}
         </div>

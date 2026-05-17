@@ -6,43 +6,19 @@
     large_left    - image-on-top, dark text below on lavender bg
     right_small   - same as large_left, smaller, divider above
     bottom_small  - same as large_left, smaller, two-up row
-
-  Inputs:
-    block    (optional) - section block with curated settings
-    article  (optional) - Article object for auto-pulled cards
-    variant  (required) - one of feature|large_left|right_small|bottom_small
-
-  Either block OR article must be provided. When both are present, block
-  settings win (curated overrides auto). The auto-pull path
-  (block blank, article set) is used by the editorial section for every
-  slot below the feature card - see the section liquid for the loop.
+  Block settings live in the section schema; this file is the renderer.
 {%- endcomment -%}
 
 {%- liquid
   assign variant = variant | default: 'large_left'
 
-  comment
-  Allow article to be passed directly OR resolved from block.settings.
-  When block is blank (auto-pull path) we fall through to the bare
-  article input. block.settings.* lookups are guarded so they no-op
-  when block is nil.
-  endcomment
-  if block != blank and block.settings.article != blank
-    assign article = block.settings.article
-  endif
-
-  assign title = ''
-  if block != blank
-    assign title = block.settings.title_override
-  endif
+  assign article = block.settings.article
+  assign title = block.settings.title_override
   if title == blank and article != blank
     assign title = article.title
   endif
 
-  assign excerpt = ''
-  if block != blank
-    assign excerpt = block.settings.excerpt_override
-  endif
+  assign excerpt = block.settings.excerpt_override
   if excerpt == blank and article != blank
     assign excerpt = article.excerpt | strip_html
     if excerpt == blank
@@ -50,38 +26,26 @@
     endif
   endif
 
-  assign topic = ''
-  if block != blank
-    assign topic = block.settings.topic
-  endif
+  assign topic = block.settings.topic
   if topic == blank and article != blank
-    assign topic = article.metafields.field_notes.primary_topic
-    if topic == blank
-      assign topic = article.tags.first
-    endif
+    assign topic = article.tags.first
   endif
 
-  assign card_link = ''
-  if block != blank
-    assign card_link = block.settings.link_override
-  endif
+  assign card_link = block.settings.link_override
   if card_link == blank and article != blank
     assign card_link = article.url
   endif
 
   assign image_src = ''
-  if block != blank and block.settings.image != blank
+  if block.settings.image != blank
     assign image_src = block.settings.image | image_url: width: 1600
-  elsif block != blank and block.settings.fallback_filename != blank
+  elsif block.settings.fallback_filename != blank
     assign image_src = block.settings.fallback_filename | asset_url
   elsif article != blank and article.image != blank
     assign image_src = article.image | image_url: width: 1600
   endif
 
-  assign image_alt = ''
-  if block != blank
-    assign image_alt = block.settings.image_alt
-  endif
+  assign image_alt = block.settings.image_alt
   if image_alt == blank and article != blank and article.image != blank
     assign image_alt = article.image.alt | default: article.title
   endif
@@ -89,36 +53,9 @@
     assign image_alt = title
   endif
 
-  comment
-  Audience resolution: curated block setting wins; auto-pulled cards
-  derive from article.metafields.field_notes.read_audience (kids /
-  parents / mixed) and map to the toggle's vocabulary (kids / adults /
-  all). Defaults to 'all' if neither is set.
-  endcomment
-  assign audience = ''
-  if block != blank
-    assign audience = block.settings.audience
-  endif
-  if audience == blank and article != blank
-    assign read_aud = article.metafields.field_notes.read_audience | downcase
-    if read_aud == 'kids'
-      assign audience = 'kids'
-    elsif read_aud == 'parents'
-      assign audience = 'adults'
-    else
-      assign audience = 'all'
-    endif
-  endif
-  if audience == blank
-    assign audience = 'all'
-  endif
+  assign audience = block.settings.audience | default: 'all'
 
   assign card_class = 'theinmag-editorial__card theinmag-editorial__card--' | append: variant
-
-  assign shopify_attrs = ''
-  if block != blank
-    assign shopify_attrs = block.shopify_attributes
-  endif
 -%}
 
 {%- capture card_inner -%}
@@ -168,7 +105,7 @@
 {%- endcapture -%}
 
 {%- if card_link != blank -%}
-  <a class="{{ card_class }}" href="{{ card_link }}" data-audience="{{ audience }}" {{ shopify_attrs }}>{{ card_inner }}</a>
+  <a class="{{ card_class }}" href="{{ card_link }}" data-audience="{{ audience }}" {{ block.shopify_attributes }}>{{ card_inner }}</a>
 {%- else -%}
-  <div class="{{ card_class }}" data-audience="{{ audience }}" {{ shopify_attrs }}>{{ card_inner }}</div>
+  <div class="{{ card_class }}" data-audience="{{ audience }}" {{ block.shopify_attributes }}>{{ card_inner }}</div>
 {%- endif -%}
