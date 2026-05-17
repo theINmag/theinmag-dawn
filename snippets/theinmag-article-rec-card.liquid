@@ -15,16 +15,11 @@
   endif
 
   comment
-  Strip a single trailing period from the title for display (brand
-  rule: lowercase headings end without a period). JSON output / alt
-  text / etc. can still use rec.title raw if needed.
+  Trailing periods on titles are KEPT (reversed 2026-05-18 — the
+  earlier strip rule was retired because cards read abrupt without
+  them).
   endcomment
   assign rec_title = rec.title
-  assign last_char = rec_title | slice: -1
-  if last_char == '.'
-    assign trim_to = rec_title | size | minus: 1
-    assign rec_title = rec_title | slice: 0, trim_to
-  endif
 
   assign rec_image_url = ''
   if rec.image != blank

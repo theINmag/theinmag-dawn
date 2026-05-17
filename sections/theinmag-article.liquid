@@ -37,14 +37,11 @@
 {%- liquid
   comment
   Strip a single trailing period from sentence-case lowercase headings
-  per Ryan's brand decision (2026-05-06). Question marks are kept.
+  per Ryan's brand decision (2026-05-06, REVERSED 2026-05-18 —
+  trailing periods now KEPT on field-notes headings, reads less
+  abrupt). Question marks were always kept; this just unifies.
   endcomment
   assign display_title = article.title
-  assign last_char = display_title | slice: -1
-  if last_char == '.'
-    assign trim_to = display_title | size | minus: 1
-    assign display_title = display_title | slice: 0, trim_to
-  endif
 
   assign primary_topic = article.metafields.field_notes.primary_topic
   if primary_topic == blank
