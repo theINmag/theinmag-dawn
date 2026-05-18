@@ -885,24 +885,27 @@
           rightInner.style.transform = '';
           return;
         }
-        /* Hard start: progress = 0 while wrapper top is still below
-           the viewport top (first card sits cleanly at wrapper top).
-           Hard finish: progress = 1 once the wrapper BOTTOM reaches
-           the viewport bottom - meaning the last card is in view
-           while the visitor is still inside the section, not just
-           as it exits. Compressing the range from wrapperH down to
-           (wrapperH - viewportH) is what gives the right column
-           its extra speed differential vs. the page. */
+        /* Pattern: shifted-pinned. Progress = 0 when the wrapper TOP
+           is still SHIFT pixels below the viewport top (so parallax
+           starts before the wrapper is fully pinned), reaches 1 when
+           the wrapper BOTTOM hits the viewport bottom (same exit as
+           original). SHIFT is the dial: bigger = earlier start + slower
+           perceived speed (same translation over more scroll range).
+
+           Tuned 2026-05-18 - Ryan's eyeball: original pinned (SHIFT
+           = 0) felt too late, full approaching (SHIFT = viewportH)
+           felt way too early. 0.3 * viewportH is the middle ground. */
         var wRect = rightWrap.getBoundingClientRect();
         var wH = wRect.height;
         if (wH <= 0) return;
         var viewportH = window.innerHeight || document.documentElement.clientHeight;
-        var range = wH - viewportH;
+        var SHIFT = viewportH * 0.3;
+        var range = SHIFT + wH - viewportH;
         if (range <= 0) {
           rightInner.style.transform = '';
           return;
         }
-        var raw = -wRect.top / range;
+        var raw = (SHIFT - wRect.top) / range;
         var progress = Math.max(0, Math.min(1, raw));
         var innerH = rightInner.offsetHeight;
         var maxOffset = Math.max(0, innerH - wH);
