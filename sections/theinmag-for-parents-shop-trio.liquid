@@ -16,7 +16,10 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign heading_raw = section.settings.heading | default: 'Ready to get the IN mag in their hands?'
+  # Don't use `| default:` on the heading - empty string from a
+  # JSON template override is a valid "no heading" signal that the
+  # default filter would otherwise overwrite with the fallback string.
+  assign heading_raw = section.settings.heading
   assign heading = heading_raw | replace: 'IN ', '<span class="theinmag-in">IN</span>'
   assign trust_whisper = section.settings.trust_whisper
   assign tiles = section.blocks
@@ -93,7 +96,14 @@
             {%- endif -%}
 
             {%- if block.settings.title != blank -%}
-              <p class="theinmag-for-parents-shop-trio__title">{{ block.settings.title }}</p>
+              {%- comment -%}
+                Wrap the IN inside "INmag" with .theinmag-in so the brand-
+                pun lift applies sitewide (Post Regular dominant title in
+                particular). Replace is a no-op when the title doesn't
+                contain "INmag".
+              {%- endcomment -%}
+              {%- assign tile_title_html = block.settings.title | replace: 'INmag', '<span class="theinmag-in">IN</span>mag' -%}
+              <p class="theinmag-for-parents-shop-trio__title">{{ tile_title_html }}</p>
             {%- endif -%}
 
             {%- if block.settings.tagline != blank -%}
@@ -134,7 +144,10 @@
   .theinmag-for-parents-shop-trio {
     background-color: var(--color-cream, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(80px, 12vw, 140px) clamp(20px, 5vw, 64px);
+    /* Asymmetric: less bottom padding so the tiles sit closer to the
+       next section without losing the top breathing room from the
+       pull-quote above. */
+    padding: clamp(72px, 10vw, 120px) clamp(20px, 5vw, 64px) clamp(36px, 5vw, 56px);
   }
 
   .theinmag-for-parents-shop-trio__inner {
@@ -164,7 +177,10 @@
   @media (min-width: 990px) {
     .theinmag-for-parents-shop-trio__grid {
       grid-template-columns: 2fr 1fr;
-      grid-template-rows: 1fr 1fr;
+      /* Explicit min row height so the 1fr tracks don't collapse to
+         zero (content + media are position: absolute inside tiles, so
+         they don't contribute to row height on their own). */
+      grid-template-rows: minmax(280px, 1fr) minmax(280px, 1fr);
       gap: clamp(16px, 2vw, 24px);
     }
     .theinmag-for-parents-shop-trio__tile--dominant {
@@ -218,6 +234,19 @@
     overflow: hidden;
   }
 
+  /* Flat darken across all tile images so the brand-coloured covers
+     sit at a consistent (cooler) brightness. Mirrors the hero-pane
+     pattern. Helps the white text on the dominant tile and keeps the
+     trio visually coherent. */
+  .theinmag-for-parents-shop-trio__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(20, 14, 30, 0.28);
+    z-index: 1;
+    pointer-events: none;
+  }
+
   .theinmag-for-parents-shop-trio__image,
   .theinmag-for-parents-shop-trio__image-placeholder {
     position: absolute;
@@ -229,7 +258,10 @@
     transition: transform 0.4s ease;
   }
 
-  .theinmag-for-parents-shop-trio__image-placeholder {
+  /* 2-class selector beats Dawn's `div:empty { display: none }` rule
+     (base.css:471) - placeholder is decoration-only with no children. */
+  .theinmag-for-parents-shop-trio .theinmag-for-parents-shop-trio__image-placeholder {
+    display: block;
     background-color: rgba(123, 79, 158, 0.18);
   }
 
@@ -244,14 +276,18 @@
   .theinmag-for-parents-shop-trio__scrim {
     position: absolute;
     inset: 0;
+    /* Stronger bottom scrim so the white headline + tagline + price
+       + trust dots all read cleanly against busy photo bgs. Stacks
+       on top of the flat darken pseudo for a total of ~70-80% dark
+       at the bottom edge. */
     background: linear-gradient(
       to top,
-      rgba(20, 14, 30, 0.65) 0%,
-      rgba(20, 14, 30, 0.35) 45%,
-      rgba(20, 14, 30, 0.05) 75%,
+      rgba(20, 14, 30, 0.80) 0%,
+      rgba(20, 14, 30, 0.55) 40%,
+      rgba(20, 14, 30, 0.20) 70%,
       rgba(20, 14, 30, 0) 100%
     );
-    z-index: 1;
+    z-index: 2;
     pointer-events: none;
   }
 
@@ -287,6 +323,29 @@
     position: absolute;
     inset: 50% 0 0 0;
     padding: clamp(16px, 2vw, 22px);
+  }
+
+  /* Mobile: standard tile drops absolute positioning entirely and
+     stacks in document flow. Image gets a fixed 16/9 aspect, content
+     flows naturally below. Fixes the cropped-text bug where the 50/50
+     split squeezed price + badge + CTA off the bottom on phones. */
+  @media (max-width: 989px) {
+    .theinmag-for-parents-shop-trio__tile--standard {
+      aspect-ratio: auto;
+      min-height: 0;
+      display: block;
+    }
+    .theinmag-for-parents-shop-trio__tile--standard .theinmag-for-parents-shop-trio__media {
+      position: relative;
+      inset: auto;
+      aspect-ratio: 16 / 9;
+      height: auto;
+    }
+    .theinmag-for-parents-shop-trio__tile--standard .theinmag-for-parents-shop-trio__content {
+      position: relative;
+      inset: auto;
+      padding: clamp(18px, 5vw, 24px);
+    }
   }
 
   /* Typography */
@@ -409,7 +468,8 @@
 
   .theinmag-for-parents-shop-trio__whisper {
     margin: clamp(28px, 4vw, 40px) auto 0;
-    max-width: 60ch;
+    /* No cap so the long single sentence fits on one line on desktop. */
+    max-width: none;
     text-align: center;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;

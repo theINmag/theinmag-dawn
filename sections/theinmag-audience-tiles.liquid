@@ -25,19 +25,20 @@
   assign exclude_label_raw = section.settings.exclude_label | default: ''
   assign exclude_label = exclude_label_raw | downcase | strip
 
-  assign tiles = section.blocks
+  # Count the tiles that survive the exclude_label filter (Liquid
+  # `concat` only works on arrays of arrays, so the previous
+  # `concat: block` pre-partition silently dropped every block).
+  # Render-pass filter below skips matching blocks inline.
+  assign tile_count = section.blocks.size
   if exclude_label != ''
-    assign filtered = '' | split: ','
+    assign tile_count = 0
     for block in section.blocks
       assign this_label = block.settings.label | default: '' | downcase | strip
       unless this_label == exclude_label
-        assign filtered = filtered | concat: block
+        assign tile_count = tile_count | plus: 1
       endunless
     endfor
-    assign tiles = filtered
   endif
-
-  assign tile_count = tiles.size
   assign padding_top = section.settings.padding_top
   assign padding_bottom = section.settings.padding_bottom
 
@@ -52,20 +53,46 @@
   aria-labelledby="theinmag-tiles-heading-{{ section.id }}"
   style="--theinmag-tiles-count: {{ tile_count }}; --theinmag-tiles-pt: {{ padding_top | default: 0 }}px; --theinmag-tiles-pb: {{ padding_bottom | default: 0 }}px;"
 >
-  {%- if heading_position == 'top' -%}
+  {%- comment -%}
+    Check the RAW setting (not heading_text with its | default: fallback)
+    so an empty-string template override actually hides the heading.
+  {%- endcomment -%}
+  {%- liquid
+    assign show_top_heading = false
+    if heading_position == 'top'
+      if section.settings.heading != blank
+        assign show_top_heading = true
+      endif
+      if intro_text != blank
+        assign show_top_heading = true
+      endif
+    endif
+    assign caveat_label = section.settings.caveat_label
+  -%}
+  {%- if show_top_heading -%}
     <div class="theinmag-tiles__top-heading">
-      <h2 id="theinmag-tiles-heading-{{ section.id }}" class="theinmag-tiles__top-heading-text">{{ heading_text }}</h2>
+      {%- if section.settings.heading != blank -%}
+        <h2 id="theinmag-tiles-heading-{{ section.id }}" class="theinmag-tiles__top-heading-text">{{ heading_text }}</h2>
+      {%- endif -%}
       {%- if intro_text != blank -%}
         <p class="theinmag-tiles__top-intro">{{ intro_text }}</p>
       {%- endif -%}
     </div>
   {%- endif -%}
 
+  {%- if heading_position == 'top' and caveat_label != blank -%}
+    <p class="theinmag-tiles__caveat-label" aria-hidden="true">{{ caveat_label }}</p>
+  {%- endif -%}
+
   <div class="theinmag-tiles__scroller">
     <ul class="theinmag-tiles__grid" role="list">
-      {%- for block in tiles -%}
+      {%- for block in section.blocks -%}
         {%- liquid
           assign label = block.settings.label
+          assign this_label_lc = label | default: '' | downcase | strip
+          if exclude_label != '' and this_label_lc == exclude_label
+            continue
+          endif
           assign link = block.settings.link
           assign image = block.settings.image
           assign image_alt = block.settings.image_alt | default: label
@@ -189,12 +216,39 @@
     }
   }
 
-  /* heading-top variant overrides grid columns to actual tile count
-     (3 on the For Parents closer, 4 on homepage). Variable set on
-     the section root from Liquid. */
+  /* heading-top variant: smaller square tiles, centered grid.
+     Used as the closer "coda" on audience pages. */
   @media (min-width: 1200px) {
     .theinmag-tiles--heading-top .theinmag-tiles__grid {
-      grid-template-columns: repeat(var(--theinmag-tiles-count, 4), 1fr);
+      grid-template-columns: repeat(var(--theinmag-tiles-count, 4), minmax(0, 320px));
+      justify-content: center;
+      gap: clamp(16px, 2vw, 32px);
+    }
+  }
+
+  /* Square aspect everywhere in the heading-top variant (homepage
+     overlay-bottom variant keeps 4:5 portrait). */
+  .theinmag-tiles--heading-top .theinmag-tile {
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Mobile/tablet: smaller scroll-snap tiles too (was 85vw/60vw -
+     now ~70vw/45vw so 2 fit on screen at a time and the row reads
+     as a "coda" not a featured tile rail). */
+  .theinmag-tiles--heading-top .theinmag-tiles__item {
+    width: 70vw;
+    max-width: 320px;
+  }
+  @media (min-width: 750px) {
+    .theinmag-tiles--heading-top .theinmag-tiles__item {
+      width: 45vw;
+      max-width: 320px;
+    }
+  }
+  @media (min-width: 1200px) {
+    .theinmag-tiles--heading-top .theinmag-tiles__item {
+      width: 100%;
+      max-width: 320px;
     }
   }
 
@@ -482,6 +536,12 @@
       "id": "exclude_label",
       "label": "Exclude tile by label",
       "info": "Case-insensitive label match. e.g. 'Parents' on the For Parents page so the closer routes to the other audiences. Leave blank to render all blocks."
+    },
+    {
+      "type": "text",
+      "id": "caveat_label",
+      "label": "Caveat sign-off label (top variant only)",
+      "info": "Small handwritten label above the tile container. e.g. 'p.s. more INside.'. Only renders when heading position is Top. Leave blank to hide."
     },
     {
       "type": "range",

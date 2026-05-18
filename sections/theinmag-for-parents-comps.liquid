@@ -202,7 +202,7 @@
   <div class="theinmag-for-parents-comps__bg" aria-hidden="true"></div>
 
   <div class="theinmag-for-parents-comps__inner">
-    <header class="theinmag-for-parents-comps__header">
+    <header class="theinmag-for-parents-comps__header-card">
       {%- if heading != blank -%}
         <h2
           id="theinmag-for-parents-comps-heading-{{ section.id }}"
@@ -239,7 +239,6 @@
             <span class="theinmag-comps__featured-chip">{{ comp_categories[featured_idx] | downcase }}</span>
             <span class="theinmag-comps__featured-title">{{ comp_names[featured_idx] }}</span>
             <span class="theinmag-comps__featured-pitch">{{ comp_pitches[featured_idx] }}</span>
-            <span class="theinmag-comps__featured-cta">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
           </span>
         </a>
       </aside>
@@ -312,7 +311,7 @@
 
     {%- if all_cta_label != blank -%}
       <div class="theinmag-for-parents-comps__cta-wrap">
-        <a class="theinmag-btn theinmag-btn--secondary-on-image" href="{{ all_cta_link | default: '/pages/competitions' }}">
+        <a class="theinmag-btn theinmag-btn--secondary" href="{{ all_cta_link | default: '/pages/competitions' }}">
           {{ all_cta_label }}
         </a>
       </div>
@@ -375,16 +374,24 @@
     margin: 0 auto;
   }
 
-  .theinmag-for-parents-comps__header {
-    margin: 0 0 clamp(28px, 4vw, 40px);
-    max-width: 60ch;
+  /* Header sits in a full-width coral-light tile (matches the art
+     category's top-pick card cover colour so it reads as a banner that
+     belongs with the comp cards below). */
+  .theinmag-for-parents-comps__header-card {
+    display: block;
+    width: 100%;
+    background-color: var(--comps-coral-light);
+    border-radius: 20px;
+    padding: clamp(18px, 2.2vw, 28px) clamp(20px, 2.4vw, 32px);
+    margin: 0 0 clamp(20px, 2.5vw, 28px);
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.08);
   }
 
   .theinmag-for-parents-comps__heading {
-    margin: 0 0 clamp(12px, 1.5vw, 16px);
+    margin: 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
-    font-size: clamp(28px, 4vw, 36px);
+    font-size: clamp(24px, 3vw, 32px);
     line-height: 1.2;
     letter-spacing: -0.01em;
     color: var(--comps-cream-dark);
@@ -392,12 +399,14 @@
   }
 
   .theinmag-for-parents-comps__subhead {
-    margin: 0;
-    max-width: 60ch;
+    margin: clamp(8px, 1vw, 12px) 0 0;
+    /* Runs full tile width so the long sentence sits on a single line
+       across desktop (no max-width cap). */
+    max-width: none;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(15px, 1.6vw, 17px);
-    line-height: 1.6;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.55;
     color: rgba(42, 31, 61, 0.78);
   }
 
@@ -434,7 +443,7 @@
 
   /* ----- Featured card (lifted from theinmag-competitions.liquid) ----- */
 
-  .theinmag-comps__featured-card {
+  .theinmag-for-parents-comps .theinmag-comps__featured-card {
     position: relative;
     inset: 0;
     display: flex;
@@ -450,14 +459,14 @@
     min-height: 340px;
   }
 
-  .theinmag-comps__featured-card:hover,
-  .theinmag-comps__featured-card:focus-visible {
+  .theinmag-for-parents-comps .theinmag-comps__featured-card:hover,
+  .theinmag-for-parents-comps .theinmag-comps__featured-card:focus-visible {
     outline: none;
     box-shadow: 0 8px 32px rgba(123, 79, 158, 0.22);
     transform: translateY(-2px);
   }
 
-  .theinmag-comps__featured-cover {
+  .theinmag-for-parents-comps .theinmag-comps__featured-cover {
     position: relative;
     flex: 0 0 50%;
     display: flex;
@@ -467,25 +476,25 @@
     min-height: 160px;
   }
 
-  .theinmag-comps__featured-card--art .theinmag-comps__featured-cover { background-color: var(--comps-coral-light); }
-  .theinmag-comps__featured-card--writing .theinmag-comps__featured-cover { background-color: var(--comps-mint-light); }
-  .theinmag-comps__featured-card--photofilm .theinmag-comps__featured-cover { background-color: var(--comps-sky-light); }
-  .theinmag-comps__featured-card--stem .theinmag-comps__featured-cover { background-color: var(--comps-purple-light); }
-  .theinmag-comps__featured-card--performance .theinmag-comps__featured-cover { background-color: var(--comps-peach-light); }
-  .theinmag-comps__featured-card--social-good .theinmag-comps__featured-cover { background-color: #F2EBD8; }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--art .theinmag-comps__featured-cover { background-color: var(--comps-coral-light); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--writing .theinmag-comps__featured-cover { background-color: var(--comps-mint-light); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--photofilm .theinmag-comps__featured-cover { background-color: var(--comps-sky-light); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--stem .theinmag-comps__featured-cover { background-color: var(--comps-purple-light); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--performance .theinmag-comps__featured-cover { background-color: var(--comps-peach-light); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--social-good .theinmag-comps__featured-cover { background-color: #F2EBD8; }
 
-  .theinmag-comps__featured-letter {
+  .theinmag-for-parents-comps .theinmag-comps__featured-letter {
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-size: clamp(72px, 9vw, 120px);
     line-height: 1;
     color: var(--comps-purple-dark);
   }
-  .theinmag-comps__featured-card--art .theinmag-comps__featured-letter { color: var(--comps-coral-dark); }
-  .theinmag-comps__featured-card--writing .theinmag-comps__featured-letter { color: var(--comps-mint-dark); }
-  .theinmag-comps__featured-card--photofilm .theinmag-comps__featured-letter { color: var(--comps-sky-dark); }
-  .theinmag-comps__featured-card--performance .theinmag-comps__featured-letter { color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--art .theinmag-comps__featured-letter { color: var(--comps-coral-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--writing .theinmag-comps__featured-letter { color: var(--comps-mint-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--photofilm .theinmag-comps__featured-letter { color: var(--comps-sky-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--performance .theinmag-comps__featured-letter { color: var(--comps-peach-dark); }
 
-  .theinmag-comps__featured-logo {
+  .theinmag-for-parents-comps .theinmag-comps__featured-logo {
     width: clamp(120px, 16vw, 200px);
     height: clamp(120px, 16vw, 200px);
     object-fit: contain;
@@ -494,7 +503,7 @@
     border-radius: 12px;
   }
 
-  .theinmag-comps__featured-badge {
+  .theinmag-for-parents-comps .theinmag-comps__featured-badge {
     position: absolute;
     top: clamp(10px, 1.4vw, 14px);
     left: clamp(10px, 1.4vw, 14px);
@@ -516,7 +525,7 @@
     box-shadow: 0 2px 0 rgba(42, 31, 61, 0.85);
   }
 
-  .theinmag-comps__featured-body {
+  .theinmag-for-parents-comps .theinmag-comps__featured-body {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -524,7 +533,17 @@
     flex: 1 1 auto;
   }
 
-  .theinmag-comps__featured-chip {
+  /* Featured CTA: anchor flush to the bottom-left of the card body
+     via margin-top: auto + align-self: flex-start. 2-class specificity
+     (.theinmag-for-parents-comps + .theinmag-comps__featured-cta) wins
+     over both my own single-class rule AND the global competitions
+     section's rule, so this is the deterministic position. */
+  .theinmag-for-parents-comps .theinmag-comps__featured-cta {
+    margin-top: auto;
+    align-self: flex-start;
+  }
+
+  .theinmag-for-parents-comps .theinmag-comps__featured-chip {
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.1em;
@@ -532,12 +551,12 @@
     color: var(--comps-purple-dark);
     opacity: 0.78;
   }
-  .theinmag-comps__featured-card--art .theinmag-comps__featured-chip { color: var(--comps-coral-dark); }
-  .theinmag-comps__featured-card--writing .theinmag-comps__featured-chip { color: var(--comps-mint-dark); }
-  .theinmag-comps__featured-card--photofilm .theinmag-comps__featured-chip { color: var(--comps-sky-dark); }
-  .theinmag-comps__featured-card--performance .theinmag-comps__featured-chip { color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--art .theinmag-comps__featured-chip { color: var(--comps-coral-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--writing .theinmag-comps__featured-chip { color: var(--comps-mint-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--photofilm .theinmag-comps__featured-chip { color: var(--comps-sky-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__featured-card--performance .theinmag-comps__featured-chip { color: var(--comps-peach-dark); }
 
-  .theinmag-comps__featured-title {
+  .theinmag-for-parents-comps .theinmag-comps__featured-title {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
     font-size: clamp(18px, 1.8vw, 22px);
@@ -545,7 +564,7 @@
     color: var(--comps-cream-dark);
   }
 
-  .theinmag-comps__featured-pitch {
+  .theinmag-for-parents-comps .theinmag-comps__featured-pitch {
     font-size: 14px;
     line-height: 1.55;
     color: var(--comps-cream-dark);
@@ -556,7 +575,7 @@
     overflow: hidden;
   }
 
-  .theinmag-comps__featured-cta {
+  .theinmag-for-parents-comps .theinmag-comps__featured-cta {
     margin-top: auto;
     font-size: 13px;
     font-weight: 700;
@@ -567,7 +586,7 @@
 
   /* ----- List tile (lifted from theinmag-competitions.liquid) ----- */
 
-  .theinmag-comps__tile {
+  .theinmag-for-parents-comps .theinmag-comps__tile {
     display: grid;
     grid-template-columns: 96px 1fr;
     gap: clamp(12px, 1.4vw, 18px);
@@ -582,22 +601,22 @@
     position: relative;
   }
   @media (min-width: 600px) {
-    .theinmag-comps__tile {
+    .theinmag-for-parents-comps .theinmag-comps__tile {
       grid-template-columns: 130px 1fr auto;
       padding: clamp(14px, 1.6vw, 20px);
     }
   }
-  .theinmag-comps__tile:hover,
-  .theinmag-comps__tile:focus-visible {
+  .theinmag-for-parents-comps .theinmag-comps__tile:hover,
+  .theinmag-for-parents-comps .theinmag-comps__tile:focus-visible {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(123, 79, 158, 0.18);
     outline: none;
   }
-  .theinmag-comps__tile:focus-visible {
+  .theinmag-for-parents-comps .theinmag-comps__tile:focus-visible {
     box-shadow: 0 0 0 3px var(--comps-purple-dark), 0 6px 20px rgba(123, 79, 158, 0.18);
   }
 
-  .theinmag-comps__tile-cover {
+  .theinmag-for-parents-comps .theinmag-comps__tile-cover {
     position: relative;
     display: flex;
     align-items: center;
@@ -609,14 +628,14 @@
     width: 100%;
     height: 100%;
   }
-  .theinmag-comps__tile-letter {
+  .theinmag-for-parents-comps .theinmag-comps__tile-letter {
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
     font-size: clamp(40px, 5vw, 60px);
     line-height: 1;
     color: var(--comps-purple-dark);
   }
-  .theinmag-comps__tile-logo {
+  .theinmag-for-parents-comps .theinmag-comps__tile-logo {
     display: block;
     width: 100%;
     height: 100%;
@@ -627,25 +646,25 @@
     background-color: #FFF;
   }
 
-  .theinmag-comps__tile--art .theinmag-comps__tile-cover { background-color: var(--comps-coral-light); }
-  .theinmag-comps__tile--art .theinmag-comps__tile-letter { color: var(--comps-coral-dark); }
-  .theinmag-comps__tile--writing .theinmag-comps__tile-cover { background-color: var(--comps-mint-light); }
-  .theinmag-comps__tile--writing .theinmag-comps__tile-letter { color: var(--comps-mint-dark); }
-  .theinmag-comps__tile--photofilm .theinmag-comps__tile-cover { background-color: var(--comps-sky-light); }
-  .theinmag-comps__tile--photofilm .theinmag-comps__tile-letter { color: var(--comps-sky-dark); }
-  .theinmag-comps__tile--stem .theinmag-comps__tile-cover { background-color: var(--comps-purple-light); }
-  .theinmag-comps__tile--stem .theinmag-comps__tile-letter { color: var(--comps-purple-dark); }
-  .theinmag-comps__tile--performance .theinmag-comps__tile-cover { background-color: var(--comps-peach-light); }
-  .theinmag-comps__tile--performance .theinmag-comps__tile-letter { color: var(--comps-peach-dark); }
-  .theinmag-comps__tile--social-good .theinmag-comps__tile-cover { background-color: #F2EBD8; }
+  .theinmag-for-parents-comps .theinmag-comps__tile--art .theinmag-comps__tile-cover { background-color: var(--comps-coral-light); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--art .theinmag-comps__tile-letter { color: var(--comps-coral-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--writing .theinmag-comps__tile-cover { background-color: var(--comps-mint-light); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--writing .theinmag-comps__tile-letter { color: var(--comps-mint-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--photofilm .theinmag-comps__tile-cover { background-color: var(--comps-sky-light); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--photofilm .theinmag-comps__tile-letter { color: var(--comps-sky-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--stem .theinmag-comps__tile-cover { background-color: var(--comps-purple-light); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--stem .theinmag-comps__tile-letter { color: var(--comps-purple-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--performance .theinmag-comps__tile-cover { background-color: var(--comps-peach-light); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--performance .theinmag-comps__tile-letter { color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--social-good .theinmag-comps__tile-cover { background-color: #F2EBD8; }
 
-  .theinmag-comps__tile-body {
+  .theinmag-for-parents-comps .theinmag-comps__tile-body {
     display: flex;
     flex-direction: column;
     gap: 6px;
     min-width: 0;
   }
-  .theinmag-comps__tile-chip {
+  .theinmag-for-parents-comps .theinmag-comps__tile-chip {
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.1em;
@@ -653,19 +672,19 @@
     color: var(--comps-purple-dark);
     opacity: 0.78;
   }
-  .theinmag-comps__tile--art .theinmag-comps__tile-chip { color: var(--comps-coral-dark); }
-  .theinmag-comps__tile--writing .theinmag-comps__tile-chip { color: var(--comps-mint-dark); }
-  .theinmag-comps__tile--photofilm .theinmag-comps__tile-chip { color: var(--comps-sky-dark); }
-  .theinmag-comps__tile--performance .theinmag-comps__tile-chip { color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--art .theinmag-comps__tile-chip { color: var(--comps-coral-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--writing .theinmag-comps__tile-chip { color: var(--comps-mint-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--photofilm .theinmag-comps__tile-chip { color: var(--comps-sky-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile--performance .theinmag-comps__tile-chip { color: var(--comps-peach-dark); }
 
-  .theinmag-comps__tile-title {
+  .theinmag-for-parents-comps .theinmag-comps__tile-title {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
     font-size: clamp(15px, 1.5vw, 18px);
     line-height: 1.2;
     color: var(--comps-cream-dark);
   }
-  .theinmag-comps__tile-pitch {
+  .theinmag-for-parents-comps .theinmag-comps__tile-pitch {
     font-size: 13px;
     line-height: 1.45;
     color: var(--comps-cream-dark);
@@ -675,7 +694,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .theinmag-comps__tile-meta {
+  .theinmag-for-parents-comps .theinmag-comps__tile-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 10px;
@@ -687,12 +706,12 @@
     color: var(--comps-cream-dark);
     opacity: 0.62;
   }
-  .theinmag-comps__tile-meta-item:not(:last-child)::after {
+  .theinmag-for-parents-comps .theinmag-comps__tile-meta-item:not(:last-child)::after {
     content: ' \00B7';
     margin-left: 6px;
     opacity: 0.5;
   }
-  .theinmag-comps__tile-state {
+  .theinmag-for-parents-comps .theinmag-comps__tile-state {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -702,19 +721,19 @@
     text-transform: uppercase;
     margin-top: 4px;
   }
-  .theinmag-comps__dot {
+  .theinmag-for-parents-comps .theinmag-comps__dot {
     width: 8px; height: 8px;
     border-radius: 50%;
     display: inline-block;
   }
-  .theinmag-comps__tile-state--live-now { color: var(--comps-mint-dark); }
-  .theinmag-comps__tile-state--live-now .theinmag-comps__dot { background-color: var(--comps-mint-dark); }
-  .theinmag-comps__tile-state--opens-in { color: var(--comps-peach-dark); }
-  .theinmag-comps__tile-state--opens-in .theinmag-comps__dot { background-color: var(--comps-peach-dark); }
-  .theinmag-comps__tile-state--soon { color: var(--comps-purple-dark); }
-  .theinmag-comps__tile-state--soon .theinmag-comps__dot { background-color: var(--comps-purple-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--live-now { color: var(--comps-mint-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--live-now .theinmag-comps__dot { background-color: var(--comps-mint-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--opens-in { color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--opens-in .theinmag-comps__dot { background-color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--soon { color: var(--comps-purple-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--soon .theinmag-comps__dot { background-color: var(--comps-purple-dark); }
 
-  .theinmag-comps__tile-cta {
+  .theinmag-for-parents-comps .theinmag-comps__tile-cta {
     align-self: center;
     font-size: 11px;
     font-weight: 700;
@@ -724,7 +743,7 @@
     white-space: nowrap;
   }
 
-  .theinmag-comps__arrow {
+  .theinmag-for-parents-comps .theinmag-comps__arrow {
     display: inline-block;
     margin-left: 4px;
   }
@@ -744,14 +763,14 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .theinmag-comps__featured-card,
-    .theinmag-comps__tile {
+    .theinmag-for-parents-comps .theinmag-comps__featured-card,
+    .theinmag-for-parents-comps .theinmag-comps__tile {
       transition: none;
     }
-    .theinmag-comps__featured-card:hover,
-    .theinmag-comps__featured-card:focus-visible,
-    .theinmag-comps__tile:hover,
-    .theinmag-comps__tile:focus-visible {
+    .theinmag-for-parents-comps .theinmag-comps__featured-card:hover,
+    .theinmag-for-parents-comps .theinmag-comps__featured-card:focus-visible,
+    .theinmag-for-parents-comps .theinmag-comps__tile:hover,
+    .theinmag-for-parents-comps .theinmag-comps__tile:focus-visible {
       transform: none;
     }
   }
@@ -771,7 +790,7 @@
       "type": "textarea",
       "id": "heading",
       "label": "Heading",
-      "default": "Something for your kid to aim at."
+      "default": "Competitions for your kid to aim for."
     },
     {
       "type": "textarea",

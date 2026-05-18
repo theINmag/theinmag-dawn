@@ -34,6 +34,103 @@
   assign show_filters = section.settings.show_filters
   assign active_chip = section.settings.active_chip
 
+  comment
+    Auto-pull mode (additive, default off):
+    When auto_pull is true, the section ignores curated blocks and
+    pulls live articles from blogs[auto_blog_handle]. Filter by
+    audience metafield, cap real-jobs-real-people series at N per
+    window, rotate the visible 4 by minute-of-hour so cards refresh
+    across visits without losing newest-first bias.
+  endcomment
+  assign auto_pull = section.settings.auto_pull
+  assign auto_blog_handle = section.settings.auto_blog_handle | default: 'field-notes'
+  assign auto_audience = section.settings.auto_audience | default: 'any'
+  assign auto_rjrp_tag = section.settings.auto_rjrp_tag | default: 'real-jobs-real-people'
+  assign auto_rjrp_cap = section.settings.auto_rjrp_cap | default: 1
+  assign auto_pool_size = section.settings.auto_pool_size | default: 8
+  assign auto_take = section.settings.auto_take | default: 4
+
+  assign auto_handles_csv = ''
+  assign auto_pool_count = 0
+  assign auto_rjrp_count = 0
+  assign auto_target_blog = blank
+
+  if auto_pull
+    assign auto_target_blog = blogs[auto_blog_handle]
+    if auto_target_blog != blank
+      for art in auto_target_blog.articles limit: 50
+        if auto_pool_count >= auto_pool_size
+          break
+        endif
+
+        # Audience filter via article.metafields.field_notes.read_audience.
+        assign aud_match = true
+        if auto_audience != 'any' and auto_audience != blank
+          assign aud_match = false
+          assign art_aud = art.metafields.field_notes.read_audience | downcase
+          if auto_audience == 'adults'
+            if art_aud != 'kids'
+              assign aud_match = true
+            endif
+          elsif auto_audience == 'kids'
+            if art_aud == 'kids' or art_aud == 'both'
+              assign aud_match = true
+            endif
+          endif
+        endif
+
+        if aud_match
+          # Real-jobs-real-people cap (max N per window).
+          assign is_rjrp = false
+          if art.tags contains auto_rjrp_tag
+            assign is_rjrp = true
+          endif
+
+          if is_rjrp and auto_rjrp_count >= auto_rjrp_cap
+            continue
+          endif
+
+          if auto_handles_csv == ''
+            assign auto_handles_csv = art.handle
+          else
+            assign auto_handles_csv = auto_handles_csv | append: '|' | append: art.handle
+          endif
+          assign auto_pool_count = auto_pool_count | plus: 1
+          if is_rjrp
+            assign auto_rjrp_count = auto_rjrp_count | plus: 1
+          endif
+        endif
+      endfor
+    endif
+  endif
+
+  assign auto_pool_handles = auto_handles_csv | split: '|'
+
+  # Build the rotated render list: take auto_take handles starting at
+  # offset = minute-of-hour mod pool.size, wrapping. Newest-first bias
+  # preserved; cards refresh across visits as the minute rotates.
+  assign auto_render_csv = ''
+  if auto_pool_handles.size > 0
+    assign actual_take = auto_take
+    if auto_pool_handles.size < actual_take
+      assign actual_take = auto_pool_handles.size
+    endif
+    assign minute_seed = 'now' | date: '%M' | times: 1
+    assign rot_offset = minute_seed | modulo: auto_pool_handles.size
+    for slot_n in (1..actual_take)
+      assign slot_idx = forloop.index0
+      assign pool_idx = rot_offset | plus: slot_idx | modulo: auto_pool_handles.size
+      assign h = auto_pool_handles[pool_idx]
+      if auto_render_csv == ''
+        assign auto_render_csv = h
+      else
+        assign auto_render_csv = auto_render_csv | append: '|' | append: h
+      endif
+    endfor
+  endif
+
+  assign auto_render_handles = auto_render_csv | split: '|'
+
   assign bg_src = ''
   if section.settings.background_image != blank
     assign bg_src = section.settings.background_image | image_url: width: 2400
@@ -105,7 +202,77 @@
       </div>
     </header>
 
-    {%- if section.blocks.size > 0 -%}
+    {%- if auto_pull and auto_render_handles.size > 0 -%}
+      <ul class="theinmag-blog-feed__cards" role="list">
+        {%- for h in auto_render_handles -%}
+          {%- liquid
+            assign article = auto_target_blog.articles | where: 'handle', h | first
+            if article == blank
+              continue
+            endif
+
+            assign title = article.title
+            assign excerpt = article.excerpt | strip_html
+            if excerpt == blank
+              assign excerpt = article.content | strip_html | truncatewords: 24
+            endif
+
+            assign topic = article.metafields.field_notes.primary_topic
+            if topic == blank
+              assign topic = article.tags.first
+            endif
+
+            assign card_link = article.url
+
+            assign image_src = ''
+            if article.image != blank
+              assign image_src = article.image | image_url: width: 1200
+            endif
+
+            assign image_alt = article.image.alt | default: article.title
+
+            assign art_aud_meta = article.metafields.field_notes.read_audience | downcase
+            assign card_audience = 'both'
+            if art_aud_meta == 'kids'
+              assign card_audience = 'kids'
+            elsif art_aud_meta == 'adults'
+              assign card_audience = 'adults'
+            endif
+          -%}
+          <li class="theinmag-blog-feed__card-wrap" data-audience="{{ card_audience }}" data-auto-handle="{{ h }}">
+            <a class="theinmag-blog-feed__card" href="{{ card_link }}">
+              <span class="theinmag-blog-feed__cover">
+                {%- if image_src != blank -%}
+                  <img
+                    class="theinmag-blog-feed__image"
+                    src="{{ image_src }}"
+                    alt="{{ image_alt | escape }}"
+                    loading="lazy"
+                    width="1200"
+                    height="1500"
+                  >
+                {%- else -%}
+                  <span class="theinmag-blog-feed__cover-placeholder" aria-hidden="true"></span>
+                {%- endif -%}
+                <span class="theinmag-blog-feed__scrim" aria-hidden="true"></span>
+                {%- if topic != blank -%}
+                  <span class="theinmag-blog-feed__topic">{{ topic }}</span>
+                {%- endif -%}
+              </span>
+              <span class="theinmag-blog-feed__body">
+                {%- if title != blank -%}
+                  <span class="theinmag-blog-feed__title">{{ title }}</span>
+                {%- endif -%}
+                {%- if excerpt != blank -%}
+                  <span class="theinmag-blog-feed__excerpt">{{ excerpt }}</span>
+                {%- endif -%}
+              </span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+      <p class="theinmag-blog-feed__empty" data-empty hidden>Nothing here yet for that view. Try another filter.</p>
+    {%- elsif section.blocks.size > 0 -%}
       <ul class="theinmag-blog-feed__cards" role="list">
         {%- for block in section.blocks -%}
           {%- liquid
@@ -597,6 +764,49 @@
     }
   }
 
+  /* Mobile: title overlays the bottom of the cover image in white,
+     excerpt sits below the image in the cream body (dark text). The
+     title is in DOM inside body, but on mobile it's pulled out via
+     `position: absolute; bottom: 100%` so it visually floats over
+     the cover bottom without restructuring the markup. */
+  @media (max-width: 989px) {
+    .theinmag-blog-feed__topic {
+      display: none;
+    }
+    .theinmag-blog-feed__body {
+      position: relative;
+      padding: clamp(14px, 4vw, 18px) clamp(16px, 4vw, 20px) clamp(16px, 4vw, 20px);
+      gap: 0;
+    }
+    .theinmag-blog-feed__title {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      margin: 0;
+      padding: clamp(28px, 7vw, 40px) clamp(16px, 4vw, 20px) clamp(14px, 3.5vw, 18px);
+      color: #FFFFFF;
+      font-size: clamp(22px, 5.5vw, 28px);
+      font-weight: 700;
+      line-height: 1.15;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.40) 55%, rgba(0, 0, 0, 0) 100%);
+      -webkit-line-clamp: 2;
+    }
+    .theinmag-blog-feed__excerpt {
+      display: -webkit-box;
+      color: var(--color-inky-purple-navy, #2A1F3D);
+      font-size: clamp(13px, 3.5vw, 14px);
+      font-weight: 400;
+      line-height: 1.5;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin: 0;
+      opacity: 0.85;
+    }
+  }
+
   .theinmag-blog-feed__excerpt {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
@@ -641,6 +851,73 @@
   "tag": "section",
   "class": "theinmag-blog-feed-section",
   "settings": [
+    {
+      "type": "header",
+      "content": "Auto-pull live articles (optional)"
+    },
+    {
+      "type": "paragraph",
+      "content": "When on, this section ignores the curated post-card blocks below and renders live articles from the field-notes blog. Filter by audience metafield + cap series articles (e.g. real-jobs-real-people). Newest-first with minute-rotation so cards refresh across visits."
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_pull",
+      "label": "Auto-pull from blog",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "auto_blog_handle",
+      "label": "Blog handle",
+      "default": "field-notes"
+    },
+    {
+      "type": "select",
+      "id": "auto_audience",
+      "label": "Audience filter",
+      "info": "'adults' excludes any article with read_audience metafield set to 'kids'. 'kids' shows only kids + both. 'any' shows everything.",
+      "options": [
+        { "value": "any", "label": "Any (mixed - homepage)" },
+        { "value": "adults", "label": "Adults only (For Parents / Teachers)" },
+        { "value": "kids", "label": "Kids only (For Kids)" }
+      ],
+      "default": "any"
+    },
+    {
+      "type": "text",
+      "id": "auto_rjrp_tag",
+      "label": "Real-jobs-real-people tag",
+      "info": "Tag that identifies the career-pathways / meet-the-professional series. Capped per window so it doesn't dominate.",
+      "default": "real-jobs-real-people"
+    },
+    {
+      "type": "range",
+      "id": "auto_rjrp_cap",
+      "label": "Max real-jobs-real-people per window",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "auto_pool_size",
+      "label": "Pool size (newest N to choose from)",
+      "info": "Window rotation picks 'take' cards from the pool of N newest matches.",
+      "min": 4,
+      "max": 20,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "auto_take",
+      "label": "Cards to render",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
     {
       "type": "header",
       "content": "Heading"

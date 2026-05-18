@@ -12,17 +12,17 @@
     "page-meta": {
       "type": "theinmag-page-meta",
       "settings": {
-        "webpage_name": "theINmag for Parents",
-        "webpage_description": "theINmag is the Australian kids' magazine made entirely by Australian kids. No ads, ever. Three issues a year. Your kid could be in the next one.",
-        "webpage_url_path": "/pages/for-parents",
-        "breadcrumbs_csv": "Home|/;For parents|/pages/for-parents"
+        "webpage_name": "theINmag for Teachers",
+        "webpage_description": "theINmag is the Australian kids' magazine made entirely by Australian kids. No ads, ever. Three issues a year. A real-voice resource your class will actually read.",
+        "webpage_url_path": "/pages/for-teachers",
+        "breadcrumbs_csv": "Home|/;For teachers|/pages/for-teachers"
       }
     },
     "hero": {
       "type": "theinmag-hero",
       "settings": {
-        "eyebrow_text": "For Parents",
-        "aeo_h1_text": "theINmag For Parents - the Australian kids magazine made entirely by kids.",
+        "eyebrow_text": "For Teachers",
+        "aeo_h1_text": "theINmag For Teachers - the Australian kids magazine made entirely by kids.",
         "headline": "Creative kids.\nPublished.",
         "emphasis_word": "",
         "subhead": "Real Aussie kids fill every page. No ads. No filler. The next one could be your kid.",
@@ -139,7 +139,8 @@
     "comps": {
       "type": "theinmag-for-parents-comps",
       "settings": {
-        "all_cta_link": "/pages/competitions"
+        "all_cta_link": "/pages/competitions",
+        "audience_token": "teachers"
       }
     },
     "field-notes": {
@@ -219,7 +220,12 @@
           }
         }
       },
-      "block_order": ["post-1", "post-2", "post-3", "post-4"]
+      "block_order": [
+        "post-1",
+        "post-2",
+        "post-3",
+        "post-4"
+      ]
     },
     "founders": {
       "type": "theinmag-for-parents-founders",
@@ -414,7 +420,7 @@
         "heading": "",
         "heading_position": "top",
         "intro_text": "",
-        "exclude_label": "Parents",
+        "exclude_label": "Teachers",
         "caveat_label": "",
         "padding_top": 32,
         "padding_bottom": 64

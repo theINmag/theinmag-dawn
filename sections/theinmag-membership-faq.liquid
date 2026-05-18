@@ -17,7 +17,20 @@
 {%- liquid
   assign heading = section.settings.heading | default: 'Common Membership questions'
   assign items = section.blocks | where: 'type', 'faq_item'
+
+  # Optional bg image (additive - default blank preserves Membership
+  # PDP lavender-only rendering). When set, renders as a full-bleed
+  # layer behind the inner content at the configured opacity.
+  assign bg_image_filename = section.settings.bg_image_filename
+  assign bg_image_opacity = section.settings.bg_image_opacity | default: 100
+  assign bg_image_opacity_decimal = bg_image_opacity | times: 1.0 | divided_by: 100.0
+
   assign section_style = '--tmfaq-pt: ' | append: section.settings.padding_top | append: 'px; --tmfaq-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  assign section_style = section_style | append: ' --tmfaq-bg-opacity: ' | append: bg_image_opacity_decimal | append: ';'
+  if bg_image_filename != blank
+    assign bg_url = bg_image_filename | asset_url
+    assign section_style = section_style | append: " --tmfaq-bg-image: url('" | append: bg_url | append: "');"
+  endif
 -%}
 
 {%- comment -%}
@@ -35,6 +48,9 @@
   aria-labelledby="theinmag-membership-faq-heading"
   style="{{ section_style }}"
 >
+  {%- if bg_image_filename != blank -%}
+    <div class="theinmag-membership-faq__bg" aria-hidden="true"></div>
+  {%- endif -%}
   {%- comment -%}
     Kid character popping in from the left edge of the section. Sits
     outside the inner content column, positioned absolutely relative
@@ -128,6 +144,41 @@
     padding: var(--tmfaq-pt, 72px) var(--space-lg) var(--tmfaq-pb, 72px);
     position: relative;
     overflow: hidden;
+  }
+
+  /* Optional bg image layer. 2-class selector beats Dawn's
+     `div:empty { display: none }` rule (base.css:471). Sits behind
+     inner content + character via z-index. */
+  .theinmag-membership-faq .theinmag-membership-faq__bg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background-image: var(--tmfaq-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: var(--tmfaq-bg-opacity, 1);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* When a bg image is present (For Parents page), bump the heading
+     to the same near-black inky-purple-navy as the accordion text
+     (the purple-dark default reads light on a saturated bg), and
+     scale the kid character up a touch. :has() scopes the override
+     so Membership PDP (no bg image) stays untouched. */
+  .theinmag-membership-faq:has(.theinmag-membership-faq__bg) .theinmag-membership-faq__heading {
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-faq:has(.theinmag-membership-faq__bg) .theinmag-membership-faq__character {
+    width: clamp(140px, 16vw, 230px);
+    top: clamp(80px, 10vw, 150px);
+  }
+  @media (max-width: 749px) {
+    .theinmag-membership-faq:has(.theinmag-membership-faq__bg) .theinmag-membership-faq__character {
+      top: -60px;
+      width: 140px;
+    }
   }
 
   .theinmag-membership-faq__inner {
@@ -349,6 +400,25 @@
       "id": "heading",
       "label": "Heading (H2)",
       "default": "Common Membership questions"
+    },
+    {
+      "type": "header",
+      "content": "Background image (optional)"
+    },
+    {
+      "type": "text",
+      "id": "bg_image_filename",
+      "label": "Background image filename in /assets/",
+      "info": "Optional full-bleed image behind the FAQ content. Leave blank for lavender only (Membership PDP default)."
+    },
+    {
+      "type": "range",
+      "id": "bg_image_opacity",
+      "label": "Background image opacity (%)",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 100
     },
     {
       "type": "header",

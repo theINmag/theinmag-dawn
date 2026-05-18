@@ -125,6 +125,16 @@
     font-size: clamp(28px, 4vw, 52px);
   }
 
+  /* Mobile: large-variant pull quote cuts vertical padding so the
+     section doesn't dominate a phone viewport. Only the large variant
+     - default Membership-PDP padding stays untouched. */
+  @media (max-width: 749px) {
+    .theinmag-pull-quote--size-large {
+      padding-top: clamp(48px, 12vw, 80px);
+      padding-bottom: clamp(48px, 12vw, 80px);
+    }
+  }
+
   .theinmag-pull-quote__attribution {
     margin-top: clamp(20px, 2.4vw, 32px);
     color: #FFFFFF;

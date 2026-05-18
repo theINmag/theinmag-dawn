@@ -295,6 +295,31 @@
     },
     "theinmag_blog_feed": {
       "type": "theinmag-blog-feed",
+      "settings": {
+        "heading_pre": "field",
+        "heading_emphasis": "notes",
+        "heading_post": "",
+        "heading_period": "",
+        "subhead": "",
+        "background_filename": "theinside-homepage-background.jpg",
+        "show_filters": true,
+        "active_chip": "all",
+        "chip_all_link": "/blogs/field-notes",
+        "chip_kids_link": "/blogs/field-notes?audience=kids",
+        "chip_adults_link": "/blogs/field-notes?audience=adults",
+        "show_cta": true,
+        "cta_label": "see all blogs",
+        "cta_link": "/blogs/field-notes",
+        "padding_top": 80,
+        "padding_bottom": 80,
+        "auto_pull": true,
+        "auto_blog_handle": "field-notes",
+        "auto_audience": "any",
+        "auto_rjrp_tag": "real-jobs-real-people",
+        "auto_rjrp_cap": 1,
+        "auto_pool_size": 8,
+        "auto_take": 4
+      },
       "blocks": {
         "post-1": {
           "type": "featured_post",
@@ -345,25 +370,7 @@
           }
         }
       },
-      "block_order": ["post-1", "post-2", "post-3", "post-4"],
-      "settings": {
-        "heading_pre": "field",
-        "heading_emphasis": "notes",
-        "heading_post": "",
-        "heading_period": "",
-        "subhead": "",
-        "background_filename": "theinside-homepage-background.jpg",
-        "show_filters": true,
-        "active_chip": "all",
-        "chip_all_link": "/blogs/field-notes",
-        "chip_kids_link": "/blogs/field-notes?audience=kids",
-        "chip_adults_link": "/blogs/field-notes?audience=adults",
-        "show_cta": true,
-        "cta_label": "see all blogs",
-        "cta_link": "/blogs/field-notes",
-        "padding_top": 80,
-        "padding_bottom": 80
-      }
+      "block_order": ["post-1", "post-2", "post-3", "post-4"]
     },
     "theinmag_faq": {
       "type": "theinmag-faq",
