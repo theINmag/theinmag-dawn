@@ -700,14 +700,14 @@
     aspect-ratio: 4 / 3;
   }
 
-  /* Card title hierarchy re-established 2026-05-18 (was unified at
-     21-24px across all variants - read too flat against the visual
-     hierarchy where large_left + bottom_small carry bigger imagery
-     than the right filmstrip). Now: large/bottom = bigger heading
-     matching their image weight; right_small = smaller heading
-     matching their tighter card footprint. */
+  /* Regular card title size unified across large_left, bottom_small,
+     and right_small. The 18 May hierarchy attempt (large/bottom bigger
+     than right) broke the parallax tuning - the JS reads rightInner
+     vs leftCol heights and a height mismatch between columns made
+     the scroll feel either too fast or too late. Restored to the
+     original unified clamp so the parallax stays calm. */
   .theinmag-editorial__card--large_left .theinmag-editorial__card-title {
-    font-size: clamp(24px, 2.4vw, 30px);
+    font-size: clamp(21px, 1.9vw, 24px);
   }
 
   /* ================================================================
@@ -730,7 +730,7 @@
   }
 
   .theinmag-editorial__card--bottom_small .theinmag-editorial__card-title {
-    font-size: clamp(24px, 2.4vw, 30px);
+    font-size: clamp(21px, 1.9vw, 24px);
     -webkit-line-clamp: 2;
   }
 
@@ -769,7 +769,7 @@
   }
 
   .theinmag-editorial__card--right_small .theinmag-editorial__card-title {
-    font-size: clamp(17px, 1.4vw, 20px);
+    font-size: clamp(21px, 1.9vw, 24px);
     -webkit-line-clamp: 2;
   }
 
@@ -885,30 +885,24 @@
           rightInner.style.transform = '';
           return;
         }
-        /* Pattern: parallax starts the moment the wrapper TOP enters
-           the viewport bottom (early engagement, matches Ryan's
-           18 May feedback that the old "pinned" start fired too late
-           down the page). Progress reaches 1 when the wrapper BOTTOM
-           reaches the viewport bottom - i.e. the wrapper is fully
-           in view with bottom flush with viewport bottom. After that
-           point the section continues scrolling out but no further
-           translation happens.
-
-           Scroll range = wH (the wrapper's own height). Larger wH
-           = slower visible parallax (more scroll covers same trans-
-           lation). This is the natural "slow it down" lever now -
-           never multiply offset by <1, that always leaves the last
-           card stuck mid-translation. */
+        /* Hard start: progress = 0 while wrapper top is still below
+           the viewport top (first card sits cleanly at wrapper top).
+           Hard finish: progress = 1 once the wrapper BOTTOM reaches
+           the viewport bottom - meaning the last card is in view
+           while the visitor is still inside the section, not just
+           as it exits. Compressing the range from wrapperH down to
+           (wrapperH - viewportH) is what gives the right column
+           its extra speed differential vs. the page. */
         var wRect = rightWrap.getBoundingClientRect();
         var wH = wRect.height;
         if (wH <= 0) return;
         var viewportH = window.innerHeight || document.documentElement.clientHeight;
-        var range = wH;
+        var range = wH - viewportH;
         if (range <= 0) {
           rightInner.style.transform = '';
           return;
         }
-        var raw = (viewportH - wRect.top) / range;
+        var raw = -wRect.top / range;
         var progress = Math.max(0, Math.min(1, raw));
         var innerH = rightInner.offsetHeight;
         var maxOffset = Math.max(0, innerH - wH);
