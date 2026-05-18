@@ -1,0 +1,457 @@
+{%- comment -%}
+  theinmag-split-tile
+  Single horizontal card: text on one side, image on the other.
+  Designed as a sales pitch tile (kicker + headline + subhead +
+  checkmark bullets + CTA + supporting image). Image side
+  configurable so the same section works mirrored.
+
+  Stacks mobile (text first, image below). Card sits on a coloured
+  section bg with the same six-pair palette used elsewhere.
+
+  No brand-pun token handling - headlines render plain Inter 700.
+  If a brand-pun lift is needed (e.g. "[[IN]] something"), add
+  the wrap logic later or use a dedicated section.
+{%- endcomment -%}
+
+{%- liquid
+  assign kicker = section.settings.kicker
+  assign headline = section.settings.headline
+  assign subhead = section.settings.subhead
+
+  assign cta_label = section.settings.cta_label
+  assign cta_link = section.settings.cta_link
+
+  assign image = section.settings.image
+  assign image_filename = section.settings.image_filename
+  assign image_alt = section.settings.image_alt | default: ''
+
+  comment
+    Optional product link: when set, the section uses the product's
+    featured image (overriding the image picker + fallback above).
+    Pulling dynamically means swapping the PDP hero shot updates this
+    tile automatically. Alt falls back to the product title.
+  endcomment
+  assign linked_product = section.settings.product
+  if linked_product != blank and linked_product.featured_image != blank
+    assign image = linked_product.featured_image
+    if section.settings.image_alt == blank
+      assign image_alt = linked_product.title
+    endif
+  endif
+
+  assign image_side = section.settings.image_side | default: 'right'
+  assign side_class = ' theinmag-split-tile--image-' | append: image_side
+
+  assign bg = section.settings.bg_color | default: 'cream'
+  assign bg_var = '--color-cream'
+  case bg
+    when 'cream'
+      assign bg_var = '--color-cream'
+    when 'white'
+      assign bg_var = '--color-white'
+    when 'lavender'
+      assign bg_var = '--color-lavender'
+    when 'peach'
+      assign bg_var = '--color-peach'
+    when 'mint'
+      assign bg_var = '--color-mint'
+    when 'sky'
+      assign bg_var = '--color-sky'
+  endcase
+
+  assign pt = section.settings.padding_top | default: 80
+  assign pb = section.settings.padding_bottom | default: 80
+
+  assign section_style = '--tst-pt: ' | append: pt | append: 'px; --tst-pb: ' | append: pb | append: 'px; background-color: var(' | append: bg_var | append: ', #FBF6EA);'
+-%}
+
+<section
+  class="theinmag-split-tile{{ side_class }}"
+  aria-labelledby="theinmag-split-tile-headline-{{ section.id }}"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-split-tile__inner">
+    <article class="theinmag-split-tile__card">
+      <div class="theinmag-split-tile__content">
+        {%- if kicker != blank -%}
+          <p class="theinmag-split-tile__kicker">{{ kicker }}</p>
+        {%- endif -%}
+
+        {%- if headline != blank -%}
+          <h2
+            class="theinmag-split-tile__headline"
+            id="theinmag-split-tile-headline-{{ section.id }}"
+          >
+            {{ headline }}
+          </h2>
+        {%- endif -%}
+
+        {%- if subhead != blank -%}
+          <p class="theinmag-split-tile__subhead">{{ subhead }}</p>
+        {%- endif -%}
+
+        {%- assign bullet_count = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'bullet' and block.settings.text != blank -%}
+            {%- assign bullet_count = bullet_count | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if bullet_count > 0 -%}
+          <ul class="theinmag-split-tile__bullets" role="list">
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'bullet' and block.settings.text != blank -%}
+                <li class="theinmag-split-tile__bullet" {{ block.shopify_attributes }}>
+                  <svg
+                    class="theinmag-split-tile__bullet-check"
+                    viewBox="0 0 20 20"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <circle cx="10" cy="10" r="10" fill="currentColor" opacity="0.12"/>
+                    <path d="M5.5 10.5l3 3 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="theinmag-split-tile__bullet-text">{{ block.settings.text }}</span>
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+
+        {%- if cta_label != blank -%}
+          <div class="theinmag-split-tile__cta">
+            <a
+              class="theinmag-btn theinmag-btn--primary"
+              href="{{ cta_link | default: '#' }}"
+            >
+              {{- cta_label -}}
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="theinmag-split-tile__media">
+        {%- if image != blank -%}
+          <img
+            class="theinmag-split-tile__image"
+            src="{{ image | image_url: width: 1400 }}"
+            srcset="
+              {{ image | image_url: width: 600 }} 600w,
+              {{ image | image_url: width: 900 }} 900w,
+              {{ image | image_url: width: 1200 }} 1200w,
+              {{ image | image_url: width: 1400 }} 1400w
+            "
+            sizes="(min-width: 990px) 540px, 90vw"
+            width="{{ image.width }}"
+            height="{{ image.height }}"
+            alt="{{ image_alt | escape }}"
+            loading="lazy"
+          >
+        {%- elsif image_filename != blank -%}
+          <img
+            class="theinmag-split-tile__image"
+            src="{{ image_filename | asset_url }}"
+            alt="{{ image_alt | escape }}"
+            loading="lazy"
+          >
+        {%- else -%}
+          <div class="theinmag-split-tile__placeholder" aria-hidden="true">
+            <span>Image placeholder</span>
+          </div>
+        {%- endif -%}
+      </div>
+    </article>
+  </div>
+</section>
+
+{% stylesheet %}
+  .theinmag-split-tile {
+    padding: var(--tst-pt, 80px) clamp(20px, 5vw, 64px) var(--tst-pb, 80px);
+  }
+
+  .theinmag-split-tile__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .theinmag-split-tile__card {
+    display: grid;
+    grid-template-columns: 1fr;
+    background-color: #ffffff;
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(42, 31, 61, 0.06);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-split-tile__card {
+      grid-template-columns: 1.05fr 1fr;
+      min-height: 480px;
+    }
+  }
+
+  /* Default order: content first, image second (image on the right on
+     desktop because grid-template-columns puts content in column 1).
+     Mirror via the modifier when image_side = "left". */
+  .theinmag-split-tile--image-left .theinmag-split-tile__content {
+    order: 2;
+  }
+  .theinmag-split-tile--image-left .theinmag-split-tile__media {
+    order: 1;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-split-tile--image-left .theinmag-split-tile__card {
+      grid-template-columns: 1fr 1.05fr;
+    }
+  }
+
+  .theinmag-split-tile__content {
+    padding: clamp(28px, 4vw, 56px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .theinmag-split-tile__kicker {
+    margin: 0 0 clamp(10px, 1.2vw, 14px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(123, 79, 158, 0.85);
+  }
+
+  .theinmag-split-tile__headline {
+    margin: 0 0 clamp(12px, 1.5vw, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(26px, 3.6vw, 36px);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-split-tile__subhead {
+    margin: 0 0 clamp(18px, 2vw, 24px);
+    max-width: 42ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.6;
+    color: rgba(42, 31, 61, 0.85);
+  }
+
+  .theinmag-split-tile__bullets {
+    list-style: none;
+    margin: 0 0 clamp(20px, 2.5vw, 28px);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1vw, 12px);
+  }
+
+  .theinmag-split-tile__bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-split-tile__bullet-check {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    color: var(--color-mint-dark, #4A8B72);
+    margin-top: 2px;
+  }
+
+  .theinmag-split-tile__bullet-text {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(14px, 1.4vw, 15px);
+    line-height: 1.5;
+  }
+
+  .theinmag-split-tile__cta {
+    margin-top: 4px;
+  }
+
+  .theinmag-split-tile__media {
+    position: relative;
+    min-height: 280px;
+    background-color: rgba(42, 31, 61, 0.04);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-split-tile__media {
+      min-height: 100%;
+    }
+  }
+
+  .theinmag-split-tile__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .theinmag-split-tile__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 280px;
+    color: rgba(123, 79, 158, 0.65);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "theINmag split tile",
+  "tag": "section",
+  "class": "theinmag-split-tile-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Single horizontal sales tile: text on one side, image on the other. Bullets are repeatable blocks. Mirror the layout via Image side."
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker (uppercase eyebrow)"
+    },
+    {
+      "type": "textarea",
+      "id": "headline",
+      "label": "Headline"
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "info": "Allows inline HTML (e.g. <br> for a manual line break)."
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "info": "Leave blank to hide the button."
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Use product's featured image",
+      "info": "When set, overrides Image picker + fallback below. Pulls the product's featured image so swapping the PDP hero updates this tile automatically."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "image_filename",
+      "label": "Fallback filename in /assets/",
+      "info": "Used when neither Product nor Image picker is set."
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text",
+      "info": "Falls back to the product title when Product is set."
+    },
+    {
+      "type": "select",
+      "id": "image_side",
+      "label": "Image side (desktop)",
+      "options": [
+        { "value": "right", "label": "Right" },
+        { "value": "left", "label": "Left" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Section background",
+      "options": [
+        { "value": "cream", "label": "Cream" },
+        { "value": "white", "label": "White" },
+        { "value": "lavender", "label": "Lavender" },
+        { "value": "peach", "label": "Peach" },
+        { "value": "mint", "label": "Mint" },
+        { "value": "sky", "label": "Sky" }
+      ],
+      "default": "cream"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top (px)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom (px)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "default": 80
+    }
+  ],
+  "blocks": [
+    {
+      "type": "bullet",
+      "name": "Bullet",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Bullet text"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag split tile"
+    }
+  ]
+}
+{% endschema %}

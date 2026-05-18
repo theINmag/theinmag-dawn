@@ -19,21 +19,19 @@
       }
     },
     "hero": {
-      "type": "theinmag-hero",
+      "type": "theinmag-teachers-hero",
       "settings": {
         "eyebrow_text": "For Teachers",
         "aeo_h1_text": "theINmag For Teachers - the Australian kids magazine made entirely by kids.",
-        "headline": "Creative kids.\nPublished.",
-        "emphasis_word": "",
-        "subhead": "Real Aussie kids fill every page. No ads. No filler. The next one could be your kid.",
+        "headline": "Your students,\nin print.",
+        "emphasis_word": "in print.",
+        "subhead": "Real kid creations from across Australia. Ad-free.<br>All areas of learning.",
         "cta_primary_label": "See the issues",
         "cta_primary_link": "/pages/shop",
         "cta_secondary_label": "Get the Membership",
         "cta_secondary_link": "/products/membership",
-        "image_left_filename": "parents_ned.jpg",
-        "image_left_alt": "An Australian kid reading their copy of theINmag.",
-        "image_right_filename": "blog-image-universal-35.jpg",
-        "image_right_alt": "A creation by an Australian kid published in theINmag.",
+        "image_filename": "teachers_hero.jpg",
+        "image_alt": "An Australian teacher using theINmag with their classroom.",
         "show_trust_bar": false
       }
     },
@@ -47,50 +45,21 @@
     "pillars": {
       "type": "theinmag-for-parents-pillars",
       "settings": {
-        "bg_image_filename": "parents_backgroundpillars.jpg",
+        "heading": "[[IN]] the classroom",
+        "heading_style_post": true,
+        "intro_text": "Three pillars of a great classroom task. One magazine that hits all three.",
+        "bg_image_filename": "teachers_background1.jpg",
         "bg_image_opacity": 30,
         "watermark_filename": ""
       },
       "blocks": {
-        "diptych-1": {
-          "type": "pillar",
-          "settings": {
-            "weight": "hero",
-            "eyebrow": "INSPIRATION",
-            "headline": "A house full of ideas. Three times a year.",
-            "body": "Every issue is 120+ pages of art, writing, comics, photography, jokes, puzzles and ideas - all made by other kids the same age. Hand it to your kid on a rainy Saturday. Twenty minutes later they're drawing their version, writing their own, building the thing they just read about. The magazine doesn't ask anything of them. It just sparks something.",
-            "accent_filename": "rainbow.png",
-            "accent_position": "top-right",
-            "accent_opacity": 48
-          }
-        },
-        "diptych-2": {
-          "type": "pillar",
-          "settings": {
-            "weight": "hero",
-            "eyebrow": "PUBLISHED",
-            "headline": "Publishing real Aussie kids.",
-            "body": "Every submission is reviewed by us - a small team of teachers, artists and parents. The ones that land get published with the kid's first name, surname initial, age, town, plus any write-up they want to share alongside it. Real paper. Real ink. Real proof their voice mattered.",
-            "accent_filename": "bundle3.png",
-            "accent_position": "bottom-left",
-            "accent_opacity": 48
-          }
-        },
-        "break-1": {
-          "type": "kid_creation_break",
-          "settings": {
-            "image_filename": "parents_kid-created.png",
-            "image_alt": "A kid creation from a recent issue of theINmag.",
-            "caption": ""
-          }
-        },
         "trio-1": {
           "type": "pillar",
           "settings": {
             "weight": "standard",
-            "eyebrow": "AD-FREE",
-            "headline": "No ads. Ever.",
-            "body": "Most kids' publications sell your kid's attention to brands. theINmag never has and never will. No banner ads, no sponsored content, no product placements, no brand integrations. This isn't a phase. It's the spine of what we built - and the reason your kid can flip through without being sold to.",
+            "eyebrow": "ENGAGEMENT",
+            "headline": "Kids read it because they want to.",
+            "body": "Real Aussie kids fill every page - their stories, their art, their jokes, their puzzles. Your students see themselves in it instantly. The engagement is built in - because the content actually belongs to them. Open-ended prompts, real-world problems, the kind of rich tasks kids can take in their own direction.",
             "accent_filename": "kid-leaves_topleft.png",
             "accent_position": "top-right",
             "accent_opacity": 18
@@ -100,9 +69,9 @@
           "type": "pillar",
           "settings": {
             "weight": "standard",
-            "eyebrow": "MADE HERE",
-            "headline": "Printed in Melbourne. Inks made from vegetables.",
-            "body": "No overseas factory. No petrochemical inks landing on the page your kid puts their face near. theINmag is printed locally in Melbourne using vegetable-based inks on FSC-certified paper - the way kids' print should be made, especially when little hands and noses get involved.",
+            "eyebrow": "MENTOR TEXTS",
+            "headline": "Genuine authenticity.",
+            "body": "Every piece is a mentor text written by a kid their age, in their voice, with their wonky bits and brilliant turns. Far more persuasive than anything in a textbook. Show your students what's possible, then watch them reach for it - across literacy, art, numeracy and wellbeing.",
             "accent_filename": "bundle1.png",
             "accent_position": "bottom-left",
             "accent_opacity": 65
@@ -112,33 +81,67 @@
           "type": "pillar",
           "settings": {
             "weight": "standard",
-            "eyebrow": "OFF-SCREEN",
-            "headline": "Built to be read, not scrolled.",
-            "body": "No notifications. No algorithm. No infinite feed. Just one beautiful object that lands three times a year and rewards slow reading. The kind of thing your kid goes back to a week later, then a month later, then years later.",
+            "eyebrow": "REAL AUDIENCE",
+            "headline": "Writing for kids they've never met.",
+            "body": "A classroom task with a real audience changes everything. Submit your students' creations - the ones we publish reach Aussie kids right across the country. Suddenly the ending matters. Suddenly the colour choice matters. Suddenly they care.",
             "accent_filename": "bundle2.png",
             "accent_position": "top-right",
             "accent_opacity": 65
           }
+        },
+        "sample-break": {
+          "type": "kid_creation_break",
+          "settings": {
+            "image_filename": "teachers_sample.jpg",
+            "image_alt": "A sample classroom spread from theINmag.",
+            "caption": ""
+          }
         }
       },
       "block_order": [
-        "diptych-1",
-        "diptych-2",
-        "break-1",
         "trio-1",
         "trio-2",
-        "trio-3"
+        "trio-3",
+        "sample-break"
       ]
+    },
+    "digital-pitch": {
+      "type": "theinmag-split-tile",
+      "settings": {
+        "kicker": "DIGITAL FOR SCHOOLS",
+        "headline": "Built to be shared.",
+        "subhead": "Most digital products lock you in. Ours don't. Buy one PDF and share it with whoever benefits - your class, your colleagues, your whole school community.",
+        "cta_label": "Get the digital stack",
+        "cta_link": "/products/digital-stack",
+        "product": "digital-stack",
+        "image_alt": "The Digital Stack on a tablet, the digital edition of theINmag.",
+        "image_side": "right",
+        "bg_color": "cream",
+        "padding_top": 80,
+        "padding_bottom": 80
+      },
+      "blocks": {
+        "b1": { "type": "bullet", "settings": { "text": "Project it. Print it. Send it home." } },
+        "b2": { "type": "bullet", "settings": { "text": "Share across staff, year levels, even other schools." } },
+        "b3": { "type": "bullet", "settings": { "text": "Send it home with families." } },
+        "b4": { "type": "bullet", "settings": { "text": "Keep every issue forever." } }
+      },
+      "block_order": ["b1", "b2", "b3", "b4"]
     },
     "statement": {
       "type": "theinmag-for-parents-statement",
       "settings": {
-        "cta_link": "/pages/send-in"
+        "heading": "The kid who never puts their hand up. Published.",
+        "body": "There's one in every classroom. The quiet one. The reluctant writer. The kid who's brilliant but won't read aloud. theINmag gives them a way through - their words, their art, their voice, on a page that goes out to thousands of Aussie kids. Something shifts after that. You'll see it.",
+        "cta_label": "Send IN a student's creation",
+        "cta_link": "/pages/send-in",
+        "trust_microcopy": "Free to submit. Open to every Aussie kid. Curated by teachers."
       }
     },
     "comps": {
       "type": "theinmag-for-parents-comps",
       "settings": {
+        "heading": "Real competitions. Curated for your students.",
         "all_cta_link": "/pages/competitions",
         "audience_token": "teachers"
       }
@@ -432,6 +435,7 @@
     "hero",
     "shop-trust-strip",
     "pillars",
+    "digital-pitch",
     "statement",
     "comps",
     "field-notes",

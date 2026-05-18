@@ -21,13 +21,24 @@
 
 {%- liquid
   comment
-    Heading + headlines render plain Inter 700 - the .theinmag-in lift
-    is reserved for Post Regular brand-pun moments (design system 5.4),
-    Caveat emphasis is reserved for field-notes author signatures.
-    Strip any legacy [[IN]] / [[EM]] / [[/EM]] tokens to no-op.
+    Heading defaults to plain Inter 700; [[IN]] / [[EM]] / [[/EM]]
+    tokens strip to no-op. Switch heading_style_post ON to render the
+    heading in Post Regular, centred, with [[IN]] wrapped in
+    .theinmag-in for the brand-pun lift (design system 5.4 - reserved
+    for brand-pun moments like "IN the classroom").
+    Card headlines + body always render plain Inter 700.
   endcomment
   assign heading_raw = section.settings.heading | default: ''
-  assign heading = heading_raw | replace: '[[IN]]', 'IN'
+  assign heading_style_post = section.settings.heading_style_post
+  if heading_style_post
+    assign heading = heading_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
+    assign heading_modifier = ' theinmag-for-parents-pillars__heading--post'
+    assign header_modifier = ' theinmag-for-parents-pillars__header--centered'
+  else
+    assign heading = heading_raw | replace: '[[IN]]', 'IN'
+    assign heading_modifier = ''
+    assign header_modifier = ''
+  endif
   assign intro_text = section.settings.intro_text
   assign watermark_filename = section.settings.watermark_filename
   assign watermark_opacity = section.settings.watermark_opacity | default: 10
@@ -76,11 +87,11 @@
   {%- endif -%}
 
   <div class="theinmag-for-parents-pillars__inner">
-    <header class="theinmag-for-parents-pillars__header">
+    <header class="theinmag-for-parents-pillars__header{{ header_modifier }}">
       {%- if heading != blank -%}
         <h2
           id="theinmag-for-parents-pillars-heading-{{ section.id }}"
-          class="theinmag-for-parents-pillars__heading"
+          class="theinmag-for-parents-pillars__heading{{ heading_modifier }}"
         >
           {{ heading }}
         </h2>
@@ -134,47 +145,57 @@
       </div>
     {%- endif -%}
 
-    {%- if break_block != blank -%}
-      {%- liquid
-        assign break_image = break_block.settings.image
-        assign break_filename = break_block.settings.image_filename
-        assign break_alt = break_block.settings.image_alt | default: 'Kid creation from a recent issue of theINmag.'
-        assign break_caption = break_block.settings.caption
-      -%}
-      <figure class="theinmag-for-parents-pillars__break" {{ break_block.shopify_attributes }}>
-        {%- if break_image != blank -%}
-          <img
-            class="theinmag-for-parents-pillars__break-image"
-            src="{{ break_image | image_url: width: 1600 }}"
-            srcset="
-              {{ break_image | image_url: width: 600 }} 600w,
-              {{ break_image | image_url: width: 900 }} 900w,
-              {{ break_image | image_url: width: 1200 }} 1200w,
-              {{ break_image | image_url: width: 1600 }} 1600w
-            "
-            sizes="(min-width: 990px) 1120px, 90vw"
-            width="{{ break_image.width }}"
-            height="{{ break_image.height }}"
-            alt="{{ break_alt | escape }}"
-            loading="lazy"
-          >
-        {%- elsif break_filename != blank -%}
-          <img
-            class="theinmag-for-parents-pillars__break-image"
-            src="{{ break_filename | asset_url }}"
-            alt="{{ break_alt | escape }}"
-            loading="lazy"
-          >
-        {%- else -%}
-          <div class="theinmag-for-parents-pillars__break-placeholder" aria-label="Placeholder for the breathing-slot kid creation image (TBC asset)">
-            <span>TBC<br>Kid creation</span>
-          </div>
-        {%- endif -%}
+    {%- comment -%}
+      Capture the break markup so we can render it either between
+      diptych + trio (canonical, when a diptych exists above) or
+      after the trio (when there's no diptych, e.g. /pages/for-teachers
+      where the section opens straight with the trio).
+    {%- endcomment -%}
+    {%- capture break_html -%}
+      {%- if break_block != blank -%}
+        {%- assign break_image = break_block.settings.image -%}
+        {%- assign break_filename = break_block.settings.image_filename -%}
+        {%- assign break_alt = break_block.settings.image_alt | default: 'Kid creation from a recent issue of theINmag.' -%}
+        {%- assign break_caption = break_block.settings.caption -%}
+        <figure class="theinmag-for-parents-pillars__break" {{ break_block.shopify_attributes }}>
+          {%- if break_image != blank -%}
+            <img
+              class="theinmag-for-parents-pillars__break-image"
+              src="{{ break_image | image_url: width: 1600 }}"
+              srcset="
+                {{ break_image | image_url: width: 600 }} 600w,
+                {{ break_image | image_url: width: 900 }} 900w,
+                {{ break_image | image_url: width: 1200 }} 1200w,
+                {{ break_image | image_url: width: 1600 }} 1600w
+              "
+              sizes="(min-width: 990px) 1120px, 90vw"
+              width="{{ break_image.width }}"
+              height="{{ break_image.height }}"
+              alt="{{ break_alt | escape }}"
+              loading="lazy"
+            >
+          {%- elsif break_filename != blank -%}
+            <img
+              class="theinmag-for-parents-pillars__break-image"
+              src="{{ break_filename | asset_url }}"
+              alt="{{ break_alt | escape }}"
+              loading="lazy"
+            >
+          {%- else -%}
+            <div class="theinmag-for-parents-pillars__break-placeholder" aria-label="Placeholder for the breathing-slot kid creation image (TBC asset)">
+              <span>TBC<br>Kid creation</span>
+            </div>
+          {%- endif -%}
 
-        {%- if break_caption != blank -%}
-          <figcaption class="theinmag-for-parents-pillars__break-caption">{{ break_caption }}</figcaption>
-        {%- endif -%}
-      </figure>
+          {%- if break_caption != blank -%}
+            <figcaption class="theinmag-for-parents-pillars__break-caption">{{ break_caption }}</figcaption>
+          {%- endif -%}
+        </figure>
+      {%- endif -%}
+    {%- endcapture -%}
+
+    {%- if break_block != blank and hero_count > 0 -%}
+      {{ break_html }}
     {%- endif -%}
 
     {%- if standard_count > 0 -%}
@@ -209,6 +230,10 @@
           {%- endif -%}
         {%- endfor -%}
       </div>
+    {%- endif -%}
+
+    {%- if break_block != blank and hero_count == 0 -%}
+      {{ break_html }}
     {%- endif -%}
   </div>
 </section>
@@ -290,6 +315,35 @@
     font-size: clamp(15px, 1.6vw, 17px);
     line-height: 1.6;
     color: rgba(42, 31, 61, 0.78);
+  }
+
+  /* Post Regular + centred variant. Opt-in via section setting
+     heading_style_post - reserved for brand-pun headings ("IN the
+     classroom", "INside the magazine"). The .theinmag-in span (1.4em)
+     does the IN lift on top of Post Regular. Compresses top padding +
+     header-to-cards spacing so the centred treatment doesn't float in
+     a sea of cream. */
+  .theinmag-for-parents-pillars__header--centered {
+    text-align: center;
+    margin-bottom: clamp(24px, 3vw, 36px);
+  }
+
+  .theinmag-for-parents-pillars:has(.theinmag-for-parents-pillars__header--centered) {
+    padding-top: clamp(32px, 5vw, 60px);
+  }
+
+  .theinmag-for-parents-pillars__heading--post {
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 1.1;
+    letter-spacing: 0;
+  }
+
+  .theinmag-for-parents-pillars__header--centered .theinmag-for-parents-pillars__intro {
+    max-width: 75ch;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   /* ================================================================
@@ -496,6 +550,30 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
   }
 
+  /* Full-bleed treatment when the break is the section's final element
+     (i.e. rendered after the trio because there's no diptych above it -
+     /pages/for-teachers pattern). The figure escapes both the inner's
+     max-width AND the section's horizontal padding, and we collapse
+     the section's bottom padding so the image hugs the next section.
+     for-parents is unaffected: its break sits between diptych and
+     trio so it's never :last-child. */
+  .theinmag-for-parents-pillars__inner > .theinmag-for-parents-pillars__break:last-child {
+    max-width: none;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-bottom: 0;
+  }
+
+  .theinmag-for-parents-pillars__inner > .theinmag-for-parents-pillars__break:last-child .theinmag-for-parents-pillars__break-image {
+    max-width: none;
+    border-radius: 0;
+  }
+
+  .theinmag-for-parents-pillars:has(> .theinmag-for-parents-pillars__inner > .theinmag-for-parents-pillars__break:last-child) {
+    padding-bottom: 0;
+  }
+
   /* Mobile: accent artwork scales down with the smaller card width
      so it stays in proportion. Same relative size + opacity treatment. */
   @media (max-width: 749px) {
@@ -519,7 +597,15 @@
       "type": "textarea",
       "id": "heading",
       "label": "Section heading",
+      "info": "Wrap brand-pun IN with [[IN]] (e.g. '[[IN]] the classroom'). With heading_style_post ON, the token renders as a Post Regular lift; OFF, the token strips to plain text.",
       "default": "Why do parents pick the INmag for their kid?"
+    },
+    {
+      "type": "checkbox",
+      "id": "heading_style_post",
+      "label": "Heading: Post Regular + centred",
+      "info": "OFF (default) = Inter 700 left-aligned, matches for-parents. ON = Post Regular centred with [[IN]] brand-pun lift, for pages like for-teachers ('IN the classroom').",
+      "default": false
     },
     {
       "type": "textarea",

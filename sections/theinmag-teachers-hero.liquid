@@ -1,0 +1,499 @@
+{%- comment -%}
+  theinmag-teachers-hero
+  Audience-page hero for /pages/for-teachers. Single full-width image
+  with text + CTAs overlaid bottom-left. Forked from theinmag-hero so
+  the shared diptych section (used by homepage, parents, kids,
+  homeschoolers) stays untouched and the teachers page can evolve on
+  its own visual track.
+
+  Mobile-first. White text on a dark gradient scrim pinned bottom-left
+  so the overlay reads on any photo. Content caps at the left half on
+  desktop so the subject on the right of the photo stays clear.
+{%- endcomment -%}
+
+{%- assign image = section.settings.image -%}
+{%- assign image_filename = section.settings.image_filename | default: 'teachers_hero.jpg' -%}
+{%- assign image_alt = section.settings.image_alt | default: 'An Australian teacher using theINmag with their classroom.' -%}
+{%- assign eyebrow_text = section.settings.eyebrow_text -%}
+{%- assign aeo_h1_text = section.settings.aeo_h1_text -%}
+
+{%- if aeo_h1_text != blank -%}
+  {%- assign headline_tag = 'h2' -%}
+{%- else -%}
+  {%- assign headline_tag = 'h1' -%}
+{%- endif -%}
+
+{%- assign headline_html = section.settings.headline -%}
+{%- assign emphasis = section.settings.emphasis_word -%}
+{%- if emphasis != blank and headline_html contains emphasis -%}
+  {%- capture emphasis_wrap -%}<span class="theinmag-teachers-hero__headline-emphasis">{{ emphasis }}</span>{%- endcapture -%}
+  {%- assign headline_html = headline_html | replace: emphasis, emphasis_wrap -%}
+{%- endif -%}
+
+{%- assign subhead_html = section.settings.subhead -%}
+
+{%- if aeo_h1_text != blank -%}
+  <h1 class="visually-hidden">{{ aeo_h1_text }}</h1>
+{%- endif -%}
+
+<section
+  class="theinmag-teachers-hero"
+  aria-labelledby="theinmag-teachers-hero-headline-{{ section.id }}"
+>
+  <div class="theinmag-teachers-hero__frame">
+    {%- if image != blank -%}
+      <img
+        class="theinmag-teachers-hero__image"
+        src="{{ image | image_url: width: 2400 }}"
+        srcset="
+          {{ image | image_url: width: 800 }} 800w,
+          {{ image | image_url: width: 1200 }} 1200w,
+          {{ image | image_url: width: 1600 }} 1600w,
+          {{ image | image_url: width: 2000 }} 2000w,
+          {{ image | image_url: width: 2400 }} 2400w
+        "
+        sizes="100vw"
+        width="{{ image.width }}"
+        height="{{ image.height }}"
+        alt="{{ image_alt | escape }}"
+        loading="eager"
+        fetchpriority="high"
+      >
+    {%- else -%}
+      <img
+        class="theinmag-teachers-hero__image"
+        src="{{ image_filename | asset_url }}"
+        alt="{{ image_alt | escape }}"
+        loading="eager"
+        fetchpriority="high"
+      >
+    {%- endif -%}
+
+    <div class="theinmag-teachers-hero__scrim" aria-hidden="true"></div>
+
+    <div class="theinmag-teachers-hero__content">
+      {%- if eyebrow_text != blank -%}
+        <p class="theinmag-teachers-hero__eyebrow">{{ eyebrow_text }}</p>
+      {%- endif -%}
+
+      <{{ headline_tag }}
+        class="theinmag-teachers-hero__headline"
+        id="theinmag-teachers-hero-headline-{{ section.id }}"
+      >
+        {{ headline_html }}
+      </{{ headline_tag }}>
+
+      {%- if subhead_html != blank -%}
+        <p class="theinmag-teachers-hero__subhead">
+          {{ subhead_html }}
+        </p>
+      {%- endif -%}
+
+      {%- comment -%}
+        Button visual classes deliberately swapped vs the setting names:
+        FIRST button renders outlined white, SECOND button renders as the
+        yellow stamp. Matches theinmag-hero so the audience pages feel
+        consistent.
+      {%- endcomment -%}
+      <div class="theinmag-teachers-hero__ctas">
+        {%- if section.settings.cta_primary_label != blank -%}
+          <a
+            class="theinmag-btn theinmag-btn--secondary-on-image"
+            href="{{ section.settings.cta_primary_link | default: '#' }}"
+          >
+            {{- section.settings.cta_primary_label -}}
+          </a>
+        {%- endif -%}
+        {%- if section.settings.cta_secondary_label != blank -%}
+          <a
+            class="theinmag-btn theinmag-btn--primary"
+            href="{{ section.settings.cta_secondary_link | default: '#' }}"
+          >
+            {{- section.settings.cta_secondary_label -}}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  {%- if section.settings.show_trust_bar -%}
+    <ul class="theinmag-teachers-hero__trust" role="list">
+      {%- if section.settings.trust_1 != blank -%}<li>{{ section.settings.trust_1 }}</li>{%- endif -%}
+      {%- if section.settings.trust_2 != blank -%}<li>{{ section.settings.trust_2 }}</li>{%- endif -%}
+      {%- if section.settings.trust_3 != blank -%}<li>{{ section.settings.trust_3 }}</li>{%- endif -%}
+      {%- if section.settings.trust_4 != blank -%}<li>{{ section.settings.trust_4 }}</li>{%- endif -%}
+    </ul>
+  {%- endif -%}
+</section>
+
+{% stylesheet %}
+  .theinmag-teachers-hero {
+    background-color: var(--color-cream);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theinmag-teachers-hero__frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-teachers-hero__frame { aspect-ratio: 16 / 9; }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-teachers-hero__frame {
+      aspect-ratio: auto;
+      min-height: clamp(520px, 72vh, 760px);
+    }
+  }
+
+  /* Flat darken layer. Heavier than theinmag-hero (0.32 -> 0.42) because
+     teachers_hero.jpg has high-contrast bright artwork in the lower-left
+     quadrant exactly where the white headline sits. */
+  .theinmag-teachers-hero__frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(42, 31, 61, 0.42);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .theinmag-teachers-hero__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  /* Gradient scrim - pinned bottom-left where the content sits, fades
+     to nothing top-right so the photo still reads. */
+  .theinmag-teachers-hero__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(42, 31, 61, 0.72) 0%,
+      rgba(42, 31, 61, 0.48) 35%,
+      rgba(42, 31, 61, 0.10) 65%,
+      rgba(42, 31, 61, 0) 80%
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .theinmag-teachers-hero__content {
+    position: absolute;
+    z-index: 3;
+    bottom: var(--space-xl);
+    left: var(--space-md);
+    right: var(--space-md);
+    color: #ffffff;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .theinmag-teachers-hero__content > * + * {
+    margin-top: var(--space-md);
+  }
+
+  .theinmag-teachers-hero__eyebrow + .theinmag-teachers-hero__headline {
+    margin-top: 6px;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-teachers-hero__content {
+      bottom: var(--space-2xl);
+      left: var(--space-2xl);
+      right: var(--space-2xl);
+    }
+  }
+
+  /* Desktop: cap the overlay to ~the left half of the frame so the
+     subject on the right of the photo stays unobscured. */
+  @media (min-width: 990px) {
+    .theinmag-teachers-hero__content {
+      bottom: var(--space-3xl);
+      left: var(--space-3xl);
+      right: 45%;
+      padding-right: var(--space-2xl);
+    }
+  }
+
+  .theinmag-teachers-hero__eyebrow {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  }
+
+  .theinmag-teachers-hero__content > .theinmag-teachers-hero__eyebrow + .theinmag-teachers-hero__headline {
+    margin-top: 4px;
+  }
+
+  .theinmag-teachers-hero__headline {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(38px, 6vw, 64px);
+    line-height: 1.05;
+    letter-spacing: 0;
+    color: #ffffff;
+    margin: 0;
+    max-width: 18ch;
+    white-space: pre-line;
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.65),
+      0 2px 8px rgba(0, 0, 0, 0.45),
+      0 4px 24px rgba(0, 0, 0, 0.30);
+  }
+
+  .theinmag-teachers-hero__headline-emphasis {
+    display: inline-block;
+    font-size: 1.3em;
+    line-height: 1;
+    vertical-align: -0.04em;
+  }
+
+  .theinmag-teachers-hero__subhead {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(16px, 1.8vw, 19px);
+    line-height: 1.5;
+    color: #ffffff;
+    margin: 0;
+    max-width: 36ch;
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.70),
+      0 2px 10px rgba(0, 0, 0, 0.45);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-teachers-hero__subhead { max-width: 42ch; }
+  }
+
+  .theinmag-teachers-hero__ctas {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-teachers-hero__ctas {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--space-md);
+    }
+  }
+
+  /* Trust micro-bar - peach pair, matches theinmag-hero. */
+  .theinmag-teachers-hero__trust {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-md) var(--space-md);
+    background-color: var(--color-peach);
+    color: var(--color-sandy-orange-dark);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  .theinmag-teachers-hero__trust li {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--space-sm);
+    line-height: 1.7;
+  }
+
+  .theinmag-teachers-hero__trust li + li::before {
+    content: "·";
+    margin-right: var(--space-md);
+    font-weight: 700;
+    opacity: 0.6;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-teachers-hero__trust {
+      font-size: 14px;
+      padding: var(--space-lg) var(--space-md);
+    }
+    .theinmag-teachers-hero__trust li { padding: 0 var(--space-md); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-btn { transition: background-color 0.01ms, color 0.01ms; }
+    .theinmag-btn--primary:hover,
+    .theinmag-btn--primary:focus-visible { translate: 0 0; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "theINmag teachers hero",
+  "tag": "section",
+  "class": "theinmag-teachers-hero-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Single full-width image with text + CTAs overlaid bottom-left. Built for /pages/for-teachers."
+    },
+    {
+      "type": "header",
+      "content": "Audience-page meta (optional)"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow_text",
+      "label": "Eyebrow (above headline)",
+      "info": "Small uppercase label above the headline (e.g. 'For Teachers')."
+    },
+    {
+      "type": "textarea",
+      "id": "aeo_h1_text",
+      "label": "AEO H1 (visually hidden)",
+      "info": "When set, this becomes the page's actual H1 (visually hidden, carries keyword load) and the visible headline below demotes to H2."
+    },
+    {
+      "type": "header",
+      "content": "Headline + subhead"
+    },
+    {
+      "type": "textarea",
+      "id": "headline",
+      "label": "Headline (visible H1 / H2)",
+      "info": "Press Enter to break lines exactly where you want them.",
+      "default": "Creative kids.\nPublished."
+    },
+    {
+      "type": "text",
+      "id": "emphasis_word",
+      "label": "Word to emphasise (slightly larger)",
+      "info": "Case-sensitive. The first match in the headline gets a slightly larger size. Leave blank for no emphasis."
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "Real Aussie kids fill every page. No ads. No filler. The next one could be from your classroom."
+    },
+    {
+      "type": "header",
+      "content": "First button (outlined white)"
+    },
+    {
+      "type": "text",
+      "id": "cta_primary_label",
+      "label": "Label",
+      "default": "See the issues"
+    },
+    {
+      "type": "url",
+      "id": "cta_primary_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Second button (yellow stamp)"
+    },
+    {
+      "type": "text",
+      "id": "cta_secondary_label",
+      "label": "Label",
+      "default": "Get the Membership"
+    },
+    {
+      "type": "url",
+      "id": "cta_secondary_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Hero image"
+    },
+    {
+      "type": "paragraph",
+      "content": "Single full-width image. Falls back to teachers_hero.jpg in /assets/ if no image picker value is set."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Hero image"
+    },
+    {
+      "type": "text",
+      "id": "image_filename",
+      "label": "Image fallback filename in /assets/",
+      "info": "Used when no image picker value is set."
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text",
+      "info": "Descriptive and keyword-aware. Drives AEO."
+    },
+    {
+      "type": "header",
+      "content": "Trust micro-bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust_bar",
+      "label": "Show trust micro-bar",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "trust_1",
+      "label": "Item 1",
+      "default": "Printed sustainably in Australia"
+    },
+    {
+      "type": "text",
+      "id": "trust_2",
+      "label": "Item 2",
+      "default": "100% kid-created"
+    },
+    {
+      "type": "text",
+      "id": "trust_3",
+      "label": "Item 3",
+      "default": "Always ad-free"
+    },
+    {
+      "type": "text",
+      "id": "trust_4",
+      "label": "Item 4",
+      "default": "Tri-annual"
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag teachers hero"
+    }
+  ]
+}
+{% endschema %}

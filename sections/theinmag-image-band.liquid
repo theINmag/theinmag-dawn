@@ -1,0 +1,192 @@
+{%- comment -%}
+  theinmag-image-band
+  Lightweight single-image band. Centered, natural aspect, contained
+  within a max-width so it sits as a punctuation mark between two
+  full-section blocks rather than a full-bleed cover.
+
+  Default bg = cream so the band flows visually out of the cream
+  sections it typically sits between. Padding + max-width are
+  per-section settings so the band can be tuned per page.
+
+  No CTA, no overlay, no heading - keep it as a quiet image break.
+  Reach for theinmag-shop-hero or image-banner.liquid (Dawn) if you
+  need overlay text.
+{%- endcomment -%}
+
+{%- liquid
+  assign image = section.settings.image
+  assign image_filename = section.settings.image_filename
+  assign image_alt = section.settings.image_alt | default: ''
+  assign max_width = section.settings.max_width | default: 1180
+  assign pt = section.settings.padding_top | default: 48
+  assign pb = section.settings.padding_bottom | default: 48
+  assign bg = section.settings.bg_color | default: 'cream'
+
+  assign bg_var = '--color-cream'
+  case bg
+    when 'cream'
+      assign bg_var = '--color-cream'
+    when 'white'
+      assign bg_var = '--color-white'
+    when 'lavender'
+      assign bg_var = '--color-lavender'
+    when 'peach'
+      assign bg_var = '--color-peach'
+    when 'mint'
+      assign bg_var = '--color-mint'
+    when 'sky'
+      assign bg_var = '--color-sky'
+  endcase
+
+  assign section_style = '--tib-max: ' | append: max_width | append: 'px; --tib-pt: ' | append: pt | append: 'px; --tib-pb: ' | append: pb | append: 'px; background-color: var(' | append: bg_var | append: ', #FBF6EA);'
+-%}
+
+<section
+  class="theinmag-image-band"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-image-band__inner">
+    {%- if image != blank -%}
+      <img
+        class="theinmag-image-band__image"
+        src="{{ image | image_url: width: 2000 }}"
+        srcset="
+          {{ image | image_url: width: 600 }} 600w,
+          {{ image | image_url: width: 900 }} 900w,
+          {{ image | image_url: width: 1200 }} 1200w,
+          {{ image | image_url: width: 1600 }} 1600w,
+          {{ image | image_url: width: 2000 }} 2000w
+        "
+        sizes="(min-width: 1200px) {{ max_width }}px, 92vw"
+        width="{{ image.width }}"
+        height="{{ image.height }}"
+        alt="{{ image_alt | escape }}"
+        loading="lazy"
+      >
+    {%- elsif image_filename != blank -%}
+      <img
+        class="theinmag-image-band__image"
+        src="{{ image_filename | asset_url }}"
+        alt="{{ image_alt | escape }}"
+        loading="lazy"
+      >
+    {%- else -%}
+      <div class="theinmag-image-band__placeholder" aria-hidden="true">
+        <span>Image-band placeholder</span>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-image-band {
+    padding: var(--tib-pt, 48px) clamp(20px, 5vw, 64px) var(--tib-pb, 48px);
+  }
+
+  .theinmag-image-band__inner {
+    max-width: var(--tib-max, 1180px);
+    margin: 0 auto;
+  }
+
+  .theinmag-image-band__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg, 20px);
+  }
+
+  .theinmag-image-band__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 10;
+    background-color: rgba(123, 79, 158, 0.15);
+    color: rgba(123, 79, 158, 0.65);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: var(--radius-lg, 20px);
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag image band",
+  "tag": "section",
+  "class": "theinmag-image-band-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Quiet, centered single-image band. Use as punctuation between two full sections. No overlay text - reach for image-banner.liquid if you need that."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "image_filename",
+      "label": "Fallback filename in /assets/",
+      "info": "Used when no image picker value is set."
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Background colour",
+      "options": [
+        { "value": "cream", "label": "Cream" },
+        { "value": "white", "label": "White" },
+        { "value": "lavender", "label": "Lavender" },
+        { "value": "peach", "label": "Peach" },
+        { "value": "mint", "label": "Mint" },
+        { "value": "sky", "label": "Sky" }
+      ],
+      "default": "cream"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Max image width (px)",
+      "min": 720,
+      "max": 1600,
+      "step": 20,
+      "default": 1180
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top (px)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom (px)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag image band"
+    }
+  ]
+}
+{% endschema %}
