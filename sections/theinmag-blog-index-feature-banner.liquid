@@ -29,45 +29,59 @@
     {%- liquid
       assign article = block.settings.article
 
-      assign title = block.settings.title_override
-      if title == blank and article != blank
+      comment
+        Priority flip 2026-05-18: when Article picker is set, article
+        data wins. Overrides only apply when no Article is picked
+        (legacy placeholder pattern). Matches the editorial card
+        snippet behaviour for consistency.
+      endcomment
+      if article != blank
         assign title = article.title
-      endif
 
-      assign excerpt = block.settings.excerpt_override
-      if excerpt == blank and article != blank
         assign excerpt = article.excerpt | strip_html
-      endif
+        if excerpt == blank
+          assign excerpt = article.content | strip_html | truncatewords: 24
+        endif
 
-      assign topic = block.settings.topic
-      if topic == blank and article != blank
-        assign topic = article.tags.first
-      endif
+        assign topic = article.metafields.field_notes.primary_topic
+        if topic == blank
+          assign topic = article.tags.first
+        endif
 
-      assign banner_link = block.settings.link_override
-      if banner_link == blank and article != blank
         assign banner_link = article.url
-      endif
 
-      assign image_src = ''
-      if block.settings.image != blank
-        assign image_src = block.settings.image | image_url: width: 2400
-      elsif block.settings.fallback_filename != blank
-        assign image_src = block.settings.fallback_filename | asset_url
-      elsif article != blank and article.image != blank
-        assign image_src = article.image | image_url: width: 2400
-      endif
+        assign image_src = ''
+        if article.image != blank
+          assign image_src = article.image | image_url: width: 2400
+        endif
 
-      assign image_alt = block.settings.image_alt
-      if image_alt == blank and article != blank and article.image != blank
         assign image_alt = article.image.alt | default: article.title
-      endif
-      if image_alt == blank
-        assign image_alt = title
-      endif
 
-      assign audience = block.settings.audience | default: 'all'
-      assign cta_label = block.settings.cta_label
+        assign read_aud = article.metafields.field_notes.read_audience | downcase
+        if read_aud == 'kids'
+          assign audience = 'kids'
+        else
+          assign audience = 'all'
+        endif
+
+        assign cta_label = block.settings.cta_label
+      else
+        assign title = block.settings.title_override
+        assign excerpt = block.settings.excerpt_override
+        assign topic = block.settings.topic
+        assign banner_link = block.settings.link_override
+
+        assign image_src = ''
+        if block.settings.image != blank
+          assign image_src = block.settings.image | image_url: width: 2400
+        elsif block.settings.fallback_filename != blank
+          assign image_src = block.settings.fallback_filename | asset_url
+        endif
+
+        assign image_alt = block.settings.image_alt | default: title
+        assign audience = block.settings.audience | default: 'all'
+        assign cta_label = block.settings.cta_label
+      endif
     -%}
 
     {%- comment -%}

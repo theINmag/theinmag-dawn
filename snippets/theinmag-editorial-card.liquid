@@ -6,56 +6,109 @@
     large_left    - image-on-top, dark text below on lavender bg
     right_small   - same as large_left, smaller, divider above
     bottom_small  - same as large_left, smaller, two-up row
-  Block settings live in the section schema; this file is the renderer.
+
+  Inputs (one of these must be set):
+    block    - section block with curated settings (legacy path)
+    article  - Article object (auto-pull or block-with-article path)
+    variant  - one of feature|large_left|right_small|bottom_small
+
+  Data-source priority (locked 2026-05-18):
+    1. If `article` is set directly via render param → article data wins
+    2. Else if `block.settings.article` is set → article data wins
+    3. Else fall back to block.settings.* overrides (placeholder pattern)
+
+  This is a DELIBERATE flip from the earlier override-wins behaviour.
+  Once you pick an Article in the block, you get the article's real
+  title / excerpt / image / link / topic / audience automatically -
+  no need to also clear the override fields one by one.
 {%- endcomment -%}
 
 {%- liquid
   assign variant = variant | default: 'large_left'
 
-  assign article = block.settings.article
-  assign title = block.settings.title_override
-  if title == blank and article != blank
-    assign title = article.title
+  comment
+  Resolve article source. Direct param wins (auto-pull path), else
+  block.settings.article (curated-with-article path).
+  endcomment
+  if article == blank and block != blank
+    assign article = block.settings.article
   endif
 
-  assign excerpt = block.settings.excerpt_override
-  if excerpt == blank and article != blank
+  comment
+  ARTICLE PATH: when article is set, article data wins for everything.
+  endcomment
+  if article != blank
+    assign title = article.title
+
     assign excerpt = article.excerpt | strip_html
     if excerpt == blank
       assign excerpt = article.content | strip_html | truncatewords: 20
     endif
-  endif
 
-  assign topic = block.settings.topic
-  if topic == blank and article != blank
-    assign topic = article.tags.first
-  endif
+    assign topic = article.metafields.field_notes.primary_topic
+    if topic == blank
+      assign topic = article.tags.first
+    endif
 
-  assign card_link = block.settings.link_override
-  if card_link == blank and article != blank
     assign card_link = article.url
-  endif
 
-  assign image_src = ''
-  if block.settings.image != blank
-    assign image_src = block.settings.image | image_url: width: 1600
-  elsif block.settings.fallback_filename != blank
-    assign image_src = block.settings.fallback_filename | asset_url
-  elsif article != blank and article.image != blank
-    assign image_src = article.image | image_url: width: 1600
-  endif
+    assign image_src = ''
+    if article.image != blank
+      assign image_src = article.image | image_url: width: 1600
+    endif
 
-  assign image_alt = block.settings.image_alt
-  if image_alt == blank and article != blank and article.image != blank
     assign image_alt = article.image.alt | default: article.title
-  endif
-  if image_alt == blank
-    assign image_alt = title
-  endif
 
-  assign audience = block.settings.audience | default: 'all'
+    comment
+    Audience from article metafield (kids/parents/mixed -> the
+    audience toggle's vocabulary of kids/all). Default 'all' so
+    anything not explicitly tagged kids stays visible on adults +
+    all toggles.
+    endcomment
+    assign read_aud = article.metafields.field_notes.read_audience | downcase
+    if read_aud == 'kids'
+      assign audience = 'kids'
+    else
+      assign audience = 'all'
+    endif
+  else
+    comment
+    OVERRIDE PATH: no article picked, use block.settings.* overrides
+    (placeholder/legacy pattern). All lookups guarded so the snippet
+    doesn't blow up if block is also nil (renders nothing in that
+    edge case).
+    endcomment
+    assign title = ''
+    assign excerpt = ''
+    assign topic = ''
+    assign card_link = ''
+    assign image_src = ''
+    assign image_alt = ''
+    assign audience = 'all'
+
+    if block != blank
+      assign title = block.settings.title_override
+      assign excerpt = block.settings.excerpt_override
+      assign topic = block.settings.topic
+      assign card_link = block.settings.link_override
+
+      if block.settings.image != blank
+        assign image_src = block.settings.image | image_url: width: 1600
+      elsif block.settings.fallback_filename != blank
+        assign image_src = block.settings.fallback_filename | asset_url
+      endif
+
+      assign image_alt = block.settings.image_alt | default: title
+      assign audience = block.settings.audience | default: 'all'
+    endif
+  endif
 
   assign card_class = 'theinmag-editorial__card theinmag-editorial__card--' | append: variant
+
+  assign shopify_attrs = ''
+  if block != blank
+    assign shopify_attrs = block.shopify_attributes
+  endif
 -%}
 
 {%- capture card_inner -%}
@@ -105,7 +158,7 @@
 {%- endcapture -%}
 
 {%- if card_link != blank -%}
-  <a class="{{ card_class }}" href="{{ card_link }}" data-audience="{{ audience }}" {{ block.shopify_attributes }}>{{ card_inner }}</a>
+  <a class="{{ card_class }}" href="{{ card_link }}" data-audience="{{ audience }}" {{ shopify_attrs }}>{{ card_inner }}</a>
 {%- else -%}
-  <div class="{{ card_class }}" data-audience="{{ audience }}" {{ block.shopify_attributes }}>{{ card_inner }}</div>
+  <div class="{{ card_class }}" data-audience="{{ audience }}" {{ shopify_attrs }}>{{ card_inner }}</div>
 {%- endif -%}

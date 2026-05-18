@@ -46,6 +46,52 @@
     endif
   endfor
 
+  comment
+    See the comment block above the section tag for the full auto-pull
+    architecture notes. Brief here: feature stays curated, large_left
+    (x2) + bottom_small (x2) + right_small (x8) auto-pull from blog
+    articles most-recent-first. Safety fallback to curated blocks when
+    auto-pull returns zero.
+  endcomment
+  assign feature_handle = ''
+  if feature_block != blank
+    if feature_block.settings.article != blank
+      assign feature_handle = feature_block.settings.article.handle
+    elsif feature_block.settings.link_override != blank
+      assign feature_link = feature_block.settings.link_override
+      if feature_link contains '/blogs/'
+        assign link_parts = feature_link | split: '/'
+        assign last_part = link_parts | last
+        if last_part != blog.handle and last_part != '' and last_part != 'field-notes'
+          assign feature_handle = last_part
+        endif
+      endif
+    endif
+  endif
+
+  assign auto_count = 0
+-%}
+
+{%- capture large_left_cards -%}{%- endcapture -%}
+{%- capture bottom_small_cards -%}{%- endcapture -%}
+{%- capture right_small_cards -%}{%- endcapture -%}
+
+{%- for auto_article in blog.articles limit: 50 -%}
+  {%- if auto_count >= 12 -%}{%- break -%}{%- endif -%}
+  {%- if auto_article.handle == feature_handle -%}{%- continue -%}{%- endif -%}
+
+  {%- if auto_count < 2 -%}
+    {%- capture large_left_cards -%}{{ large_left_cards }}{%- render 'theinmag-editorial-card', article: auto_article, variant: 'large_left' -%}{%- endcapture -%}
+  {%- elsif auto_count < 4 -%}
+    {%- capture bottom_small_cards -%}{{ bottom_small_cards }}{%- render 'theinmag-editorial-card', article: auto_article, variant: 'bottom_small' -%}{%- endcapture -%}
+  {%- else -%}
+    {%- capture right_small_cards -%}{{ right_small_cards }}{%- render 'theinmag-editorial-card', article: auto_article, variant: 'right_small' -%}{%- endcapture -%}
+  {%- endif -%}
+
+  {%- assign auto_count = auto_count | plus: 1 -%}
+{%- endfor -%}
+
+{%- liquid
   capture editorial_style
     echo '--editorial-bg-color: '
     echo bg_color
@@ -96,31 +142,48 @@
     {%- endif -%}
 
     <div class="theinmag-editorial__grid">
-      <div class="theinmag-editorial__col theinmag-editorial__col--left">
-        {%- for block in section.blocks -%}
-          {%- if block.type == 'large_left' -%}
-            {%- render 'theinmag-editorial-card', block: block, variant: 'large_left' -%}
-          {%- endif -%}
-        {%- endfor -%}
+      {%- if auto_count > 0 -%}
+        {%- comment -%} AUTO-PULL PATH: cards rendered from blog.articles, captured per slot above. {%- endcomment -%}
+        <div class="theinmag-editorial__col theinmag-editorial__col--left">
+          {{ large_left_cards }}
+          <div class="theinmag-editorial__bottom-row">
+            {{ bottom_small_cards }}
+          </div>
+        </div>
 
-        <div class="theinmag-editorial__bottom-row">
+        <div class="theinmag-editorial__col theinmag-editorial__col--right" data-parallax-window>
+          <div class="theinmag-editorial__col-inner" data-parallax-target>
+            {{ right_small_cards }}
+          </div>
+        </div>
+      {%- else -%}
+        {%- comment -%} SAFETY FALLBACK: auto-pull returned nothing, render curated blocks instead. {%- endcomment -%}
+        <div class="theinmag-editorial__col theinmag-editorial__col--left">
           {%- for block in section.blocks -%}
-            {%- if block.type == 'bottom_small' -%}
-              {%- render 'theinmag-editorial-card', block: block, variant: 'bottom_small' -%}
+            {%- if block.type == 'large_left' -%}
+              {%- render 'theinmag-editorial-card', block: block, variant: 'large_left' -%}
             {%- endif -%}
           {%- endfor -%}
-        </div>
-      </div>
 
-      <div class="theinmag-editorial__col theinmag-editorial__col--right" data-parallax-window>
-        <div class="theinmag-editorial__col-inner" data-parallax-target>
-          {%- for block in section.blocks -%}
-            {%- if block.type == 'right_small' -%}
-              {%- render 'theinmag-editorial-card', block: block, variant: 'right_small' -%}
-            {%- endif -%}
-          {%- endfor -%}
+          <div class="theinmag-editorial__bottom-row">
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'bottom_small' -%}
+                {%- render 'theinmag-editorial-card', block: block, variant: 'bottom_small' -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
         </div>
-      </div>
+
+        <div class="theinmag-editorial__col theinmag-editorial__col--right" data-parallax-window>
+          <div class="theinmag-editorial__col-inner" data-parallax-target>
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'right_small' -%}
+                {%- render 'theinmag-editorial-card', block: block, variant: 'right_small' -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
     </div>
 
   </div>

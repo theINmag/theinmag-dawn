@@ -96,69 +96,97 @@
 
     <div class="theinmag-archive__rail" data-archive-rail>
       {%- if use_real_articles -%}
-        {%- for article in blog.articles -%}
-          {%- liquid
-            assign card_topic = article.metafields.field_notes.primary_topic
-            if card_topic == blank
-              assign card_topic = article.tags.first
-            endif
+        {%- comment -%}
+          Two-pass emit 2026-05-18: non-Career-Pathways posts render
+          first, Career Pathways second. Stops the "wall of real jobs"
+          effect when most recent posts are dominated by the real-jobs
+          series. As more diverse content lands, the visible top of the
+          archive stays varied. Career Pathways still render in full,
+          just lower in the rail.
+        {%- endcomment -%}
 
-            assign card_title = article.title
-            assign card_excerpt = article.excerpt | strip_html
-            if card_excerpt == blank
-              assign card_excerpt = article.content | strip_html | truncatewords: 18
-            endif
+        {%- for pass in (1..2) -%}
+          {%- for article in blog.articles -%}
+            {%- liquid
+              assign card_topic = article.metafields.field_notes.primary_topic
+              if card_topic == blank
+                assign card_topic = article.tags.first
+              endif
 
-            assign tag_str = article.tags | join: ' '
+              assign topic_lc = card_topic | downcase
+              assign is_career = false
+              if topic_lc == 'career pathways'
+                assign is_career = true
+              endif
 
-            assign card_image = ''
-            if article.image != blank
-              assign card_image = article.image | image_url: width: 800
-            endif
-            assign card_alt = article.image.alt | default: card_title
+              assign emit_card = false
+              if pass == 1 and is_career == false
+                assign emit_card = true
+              elsif pass == 2 and is_career == true
+                assign emit_card = true
+              endif
+            -%}
 
-            assign full_body = article.content | strip_html
+            {%- if emit_card -%}
+              {%- liquid
+                assign card_title = article.title
+                assign card_excerpt = article.excerpt | strip_html
+                if card_excerpt == blank
+                  assign card_excerpt = article.content | strip_html | truncatewords: 18
+                endif
 
-            capture search_hay
-              echo card_title
-              echo ' '
-              echo card_topic
-              echo ' '
-              echo tag_str
-              echo ' '
-              echo card_excerpt
-              echo ' '
-              echo full_body
-            endcapture
-          -%}
+                assign tag_str = article.tags | join: ' '
 
-          <a
-            class="theinmag-archive__card"
-            data-archive-card
-            data-search-hay="{{ search_hay | escape | downcase }}"
-            href="{{ article.url }}"
-          >
-            <span class="theinmag-archive__cover">
-              {%- if card_image != blank -%}
-                <img
-                  class="theinmag-archive__image"
-                  src="{{ card_image }}"
-                  alt="{{ card_alt | escape }}"
-                  loading="lazy"
-                  width="800"
-                  height="500"
-                >
-              {%- else -%}
-                <span class="theinmag-archive__placeholder" aria-hidden="true"></span>
-              {%- endif -%}
-            </span>
-            <span class="theinmag-archive__body">
-              {%- if card_topic != blank -%}
-                <span class="theinmag-archive__topic">{{ card_topic }}</span>
-              {%- endif -%}
-              <span class="theinmag-archive__title">{{ card_title }}</span>
-            </span>
-          </a>
+                assign card_image = ''
+                if article.image != blank
+                  assign card_image = article.image | image_url: width: 800
+                endif
+                assign card_alt = article.image.alt | default: card_title
+
+                assign full_body = article.content | strip_html
+
+                capture search_hay
+                  echo card_title
+                  echo ' '
+                  echo card_topic
+                  echo ' '
+                  echo tag_str
+                  echo ' '
+                  echo card_excerpt
+                  echo ' '
+                  echo full_body
+                endcapture
+              -%}
+
+              <a
+                class="theinmag-archive__card"
+                data-archive-card
+                data-search-hay="{{ search_hay | escape | downcase }}"
+                href="{{ article.url }}"
+              >
+                <span class="theinmag-archive__cover">
+                  {%- if card_image != blank -%}
+                    <img
+                      class="theinmag-archive__image"
+                      src="{{ card_image }}"
+                      alt="{{ card_alt | escape }}"
+                      loading="lazy"
+                      width="800"
+                      height="500"
+                    >
+                  {%- else -%}
+                    <span class="theinmag-archive__placeholder" aria-hidden="true"></span>
+                  {%- endif -%}
+                </span>
+                <span class="theinmag-archive__body">
+                  {%- if card_topic != blank -%}
+                    <span class="theinmag-archive__topic">{{ card_topic }}</span>
+                  {%- endif -%}
+                  <span class="theinmag-archive__title">{{ card_title }}</span>
+                </span>
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
         {%- endfor -%}
       {%- else -%}
         {%- for block in section.blocks -%}
