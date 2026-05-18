@@ -42,6 +42,16 @@
         "padding_bottom": 24
       }
     },
+    "consent-banner": {
+      "type": "theinmag-consent-banner",
+      "settings": {
+        "headline": "One form. One year. Sorted.",
+        "button_label": "Grab the consent form",
+        "bg_color": "#F9C23C",
+        "button_color": "#5D3A7A",
+        "enable_wobble": true
+      }
+    },
     "pillars": {
       "type": "theinmag-for-parents-pillars",
       "settings": {
@@ -578,6 +588,7 @@
     "page-meta",
     "hero",
     "shop-trust-strip",
+    "consent-banner",
     "pillars",
     "digital-pitch",
     "statement",

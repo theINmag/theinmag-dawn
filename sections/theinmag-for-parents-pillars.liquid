@@ -88,6 +88,11 @@
 
   <div class="theinmag-for-parents-pillars__inner">
     <header class="theinmag-for-parents-pillars__header{{ header_modifier }}">
+      {%- if heading_style_post -%}
+        {% render 'theinmag-character-pool' %}
+        <span class="theinmag-for-parents-pillars__character-right" data-theinmag-pool-character aria-hidden="true"></span>
+      {%- endif -%}
+
       {%- if heading != blank -%}
         <h2
           id="theinmag-for-parents-pillars-heading-{{ section.id }}"
@@ -324,8 +329,35 @@
      all the internal heading-subhead-cards gaps so the centred
      treatment reads as one tight unit and doesn't float in cream. */
   .theinmag-for-parents-pillars__header--centered {
+    position: relative;
     text-align: center;
     margin-bottom: clamp(16px, 2vw, 24px);
+  }
+
+  /* Kid character on the right of the heading. Pops in from off-screen
+     right via translateX(60px) -> translateX(0). Slightly bigger than
+     the curriculum-accordion character (clamp 100-150px vs 79-121px)
+     to balance the centred Post Regular heading. Hidden on mobile to
+     avoid clashing with the wrapping heading text. */
+  .theinmag-for-parents-pillars__character-right {
+    position: absolute;
+    top: 50%;
+    right: clamp(8px, 4vw, 56px);
+    width: clamp(100px, 12vw, 150px);
+    height: auto;
+    z-index: 3;
+    transform: translateY(-50%) translateX(60px) rotate(6deg);
+    transform-origin: center;
+  }
+
+  .theinmag-for-parents-pillars__character-right.is-popped {
+    transform: translateY(-50%) translateX(0) rotate(6deg);
+  }
+
+  @media (max-width: 767px) {
+    .theinmag-for-parents-pillars__character-right {
+      display: none;
+    }
   }
 
   .theinmag-for-parents-pillars:has(.theinmag-for-parents-pillars__header--centered) {
