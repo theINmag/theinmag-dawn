@@ -1,0 +1,126 @@
+{%- comment -%}
+  theinmag-page-meta
+  Page-level JSON-LD emitter. No visible markup. Drop FIRST in any
+  page template that needs BreadcrumbList + WebPage schema separate
+  from a section that owns visible chrome.
+
+  Reusable across audience pages (For Parents, For Teachers, For
+  Homeschoolers, For Kids), legal pages, or any custom page without
+  a dedicated hero section.
+
+  BreadcrumbList: comma-separated label+url pairs in the schema.
+  WebPage: name + description + url.
+
+  Note: FAQPage JSON-LD is emitted by theinmag-membership-faq +
+  theinmag-faq + theinmag-send-in-faq when they're on the page; do
+  NOT also emit FAQPage from this section.
+{%- endcomment -%}
+
+{%- liquid
+  assign webpage_name = section.settings.webpage_name | default: page.title
+  assign webpage_description = section.settings.webpage_description | default: page.metafields.global.description_tag
+  assign webpage_url_path = section.settings.webpage_url_path
+  if webpage_url_path == blank
+    assign webpage_url_path = request.path
+  endif
+
+  assign breadcrumbs_raw = section.settings.breadcrumbs_csv
+-%}
+
+{%- if webpage_name != blank -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": {{ webpage_name | json }},
+  {%- if webpage_description != blank %}
+  "description": {{ webpage_description | strip_html | strip | json }},
+  {%- endif %}
+  "url": {{ shop.url | append: webpage_url_path | json }},
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": {{ shop.name | json }},
+    "url": {{ shop.url | json }}
+  }
+}
+</script>
+{%- endif -%}
+
+{%- if breadcrumbs_raw != blank -%}
+  {%- liquid
+    assign crumb_pairs = breadcrumbs_raw | split: ';'
+  -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {%- for pair in crumb_pairs -%}
+      {%- assign parts = pair | split: '|' -%}
+      {%- assign crumb_name = parts[0] | strip -%}
+      {%- assign crumb_path = parts[1] | strip | default: '/' -%}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.index }},
+        "name": {{ crumb_name | json }},
+        "item": {{ shop.url | append: crumb_path | json }}
+      }{%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+  ]
+}
+</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Page meta (JSON-LD)",
+  "tag": "section",
+  "class": "theinmag-page-meta-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Emits BreadcrumbList + WebPage JSON-LD for AEO. No visible markup. Drop first in any page template that doesn't have a dedicated page-level meta source."
+    },
+    {
+      "type": "header",
+      "content": "WebPage"
+    },
+    {
+      "type": "text",
+      "id": "webpage_name",
+      "label": "Page name (WebPage > name)",
+      "info": "Defaults to the Shopify page title."
+    },
+    {
+      "type": "textarea",
+      "id": "webpage_description",
+      "label": "Page description (WebPage > description)",
+      "info": "Used by Google for description rich-result + AI citation. 140-160 chars ideal."
+    },
+    {
+      "type": "text",
+      "id": "webpage_url_path",
+      "label": "Page URL path",
+      "info": "e.g. /pages/for-parents. Defaults to the current request path."
+    },
+    {
+      "type": "header",
+      "content": "BreadcrumbList"
+    },
+    {
+      "type": "textarea",
+      "id": "breadcrumbs_csv",
+      "label": "Breadcrumbs (name|path pairs, semicolon-separated)",
+      "info": "e.g. 'Home|/;For parents|/pages/for-parents'. Leave blank to skip BreadcrumbList."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Page meta (JSON-LD)",
+      "settings": {
+        "breadcrumbs_csv": "Home|/;For parents|/pages/for-parents"
+      }
+    }
+  ]
+}
+{% endschema %}

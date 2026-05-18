@@ -1,0 +1,299 @@
+{
+  "sections": {
+    "page-meta": {
+      "type": "theinmag-page-meta",
+      "settings": {
+        "webpage_name": "theINmag for Parents",
+        "webpage_description": "theINmag is the Australian kids' magazine made entirely by Australian kids. No ads, ever. Three issues a year. Your kid could be in the next one.",
+        "webpage_url_path": "/pages/for-parents",
+        "breadcrumbs_csv": "Home|/;For parents|/pages/for-parents"
+      }
+    },
+    "hero": {
+      "type": "theinmag-hero",
+      "settings": {
+        "eyebrow_text": "For Parents",
+        "aeo_h1_text": "theINmag For Parents - the Australian kids magazine made entirely by kids.",
+        "headline": "Creative kids.\nPublished.",
+        "emphasis_word": "",
+        "subhead": "Real Aussie kids fill every page. No ads. No filler. The next one could be your kid.",
+        "cta_primary_label": "See what's inside",
+        "cta_primary_link": "/pages/shop",
+        "cta_secondary_label": "Get the Membership",
+        "cta_secondary_link": "/products/membership",
+        "image_left_alt": "An Australian kid reading their copy of theINmag.",
+        "image_right_alt": "A creation by an Australian kid published in theINmag.",
+        "show_trust_bar": true,
+        "trust_1": "100% kid-created",
+        "trust_2": "No ads, ever",
+        "trust_3": "Printed in Australia",
+        "trust_4": "350+ kids per issue"
+      }
+    },
+    "pillars": {
+      "type": "theinmag-for-parents-pillars",
+      "blocks": {
+        "diptych-1": {
+          "type": "pillar",
+          "settings": {
+            "weight": "hero",
+            "eyebrow": "INSPIRATION",
+            "headline": "A house full of [[EM]]ideas[[/EM]]. Three times a year.",
+            "body": "Every issue is 120+ pages of art, writing, comics, photography, jokes, puzzles and ideas - all made by other kids the same age. Hand it to your kid on a rainy Saturday. Twenty minutes later they're drawing their version, writing their own, building the thing they just read about. The magazine doesn't ask anything of them. It just sparks something.",
+            "accent_filename": "rainbow.png",
+            "accent_position": "top-right"
+          }
+        },
+        "diptych-2": {
+          "type": "pillar",
+          "settings": {
+            "weight": "hero",
+            "eyebrow": "PUBLISHED",
+            "headline": "Publishing real [[EM]]Aussie kids[[/EM]].",
+            "body": "Every submission is reviewed by us - a small team of teachers, artists and parents. The ones that land get published with the kid's first name, surname initial, age, town, plus any write-up they want to share alongside it. Real paper. Real ink. Real proof their voice mattered.",
+            "accent_filename": "bundle3.png",
+            "accent_position": "bottom-left"
+          }
+        },
+        "break-1": {
+          "type": "kid_creation_break",
+          "settings": {
+            "image_alt": "A kid creation from a recent issue of theINmag.",
+            "caption": "TBC - kid creation + attribution"
+          }
+        },
+        "trio-1": {
+          "type": "pillar",
+          "settings": {
+            "weight": "standard",
+            "eyebrow": "AD-FREE",
+            "headline": "No ads. Ever.",
+            "body": "Most kids' publications sell your kid's attention to brands. theINmag never has and never will. No banner ads, no sponsored content, no product placements, no brand integrations. This isn't a phase. It's the spine of what we built - and the reason your kid can flip through without being sold to.",
+            "accent_filename": "kid-leaves_topleft.png",
+            "accent_position": "top-right"
+          }
+        },
+        "trio-2": {
+          "type": "pillar",
+          "settings": {
+            "weight": "standard",
+            "eyebrow": "MADE HERE",
+            "headline": "Printed in Melbourne. Inks made from vegetables.",
+            "body": "No overseas factory. No petrochemical inks landing on the page your kid puts their face near. theINmag is printed locally in Melbourne using vegetable-based inks on FSC-certified paper - the way kids' print should be made, especially when little hands and noses get involved.",
+            "accent_filename": "bundle1.png",
+            "accent_position": "bottom-left"
+          }
+        },
+        "trio-3": {
+          "type": "pillar",
+          "settings": {
+            "weight": "standard",
+            "eyebrow": "OFF-SCREEN",
+            "headline": "Built to be read, not scrolled.",
+            "body": "No notifications. No algorithm. No infinite feed. Just one beautiful object that lands three times a year and rewards slow reading. The kind of thing your kid goes back to a week later, then a month later, then years later.",
+            "accent_filename": "bundle2.png",
+            "accent_position": "top-right"
+          }
+        }
+      },
+      "block_order": ["diptych-1", "diptych-2", "break-1", "trio-1", "trio-2", "trio-3"]
+    },
+    "statement": {
+      "type": "theinmag-for-parents-statement",
+      "settings": {
+        "cta_link": "/pages/send-in"
+      }
+    },
+    "comps": {
+      "type": "theinmag-for-parents-comps",
+      "settings": {
+        "all_cta_link": "/pages/competitions"
+      }
+    },
+    "field-notes": {
+      "type": "theinmag-for-parents-field-notes",
+      "settings": {}
+    },
+    "founders": {
+      "type": "theinmag-for-parents-founders",
+      "settings": {
+        "anchor_link": "/pages/behind-the-mag"
+      }
+    },
+    "pull-quote": {
+      "type": "theinmag-pull-quote",
+      "settings": {
+        "quote_body": "People like you are making a difference for our kids in this ever-consuming digital world.",
+        "attribution_name": "Lana",
+        "attribution_role": "",
+        "background_filename": "theinside-homepage-background.jpg",
+        "heading_font_style": "inter",
+        "size_variant": "large",
+        "attribution_style": "caveat",
+        "scrim_opacity": 45,
+        "padding_top": 160,
+        "padding_bottom": 160
+      }
+    },
+    "shop-trio": {
+      "type": "theinmag-for-parents-shop-trio",
+      "blocks": {
+        "membership": {
+          "type": "tile",
+          "settings": {
+            "weight": "dominant",
+            "tile_link": "/products/membership",
+            "eyebrow": "RECOMMENDED",
+            "title": "theINmag Membership",
+            "tagline": "Never miss an issue.",
+            "price": "From $89 / 4 issues",
+            "trust_dots": "3 drops a year · Free shipping over $40 · Cancel anytime",
+            "cta_label": "Get the Membership",
+            "image_alt": "A kid opening their copy of theINmag at the kitchen bench."
+          }
+        },
+        "single": {
+          "type": "tile",
+          "settings": {
+            "weight": "standard",
+            "tile_link": "/collections/single-issues",
+            "eyebrow": "LOWER COMMITMENT",
+            "title": "Single Issues",
+            "tagline": "Try one. Pick a back issue. Build a collection.",
+            "price": "From $23.95",
+            "cta_label": "Browse issues",
+            "image_alt": "A fanned spread of recent theINmag covers."
+          }
+        },
+        "bundle": {
+          "type": "tile",
+          "settings": {
+            "weight": "standard",
+            "tile_link": "/products/build-a-bundle",
+            "eyebrow": "BUILD YOUR OWN",
+            "title": "Build a Bundle",
+            "tagline": "Mix mags and Memberships. Save 5-15%.",
+            "badge": "Save more with more",
+            "cta_label": "Build yours",
+            "image_alt": "A mixed stack of theINmag issues and Membership cards."
+          }
+        }
+      },
+      "block_order": ["membership", "single", "bundle"]
+    },
+    "faq": {
+      "type": "theinmag-membership-faq",
+      "settings": {
+        "heading": "Common questions, honestly answered."
+      },
+      "blocks": {
+        "q1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What ages is theINmag for?",
+            "answer": "theINmag is designed for primary-age kids, with a sweet spot from 7 to 13. That said, we've had kids from age 3 right through to 16 sending in their creations and getting published. Every section is built to work for any age - the writing, the art, the puzzles, the photography - because the magazine carries the kids' voices exactly as they are. We don't alter the text. We don't polish the images. What you read is what they made."
+          }
+        },
+        "q2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How does my kid get published?",
+            "answer": "Send their creation IN through our submission page - art, writing, photography, jokes, puzzles, comics, anything they've made. A small team of teachers, artists and parents considers every single submission. What we look for most isn't talent or polish - it's effort. The piece a kid clearly cared about, kept working on, made their own. Those are the ones that land in the next issue, published with the kid's first name, surname initial, age and town."
+          }
+        },
+        "q3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What's the difference between the Memberships?",
+            "answer": "Three options. 4-Issue Membership ($89) - four issues paid upfront, our cheapest per-issue price for trying it. 8-Issue Membership ($159) - eight issues paid upfront, biggest saving per issue. Rolling Membership ($28.90 per drop) - one issue per drop, auto-renews at each release, cancel anytime from your account. All three include free shipping over $40."
+          }
+        },
+        "q4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "When does the next issue come out?",
+            "answer": "theINmag releases three times a year - 15 February, 15 June and 15 October. The next issue (Mag10) drops 15 June 2026. If you start a Membership today, you can pick whether to begin with the current issue (Mag09, in stock now) or the next one (Mag10, ships on release)."
+          }
+        },
+        "q5": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I cancel a Rolling Membership?",
+            "answer": "Yes, anytime, from your account dashboard. No phone calls, no hoops, no guilt. The Rolling Membership exists so families can stay subscribed for as long as it's working for them, and stop the moment it isn't. We'd rather have a happy ex-Member than an annoyed current one."
+          }
+        },
+        "q6": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Is theINmag actually different from other kids' magazines?",
+            "answer": "Three things make it different. One, every page is made by Australian kids, not adult illustrators or content teams. Two, there are no ads, ever - no banner ads, no sponsored content, no brand integrations. Three, it's printed in Melbourne using vegetable-based inks on FSC-certified paper. If those things matter to you, theINmag is for you."
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3", "q4", "q5", "q6"]
+    },
+    "cross-link": {
+      "type": "theinmag-audience-tiles",
+      "settings": {
+        "heading": "Not a parent? We've got you too.",
+        "heading_position": "top",
+        "intro_text": "theINmag is for kids, teachers, homeschoolers, and parents - in different ways. Here's where to go next.",
+        "exclude_label": "Parents",
+        "padding_top": 64,
+        "padding_bottom": 64
+      },
+      "blocks": {
+        "kids": {
+          "type": "tile",
+          "settings": {
+            "label": "Kids",
+            "link": "/pages/for-kids",
+            "fallback_filename": "HERO_audiences-kids.jpg",
+            "image_alt": "An Australian kid drawing alongside their copy of theINmag."
+          }
+        },
+        "teachers": {
+          "type": "tile",
+          "settings": {
+            "label": "Teachers",
+            "link": "/pages/for-teachers",
+            "fallback_filename": "HERO_audiences-teachers.jpg",
+            "image_alt": "An Australian teacher using theINmag with their classroom."
+          }
+        },
+        "homeschoolers": {
+          "type": "tile",
+          "settings": {
+            "label": "Homeschoolers",
+            "link": "/pages/for-homeschoolers",
+            "fallback_filename": "HERO_audiences-homeschoolers.jpg",
+            "image_alt": "An Australian homeschool family at the kitchen table with theINmag."
+          }
+        },
+        "parents-excluded": {
+          "type": "tile",
+          "settings": {
+            "label": "Parents",
+            "link": "/pages/for-parents",
+            "fallback_filename": "HERO_audiences-parents.jpg",
+            "image_alt": "An Australian parent reading theINmag with their child."
+          }
+        }
+      },
+      "block_order": ["kids", "teachers", "homeschoolers", "parents-excluded"]
+    }
+  },
+  "order": [
+    "page-meta",
+    "hero",
+    "pillars",
+    "statement",
+    "comps",
+    "field-notes",
+    "founders",
+    "pull-quote",
+    "shop-trio",
+    "faq",
+    "cross-link"
+  ]
+}

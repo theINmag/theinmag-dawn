@@ -14,6 +14,19 @@
 {%- assign image_right = section.settings.image_right -%}
 {%- assign image_left_alt = section.settings.image_left_alt | default: 'An Australian child reading theINmag, the magazine for creative kids.' -%}
 {%- assign image_right_alt = section.settings.image_right_alt | default: 'A creation by an Australian kid published in theINmag.' -%}
+{%- assign eyebrow_text = section.settings.eyebrow_text -%}
+{%- assign aeo_h1_text = section.settings.aeo_h1_text -%}
+{%- comment -%}
+  Headline level: when an AEO H1 is supplied (audience pages where visible
+  hero copy doesn't carry the keyword load), the visible headline demotes
+  to H2 and the AEO H1 renders visually-hidden above the section. Default
+  preserves homepage rendering (visible H1, no AEO H1).
+{%- endcomment -%}
+{%- if aeo_h1_text != blank -%}
+  {%- assign headline_tag = 'h2' -%}
+{%- else -%}
+  {%- assign headline_tag = 'h1' -%}
+{%- endif -%}
 
 {%- comment -%}
   Wrap the emphasis word with a span so it renders slightly larger.
@@ -38,6 +51,10 @@
 {%- if subhead_html contains subhead_clause -%}
   {%- capture clause_wrap -%}<span class="theinmag-hero__subhead-clause">{{ subhead_clause }}</span>{%- endcapture -%}
   {%- assign subhead_html = subhead_html | replace: subhead_clause, clause_wrap -%}
+{%- endif -%}
+
+{%- if aeo_h1_text != blank -%}
+  <h1 class="visually-hidden">{{ aeo_h1_text }}</h1>
 {%- endif -%}
 
 <section
@@ -125,12 +142,16 @@
       RIGHT pane (artwork). One DOM element, two layouts.
     {%- endcomment -%}
     <div class="theinmag-hero__content">
-      <h1
+      {%- if eyebrow_text != blank -%}
+        <p class="theinmag-hero__eyebrow">{{ eyebrow_text }}</p>
+      {%- endif -%}
+
+      <{{ headline_tag }}
         class="theinmag-hero__headline"
         id="theinmag-hero-headline-{{ section.id }}"
       >
         {{ headline_html }}
-      </h1>
+      </{{ headline_tag }}>
 
       {%- if subhead_html != blank -%}
         <p class="theinmag-hero__subhead">
@@ -313,6 +334,20 @@
     }
   }
 
+  /* Optional eyebrow above the headline. Used on audience pages
+     ("FOR PARENTS" etc). Hidden on the homepage where it's left blank. */
+  .theinmag-hero__eyebrow {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  }
+
   .theinmag-hero__headline {
     font-family: var(--font-heading);
     font-weight: 400;
@@ -461,12 +496,28 @@
     },
     {
       "type": "header",
+      "content": "Audience-page meta (optional)"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow_text",
+      "label": "Eyebrow (above headline)",
+      "info": "Small uppercase label above the H1. Used on audience pages (e.g. 'For Parents'). Leave blank on the homepage."
+    },
+    {
+      "type": "textarea",
+      "id": "aeo_h1_text",
+      "label": "AEO H1 (visually hidden)",
+      "info": "When set, this becomes the page's actual H1 (visually hidden, carries keyword load) and the visible headline below demotes to H2. Leave blank on the homepage so the visible headline stays as H1."
+    },
+    {
+      "type": "header",
       "content": "Headline + subhead (left image overlay)"
     },
     {
       "type": "textarea",
       "id": "headline",
-      "label": "Headline (H1)",
+      "label": "Headline (visible H1 / H2)",
       "info": "Press Enter to break lines exactly where you want them.",
       "default": "The magazine\nfor creative kids"
     },

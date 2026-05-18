@@ -19,14 +19,48 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign tiles = section.blocks
   assign heading_text = section.settings.heading | default: 'Designed with you in mind'
+  assign intro_text = section.settings.intro_text
+  assign heading_position = section.settings.heading_position | default: 'overlay_bottom'
+  assign exclude_label_raw = section.settings.exclude_label | default: ''
+  assign exclude_label = exclude_label_raw | downcase | strip
+
+  assign tiles = section.blocks
+  if exclude_label != ''
+    assign filtered = '' | split: ','
+    for block in section.blocks
+      assign this_label = block.settings.label | default: '' | downcase | strip
+      unless this_label == exclude_label
+        assign filtered = filtered | concat: block
+      endunless
+    endfor
+    assign tiles = filtered
+  endif
+
+  assign tile_count = tiles.size
+  assign padding_top = section.settings.padding_top
+  assign padding_bottom = section.settings.padding_bottom
+
+  assign root_class = 'theinmag-tiles'
+  if heading_position == 'top'
+    assign root_class = root_class | append: ' theinmag-tiles--heading-top'
+  endif
 -%}
 
 <section
-  class="theinmag-tiles"
+  class="{{ root_class }}"
   aria-labelledby="theinmag-tiles-heading-{{ section.id }}"
+  style="--theinmag-tiles-count: {{ tile_count }}; --theinmag-tiles-pt: {{ padding_top | default: 0 }}px; --theinmag-tiles-pb: {{ padding_bottom | default: 0 }}px;"
 >
+  {%- if heading_position == 'top' -%}
+    <div class="theinmag-tiles__top-heading">
+      <h2 id="theinmag-tiles-heading-{{ section.id }}" class="theinmag-tiles__top-heading-text">{{ heading_text }}</h2>
+      {%- if intro_text != blank -%}
+        <p class="theinmag-tiles__top-intro">{{ intro_text }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
   <div class="theinmag-tiles__scroller">
     <ul class="theinmag-tiles__grid" role="list">
       {%- for block in tiles -%}
@@ -84,13 +118,15 @@
     </ul>
   </div>
 
-  <div class="theinmag-tiles__heading-scrim" aria-hidden="true"></div>
-  <h2
-    id="theinmag-tiles-heading-{{ section.id }}"
-    class="theinmag-tiles__heading"
-  >
-    {{ heading_text }}
-  </h2>
+  {%- if heading_position != 'top' -%}
+    <div class="theinmag-tiles__heading-scrim" aria-hidden="true"></div>
+    <h2
+      id="theinmag-tiles-heading-{{ section.id }}"
+      class="theinmag-tiles__heading"
+    >
+      {{ heading_text }}
+    </h2>
+  {%- endif -%}
 </section>
 
 {% stylesheet %}
@@ -150,6 +186,15 @@
     .theinmag-tiles__grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* heading-top variant overrides grid columns to actual tile count
+     (3 on the For Parents closer, 4 on homepage). Variable set on
+     the section root from Liquid. */
+  @media (min-width: 1200px) {
+    .theinmag-tiles--heading-top .theinmag-tiles__grid {
+      grid-template-columns: repeat(var(--theinmag-tiles-count, 4), 1fr);
     }
   }
 
@@ -344,6 +389,44 @@
     z-index: 2;
   }
 
+  /* ================================================================
+     heading-top variant - used as the closer "coda" on audience pages
+     (For Parents, etc). Heading + intro sit ABOVE the tiles in the
+     cream area; no bottom overlay. Padding becomes the configured
+     top/bottom on the section root (default 0 still applies on the
+     homepage overlay-bottom variant).
+     ================================================================ */
+
+  .theinmag-tiles--heading-top {
+    padding: var(--theinmag-tiles-pt, 0) var(--space-md) var(--theinmag-tiles-pb, 0);
+  }
+
+  .theinmag-tiles--heading-top .theinmag-tiles__top-heading {
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto clamp(28px, 4vw, 48px);
+  }
+
+  .theinmag-tiles--heading-top .theinmag-tiles__top-heading-text {
+    margin: 0 0 clamp(8px, 1vw, 14px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(24px, 3.5vw, 32px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-tiles--heading-top .theinmag-tiles__top-intro {
+    margin: 0 auto;
+    max-width: 50ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.6;
+    color: rgba(42, 31, 61, 0.72);
+  }
+
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .theinmag-tile__image,
@@ -376,6 +459,49 @@
       "label": "Section heading",
       "info": "Sits over the bottom of the tile row at every viewport.",
       "default": "Designed with you in mind"
+    },
+    {
+      "type": "select",
+      "id": "heading_position",
+      "label": "Heading position",
+      "info": "Overlay bottom (default, homepage rhythm): white heading on the photos' bottom scrim. Top: dark heading + intro sit above the tiles in the cream area (used as the closer 'coda' on audience pages).",
+      "options": [
+        { "value": "overlay_bottom", "label": "Overlay bottom (default)" },
+        { "value": "top", "label": "Top (closer coda)" }
+      ],
+      "default": "overlay_bottom"
+    },
+    {
+      "type": "textarea",
+      "id": "intro_text",
+      "label": "Intro / subhead",
+      "info": "Only shown when heading position is Top. One sentence under the heading. Leave blank to hide."
+    },
+    {
+      "type": "text",
+      "id": "exclude_label",
+      "label": "Exclude tile by label",
+      "info": "Case-insensitive label match. e.g. 'Parents' on the For Parents page so the closer routes to the other audiences. Leave blank to render all blocks."
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top (px)",
+      "info": "Only applies in Top heading mode. Homepage rhythm uses 0.",
+      "min": 0,
+      "max": 160,
+      "step": 8,
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom (px)",
+      "info": "Only applies in Top heading mode. Homepage rhythm uses 0.",
+      "min": 0,
+      "max": 160,
+      "step": 8,
+      "default": 0
     }
   ],
   "blocks": [

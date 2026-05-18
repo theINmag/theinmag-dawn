@@ -1,0 +1,299 @@
+{%- comment -%}
+  theinmag-for-parents-founders
+  Section 6 of /pages/for-parents - "Founders moment".
+
+  Pared-down two-column: photo (left, ~5/12) + copy (right, ~7/12)
+  on desktop, stacked on mobile. Sharp-cornered photo (premium
+  register, design system 5.2). Photo side reverses from the hero
+  to keep the Maude-rhythm oscillation across the page.
+
+  Distinct from theinmag-philosophy (sticky reveal + 3-5 anchors)
+  and theinmag-meet-tam (homepage founder section, coral pair).
+  This is the audience-page micro-founder beat: who makes this,
+  why they make it, one anchor link to the full story.
+{%- endcomment -%}
+
+{%- liquid
+  assign eyebrow = section.settings.eyebrow
+  assign heading = section.settings.heading
+  assign body = section.settings.body
+  assign anchor_label = section.settings.anchor_label
+  assign anchor_link = section.settings.anchor_link
+  assign image = section.settings.image
+  assign image_alt = section.settings.image_alt
+  assign image_filename = section.settings.image_filename
+-%}
+
+<section
+  class="theinmag-for-parents-founders"
+  aria-labelledby="theinmag-for-parents-founders-heading-{{ section.id }}"
+>
+  <div class="theinmag-for-parents-founders__inner">
+    <div class="theinmag-for-parents-founders__photo-col">
+      {%- if image != blank -%}
+        <img
+          class="theinmag-for-parents-founders__photo"
+          src="{{ image | image_url: width: 900 }}"
+          srcset="
+            {{ image | image_url: width: 600 }} 600w,
+            {{ image | image_url: width: 900 }} 900w,
+            {{ image | image_url: width: 1200 }} 1200w
+          "
+          sizes="(min-width: 990px) 40vw, 90vw"
+          width="{{ image.width }}"
+          height="{{ image.height }}"
+          alt="{{ image_alt | escape }}"
+          loading="lazy"
+        >
+      {%- elsif image_filename != blank -%}
+        <img
+          class="theinmag-for-parents-founders__photo"
+          src="{{ image_filename | asset_url }}"
+          alt="{{ image_alt | escape }}"
+          loading="lazy"
+        >
+      {%- else -%}
+        <div class="theinmag-for-parents-founders__photo-placeholder" aria-label="Placeholder for Tam and Ryan founders photo (TBC asset)">
+          <span>TBC<br>Tam &amp; Ryan</span>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="theinmag-for-parents-founders__copy-col">
+      {%- if eyebrow != blank -%}
+        <p class="theinmag-for-parents-founders__eyebrow">{{ eyebrow }}</p>
+      {%- endif -%}
+
+      {%- if heading != blank -%}
+        <h2
+          id="theinmag-for-parents-founders-heading-{{ section.id }}"
+          class="theinmag-for-parents-founders__heading"
+        >
+          {{ heading }}
+        </h2>
+      {%- endif -%}
+
+      {%- if body != blank -%}
+        <p class="theinmag-for-parents-founders__body">{{ body }}</p>
+      {%- endif -%}
+
+      {%- if anchor_label != blank -%}
+        <p class="theinmag-for-parents-founders__anchor-wrap">
+          <a
+            class="theinmag-for-parents-founders__anchor"
+            href="{{ anchor_link | default: '/pages/behind-the-mag' }}"
+          >
+            {{ anchor_label }}
+            <span class="theinmag-for-parents-founders__anchor-arrow" aria-hidden="true">&rarr;</span>
+          </a>
+        </p>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-for-parents-founders {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(64px, 10vw, 96px) clamp(20px, 5vw, 64px);
+  }
+
+  .theinmag-for-parents-founders__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(28px, 5vw, 48px);
+    align-items: center;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-for-parents-founders__inner {
+      grid-template-columns: 5fr 7fr;
+      gap: clamp(40px, 6vw, 72px);
+    }
+  }
+
+  .theinmag-for-parents-founders__photo-col {
+    width: 100%;
+  }
+
+  .theinmag-for-parents-founders__photo {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: 0;
+  }
+
+  .theinmag-for-parents-founders__photo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background-color: rgba(123, 79, 158, 0.15);
+    color: rgba(123, 79, 158, 0.65);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .theinmag-for-parents-founders__copy-col {
+    width: 100%;
+  }
+
+  .theinmag-for-parents-founders__eyebrow {
+    margin: 0 0 clamp(12px, 1.5vw, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(123, 79, 158, 0.85);
+  }
+
+  .theinmag-for-parents-founders__heading {
+    margin: 0 0 clamp(16px, 2vw, 22px);
+    max-width: 26ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 36px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-for-parents-founders__body {
+    margin: 0;
+    max-width: 50ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.7;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-for-parents-founders__anchor-wrap {
+    margin: clamp(20px, 2.5vw, 28px) 0 0;
+  }
+
+  .theinmag-for-parents-founders__anchor {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.4;
+    color: var(--color-purple-dark, #7B4F9E);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.18s ease, color 0.18s ease;
+  }
+
+  .theinmag-for-parents-founders__anchor:hover,
+  .theinmag-for-parents-founders__anchor:focus-visible {
+    border-bottom-color: currentColor;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    outline: none;
+  }
+
+  .theinmag-for-parents-founders__anchor-arrow {
+    display: inline-block;
+    transition: transform 0.18s ease;
+  }
+
+  .theinmag-for-parents-founders__anchor:hover .theinmag-for-parents-founders__anchor-arrow,
+  .theinmag-for-parents-founders__anchor:focus-visible .theinmag-for-parents-founders__anchor-arrow {
+    transform: translateX(4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-for-parents-founders__anchor,
+    .theinmag-for-parents-founders__anchor-arrow {
+      transition: none;
+    }
+    .theinmag-for-parents-founders__anchor:hover .theinmag-for-parents-founders__anchor-arrow,
+    .theinmag-for-parents-founders__anchor:focus-visible .theinmag-for-parents-founders__anchor-arrow {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "For parents founders",
+  "tag": "section",
+  "class": "theinmag-for-parents-founders-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Two-column founder beat (photo left, copy right on desktop). Cream surface, sharp-cornered photo. Used as the page's quiet 'who makes this' moment between the lavender chapter and the parent-voice pull quote."
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "WHO MAKES THIS"
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Two former teachers, over twenty years in classrooms, one magazine."
+    },
+    {
+      "type": "textarea",
+      "id": "body",
+      "label": "Body",
+      "default": "We're Ryan G. and Tam B. - partners, parents, and classroom teachers. We saw too many kids switch off the moment school turned creativity into a worksheet. theINmag is the thing we wished existed for them. Three issues a year of pure kid creativity, designed to inspire and give real kids a voice."
+    },
+    {
+      "type": "text",
+      "id": "anchor_label",
+      "label": "Anchor label",
+      "default": "Read our full story"
+    },
+    {
+      "type": "url",
+      "id": "anchor_link",
+      "label": "Anchor link"
+    },
+    {
+      "type": "header",
+      "content": "Photo"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Photo (Ryan + Tam)"
+    },
+    {
+      "type": "text",
+      "id": "image_filename",
+      "label": "Fallback filename in /assets/",
+      "info": "Used only when no image is picked above."
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Photo alt text",
+      "default": "Ryan and Tam, the two former teachers behind theINmag."
+    }
+  ],
+  "presets": [
+    {
+      "name": "For parents founders"
+    }
+  ]
+}
+{% endschema %}

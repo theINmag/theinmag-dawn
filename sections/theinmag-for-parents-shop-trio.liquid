@@ -1,0 +1,590 @@
+{%- comment -%}
+  theinmag-for-parents-shop-trio
+  Section 8 of /pages/for-parents - the CONVERSION SECTION.
+
+  Weighted three-tile module - Membership dominant (2/3 width left),
+  Single Issues + Build a Bundle stacked in 1/3 right column on
+  desktop. Mobile: Membership full-width first, then Single Issues,
+  then Build a Bundle.
+
+  Yellow CTA appears ONCE on the page (Membership tile) per the
+  CTA hierarchy. Single Issues + BaB use outlined purple secondary.
+
+  Blocks: one block per tile with `weight: dominant | standard`.
+  Block fields cover both shapes (some fields only render in one
+  weight) so the admin keeps editing all three tiles from one schema.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading_raw = section.settings.heading | default: 'Ready to get the IN mag in their hands?'
+  assign heading = heading_raw | replace: 'IN ', '<span class="theinmag-in">IN</span>'
+  assign trust_whisper = section.settings.trust_whisper
+  assign tiles = section.blocks
+-%}
+
+<section
+  class="theinmag-for-parents-shop-trio"
+  aria-labelledby="theinmag-for-parents-shop-trio-heading-{{ section.id }}"
+>
+  <div class="theinmag-for-parents-shop-trio__inner">
+    {%- if heading != blank -%}
+      <h2
+        id="theinmag-for-parents-shop-trio-heading-{{ section.id }}"
+        class="theinmag-for-parents-shop-trio__heading"
+      >
+        {{ heading }}
+      </h2>
+    {%- endif -%}
+
+    <div class="theinmag-for-parents-shop-trio__grid">
+      {%- for block in tiles -%}
+        {%- liquid
+          assign weight = block.settings.weight | default: 'standard'
+          assign tile_class = 'theinmag-for-parents-shop-trio__tile theinmag-for-parents-shop-trio__tile--' | append: weight
+          assign tile_link = block.settings.tile_link | default: '#'
+          assign image = block.settings.image
+          assign image_filename = block.settings.image_filename
+          assign image_alt = block.settings.image_alt | default: block.settings.title
+          assign on_image = false
+          if weight == 'dominant'
+            assign on_image = true
+          endif
+        -%}
+        <a
+          class="{{ tile_class }}"
+          href="{{ tile_link }}"
+          aria-label="{{ block.settings.title | default: 'Shop tile' | escape }}"
+          {{ block.shopify_attributes }}
+        >
+          <div class="theinmag-for-parents-shop-trio__media">
+            {%- if image != blank -%}
+              <img
+                class="theinmag-for-parents-shop-trio__image"
+                src="{{ image | image_url: width: 1400 }}"
+                srcset="
+                  {{ image | image_url: width: 600 }} 600w,
+                  {{ image | image_url: width: 900 }} 900w,
+                  {{ image | image_url: width: 1400 }} 1400w
+                "
+                sizes="(min-width: 990px) {% if weight == 'dominant' %}60vw{% else %}30vw{% endif %}, 90vw"
+                width="{{ image.width }}"
+                height="{{ image.height }}"
+                alt="{{ image_alt | escape }}"
+                loading="lazy"
+              >
+            {%- elsif image_filename != blank -%}
+              <img
+                class="theinmag-for-parents-shop-trio__image"
+                src="{{ image_filename | asset_url }}"
+                alt="{{ image_alt | escape }}"
+                loading="lazy"
+              >
+            {%- else -%}
+              <div class="theinmag-for-parents-shop-trio__image-placeholder" aria-hidden="true"></div>
+            {%- endif -%}
+            {%- if on_image -%}
+              <div class="theinmag-for-parents-shop-trio__scrim" aria-hidden="true"></div>
+            {%- endif -%}
+          </div>
+
+          <div class="theinmag-for-parents-shop-trio__content">
+            {%- if block.settings.eyebrow != blank -%}
+              <p class="theinmag-for-parents-shop-trio__eyebrow">{{ block.settings.eyebrow }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.title != blank -%}
+              <p class="theinmag-for-parents-shop-trio__title">{{ block.settings.title }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.tagline != blank -%}
+              <p class="theinmag-for-parents-shop-trio__tagline">{{ block.settings.tagline }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.price != blank -%}
+              <p class="theinmag-for-parents-shop-trio__price">{{ block.settings.price }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.trust_dots != blank -%}
+              <p class="theinmag-for-parents-shop-trio__trust-dots">{{ block.settings.trust_dots }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.badge != blank -%}
+              <p class="theinmag-for-parents-shop-trio__badge">{{ block.settings.badge }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.cta_label != blank -%}
+              <span class="theinmag-btn {% if weight == 'dominant' %}theinmag-btn--primary{% else %}theinmag-btn--secondary{% endif %} theinmag-for-parents-shop-trio__cta" aria-hidden="true">
+                {{ block.settings.cta_label }}
+              </span>
+            {%- endif -%}
+          </div>
+        </a>
+      {%- else -%}
+        <p class="theinmag-for-parents-shop-trio__empty">Add three product tiles in the theme editor.</p>
+      {%- endfor -%}
+    </div>
+
+    {%- if trust_whisper != blank -%}
+      <p class="theinmag-for-parents-shop-trio__whisper">{{ trust_whisper }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-for-parents-shop-trio {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(80px, 12vw, 140px) clamp(20px, 5vw, 64px);
+  }
+
+  .theinmag-for-parents-shop-trio__inner {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  .theinmag-for-parents-shop-trio__heading {
+    margin: 0 auto clamp(40px, 5vw, 64px);
+    max-width: 22ch;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(32px, 5vw, 44px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-for-parents-shop-trio__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 2vw, 24px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-for-parents-shop-trio__grid {
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: clamp(16px, 2vw, 24px);
+    }
+    .theinmag-for-parents-shop-trio__tile--dominant {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+    }
+  }
+
+  .theinmag-for-parents-shop-trio__tile {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    background-color: var(--color-cream, #FBF6EA);
+    border-radius: var(--radius-lg, 20px);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .theinmag-for-parents-shop-trio__tile--dominant {
+    aspect-ratio: 4 / 5;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-for-parents-shop-trio__tile--dominant {
+      aspect-ratio: auto;
+      min-height: 100%;
+    }
+  }
+
+  .theinmag-for-parents-shop-trio__tile--standard {
+    aspect-ratio: 16 / 10;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-for-parents-shop-trio__tile--standard {
+      aspect-ratio: auto;
+    }
+  }
+
+  .theinmag-for-parents-shop-trio__tile:hover,
+  .theinmag-for-parents-shop-trio__tile:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(42, 31, 61, 0.14);
+    outline: none;
+  }
+
+  .theinmag-for-parents-shop-trio__media {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .theinmag-for-parents-shop-trio__image,
+  .theinmag-for-parents-shop-trio__image-placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.4s ease;
+  }
+
+  .theinmag-for-parents-shop-trio__image-placeholder {
+    background-color: rgba(123, 79, 158, 0.18);
+  }
+
+  .theinmag-for-parents-shop-trio__tile:hover .theinmag-for-parents-shop-trio__image,
+  .theinmag-for-parents-shop-trio__tile:focus-visible .theinmag-for-parents-shop-trio__image {
+    transform: scale(1.03);
+  }
+
+  /* Scrim on the dominant tile so the white text-on-photo overlay
+     reads cleanly. Standard tiles do NOT carry a scrim - their copy
+     sits below the photo in a white-content area. */
+  .theinmag-for-parents-shop-trio__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(20, 14, 30, 0.65) 0%,
+      rgba(20, 14, 30, 0.35) 45%,
+      rgba(20, 14, 30, 0.05) 75%,
+      rgba(20, 14, 30, 0) 100%
+    );
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .theinmag-for-parents-shop-trio__content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* Dominant tile: content overlay bottom-left, white-on-scrim. */
+  .theinmag-for-parents-shop-trio__tile--dominant .theinmag-for-parents-shop-trio__content {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: clamp(20px, 3vw, 36px);
+    color: #ffffff;
+  }
+
+  /* Standard tile: content sits below the photo in a white-content
+     strip. Photo takes top portion, content takes bottom. */
+  .theinmag-for-parents-shop-trio__tile--standard {
+    background-color: #ffffff;
+    box-shadow: 0 2px 12px rgba(42, 31, 61, 0.08);
+  }
+
+  .theinmag-for-parents-shop-trio__tile--standard .theinmag-for-parents-shop-trio__media {
+    inset: 0 0 50% 0;
+  }
+
+  .theinmag-for-parents-shop-trio__tile--standard .theinmag-for-parents-shop-trio__content {
+    position: absolute;
+    inset: 50% 0 0 0;
+    padding: clamp(16px, 2vw, 22px);
+  }
+
+  /* Typography */
+
+  .theinmag-for-parents-shop-trio__eyebrow {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .theinmag-for-parents-shop-trio__tile--dominant .theinmag-for-parents-shop-trio__eyebrow {
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  }
+
+  .theinmag-for-parents-shop-trio__tile--standard .theinmag-for-parents-shop-trio__eyebrow {
+    color: rgba(123, 79, 158, 0.85);
+  }
+
+  .theinmag-for-parents-shop-trio__title {
+    margin: 4px 0 2px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .theinmag-for-parents-shop-trio__tile--dominant .theinmag-for-parents-shop-trio__title {
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(32px, 4vw, 44px);
+    color: #ffffff;
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.65),
+      0 2px 8px rgba(0, 0, 0, 0.45);
+  }
+
+  .theinmag-for-parents-shop-trio__tile--standard .theinmag-for-parents-shop-trio__title {
+    font-size: clamp(20px, 2vw, 24px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-for-parents-shop-trio__tagline {
+    margin: 4px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    line-height: 1.5;
+  }
+
+  .theinmag-for-parents-shop-trio__tile--dominant .theinmag-for-parents-shop-trio__tagline {
+    font-weight: 600;
+    font-size: clamp(15px, 1.6vw, 18px);
+    color: #ffffff;
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.5),
+      0 2px 6px rgba(0, 0, 0, 0.35);
+  }
+
+  .theinmag-for-parents-shop-trio__tile--standard .theinmag-for-parents-shop-trio__tagline {
+    font-weight: 400;
+    font-size: clamp(13px, 1.4vw, 14px);
+    color: rgba(42, 31, 61, 0.75);
+  }
+
+  .theinmag-for-parents-shop-trio__price {
+    margin: 6px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .theinmag-for-parents-shop-trio__tile--dominant .theinmag-for-parents-shop-trio__price {
+    font-size: clamp(14px, 1.4vw, 16px);
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  .theinmag-for-parents-shop-trio__tile--standard .theinmag-for-parents-shop-trio__price {
+    font-size: 13px;
+    color: rgba(42, 31, 61, 0.75);
+  }
+
+  .theinmag-for-parents-shop-trio__trust-dots {
+    margin: 8px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(12px, 1.2vw, 13px);
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+
+  .theinmag-for-parents-shop-trio__badge {
+    margin: 6px 0 0;
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: var(--color-peach, #FCE0CB);
+    color: var(--color-sandy-orange-dark, #B86C2A);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.04em;
+    border-radius: 4px;
+  }
+
+  .theinmag-for-parents-shop-trio__cta {
+    margin-top: 12px;
+    pointer-events: none;
+  }
+
+  .theinmag-for-parents-shop-trio__empty {
+    text-align: center;
+    padding: var(--space-2xl) var(--space-md);
+    color: var(--color-text-muted, rgba(42, 31, 61, 0.6));
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  }
+
+  .theinmag-for-parents-shop-trio__whisper {
+    margin: clamp(28px, 4vw, 40px) auto 0;
+    max-width: 60ch;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(12px, 1.2vw, 13px);
+    line-height: 1.6;
+    color: rgba(42, 31, 61, 0.6);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-for-parents-shop-trio__tile,
+    .theinmag-for-parents-shop-trio__image {
+      transition: none;
+    }
+    .theinmag-for-parents-shop-trio__tile:hover,
+    .theinmag-for-parents-shop-trio__tile:focus-visible {
+      transform: none;
+    }
+    .theinmag-for-parents-shop-trio__tile:hover .theinmag-for-parents-shop-trio__image,
+    .theinmag-for-parents-shop-trio__tile:focus-visible .theinmag-for-parents-shop-trio__image {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "For parents shop trio",
+  "tag": "section",
+  "class": "theinmag-for-parents-shop-trio-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Weighted three-tile conversion module. Membership tile is dominant (2/3 left), Single Issues + Build a Bundle stack 1/3 right. Membership tile carries the yellow CTA; standard tiles use outlined purple secondary. Use 'IN ' (with a space) anywhere in the heading where the brand-pun IN should render with the locked emphasis class."
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "Ready to get the IN mag in their hands?"
+    },
+    {
+      "type": "text",
+      "id": "trust_whisper",
+      "label": "Trust whisper (under tiles)",
+      "default": "Free shipping on orders over $40. Made by Aussie kids, printed in Australia, no ads inside."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tile",
+      "name": "Shop tile",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "select",
+          "id": "weight",
+          "label": "Tile weight",
+          "info": "Dominant = 2/3 width, photo full-bleed with white text overlay + yellow CTA. Standard = 1/3 width small tile, photo on top + white content area below + outlined purple CTA. Exactly ONE dominant tile per section.",
+          "options": [
+            { "value": "dominant", "label": "Dominant (Membership)" },
+            { "value": "standard", "label": "Standard" }
+          ],
+          "default": "standard"
+        },
+        {
+          "type": "url",
+          "id": "tile_link",
+          "label": "Whole-tile link"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Eyebrow",
+          "info": "Small uppercase label. e.g. RECOMMENDED / LOWER COMMITMENT / BUILD YOUR OWN."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "info": "Dominant tile renders Post Regular large. Standard tile renders Inter 700 medium."
+        },
+        {
+          "type": "text",
+          "id": "tagline",
+          "label": "Tagline"
+        },
+        {
+          "type": "text",
+          "id": "price",
+          "label": "Price line",
+          "info": "e.g. From $89 / 4 issues. Optional."
+        },
+        {
+          "type": "text",
+          "id": "trust_dots",
+          "label": "Trust dots (dominant tile only)",
+          "info": "e.g. 3 drops a year · Free shipping over $40 · Cancel anytime"
+        },
+        {
+          "type": "text",
+          "id": "badge",
+          "label": "Badge (standard tile only)",
+          "info": "Small peach pill. e.g. Save more with more."
+        },
+        {
+          "type": "text",
+          "id": "cta_label",
+          "label": "CTA label",
+          "info": "Visual button only - whole tile is the click target."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Tile background image"
+        },
+        {
+          "type": "text",
+          "id": "image_filename",
+          "label": "Fallback filename in /assets/",
+          "info": "Used only when no image is picked above."
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Image alt text"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "For parents shop trio",
+      "blocks": [
+        {
+          "type": "tile",
+          "settings": {
+            "weight": "dominant",
+            "tile_link": "/products/membership",
+            "eyebrow": "RECOMMENDED",
+            "title": "theINmag Membership",
+            "tagline": "Never miss an issue.",
+            "price": "From $89 / 4 issues",
+            "trust_dots": "3 drops a year · Free shipping over $40 · Cancel anytime",
+            "cta_label": "Get the Membership",
+            "image_alt": "A kid opening their copy of theINmag at the kitchen bench."
+          }
+        },
+        {
+          "type": "tile",
+          "settings": {
+            "weight": "standard",
+            "tile_link": "/collections/single-issues",
+            "eyebrow": "LOWER COMMITMENT",
+            "title": "Single Issues",
+            "tagline": "Try one. Pick a back issue. Build a collection.",
+            "price": "From $23.95",
+            "cta_label": "Browse issues",
+            "image_alt": "A fanned spread of recent theINmag covers."
+          }
+        },
+        {
+          "type": "tile",
+          "settings": {
+            "weight": "standard",
+            "tile_link": "/products/build-a-bundle",
+            "eyebrow": "BUILD YOUR OWN",
+            "title": "Build a Bundle",
+            "tagline": "Mix mags and Memberships. Save 5-15%.",
+            "badge": "Save more with more",
+            "cta_label": "Build yours",
+            "image_alt": "A mixed stack of theINmag issues and Membership cards."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

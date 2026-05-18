@@ -1,0 +1,289 @@
+{%- comment -%}
+  theinmag-for-parents-field-notes
+  Section 5 of /pages/for-parents - Field Notes feed.
+
+  Asymmetric 1+3 grid (Maude editorial pattern, see design system 6.18):
+    Left col 2/3: one feature card (full-width photo, white text overlay).
+    Right col 1/3: three right_small cards stacked, hairline dividers.
+
+  Auto-pulls Shopify Articles from the `field-notes` blog, filtered
+  server-side via Liquid for parent-coded tags. Newest first. Renders
+  via the existing theinmag-editorial-card snippet (DO NOT rebuild
+  card markup - one snippet, four shapes).
+
+  Heading IS the wordmark (fieldnotes_logo.png) wrapped in the blog
+  index link. No subhead, no separate CTA - the wordmark + grid speak.
+
+  Right column carries data-parallax-target for the slower-than-page
+  scroll translation. Disabled on mobile + reduced-motion.
+{%- endcomment -%}
+
+{%- liquid
+  assign blog_handle = section.settings.blog_handle | default: 'field-notes'
+  assign target_blog = blogs[blog_handle]
+  assign feed_limit = section.settings.feed_limit | default: 4
+  assign bg_color = section.settings.bg_color | default: '#C9B5DB'
+
+  comment
+    Tag filter: include articles tagged with any of these (lowercase).
+    Default vocabulary covers the four common parent-coded patterns we
+    see in field-notes drafts (audience-parents, audience-adults, parent,
+    parents). Articles without parent tags are skipped on this page.
+  endcomment
+  assign tag_csv = section.settings.tag_filter_csv | default: 'parent,parents,audience-parents,adults,audience-adults'
+  assign tag_list = tag_csv | downcase | replace: ' ', '' | split: ','
+
+  assign feature_article = blank
+  assign small_articles = '' | split: ','
+
+  if target_blog != blank
+    for art in target_blog.articles limit: 60
+      assign matched = false
+      for tag in art.tags
+        assign tag_lower = tag | downcase
+        if tag_list contains tag_lower
+          assign matched = true
+          break
+        endif
+      endfor
+
+      if matched
+        if feature_article == blank
+          assign feature_article = art
+        else
+          if small_articles.size < 3
+            assign small_articles = small_articles | concat: art
+          endif
+        endif
+
+        comment
+          Stop walking once we have 1 feature + 3 small.
+        endcomment
+        if feature_article != blank and small_articles.size >= 3
+          break
+        endif
+      endif
+    endfor
+  endif
+-%}
+
+<section
+  class="theinmag-for-parents-field-notes"
+  aria-labelledby="theinmag-for-parents-field-notes-heading-{{ section.id }}"
+  data-theinmag-fp-field-notes
+  style="--theinmag-fpfn-bg: {{ bg_color }};"
+>
+  <div class="theinmag-for-parents-field-notes__inner">
+    <header class="theinmag-for-parents-field-notes__header">
+      <h2
+        id="theinmag-for-parents-field-notes-heading-{{ section.id }}"
+        class="theinmag-for-parents-field-notes__heading"
+      >
+        <a
+          class="theinmag-for-parents-field-notes__heading-link"
+          href="/blogs/{{ blog_handle }}"
+          aria-label="Browse field notes"
+        >
+          <img
+            src="{{ 'fieldnotes_logo.png' | asset_url }}"
+            alt="Field notes"
+            class="theinmag-for-parents-field-notes__wordmark"
+            width="2160"
+            height="1440"
+            loading="lazy"
+          >
+        </a>
+      </h2>
+    </header>
+
+    {%- if feature_article != blank -%}
+      <div class="theinmag-for-parents-field-notes__grid">
+        <div class="theinmag-for-parents-field-notes__feature-col">
+          {%- render 'theinmag-editorial-card', article: feature_article, variant: 'feature' -%}
+        </div>
+
+        {%- if small_articles.size > 0 -%}
+          <div class="theinmag-for-parents-field-notes__small-col" data-parallax-target>
+            {%- for art in small_articles -%}
+              <div class="theinmag-for-parents-field-notes__small-row">
+                {%- render 'theinmag-editorial-card', article: art, variant: 'right_small' -%}
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- else -%}
+      <p class="theinmag-for-parents-field-notes__empty">
+        No parent-coded field notes yet. Tag articles with one of: {{ tag_csv }}.
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-for-parents-field-notes {
+    background-color: var(--theinmag-fpfn-bg, #C9B5DB);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(64px, 10vw, 120px) clamp(20px, 5vw, 64px);
+    overflow: hidden;
+  }
+
+  .theinmag-for-parents-field-notes__inner {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  .theinmag-for-parents-field-notes__header {
+    margin: 0 0 clamp(32px, 4vw, 48px);
+    text-align: center;
+  }
+
+  .theinmag-for-parents-field-notes__heading {
+    margin: 0;
+    display: inline-block;
+  }
+
+  .theinmag-for-parents-field-notes__heading-link {
+    display: inline-block;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .theinmag-for-parents-field-notes__heading-link:hover,
+  .theinmag-for-parents-field-notes__heading-link:focus-visible {
+    opacity: 0.85;
+    transform: translateY(-2px);
+    outline: none;
+  }
+
+  .theinmag-for-parents-field-notes__wordmark {
+    display: block;
+    height: clamp(48px, 6vw, 80px);
+    width: auto;
+  }
+
+  .theinmag-for-parents-field-notes__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(20px, 3vw, 32px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-for-parents-field-notes__grid {
+      grid-template-columns: 2fr 1fr;
+      gap: clamp(32px, 4vw, 56px);
+      align-items: start;
+    }
+  }
+
+  .theinmag-for-parents-field-notes__small-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .theinmag-for-parents-field-notes__small-row + .theinmag-for-parents-field-notes__small-row {
+    border-top: 1px solid rgba(42, 31, 61, 0.18);
+    padding-top: clamp(16px, 2vw, 24px);
+    margin-top: clamp(16px, 2vw, 24px);
+  }
+
+  .theinmag-for-parents-field-notes__empty {
+    text-align: center;
+    padding: clamp(40px, 6vw, 64px) var(--space-md);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: rgba(42, 31, 61, 0.6);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-for-parents-field-notes__heading-link {
+      transition: none;
+    }
+    .theinmag-for-parents-field-notes__heading-link:hover,
+    .theinmag-for-parents-field-notes__heading-link:focus-visible {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-fp-field-notes]');
+    if (!root) return;
+
+    var target = root.querySelector('[data-parallax-target]');
+    if (!target) return;
+
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+
+    function isDesktop() {
+      return window.matchMedia('(min-width: 990px)').matches;
+    }
+
+    var ticking = false;
+    var SHIFT = 0.18;
+
+    function onScroll() {
+      if (!isDesktop()) {
+        target.style.transform = '';
+        return;
+      }
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(function () {
+        var rect = root.getBoundingClientRect();
+        var viewportH = window.innerHeight;
+        var progress = (viewportH - rect.top) / (viewportH + rect.height);
+        if (progress < 0) progress = 0;
+        if (progress > 1) progress = 1;
+        var offset = (progress - 0.5) * 2 * SHIFT * viewportH;
+        target.style.transform = 'translate3d(0, ' + offset.toFixed(2) + 'px, 0)';
+        ticking = false;
+      });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "For parents field notes",
+  "tag": "section",
+  "class": "theinmag-for-parents-field-notes-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Asymmetric 1+3 grid that auto-pulls parent-coded articles from the field-notes blog. Wordmark heading links to the blog index. Right column gets the slower-than-page parallax translation on desktop."
+    },
+    {
+      "type": "text",
+      "id": "blog_handle",
+      "label": "Blog handle",
+      "default": "field-notes"
+    },
+    {
+      "type": "text",
+      "id": "tag_filter_csv",
+      "label": "Tag filter (comma-separated, case-insensitive)",
+      "info": "Articles whose tags include any of these render in the feed. Default covers parent/audience-parents/adults/audience-adults.",
+      "default": "parent,parents,audience-parents,adults,audience-adults"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background colour",
+      "info": "Defaults to --color-wave-purple (#C9B5DB) - the For Parents lavender chapter colour.",
+      "default": "#C9B5DB"
+    }
+  ],
+  "presets": [
+    {
+      "name": "For parents field notes"
+    }
+  ]
+}
+{% endschema %}

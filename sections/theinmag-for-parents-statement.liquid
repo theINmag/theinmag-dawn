@@ -1,0 +1,251 @@
+{%- comment -%}
+  theinmag-for-parents-statement
+  Section 3 of /pages/for-parents - "Why send IN".
+
+  Editorial statement panel that opens the page's lavender chapter
+  (sections 3-4-5 share --color-wave-purple background as one
+  emotional beat per design system 3.2). Reads as the page's "the
+  moment a kid sees their name in print, something changes" beat.
+
+  Layout: heading + body + optional centred image + primary CTA +
+  trust microcopy. All centered. Generous vertical padding so the
+  section earns its weight as the emotional opener of the chapter.
+
+  Reusable: drop into any audience page where the value proposition
+  needs an editorial chapter break.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign body = section.settings.body
+  assign image = section.settings.image
+  assign image_alt = section.settings.image_alt
+  assign image_filename = section.settings.image_filename
+  assign cta_label = section.settings.cta_label
+  assign cta_link = section.settings.cta_link
+  assign trust_microcopy = section.settings.trust_microcopy
+  assign bg_color = section.settings.bg_color | default: '#C9B5DB'
+-%}
+
+<section
+  class="theinmag-for-parents-statement"
+  aria-labelledby="theinmag-for-parents-statement-heading-{{ section.id }}"
+  style="--theinmag-fps-bg: {{ bg_color }};"
+>
+  <div class="theinmag-for-parents-statement__inner">
+    {%- if heading != blank -%}
+      <h2
+        id="theinmag-for-parents-statement-heading-{{ section.id }}"
+        class="theinmag-for-parents-statement__heading"
+      >
+        {{ heading }}
+      </h2>
+    {%- endif -%}
+
+    {%- if body != blank -%}
+      <p class="theinmag-for-parents-statement__body">{{ body }}</p>
+    {%- endif -%}
+
+    {%- if image != blank or image_filename != blank -%}
+      <div class="theinmag-for-parents-statement__image-wrap">
+        {%- if image != blank -%}
+          <img
+            class="theinmag-for-parents-statement__image"
+            src="{{ image | image_url: width: 1200 }}"
+            srcset="
+              {{ image | image_url: width: 600 }} 600w,
+              {{ image | image_url: width: 900 }} 900w,
+              {{ image | image_url: width: 1200 }} 1200w,
+              {{ image | image_url: width: 1600 }} 1600w
+            "
+            sizes="(min-width: 990px) 720px, 90vw"
+            width="{{ image.width }}"
+            height="{{ image.height }}"
+            alt="{{ image_alt | escape }}"
+            loading="lazy"
+          >
+        {%- else -%}
+          <img
+            class="theinmag-for-parents-statement__image"
+            src="{{ image_filename | asset_url }}"
+            alt="{{ image_alt | escape }}"
+            loading="lazy"
+          >
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if cta_label != blank -%}
+      <div class="theinmag-for-parents-statement__cta-wrap">
+        <a
+          class="theinmag-btn theinmag-btn--primary"
+          href="{{ cta_link | default: '/pages/send-in' }}"
+        >
+          {{ cta_label }}
+        </a>
+      </div>
+    {%- endif -%}
+
+    {%- if trust_microcopy != blank -%}
+      <p class="theinmag-for-parents-statement__trust">{{ trust_microcopy }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-for-parents-statement {
+    background-color: var(--theinmag-fps-bg, #C9B5DB);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(80px, 12vw, 140px) clamp(20px, 5vw, 64px);
+    position: relative;
+  }
+
+  .theinmag-for-parents-statement__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(20px, 2.5vw, 32px);
+  }
+
+  .theinmag-for-parents-statement__heading {
+    margin: 0;
+    max-width: 22ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-for-parents-statement__body {
+    margin: 0;
+    max-width: 50ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(17px, 2vw, 19px);
+    line-height: 1.7;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-for-parents-statement__image-wrap {
+    width: 100%;
+    max-width: 720px;
+    margin-top: clamp(8px, 1.5vw, 16px);
+  }
+
+  .theinmag-for-parents-statement__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+  }
+
+  .theinmag-for-parents-statement__cta-wrap {
+    margin-top: clamp(8px, 1.5vw, 16px);
+  }
+
+  .theinmag-for-parents-statement__trust {
+    margin: 0;
+    max-width: 60ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(13px, 1.3vw, 14px);
+    line-height: 1.5;
+    color: rgba(42, 31, 61, 0.65);
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "For parents statement",
+  "tag": "section",
+  "class": "theinmag-for-parents-statement-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Editorial statement panel. Opens the lavender chapter on /pages/for-parents. Heading + body + optional image + CTA + trust microcopy, all centered."
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The moment a kid sees their name in print, something changes."
+    },
+    {
+      "type": "textarea",
+      "id": "body",
+      "label": "Body",
+      "default": "They stand a little taller. They tell their nan about it. They go back to the page weeks later and check it's still there. It is. That feeling - being seen, being chosen, being part of something real - is the whole reason we make theINmag. And every single kid who sends in a creation has a shot at it."
+    },
+    {
+      "type": "header",
+      "content": "Centred image (optional)"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "image_filename",
+      "label": "Fallback filename in /assets/",
+      "info": "Used only when no image is picked above."
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text",
+      "info": "Descriptive and keyword-aware. Drives AEO."
+    },
+    {
+      "type": "header",
+      "content": "CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "Send IN your kid's creation"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Trust microcopy"
+    },
+    {
+      "type": "text",
+      "id": "trust_microcopy",
+      "label": "Trust microcopy",
+      "info": "Small italic line under the CTA.",
+      "default": "Free to submit. Open to any Aussie kid. We read everything."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background colour",
+      "info": "Defaults to --color-wave-purple (#C9B5DB) - the For Parents lavender chapter colour.",
+      "default": "#C9B5DB"
+    }
+  ],
+  "presets": [
+    {
+      "name": "For parents statement"
+    }
+  ]
+}
+{% endschema %}

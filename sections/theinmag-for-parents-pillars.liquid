@@ -1,0 +1,620 @@
+{%- comment -%}
+  theinmag-for-parents-pillars
+  Section 2 of /pages/for-parents - diptych + break + trio.
+
+  Three-zone layout from a flat block list:
+   1. Diptych: first two `pillar` blocks where weight = hero. Side-by-
+      side desktop, stacked mobile. Inter 700 headlines with optional
+      single-word Caveat emphasis lift (`.theinmag-emphasis`).
+   2. Breathing slot: first `kid_creation_break` block. Full-bleed
+      kid creation image with bottom-right attribution caption.
+   3. Trio: first three `pillar` blocks where weight = standard.
+      Smaller typography, no Caveat lift.
+
+  Decoupled from theinmag-membership-pillars.liquid (sticky-nav reveal
+  pattern) - this is a card-grid pattern that's fundamentally different
+  visual architecture. Membership PDP keeps its section unchanged.
+
+  Section bg = cream + optional watermark PNG (e.g. kid-leaves_bottom_right)
+  at low opacity, parallax-fixed.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading_raw = section.settings.heading
+  assign heading = heading_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
+  assign intro_text = section.settings.intro_text
+  assign watermark_filename = section.settings.watermark_filename
+  assign watermark_opacity = section.settings.watermark_opacity | default: 10
+  assign watermark_opacity_decimal = watermark_opacity | times: 1.0 | divided_by: 100.0
+
+  assign hero_pillars = '' | split: ','
+  assign standard_pillars = '' | split: ','
+  assign break_block = blank
+
+  for block in section.blocks
+    if block.type == 'pillar'
+      if block.settings.weight == 'hero'
+        assign hero_pillars = hero_pillars | concat: block
+      else
+        assign standard_pillars = standard_pillars | concat: block
+      endif
+    elsif block.type == 'kid_creation_break'
+      if break_block == blank
+        assign break_block = block
+      endif
+    endif
+  endfor
+-%}
+
+<section
+  class="theinmag-for-parents-pillars"
+  aria-labelledby="theinmag-for-parents-pillars-heading-{{ section.id }}"
+  style="--theinmag-fpp-watermark-opacity: {{ watermark_opacity_decimal }};{% if watermark_filename != blank %} --theinmag-fpp-watermark: url('{{ watermark_filename | asset_url }}');{% endif %}"
+>
+  {%- if watermark_filename != blank -%}
+    <div class="theinmag-for-parents-pillars__watermark" aria-hidden="true"></div>
+  {%- endif -%}
+
+  <div class="theinmag-for-parents-pillars__inner">
+    <header class="theinmag-for-parents-pillars__header">
+      {%- if heading != blank -%}
+        <h2
+          id="theinmag-for-parents-pillars-heading-{{ section.id }}"
+          class="theinmag-for-parents-pillars__heading"
+        >
+          {{ heading }}
+        </h2>
+      {%- endif -%}
+
+      {%- if intro_text != blank -%}
+        <p class="theinmag-for-parents-pillars__intro">{{ intro_text }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- if hero_pillars.size > 0 -%}
+      <div class="theinmag-for-parents-pillars__diptych">
+        {%- for block in hero_pillars -%}
+          {%- liquid
+            assign headline_raw = block.settings.headline
+            assign headline_html = headline_raw | replace: '[[EM]]', '<span class="theinmag-emphasis">' | replace: '[[/EM]]', '</span>'
+          -%}
+          <div class="theinmag-for-parents-pillars__card theinmag-for-parents-pillars__card--hero" {{ block.shopify_attributes }}>
+            {%- if block.settings.accent_filename != blank -%}
+              <img
+                class="theinmag-for-parents-pillars__accent theinmag-for-parents-pillars__accent--{{ block.settings.accent_position | default: 'top-right' }}"
+                src="{{ block.settings.accent_filename | asset_url }}"
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+              >
+            {%- endif -%}
+
+            {%- if block.settings.eyebrow != blank -%}
+              <p class="theinmag-for-parents-pillars__eyebrow">{{ block.settings.eyebrow }}</p>
+            {%- endif -%}
+
+            {%- if headline_html != blank -%}
+              <p class="theinmag-for-parents-pillars__headline theinmag-for-parents-pillars__headline--hero">{{ headline_html }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.body != blank -%}
+              <p class="theinmag-for-parents-pillars__body">{{ block.settings.body }}</p>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if break_block != blank -%}
+      {%- liquid
+        assign break_image = break_block.settings.image
+        assign break_filename = break_block.settings.image_filename
+        assign break_alt = break_block.settings.image_alt | default: 'Kid creation from a recent issue of theINmag.'
+        assign break_caption = break_block.settings.caption
+      -%}
+      <figure class="theinmag-for-parents-pillars__break" {{ break_block.shopify_attributes }}>
+        {%- if break_image != blank -%}
+          <img
+            class="theinmag-for-parents-pillars__break-image"
+            src="{{ break_image | image_url: width: 1600 }}"
+            srcset="
+              {{ break_image | image_url: width: 600 }} 600w,
+              {{ break_image | image_url: width: 900 }} 900w,
+              {{ break_image | image_url: width: 1200 }} 1200w,
+              {{ break_image | image_url: width: 1600 }} 1600w
+            "
+            sizes="(min-width: 990px) 1120px, 90vw"
+            width="{{ break_image.width }}"
+            height="{{ break_image.height }}"
+            alt="{{ break_alt | escape }}"
+            loading="lazy"
+          >
+        {%- elsif break_filename != blank -%}
+          <img
+            class="theinmag-for-parents-pillars__break-image"
+            src="{{ break_filename | asset_url }}"
+            alt="{{ break_alt | escape }}"
+            loading="lazy"
+          >
+        {%- else -%}
+          <div class="theinmag-for-parents-pillars__break-placeholder" aria-label="Placeholder for the breathing-slot kid creation image (TBC asset)">
+            <span>TBC<br>Kid creation</span>
+          </div>
+        {%- endif -%}
+
+        {%- if break_caption != blank -%}
+          <figcaption class="theinmag-for-parents-pillars__break-caption">{{ break_caption }}</figcaption>
+        {%- endif -%}
+      </figure>
+    {%- endif -%}
+
+    {%- if standard_pillars.size > 0 -%}
+      <div class="theinmag-for-parents-pillars__trio">
+        {%- for block in standard_pillars -%}
+          <div class="theinmag-for-parents-pillars__card theinmag-for-parents-pillars__card--standard" {{ block.shopify_attributes }}>
+            {%- if block.settings.accent_filename != blank -%}
+              <img
+                class="theinmag-for-parents-pillars__accent theinmag-for-parents-pillars__accent--{{ block.settings.accent_position | default: 'top-right' }}"
+                src="{{ block.settings.accent_filename | asset_url }}"
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+              >
+            {%- endif -%}
+
+            {%- if block.settings.eyebrow != blank -%}
+              <p class="theinmag-for-parents-pillars__eyebrow">{{ block.settings.eyebrow }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.headline != blank -%}
+              <p class="theinmag-for-parents-pillars__headline theinmag-for-parents-pillars__headline--standard">{{ block.settings.headline }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.body != blank -%}
+              <p class="theinmag-for-parents-pillars__body">{{ block.settings.body }}</p>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-for-parents-pillars {
+    position: relative;
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(64px, 10vw, 120px) clamp(20px, 5vw, 64px);
+    overflow: hidden;
+  }
+
+  .theinmag-for-parents-pillars__watermark {
+    position: absolute;
+    inset: auto 0 0 auto;
+    width: clamp(280px, 35vw, 520px);
+    height: clamp(280px, 35vw, 520px);
+    background-image: var(--theinmag-fpp-watermark);
+    background-repeat: no-repeat;
+    background-position: bottom right;
+    background-size: contain;
+    background-attachment: fixed;
+    opacity: var(--theinmag-fpp-watermark-opacity, 0.1);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .theinmag-for-parents-pillars__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .theinmag-for-parents-pillars__header {
+    max-width: 60ch;
+    margin: 0 0 clamp(40px, 5vw, 64px);
+  }
+
+  .theinmag-for-parents-pillars__heading {
+    margin: 0 0 clamp(14px, 1.5vw, 18px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(28px, 4.5vw, 40px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-for-parents-pillars__intro {
+    margin: 0;
+    max-width: 50ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.6;
+    color: rgba(42, 31, 61, 0.78);
+  }
+
+  /* ================================================================
+     Diptych - 2 hero pillars, side-by-side desktop, stacked mobile.
+     ================================================================ */
+
+  .theinmag-for-parents-pillars__diptych {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(28px, 4vw, 48px);
+    margin: 0 0 clamp(40px, 6vw, 72px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-for-parents-pillars__diptych {
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(40px, 5vw, 64px);
+    }
+  }
+
+  /* ================================================================
+     Trio - 3 standard pillars, side-by-side desktop, stacked mobile.
+     ================================================================ */
+
+  .theinmag-for-parents-pillars__trio {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 3vw, 36px);
+    margin: clamp(40px, 6vw, 72px) 0 0;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-for-parents-pillars__trio {
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(28px, 3.5vw, 44px);
+    }
+  }
+
+  /* ================================================================
+     Card (shared shape for both diptych + trio cards)
+     ================================================================ */
+
+  .theinmag-for-parents-pillars__card {
+    position: relative;
+    background-color: #ffffff;
+    border-radius: var(--radius-lg, 20px);
+    padding: clamp(24px, 3vw, 36px);
+    overflow: visible;
+    box-shadow: 0 2px 12px rgba(42, 31, 61, 0.06);
+  }
+
+  .theinmag-for-parents-pillars__card--hero {
+    padding: clamp(28px, 3.5vw, 44px);
+  }
+
+  /* Accent artwork - tucked in a card corner, doesn't push layout. */
+
+  .theinmag-for-parents-pillars__accent {
+    position: absolute;
+    width: clamp(32px, 5vw, 60px);
+    height: auto;
+    pointer-events: none;
+  }
+
+  .theinmag-for-parents-pillars__accent--top-right {
+    top: clamp(-12px, -1vw, -8px);
+    right: clamp(-12px, -1vw, -8px);
+  }
+
+  .theinmag-for-parents-pillars__accent--top-left {
+    top: clamp(-12px, -1vw, -8px);
+    left: clamp(-12px, -1vw, -8px);
+  }
+
+  .theinmag-for-parents-pillars__accent--bottom-right {
+    bottom: clamp(-12px, -1vw, -8px);
+    right: clamp(-12px, -1vw, -8px);
+  }
+
+  .theinmag-for-parents-pillars__accent--bottom-left {
+    bottom: clamp(-12px, -1vw, -8px);
+    left: clamp(-12px, -1vw, -8px);
+  }
+
+  /* Card typography */
+
+  .theinmag-for-parents-pillars__eyebrow {
+    margin: 0 0 clamp(10px, 1.2vw, 14px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(123, 79, 158, 0.85);
+  }
+
+  .theinmag-for-parents-pillars__headline {
+    margin: 0 0 clamp(12px, 1.5vw, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-for-parents-pillars__headline--hero {
+    font-size: clamp(24px, 3.4vw, 32px);
+    line-height: 1.2;
+  }
+
+  .theinmag-for-parents-pillars__headline--standard {
+    font-size: clamp(20px, 2.4vw, 24px);
+    line-height: 1.25;
+  }
+
+  .theinmag-for-parents-pillars__body {
+    margin: 0;
+    max-width: 36ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.7;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* ================================================================
+     Breathing slot - full-bleed kid creation with bottom-right caption.
+     ================================================================ */
+
+  .theinmag-for-parents-pillars__break {
+    position: relative;
+    margin: clamp(40px, 6vw, 72px) 0;
+  }
+
+  .theinmag-for-parents-pillars__break-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-lg, 20px);
+  }
+
+  .theinmag-for-parents-pillars__break-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: rgba(123, 79, 158, 0.15);
+    color: rgba(123, 79, 158, 0.65);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: var(--radius-lg, 20px);
+  }
+
+  .theinmag-for-parents-pillars__break-caption {
+    position: absolute;
+    right: clamp(16px, 2vw, 24px);
+    bottom: clamp(16px, 2vw, 24px);
+    margin: 0;
+    padding: 6px 12px;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.3;
+    color: #ffffff;
+    background-color: rgba(20, 14, 30, 0.55);
+    border-radius: 999px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Mobile: trio accent artwork scales down so it doesn't crowd the
+     stacked cards. */
+  @media (max-width: 749px) {
+    .theinmag-for-parents-pillars__accent {
+      width: clamp(28px, 8vw, 40px);
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "For parents pillars",
+  "tag": "section",
+  "class": "theinmag-for-parents-pillars-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Diptych (2 hero pillars) + breathing slot (kid creation) + trio (3 standard pillars). Card order in the editor controls render order. Use `[[IN]]` in the heading where the brand-pun IN should render with the locked emphasis class. Use `[[EM]]Word[[/EM]]` inside a hero-pillar headline to wrap a word in the Caveat cherry-magenta emphasis stamp (max 1 word per headline per design system 8.2)."
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "Why do parents pick the [[IN]]mag for their kid?"
+    },
+    {
+      "type": "textarea",
+      "id": "intro_text",
+      "label": "Intro line",
+      "default": "Most kids' magazines are made by adults for kids. theINmag is made by kids for kids. That changes everything."
+    },
+    {
+      "type": "header",
+      "content": "Watermark (background decoration)"
+    },
+    {
+      "type": "text",
+      "id": "watermark_filename",
+      "label": "Watermark filename in /assets/",
+      "info": "Optional PNG anchored bottom-right, parallax-fixed. Leave blank to skip.",
+      "default": "kid-leaves_bottom_right.png"
+    },
+    {
+      "type": "range",
+      "id": "watermark_opacity",
+      "label": "Watermark opacity (%)",
+      "min": 0,
+      "max": 25,
+      "step": 1,
+      "default": 10
+    }
+  ],
+  "blocks": [
+    {
+      "type": "pillar",
+      "name": "Pillar",
+      "settings": [
+        {
+          "type": "select",
+          "id": "weight",
+          "label": "Pillar weight",
+          "info": "Hero = goes in the diptych (top, 2-up). Standard = goes in the trio (bottom, 3-up). Add 2 hero pillars + 3 standard pillars for the locked diptych-plus-row layout.",
+          "options": [
+            { "value": "hero", "label": "Hero (diptych, 2-up)" },
+            { "value": "standard", "label": "Standard (trio, 3-up)" }
+          ],
+          "default": "standard"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Eyebrow",
+          "info": "Small uppercase label above the headline. e.g. INSPIRATION / PUBLISHED / AD-FREE."
+        },
+        {
+          "type": "textarea",
+          "id": "headline",
+          "label": "Headline",
+          "info": "Hero pillars accept [[EM]]word[[/EM]] for Caveat emphasis."
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Body"
+        },
+        {
+          "type": "text",
+          "id": "accent_filename",
+          "label": "Accent artwork filename in /assets/",
+          "info": "Small PNG tucked in a card corner (rainbow, bundle1, etc). Optional."
+        },
+        {
+          "type": "select",
+          "id": "accent_position",
+          "label": "Accent position",
+          "options": [
+            { "value": "top-right", "label": "Top right" },
+            { "value": "top-left", "label": "Top left" },
+            { "value": "bottom-right", "label": "Bottom right" },
+            { "value": "bottom-left", "label": "Bottom left" }
+          ],
+          "default": "top-right"
+        }
+      ]
+    },
+    {
+      "type": "kid_creation_break",
+      "name": "Kid creation break",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Kid creation image"
+        },
+        {
+          "type": "text",
+          "id": "image_filename",
+          "label": "Fallback filename in /assets/"
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Image alt text"
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "label": "Caption (bottom-right)",
+          "info": "Named attribution. e.g. 'Maya, age 9 - Fremantle WA'"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "For parents pillars",
+      "blocks": [
+        {
+          "type": "pillar",
+          "settings": {
+            "weight": "hero",
+            "eyebrow": "INSPIRATION",
+            "headline": "A house full of [[EM]]ideas[[/EM]]. Three times a year.",
+            "body": "Every issue is 120+ pages of art, writing, comics, photography, jokes, puzzles and ideas - all made by other kids the same age. Hand it to your kid on a rainy Saturday. Twenty minutes later they're drawing their version, writing their own, building the thing they just read about. The magazine doesn't ask anything of them. It just sparks something.",
+            "accent_filename": "rainbow.png",
+            "accent_position": "top-right"
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "weight": "hero",
+            "eyebrow": "PUBLISHED",
+            "headline": "Publishing real [[EM]]Aussie kids[[/EM]].",
+            "body": "Every submission is reviewed by us - a small team of teachers, artists and parents. The ones that land get published with the kid's first name, surname initial, age, town, plus any write-up they want to share alongside it. Real paper. Real ink. Real proof their voice mattered.",
+            "accent_filename": "bundle3.png",
+            "accent_position": "bottom-left"
+          }
+        },
+        {
+          "type": "kid_creation_break",
+          "settings": {
+            "image_alt": "A kid creation from a recent issue of theINmag.",
+            "caption": "TBC - kid creation + attribution"
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "weight": "standard",
+            "eyebrow": "AD-FREE",
+            "headline": "No ads. Ever.",
+            "body": "Most kids' publications sell your kid's attention to brands. theINmag never has and never will. No banner ads, no sponsored content, no product placements, no brand integrations. This isn't a phase. It's the spine of what we built - and the reason your kid can flip through without being sold to.",
+            "accent_filename": "kid-leaves_topleft.png",
+            "accent_position": "top-right"
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "weight": "standard",
+            "eyebrow": "MADE HERE",
+            "headline": "Printed in Melbourne. Inks made from vegetables.",
+            "body": "No overseas factory. No petrochemical inks landing on the page your kid puts their face near. theINmag is printed locally in Melbourne using vegetable-based inks on FSC-certified paper - the way kids' print should be made, especially when little hands and noses get involved.",
+            "accent_filename": "bundle1.png",
+            "accent_position": "bottom-left"
+          }
+        },
+        {
+          "type": "pillar",
+          "settings": {
+            "weight": "standard",
+            "eyebrow": "OFF-SCREEN",
+            "headline": "Built to be read, not scrolled.",
+            "body": "No notifications. No algorithm. No infinite feed. Just one beautiful object that lands three times a year and rewards slow reading. The kind of thing your kid goes back to a week later, then a month later, then years later.",
+            "accent_filename": "bundle2.png",
+            "accent_position": "top-right"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

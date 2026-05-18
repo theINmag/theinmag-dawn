@@ -30,10 +30,13 @@
 
   assign pad_top = section.settings.padding_top | default: 128
   assign pad_bottom = section.settings.padding_bottom | default: 128
+
+  assign size_variant = section.settings.size_variant | default: 'default'
+  assign attribution_style = section.settings.attribution_style | default: 'uppercase_inter'
 -%}
 
 <section
-  class="theinmag-pull-quote theinmag-pull-quote--font-{{ heading_font_style }}"
+  class="theinmag-pull-quote theinmag-pull-quote--font-{{ heading_font_style }} theinmag-pull-quote--size-{{ size_variant }} theinmag-pull-quote--attr-{{ attribution_style }}"
   style="
     --pq-bg: url('{{ bg_src }}');
     --pq-scrim: rgba(20, 14, 30, {{ scrim_decimal }});
@@ -114,6 +117,14 @@
     line-height: 1.12;
   }
 
+  /* Size variants. Default is the canonical Membership-PDP sizing.
+     Large bumps for audience-page peak moments (For Parents) where
+     the pull quote is the page's signature and there's no review
+     wall below to share visual weight. */
+  .theinmag-pull-quote--size-large .theinmag-pull-quote__body {
+    font-size: clamp(28px, 4vw, 52px);
+  }
+
   .theinmag-pull-quote__attribution {
     margin-top: clamp(20px, 2.4vw, 32px);
     color: #FFFFFF;
@@ -124,7 +135,7 @@
     line-height: 1.4;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    /* Defensive resets — Dawn's base.css and Safari's mobile data
+    /* Defensive resets - Dawn's base.css and Safari's mobile data
        detector can each plant a dark rectangle behind text inside a
        <footer> inside a <blockquote>. Force every descendant to
        transparent + disable iOS data detection so words like "parent"
@@ -136,6 +147,28 @@
   .theinmag-pull-quote__attribution * {
     background-color: transparent !important;
     box-shadow: none !important;
+  }
+
+  /* Attribution style variants.
+     uppercase_inter (default): Inter 500 uppercase 0.06em - the
+     Membership-PDP / homepage canonical treatment.
+     caveat: hand-lettered, no uppercase, bigger, slightly offset
+     right - audience-page warm-voice treatment (e.g. "Lana" on
+     For Parents). */
+  .theinmag-pull-quote--attr-caveat .theinmag-pull-quote__attribution {
+    font-family: 'Caveat', 'Brush Script MT', cursive;
+    font-weight: 700;
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.2;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--color-coral-light, #FBC8BD);
+    opacity: 1;
+    text-align: right;
+    padding-right: clamp(0px, 4vw, 64px);
+  }
+  .theinmag-pull-quote--attr-caveat .theinmag-pull-quote__attribution span[aria-hidden] {
+    display: none;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -234,6 +267,28 @@
         { "value": "post", "label": "Post Regular (brand voice)" }
       ],
       "default": "inter"
+    },
+    {
+      "type": "select",
+      "id": "size_variant",
+      "label": "Size variant",
+      "info": "Default = Membership PDP / homepage sizing. Large = audience-page peak moment (bigger quote body, used when the pull quote is the page's signature with no review wall below).",
+      "options": [
+        { "value": "default", "label": "Default (clamp 22-44px)" },
+        { "value": "large", "label": "Large (clamp 28-52px)" }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "select",
+      "id": "attribution_style",
+      "label": "Attribution style",
+      "info": "Uppercase Inter = canonical, formal attribution. Caveat = hand-lettered, warm-voice attribution (e.g. just a first name on audience pages).",
+      "options": [
+        { "value": "uppercase_inter", "label": "Uppercase Inter (default)" },
+        { "value": "caveat", "label": "Caveat hand-lettered" }
+      ],
+      "default": "uppercase_inter"
     },
     {
       "type": "header",

@@ -1,0 +1,446 @@
+{%- comment -%}
+  theinmag-for-parents-comps
+  Section 4 of /pages/for-parents - competitions snapshot.
+
+  Renders 3 static comp cards from the auto-generated competitions
+  data snippet, filtered server-side by:
+    - audience marker contains 'parents' OR contains 'all'
+    - cross-promo tier contains 'Tier 1' (when filter_to_tier1 is on)
+  Then takes the first N matches (default 3) in CSV order. Ryan can
+  refine per-comp audience values in competitions-database.csv +
+  re-run _tools/build-competitions-data.py.
+
+  Adapts the spotlight-card pattern from theinmag-competitions.liquid
+  (the choice-gate + static stage source) WITHOUT the rotation, choice
+  gate, or 100vh stage. This is a curated 3-card snapshot only - the
+  "see all" CTA routes to /pages/competitions for the full experience.
+{%- endcomment -%}
+
+{%- include 'theinmag-competitions-data' -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign card_count = section.settings.card_count | default: 3
+  assign audience_token = section.settings.audience_token | default: 'parents'
+  assign filter_to_tier1 = section.settings.filter_to_tier1
+  assign all_cta_label = section.settings.all_cta_label
+  assign all_cta_link = section.settings.all_cta_link
+  assign bg_color = section.settings.bg_color | default: '#C9B5DB'
+
+  comment
+    Walk the parallel arrays and collect matching indices into a
+    comma-joined string. Pure index accumulator pattern - no nested
+    data, just integers we can iterate in the render loop below.
+    (| concat works on arrays of arrays; cleaner to accumulate as
+    a CSV string and split at the end.)
+  endcomment
+  assign total = comp_ids.size
+  assign idx_csv = ''
+  assign collected = 0
+  for i in (0..total)
+    if i >= total
+      break
+    endif
+    if collected >= card_count
+      break
+    endif
+
+    assign aud = comp_audiences[i] | default: 'all'
+    assign tier = comp_cross_tiers[i] | default: ''
+
+    assign aud_match = false
+    if aud contains audience_token or aud contains 'all'
+      assign aud_match = true
+    endif
+
+    assign tier_match = true
+    if filter_to_tier1
+      assign tier_match = false
+      if tier contains 'Tier 1'
+        assign tier_match = true
+      endif
+    endif
+
+    if aud_match and tier_match
+      if idx_csv == ''
+        assign idx_csv = i | append: ''
+      else
+        assign idx_csv = idx_csv | append: ',' | append: i
+      endif
+      assign collected = collected | plus: 1
+    endif
+  endfor
+
+  assign render_indices = idx_csv | split: ','
+-%}
+
+<section
+  class="theinmag-for-parents-comps"
+  aria-labelledby="theinmag-for-parents-comps-heading-{{ section.id }}"
+  style="--theinmag-fpc-bg: {{ bg_color }};"
+>
+  <div class="theinmag-for-parents-comps__inner">
+    <header class="theinmag-for-parents-comps__header">
+      {%- if heading != blank -%}
+        <h2
+          id="theinmag-for-parents-comps-heading-{{ section.id }}"
+          class="theinmag-for-parents-comps__heading"
+        >
+          {{ heading }}
+        </h2>
+      {%- endif -%}
+
+      {%- if subhead != blank -%}
+        <p class="theinmag-for-parents-comps__subhead">{{ subhead }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- if render_indices.size > 0 -%}
+      <ul class="theinmag-for-parents-comps__grid" role="list">
+        {%- for idx_str in render_indices -%}
+          {%- liquid
+            assign i = idx_str | plus: 0
+            assign comp_id = comp_ids[i]
+            assign comp_name = comp_names[i]
+            assign comp_category = comp_categories[i]
+            assign comp_pitch = comp_pitches[i]
+            assign comp_closing = comp_closing_dates[i]
+            assign comp_logo = comp_logos[i]
+            assign comp_letter = comp_letters[i]
+            assign comp_website = comp_websites[i]
+            assign comp_category_slug = comp_category_slugs[i]
+
+            assign pitch_short = comp_pitch | strip_html | truncatewords: 18
+
+            assign closing_display = ''
+            if comp_closing != blank and comp_closing != 'TBC'
+              assign closing_display = 'Entries close ' | append: comp_closing
+            endif
+          -%}
+          <li class="theinmag-for-parents-comps__card">
+            <a class="theinmag-for-parents-comps__card-link" href="{{ comp_website | default: '/pages/competitions' }}" target="_blank" rel="noopener">
+              <div class="theinmag-for-parents-comps__logo-wrap">
+                {%- if comp_logo != blank -%}
+                  <img
+                    class="theinmag-for-parents-comps__logo"
+                    src="{{ comp_logo | asset_url }}"
+                    alt="{{ comp_name | escape }} logo"
+                    loading="lazy"
+                  >
+                {%- else -%}
+                  <span class="theinmag-for-parents-comps__logo-fallback theinmag-for-parents-comps__logo-fallback--{{ comp_category_slug }}" aria-hidden="true">
+                    {{ comp_letter }}
+                  </span>
+                {%- endif -%}
+              </div>
+
+              <div class="theinmag-for-parents-comps__body">
+                {%- if comp_category != blank -%}
+                  <p class="theinmag-for-parents-comps__eyebrow">{{ comp_category | upcase }}</p>
+                {%- endif -%}
+
+                {%- if comp_name != blank -%}
+                  <p class="theinmag-for-parents-comps__title">{{ comp_name }}</p>
+                {%- endif -%}
+
+                {%- if pitch_short != blank -%}
+                  <p class="theinmag-for-parents-comps__pitch">{{ pitch_short }}</p>
+                {%- endif -%}
+
+                {%- if closing_display != blank -%}
+                  <p class="theinmag-for-parents-comps__closing">{{ closing_display }}</p>
+                {%- endif -%}
+
+                <span class="theinmag-for-parents-comps__details">See details &rarr;</span>
+              </div>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- else -%}
+      <p class="theinmag-for-parents-comps__empty">
+        No matching competitions in the database. Tag comps with audience '{{ audience_token }}' or 'all' in competitions-database.csv.
+      </p>
+    {%- endif -%}
+
+    {%- if all_cta_label != blank -%}
+      <div class="theinmag-for-parents-comps__cta-wrap">
+        <a class="theinmag-btn theinmag-btn--secondary" href="{{ all_cta_link | default: '/pages/competitions' }}">
+          {{ all_cta_label }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-for-parents-comps {
+    background-color: var(--theinmag-fpc-bg, #C9B5DB);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(64px, 10vw, 120px) clamp(20px, 5vw, 64px);
+  }
+
+  .theinmag-for-parents-comps__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .theinmag-for-parents-comps__header {
+    margin: 0 0 clamp(32px, 4vw, 48px);
+    max-width: 60ch;
+  }
+
+  .theinmag-for-parents-comps__heading {
+    margin: 0 0 clamp(12px, 1.5vw, 16px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 36px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-for-parents-comps__subhead {
+    margin: 0;
+    max-width: 60ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.6;
+    color: rgba(42, 31, 61, 0.78);
+  }
+
+  .theinmag-for-parents-comps__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 2vw, 24px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-for-parents-comps__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .theinmag-for-parents-comps__card {
+    background-color: #ffffff;
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(42, 31, 61, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .theinmag-for-parents-comps__card:hover,
+  .theinmag-for-parents-comps__card:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(42, 31, 61, 0.14);
+  }
+
+  .theinmag-for-parents-comps__card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    padding: clamp(20px, 2.5vw, 28px);
+  }
+
+  .theinmag-for-parents-comps__card-link:focus-visible {
+    outline: 2px solid var(--color-purple-dark, #7B4F9E);
+    outline-offset: 2px;
+  }
+
+  .theinmag-for-parents-comps__logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: rgba(123, 79, 158, 0.06);
+    border-radius: var(--radius-md, 12px);
+    margin: 0 0 clamp(16px, 2vw, 20px);
+    overflow: hidden;
+  }
+
+  .theinmag-for-parents-comps__logo {
+    max-width: 70%;
+    max-height: 70%;
+    object-fit: contain;
+  }
+
+  .theinmag-for-parents-comps__logo-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: var(--color-purple-dark, #7B4F9E);
+    color: #ffffff;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-size: 32px;
+    line-height: 1;
+  }
+
+  .theinmag-for-parents-comps__logo-fallback--art { background-color: var(--color-coral-dark, #B53A4A); }
+  .theinmag-for-parents-comps__logo-fallback--writing { background-color: var(--color-purple-dark, #7B4F9E); }
+  .theinmag-for-parents-comps__logo-fallback--photofilm { background-color: var(--color-teal-dark, #1F6F73); }
+  .theinmag-for-parents-comps__logo-fallback--stem { background-color: var(--color-sandy-orange-dark, #B86C2A); }
+  .theinmag-for-parents-comps__logo-fallback--performance { background-color: var(--color-sage-dark, #4E6A4E); }
+  .theinmag-for-parents-comps__logo-fallback--social-good { background-color: var(--color-purple-dark, #7B4F9E); }
+
+  .theinmag-for-parents-comps__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .theinmag-for-parents-comps__eyebrow {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    color: rgba(123, 79, 158, 0.85);
+  }
+
+  .theinmag-for-parents-comps__title {
+    margin: 4px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(18px, 2vw, 20px);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-for-parents-comps__pitch {
+    margin: 6px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(42, 31, 61, 0.75);
+  }
+
+  .theinmag-for-parents-comps__closing {
+    margin: 8px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-coral, #F7A092);
+  }
+
+  .theinmag-for-parents-comps__details {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-purple-dark, #7B4F9E);
+  }
+
+  .theinmag-for-parents-comps__cta-wrap {
+    margin-top: clamp(32px, 4vw, 48px);
+    text-align: center;
+  }
+
+  .theinmag-for-parents-comps__empty {
+    text-align: center;
+    padding: clamp(32px, 4vw, 48px) var(--space-md);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: rgba(42, 31, 61, 0.7);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-for-parents-comps__card {
+      transition: none;
+    }
+    .theinmag-for-parents-comps__card:hover,
+    .theinmag-for-parents-comps__card:focus-within {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "For parents comps",
+  "tag": "section",
+  "class": "theinmag-for-parents-comps-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "3 curated comp cards. Filters by audience marker (CSV column) + Tier 1 (locked Cross-promo tier). Default 'parents' audience. Source: competitions-database.csv via theinmag-competitions-data snippet."
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Something for your kid to aim at."
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "We comb through every Australian kids' competition worth entering - art, writing, photography, science - and curate the best ones into a single hub. Here are three running right now."
+    },
+    {
+      "type": "range",
+      "id": "card_count",
+      "label": "Number of cards",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "text",
+      "id": "audience_token",
+      "label": "Audience token to match",
+      "info": "Comps whose audience column contains this token OR 'all' will render. Use 'parents', 'teachers', 'homeschoolers', 'kids', or 'all'.",
+      "default": "parents"
+    },
+    {
+      "type": "checkbox",
+      "id": "filter_to_tier1",
+      "label": "Filter to Tier 1 comps only",
+      "info": "When on, only Cross-promo tier 'Tier 1' comps match. When off, any tier (including N/A) matches.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Section-level CTA"
+    },
+    {
+      "type": "text",
+      "id": "all_cta_label",
+      "label": "Button label",
+      "default": "See all current competitions"
+    },
+    {
+      "type": "url",
+      "id": "all_cta_link",
+      "label": "Button link"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background colour",
+      "default": "#C9B5DB"
+    }
+  ],
+  "presets": [
+    {
+      "name": "For parents comps"
+    }
+  ]
+}
+{% endschema %}
