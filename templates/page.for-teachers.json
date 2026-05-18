@@ -250,6 +250,21 @@
       },
       "block_order": ["i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9", "i10"]
     },
+    "consent-tile": {
+      "type": "theinmag-teacher-consent-tile",
+      "settings": {
+        "eyebrow": "MADE FOR BUSY TEACHERS",
+        "heading": "Two ways to make submissions easy.",
+        "subhead": "Because the last thing you need is more admin.",
+        "card_1_heading": "The annual consent",
+        "card_1_body": "<p>One signed form, all year covered. Download it, hand it out at the start of the year, collect them back, and you're good to submit student creations every issue.</p>",
+        "card_1_cta_label": "Download the consent form",
+        "card_2_heading": "The QR code on the wall",
+        "card_2_body": "<p>Every issue has a cut-out page with a massive QR code on the back. Pin it up. Kids scan with any iPad, take a photo of their creation, and submit themselves - even Grade 1 kids are doing this independently. Bonus: it's a great IT skill for them to practise.</p>",
+        "card_2_cta_label": "See how it works",
+        "card_2_cta_url": "/pages/send-in"
+      }
+    },
     "field-notes": {
       "type": "theinmag-blog-feed",
       "settings": {
@@ -362,6 +377,15 @@
         "padding_bottom": 96
       }
     },
+    "school-invoice-callout": {
+      "type": "theinmag-callout-strip",
+      "settings": {
+        "body": "<strong>Paying by school invoice?</strong> Just hit the <strong>School invoice</strong> button at checkout - we'll send it the same day, Net 14 terms.",
+        "bg_color": "cream",
+        "padding_top": 32,
+        "padding_bottom": 16
+      }
+    },
     "shop-trio": {
       "type": "theinmag-for-parents-shop-trio",
       "settings": {
@@ -419,53 +443,66 @@
       ]
     },
     "faq": {
-      "type": "theinmag-membership-faq",
+      "type": "theinmag-teacher-faq",
       "settings": {
-        "heading": "Common questions,<br>honestly answered.",
-        "bg_image_filename": "parents-FAQ.jpg",
-        "bg_image_opacity": 75
+        "heading": "Teacher questions, answered.",
+        "subhead": "The stuff teachers actually ask us."
       },
       "blocks": {
         "q1": {
-          "type": "faq_item",
+          "type": "item",
           "settings": {
-            "question": "What ages is theINmag for?",
-            "answer": "theINmag is designed for primary-age kids, with a sweet spot from 7 to 13. That said, we've had kids from age 3 right through to 16 sending in their creations and getting published. Every section is built to work for any age - the writing, the art, the puzzles, the photography - because the magazine carries the kids' voices exactly as they are. We don't alter the text. We don't polish the images. What you read is what they made."
+            "question": "Is theINmag aligned to the Australian Curriculum?",
+            "answer": "<p>Honest answer up front - no, and that's deliberate. Early on we considered mapping every section of theINmag to specific curriculum dot-points, but several school principals told us not to. Their reasoning stuck: prescriptive curriculum mapping takes the creativity out of your planning. It also locks the magazine into a single year level when it's actually built to be multi-age and multi-ability.</p><p>A piece in the Art Hub might inspire a Foundation kid to draw and a Year 6 kid to analyse composition. theINmag is the stimulus. You're the teacher. The lesson is yours to design.</p>"
           }
         },
         "q2": {
-          "type": "faq_item",
+          "type": "item",
           "settings": {
-            "question": "How does my kid get published?",
-            "answer": "Send their creation IN through our submission page - art, writing, photography, jokes, puzzles, comics, anything they've made. A small team of teachers, artists and parents considers every single submission. What we look for most isn't talent or polish - it's effort. The piece a kid clearly cared about, kept working on, made their own. Those are the ones that land in the next issue, published with the kid's first name, surname initial, age and town."
+            "question": "What year levels is theINmag suitable for?",
+            "answer": "<p>The magazine is created by and for Australian kids aged roughly 5 to 13, and it's deliberately open. Whether you're a Foundation teacher or running a Year 7 English block, there are elements in every issue you can pull into your planning - or use for informal classroom practice.</p><p>Younger students engage with the art, photography, jokes and visual prompts. Older students dive into the writing, problem-solving and career features. The same issue, used across multiple year levels, lands differently every time.</p>"
           }
         },
         "q3": {
-          "type": "faq_item",
+          "type": "item",
           "settings": {
-            "question": "What's the difference between the Memberships?",
-            "answer": "Three options. 4-Issue Membership ($89) - four issues paid upfront, our cheapest per-issue price for trying it. 8-Issue Membership ($159) - eight issues paid upfront, biggest saving per issue. Rolling Membership ($28.90 per drop) - one issue per drop, auto-renews at each release, cancel anytime from your account. All three include free shipping over $40."
+            "question": "How can I use theINmag in my classroom?",
+            "answer": "<p>The most common uses we see:</p><ul><li>Shared reading and mentor text analysis (Featured Story, Taste the PIE)</li><li>Visual prompts for 'I notice, I wonder' protocols (Art Hub, Snaps!)</li><li>Rich open numeracy tasks (We Can Solve It!)</li><li>Wellbeing circle-time discussions (Making the Best Me)</li><li>Inspiration for student submissions across literacy, art and photography units</li><li>Stimulus material in the art room - we've had art teachers running entire units off a single Art Hub spread</li></ul><p>theINmag sits beautifully alongside your existing planning. It's not a curriculum replacement, it's a high-quality stimulus your students will genuinely engage with.</p>"
           }
         },
         "q4": {
-          "type": "faq_item",
+          "type": "item",
           "settings": {
-            "question": "When does the next issue come out?",
-            "answer": "theINmag releases three times a year - 15 February, 15 June and 15 October. The next issue (Mag10) drops 15 June 2026. If you start a Membership today, you can pick whether to begin with the current issue (Mag09, in stock now) or the next one (Mag10, ships on release)."
+            "question": "Can my whole class share one digital copy?",
+            "answer": "<p>Yes - that's the whole point. Buy one digital issue and you're free to share it across your classroom, your year level, your staff, or your whole school. Project it on the board. Email it to colleagues. Send it home with families. Build a school library of every issue.</p><p>We do this because we want every kid in Australia to have access to theINmag - to know there's a special place for them to be seen, inspired and published. Locking the digital behind a per-user licence runs counter to everything we're trying to do. So we don't.</p>"
           }
         },
         "q5": {
-          "type": "faq_item",
+          "type": "item",
           "settings": {
-            "question": "Can I cancel a Rolling Membership?",
-            "answer": "Yes, anytime, from your account dashboard. No phone calls, no hoops, no guilt. The Rolling Membership exists so families can stay subscribed for as long as it's working for them, and stop the moment it isn't. We'd rather have a happy ex-Member than an annoyed current one."
+            "question": "Can schools pay by invoice?",
+            "answer": "<p>Yes. Schools can order theINmag and pay by invoice on Net 14 terms - no card needed at checkout. Email us through the <a href=\"/pages/contact\">contact page</a> or hit the <strong>School invoice</strong> button at checkout and we'll send the invoice the same day.</p><p>Bulk discounts apply automatically: 5+ Memberships = 5% off, 10+ Memberships = 10% off. The <a href=\"/products/build-a-bundle\">Build a Bundle</a> section is the easiest way to set up a class set - the discounts apply as you build. If you've got a more complex order, get in touch and we'll sort it manually.</p>"
           }
         },
         "q6": {
-          "type": "faq_item",
+          "type": "item",
           "settings": {
-            "question": "Is theINmag actually different from other kids' magazines?",
-            "answer": "Three things make it different. One, every page is made by Australian kids, not adult illustrators or content teams. Two, there are no ads, ever - no banner ads, no sponsored content, no brand integrations. Three, it's printed in Melbourne using vegetable-based inks on FSC-certified paper. If those things matter to you, theINmag is for you."
+            "question": "Do you offer classroom workshops or incursions?",
+            "answer": "<p>Yes - we run school visits across Australia, but it depends entirely on where we are at any given time (we're currently travelling around the country in a campervan with a small human).</p><p>What a workshop looks like is flexible. We've run full art workshops with classes. We've launched persuasive writing and poetry units alongside teachers. Some schools have us zip between classrooms doing half-hour introductions to the magazine. Others have wanted us in front of an assembly to hit every kid at once. We much prefer working with individual classes - the engagement runs deeper - but we're totally open to whatever works for your school.</p><p>Visit our <a href=\"/pages/workshops\">workshops page</a> to see where we'll be next.</p>"
+          }
+        },
+        "q7": {
+          "type": "item",
+          "settings": {
+            "question": "How do I submit my students' creations to theINmag?",
+            "answer": "<p>Easy - head to the <a href=\"/pages/send-in\">Send IN page</a> and follow the prompts. Every published creation needs parent or guardian consent, so the form includes a permission step.</p><p>Two workflows that work for busy teachers:</p><p><strong>The annual consent:</strong> Download our consent form, hand it out at the start of the year, collect them back, and you're good to submit student creations all year. No chasing consent every time inspiration strikes.</p><p><strong>The QR code on the wall:</strong> Every issue of theINmag has a cut-out page at the back with a massive QR code on it. Pin it up. If there's a spare iPad floating around the school, students can scan the code, take a photo of their creation and submit themselves - even kids from Grade 1 are doing this independently. Bonus: it's a great little IT skill for them to practise.</p>"
+          }
+        },
+        "q8": {
+          "type": "item",
+          "settings": {
+            "question": "What's a mentor text and why does it matter?",
+            "answer": "<p>A mentor text is a high-quality piece of writing used as a model to teach craft - structure, voice, vocabulary, technique. The best mentor texts feel achievable to the students reading them.</p><p>That's why kid-written mentor texts often outperform adult ones in the classroom: when a student reads a powerful piece written by another kid their age, they think 'I could do that too' - and that belief is half the battle. Every Featured Story and Taste the PIE piece in theINmag is a ready-made mentor text.</p>"
           }
         }
       },
@@ -475,7 +512,9 @@
         "q3",
         "q4",
         "q5",
-        "q6"
+        "q6",
+        "q7",
+        "q8"
       ]
     },
     "cross-link": {
@@ -544,9 +583,11 @@
     "statement",
     "comps",
     "curriculum-accordion",
+    "consent-tile",
     "field-notes",
     "founders",
     "pull-quote",
+    "school-invoice-callout",
     "shop-trio",
     "faq",
     "cross-link"

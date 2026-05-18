@@ -1,0 +1,400 @@
+{%- comment -%}
+  theinmag-teacher-faq
+  Teacher-targeted FAQ accordion for /pages/for-teachers. Built as a
+  single-open accordion with FAQPage JSON-LD structured data so the
+  Q&As surface as Google rich results.
+
+  Layout: centred heading + narrow column (max 900px) so the answers
+  read in an editorial column width. Section bg = peach-light tint
+  (matches curriculum-accordion bg for visual continuity).
+
+  Behaviour: only one item open at a time; first item open by default;
+  reduced-motion users get an instant snap.
+
+  Hyphens only, never em or en dashes.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading | default: 'Teacher questions, answered.'
+  assign subhead = section.settings.subhead | default: 'The stuff teachers actually ask us.'
+-%}
+
+<section
+  class="theinmag-teacher-faq"
+  aria-labelledby="theinmag-teacher-faq-heading-{{ section.id }}"
+>
+  <div class="theinmag-teacher-faq__inner">
+
+    <header class="theinmag-teacher-faq__header">
+      {%- if heading != blank -%}
+        <h2
+          id="theinmag-teacher-faq-heading-{{ section.id }}"
+          class="theinmag-teacher-faq__heading"
+        >
+          {{ heading }}
+        </h2>
+      {%- endif -%}
+
+      {%- if subhead != blank -%}
+        <p class="theinmag-teacher-faq__subhead">{{ subhead }}</p>
+      {%- endif -%}
+    </header>
+
+    <ul class="theinmag-teacher-faq__list" role="list" data-theinmag-teacher-faq>
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'item' -%}
+          {%- liquid
+            assign panel_id = 'theinmag-teacher-faq-panel-' | append: section.id | append: '-' | append: forloop.index0
+            assign trigger_id = 'theinmag-teacher-faq-trigger-' | append: section.id | append: '-' | append: forloop.index0
+            assign is_open_str = 'false'
+            assign aria_expanded = 'false'
+            if forloop.first
+              assign is_open_str = 'true'
+              assign aria_expanded = 'true'
+            endif
+          -%}
+          <li
+            class="theinmag-teacher-faq__item"
+            data-theinmag-faq-item
+            data-open="{{ is_open_str }}"
+            {{ block.shopify_attributes }}
+          >
+            <button
+              type="button"
+              class="theinmag-teacher-faq__trigger"
+              data-theinmag-faq-trigger
+              id="{{ trigger_id }}"
+              aria-expanded="{{ aria_expanded }}"
+              aria-controls="{{ panel_id }}"
+            >
+              <span class="theinmag-teacher-faq__question">{{ block.settings.question }}</span>
+              <svg class="theinmag-teacher-faq__plus" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+
+            <div
+              class="theinmag-teacher-faq__panel"
+              data-theinmag-faq-panel
+              id="{{ panel_id }}"
+              role="region"
+              aria-labelledby="{{ trigger_id }}"
+            >
+              <div class="theinmag-teacher-faq__answer">
+                {{ block.settings.answer }}
+              </div>
+            </div>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+
+{%- comment -%}
+  FAQPage JSON-LD. Plain text only (strip_html removes any richtext
+  formatting). Each item's question + answer becomes a Q&A pair.
+  Schema.org FAQPage spec - used by Google for FAQ rich results.
+{%- endcomment -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- assign item_count = 0 -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'item' -%}
+        {%- if item_count > 0 -%},{%- endif -%}
+        {
+          "@type": "Question",
+          "name": {{ block.settings.question | json }},
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": {{ block.settings.answer | strip_html | strip_newlines | json }}
+          }
+        }
+        {%- assign item_count = item_count | plus: 1 -%}
+      {%- endif -%}
+    {%- endfor -%}
+  ]
+}
+</script>
+
+<script>
+(function () {
+  var roots = document.querySelectorAll('[data-theinmag-teacher-faq]');
+  if (!roots.length) return;
+
+  function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  function setItemState(item, open) {
+    var trigger = item.querySelector('[data-theinmag-faq-trigger]');
+    var panel = item.querySelector('[data-theinmag-faq-panel]');
+    if (!trigger || !panel) return;
+
+    if (open) {
+      item.setAttribute('data-open', 'true');
+      trigger.setAttribute('aria-expanded', 'true');
+      panel.style.maxHeight = prefersReducedMotion() ? 'none' : panel.scrollHeight + 'px';
+    } else {
+      item.setAttribute('data-open', 'false');
+      trigger.setAttribute('aria-expanded', 'false');
+      panel.style.maxHeight = '';
+    }
+  }
+
+  Array.prototype.forEach.call(roots, function (root) {
+    var items = Array.prototype.slice.call(root.querySelectorAll('[data-theinmag-faq-item]'));
+    if (!items.length) return;
+
+    items.forEach(function (item) {
+      setItemState(item, item.getAttribute('data-open') === 'true');
+    });
+
+    root.addEventListener('click', function (event) {
+      var trigger = event.target.closest('[data-theinmag-faq-trigger]');
+      if (!trigger || !root.contains(trigger)) return;
+      var item = trigger.closest('[data-theinmag-faq-item]');
+      if (!item) return;
+      var wasOpen = item.getAttribute('data-open') === 'true';
+      items.forEach(function (other) { setItemState(other, false); });
+      if (!wasOpen) setItemState(item, true);
+    });
+
+    var raf = null;
+    window.addEventListener('resize', function () {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(function () {
+        items.forEach(function (item) {
+          if (item.getAttribute('data-open') === 'true') {
+            var panel = item.querySelector('[data-theinmag-faq-panel]');
+            if (panel && !prefersReducedMotion()) {
+              panel.style.maxHeight = panel.scrollHeight + 'px';
+            }
+          }
+        });
+      });
+    });
+  });
+})();
+</script>
+
+{% stylesheet %}
+  .theinmag-teacher-faq {
+    background-color: #FDECD0;
+    padding: clamp(64px, 10vw, 120px) clamp(20px, 5vw, 64px);
+  }
+
+  .theinmag-teacher-faq__inner {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .theinmag-teacher-faq__header {
+    text-align: center;
+    margin-bottom: clamp(48px, 6vw, 80px);
+  }
+
+  .theinmag-teacher-faq__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.1;
+    color: var(--color-text, #2A1F3D);
+  }
+
+  .theinmag-teacher-faq__subhead {
+    margin: clamp(8px, 1vw, 14px) 0 0;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: clamp(20px, 2.5vw, 26px);
+    line-height: 1.2;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-teacher-faq__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .theinmag-teacher-faq__item {
+    background-color: var(--color-cream, #FBF6EA);
+    border: 1px solid rgba(123, 79, 158, 0.15);
+    border-radius: var(--radius-sm, 6px);
+    overflow: hidden;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .theinmag-teacher-faq__item:hover:not([data-open="true"]) {
+    background-color: #FDECD0;
+    transform: translateY(-2px);
+  }
+
+  .theinmag-teacher-faq__item[data-open="true"] {
+    background-color: #ffffff;
+    border-color: rgba(123, 79, 158, 0.4);
+  }
+
+  .theinmag-teacher-faq__trigger {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 16px 20px;
+    min-height: 64px;
+    background: transparent;
+    border: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-teacher-faq__trigger {
+      padding: 20px 24px;
+      min-height: 72px;
+    }
+  }
+
+  .theinmag-teacher-faq__question {
+    flex: 1 1 auto;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(16px, 1.8vw, 18px);
+    line-height: 1.4;
+    color: var(--color-text, #2A1F3D);
+  }
+
+  .theinmag-teacher-faq__plus {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    color: var(--color-purple-dark, #5D3A7A);
+    transition: transform 0.25s ease;
+  }
+
+  .theinmag-teacher-faq__item[data-open="true"] .theinmag-teacher-faq__plus {
+    transform: rotate(45deg);
+  }
+
+  .theinmag-teacher-faq__panel {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.4s ease;
+  }
+
+  .theinmag-teacher-faq__answer {
+    padding: 4px 20px 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease 0.1s;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-text, #2A1F3D);
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-teacher-faq__answer {
+      padding: 4px 24px 24px;
+    }
+  }
+
+  .theinmag-teacher-faq__item[data-open="true"] .theinmag-teacher-faq__answer {
+    opacity: 1;
+  }
+
+  .theinmag-teacher-faq__answer p {
+    margin: 0 0 12px;
+  }
+
+  .theinmag-teacher-faq__answer p:last-child {
+    margin-bottom: 0;
+  }
+
+  .theinmag-teacher-faq__answer ul,
+  .theinmag-teacher-faq__answer ol {
+    margin: 0 0 12px;
+    padding-left: 20px;
+  }
+
+  .theinmag-teacher-faq__answer li {
+    margin-bottom: 6px;
+  }
+
+  .theinmag-teacher-faq__answer a {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration: underline;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-teacher-faq__item,
+    .theinmag-teacher-faq__plus,
+    .theinmag-teacher-faq__panel,
+    .theinmag-teacher-faq__answer {
+      transition: none;
+    }
+    .theinmag-teacher-faq__item:hover {
+      transform: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Teacher FAQ",
+  "tag": "section",
+  "class": "theinmag-teacher-faq-section",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Single-open FAQ accordion with FAQPage JSON-LD structured data for Google rich results. First item opens on load."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "Teacher questions, answered."
+    },
+    {
+      "type": "text",
+      "id": "subhead",
+      "label": "Subhead (Caveat)",
+      "default": "The stuff teachers actually ask us."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "FAQ item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Teacher FAQ"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,132 @@
+{%- comment -%}
+  theinmag-callout-strip
+  Single-line inline callout that sits between two full-section
+  blocks. Minimal pill on a tinted background, used for tactical
+  notes (e.g. school-invoice signpost above shop-trio). No CTA, no
+  layout - just a sentence the eye picks up while scanning.
+
+  Hyphens only, never em or en dashes.
+{%- endcomment -%}
+
+{%- liquid
+  assign body = section.settings.body | default: ''
+  assign bg = section.settings.bg_color | default: 'cream'
+  assign pt = section.settings.padding_top | default: 24
+  assign pb = section.settings.padding_bottom | default: 24
+
+  assign bg_var = '--color-cream'
+  case bg
+    when 'cream'
+      assign bg_var = '--color-cream'
+    when 'white'
+      assign bg_var = '--color-white'
+    when 'lavender'
+      assign bg_var = '--color-lavender'
+    when 'peach'
+      assign bg_var = '--color-peach'
+    when 'mint'
+      assign bg_var = '--color-mint'
+    when 'sky'
+      assign bg_var = '--color-sky'
+  endcase
+
+  assign section_style = '--tcs-pt: ' | append: pt | append: 'px; --tcs-pb: ' | append: pb | append: 'px; background-color: var(' | append: bg_var | append: ', #FBF6EA);'
+-%}
+
+<section class="theinmag-callout-strip" style="{{ section_style }}">
+  <div class="theinmag-callout-strip__inner">
+    {%- if body != blank -%}
+      <p class="theinmag-callout-strip__pill">{{ body }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .theinmag-callout-strip {
+    padding: var(--tcs-pt, 24px) clamp(20px, 5vw, 64px) var(--tcs-pb, 24px);
+    text-align: center;
+  }
+
+  .theinmag-callout-strip__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .theinmag-callout-strip__pill {
+    display: inline-block;
+    margin: 0;
+    padding: 10px 22px;
+    border-radius: 999px;
+    background-color: #ffffff;
+    border: 1px solid rgba(123, 79, 158, 0.18);
+    box-shadow: 0 1px 6px rgba(42, 31, 61, 0.05);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(13px, 1.4vw, 15px);
+    line-height: 1.5;
+    color: var(--color-text, #2A1F3D);
+    max-width: 100%;
+  }
+
+  .theinmag-callout-strip__pill strong {
+    font-weight: 700;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "theINmag callout strip",
+  "tag": "section",
+  "class": "theinmag-callout-strip-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "One-line inline callout in a pill. Use <strong>...</strong> for emphasis. No CTA - reach for split-tile if you need a button."
+    },
+    {
+      "type": "textarea",
+      "id": "body",
+      "label": "Callout text",
+      "info": "Plain text or limited HTML (<strong>, <a>)."
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Section background",
+      "options": [
+        { "value": "cream", "label": "Cream" },
+        { "value": "white", "label": "White" },
+        { "value": "lavender", "label": "Lavender" },
+        { "value": "peach", "label": "Peach" },
+        { "value": "mint", "label": "Mint" },
+        { "value": "sky", "label": "Sky" }
+      ],
+      "default": "cream"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top (px)",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom (px)",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "default": 24
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag callout strip"
+    }
+  ]
+}
+{% endschema %}
