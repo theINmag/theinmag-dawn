@@ -1,0 +1,36 @@
+{
+  "sections": {
+    "hero": {
+      "type": "theinmag-partnership-hero",
+      "settings": {
+        "heading": "Build something with theINmag",
+        "subhead": "Brands, schools, festivals, fellow creators - if you've got an idea that celebrates kids, we'd love to chat. Even rough thoughts welcome.",
+        "bg_filename": "Market_setup2.jpg",
+        "padding_top": 48,
+        "padding_bottom": 40
+      }
+    },
+    "form": {
+      "type": "theinmag-partnership-form",
+      "settings": {
+        "heading": "Tell us what you're imagining",
+        "intro_html": "<p>We're open to all kinds of partnerships - brand collabs, editorial features, events, school programs, anything that celebrates kids. Even a half-formed idea is plenty. We'd rather brainstorm together than make you write a pitch deck.</p>",
+        "submit_label": "We'll be in touch.",
+        "success_heading": "Got it!",
+        "success_body": "Thanks for getting in touch - we read every message personally. If it feels like a good fit, we'll be back in your inbox within a week to start the brainstorm properly.",
+        "success_cta_label": "Read field notes",
+        "success_cta_url": "/blogs/field-notes",
+        "success_secondary_label": "← Send another idea",
+        "social_text": "Curious to see what theINmag is about? Find us on Instagram and Facebook.",
+        "instagram_url": "https://www.instagram.com/the.inmag/",
+        "facebook_url": "https://www.facebook.com/theINmagazine",
+        "padding_top": 56,
+        "padding_bottom": 56
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "form"
+  ]
+}

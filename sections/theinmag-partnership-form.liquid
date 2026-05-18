@@ -1,0 +1,828 @@
+{%- comment -%}
+  theinmag-partnership-form
+  Section 2 of /pages/partnerships. Single-column form (~640px max)
+  centred on a cream background - visually consistent with
+  theinmag-stockist-apply-form. Cloned with adjusted fields and copy:
+  the form is open to brands, schools, festivals, fellow publications,
+  charities, anyone reaching out with a collab idea.
+
+  Form uses Shopify {% form 'contact' %} so submissions route to the
+  store's notification email (heyhey@theinmag.com.au). Partnership-
+  specific fields are passed as contact[<key>] - they render in the
+  notification email body labelled with the bracketed key.
+
+  Fields collected:
+    - Name (required)                 contact[name]
+    - Email (required)                contact[email]
+    - Brand / organisation (required) contact[organisation]
+    - Phone (optional)                contact[phone]
+    - Website / Instagram (optional)  contact[web_or_social]
+    - Partnership type (required)     contact[partnership_type]    select
+    - What are you imagining (req)    contact[body]                textarea
+
+  The select dropdown gives Ryan triage data in the inbox; the textarea
+  is the brainstorm prompt with a placeholder that explicitly invites
+  half-formed ideas so people don't feel they need a pitch deck.
+
+  States:
+    - Default:                        form visible
+    - form.posted_successfully?:      form REPLACED with thank-you block
+    - form.errors:                    error messages above the form,
+                                      form values preserved (Shopify
+                                      auto-preserves form.name,
+                                      form.email, form.body - extra
+                                      fields preserve via the value="
+                                      lookups + select-selected logic).
+
+  Honeypot bot trap is a hidden field; JS blocks submission if filled.
+  Pattern matches theinmag-stockist-apply-form for consistency.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign intro = section.settings.intro_html
+  assign submit_label = section.settings.submit_label
+
+  assign success_heading = section.settings.success_heading
+  assign success_body = section.settings.success_body
+  assign success_cta_label = section.settings.success_cta_label
+  assign success_cta_url = section.settings.success_cta_url
+  assign success_secondary_label = section.settings.success_secondary_label
+
+  assign section_style = '--pf-pt: ' | append: section.settings.padding_top | append: 'px; --pf-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+
+  # Partnership-type options. Pipe-delimited so adding/reordering is a
+  # one-line change. Ryan can ask for new buckets when the inbox tells
+  # us what's actually arriving. "Something else" stays last as the
+  # catch-all so it doesn't bias picks toward itself.
+  assign partnership_options_raw = "Brand collaboration|Editorial feature or guest content|Event, festival or workshop|Cross-promotion or media swap|Schools or curriculum partnership|Charity or community organisation|Something else (tell us below!)"
+  assign partnership_options = partnership_options_raw | split: "|"
+-%}
+
+<section
+  class="theinmag-partnership-form"
+  data-theinmag-partnership-form
+  aria-labelledby="theinmag-partnership-form-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-partnership-form__inner">
+
+    {%- form 'contact', id: 'theinmag-partnership-form-element', class: 'theinmag-partnership-form__form' -%}
+      {%- if form.posted_successfully? -%}
+        {%- comment -%} Thank-you block - replaces the form in the same column {%- endcomment -%}
+        <div class="theinmag-partnership-form__thanks" tabindex="-1" autofocus>
+          <div class="theinmag-partnership-form__thanks-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" focusable="false">
+              <circle cx="32" cy="32" r="32" fill="#F9C23C"/>
+              <path d="M19 33.5 L28 42 L46 23" fill="none" stroke="#2A1F3D" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          {%- if success_heading != blank -%}
+            <h2 class="theinmag-partnership-form__thanks-heading">{{ success_heading }}</h2>
+          {%- endif -%}
+          {%- if success_body != blank -%}
+            <p class="theinmag-partnership-form__thanks-body">{{ success_body }}</p>
+          {%- endif -%}
+          {%- if success_cta_label != blank and success_cta_url != blank -%}
+            <a class="theinmag-btn theinmag-btn--primary theinmag-partnership-form__thanks-cta" href="{{ success_cta_url }}">{{ success_cta_label }}</a>
+          {%- endif -%}
+          {%- if success_secondary_label != blank -%}
+            <a class="theinmag-partnership-form__thanks-back" href="{{ page.url | default: '/pages/partnerships' }}">{{ success_secondary_label }}</a>
+          {%- endif -%}
+        </div>
+      {%- else -%}
+        <header class="theinmag-partnership-form__header">
+          {%- if heading != blank -%}
+            <h2 id="theinmag-partnership-form-heading" class="theinmag-partnership-form__heading">{{ heading }}</h2>
+          {%- endif -%}
+          {%- if intro != blank -%}
+            <div class="theinmag-partnership-form__intro">{{ intro }}</div>
+          {%- endif -%}
+        </header>
+
+        {%- if form.errors -%}
+          <div class="theinmag-partnership-form__errors" role="alert" tabindex="-1" autofocus>
+            <p class="theinmag-partnership-form__errors-heading">We couldn't send your message just yet:</p>
+            <ul class="theinmag-partnership-form__errors-list">
+              {%- for field in form.errors -%}
+                <li>
+                  {%- assign translated = form.errors.translated_fields[field] | default: field -%}
+                  {{ translated | capitalize }} {{ form.errors.messages[field] }}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+
+        <div class="theinmag-partnership-form__row">
+          <div class="theinmag-partnership-form__field">
+            <label class="theinmag-partnership-form__label" for="theinmag-partnership-form-name">Your name <span class="theinmag-partnership-form__required" aria-hidden="true">*</span></label>
+            <input
+              class="theinmag-partnership-form__input"
+              type="text"
+              id="theinmag-partnership-form-name"
+              name="contact[name]"
+              autocomplete="name"
+              required
+              value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.first_name }}{% endif %}"
+            >
+          </div>
+
+          <div class="theinmag-partnership-form__field">
+            <label class="theinmag-partnership-form__label" for="theinmag-partnership-form-email">Email <span class="theinmag-partnership-form__required" aria-hidden="true">*</span></label>
+            <input
+              class="theinmag-partnership-form__input"
+              type="email"
+              id="theinmag-partnership-form-email"
+              name="contact[email]"
+              autocomplete="email"
+              spellcheck="false"
+              autocapitalize="off"
+              required
+              aria-required="true"
+              {% if form.errors contains 'email' %}aria-invalid="true"{% endif %}
+              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+            >
+          </div>
+        </div>
+
+        <div class="theinmag-partnership-form__field">
+          <label class="theinmag-partnership-form__label" for="theinmag-partnership-form-organisation">Brand or organisation <span class="theinmag-partnership-form__required" aria-hidden="true">*</span></label>
+          <input
+            class="theinmag-partnership-form__input"
+            type="text"
+            id="theinmag-partnership-form-organisation"
+            name="contact[organisation]"
+            autocomplete="organization"
+            required
+            value="{{ form.organisation }}"
+          >
+        </div>
+
+        <div class="theinmag-partnership-form__row">
+          <div class="theinmag-partnership-form__field">
+            <label class="theinmag-partnership-form__label" for="theinmag-partnership-form-phone">Phone <span class="theinmag-partnership-form__optional">(optional)</span></label>
+            <input
+              class="theinmag-partnership-form__input"
+              type="tel"
+              id="theinmag-partnership-form-phone"
+              name="contact[phone]"
+              autocomplete="tel"
+              inputmode="tel"
+              value="{{ form.phone }}"
+            >
+          </div>
+
+          <div class="theinmag-partnership-form__field">
+            <label class="theinmag-partnership-form__label" for="theinmag-partnership-form-web">Website or Instagram <span class="theinmag-partnership-form__optional">(optional)</span></label>
+            <input
+              class="theinmag-partnership-form__input"
+              type="text"
+              id="theinmag-partnership-form-web"
+              name="contact[web_or_social]"
+              placeholder="https://yourbrand.com or @yourbrand"
+              autocomplete="url"
+              value="{{ form.web_or_social }}"
+            >
+          </div>
+        </div>
+
+        <div class="theinmag-partnership-form__field">
+          <label class="theinmag-partnership-form__label" for="theinmag-partnership-form-type">What kind of partnership? <span class="theinmag-partnership-form__required" aria-hidden="true">*</span></label>
+          <select
+            class="theinmag-partnership-form__input theinmag-partnership-form__select"
+            id="theinmag-partnership-form-type"
+            name="contact[partnership_type]"
+            required
+          >
+            <option value="" {% unless form.partnership_type %}selected{% endunless %}>Choose one...</option>
+            {%- for opt in partnership_options -%}
+              <option value="{{ opt }}" {% if form.partnership_type == opt %}selected{% endif %}>{{ opt }}</option>
+            {%- endfor -%}
+          </select>
+        </div>
+
+        <div class="theinmag-partnership-form__field">
+          <label class="theinmag-partnership-form__label" for="theinmag-partnership-form-body">What are you imagining? <span class="theinmag-partnership-form__required" aria-hidden="true">*</span></label>
+          <textarea
+            class="theinmag-partnership-form__input theinmag-partnership-form__textarea"
+            id="theinmag-partnership-form-body"
+            name="contact[body]"
+            rows="5"
+            placeholder="A few rough thoughts is plenty - what's the seed of the idea? Even half-formed sketches help us prepare for our first chat."
+            required
+          >{{ form.body }}</textarea>
+        </div>
+
+        {%- comment -%}
+          Honeypot. Visually-hidden + autocomplete="off" + tabindex=-1
+          so humans never reach it; bots auto-fill, JS blocks submit.
+        {%- endcomment -%}
+        <div class="theinmag-partnership-form__honeypot" aria-hidden="true">
+          <label for="theinmag-partnership-form-website">Leave this field empty</label>
+          <input type="text" id="theinmag-partnership-form-website" name="contact[website]" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="theinmag-partnership-form__submit-row">
+          <p class="theinmag-partnership-form__submit-promise">{{ submit_label | default: "We'll be in touch." }}</p>
+          {%- comment -%}
+            Icon-only submit - yellow stamp circle, same paper-plane SVG
+            the stockist apply form and FREE e-mag flyout use, so the
+            "we'll respond" moments share visual lineage.
+          {%- endcomment -%}
+          <button
+            type="submit"
+            class="theinmag-partnership-form__submit-btn"
+            aria-label="Send my message"
+            title="Send"
+          >
+            <svg class="theinmag-partnership-form__submit-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 11.5 21 3l-6 18-3.6-7.4L3 11.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      {%- endif -%}
+    {%- endform -%}
+
+    {%- comment -%}
+      Social-proof footer - same Instagram + Facebook nudge as the
+      stockist apply form, kept understated.
+    {%- endcomment -%}
+    {%- if section.settings.social_text != blank -%}
+      <aside class="theinmag-partnership-form__social" aria-label="Follow theINmag">
+        <p class="theinmag-partnership-form__social-text">{{ section.settings.social_text }}</p>
+        <ul class="theinmag-partnership-form__social-list" role="list">
+          {%- if section.settings.instagram_url != blank -%}
+            <li>
+              <a
+                class="theinmag-partnership-form__social-icon theinmag-partnership-form__social-icon--instagram"
+                href="{{ section.settings.instagram_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="theINmag on Instagram"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false">
+                  <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor"></circle>
+                </svg>
+              </a>
+            </li>
+          {%- endif -%}
+          {%- if section.settings.facebook_url != blank -%}
+            <li>
+              <a
+                class="theinmag-partnership-form__social-icon theinmag-partnership-form__social-icon--facebook"
+                href="{{ section.settings.facebook_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="theINmag on Facebook"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                  <path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.7c0-.9.3-1.5 1.6-1.5h1.7V4.3a23 23 0 0 0-2.5-.1c-2.5 0-4.2 1.5-4.2 4.3v2.4H7.4V14h2.7v8h3.4Z"></path>
+                </svg>
+              </a>
+            </li>
+          {%- endif -%}
+        </ul>
+      </aside>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-partnership-form
+     Cream background. Single-column, max-width ~540px so the form
+     stays close to the eye on desktop. Field rows pair up at desktop
+     (name+email, phone+website) for vertical compactness; stack on
+     mobile.
+     ================================================================ */
+
+  .theinmag-partnership-form {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--pf-pt, 56px) clamp(16px, 4vw, 32px) var(--pf-pb, 56px);
+    position: relative;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-partnership-form {
+      padding-top: calc(var(--pf-pt, 56px) * 1.2);
+      padding-bottom: calc(var(--pf-pb, 56px) * 1.2);
+    }
+  }
+
+  .theinmag-partnership-form__inner {
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .theinmag-partnership-form__form {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+
+  .theinmag-partnership-form__header {
+    margin-bottom: clamp(8px, 1vw, 14px);
+    text-align: left;
+  }
+
+  .theinmag-partnership-form__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(26px, 3.4vw, 34px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0 0 clamp(10px, 1.2vw, 14px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-partnership-form__intro {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.3vw, 16px);
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.92;
+    margin: 0;
+  }
+
+  .theinmag-partnership-form__intro p {
+    margin: 0 0 0.7em;
+  }
+  .theinmag-partnership-form__intro p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ----- Errors ----- */
+  .theinmag-partnership-form__errors {
+    background-color: #FBE0D6;
+    color: #8B2D1A;
+    border-radius: var(--radius-md, 12px);
+    padding: clamp(12px, 1.6vw, 16px) clamp(14px, 1.8vw, 18px);
+    border-left: 4px solid var(--color-coral-dark, #C9543E);
+  }
+
+  .theinmag-partnership-form__errors-heading {
+    margin: 0 0 6px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .theinmag-partnership-form__errors-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ----- Field rows (paired at desktop) ----- */
+  .theinmag-partnership-form__row {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-partnership-form__row {
+      flex-direction: row;
+      gap: clamp(14px, 1.8vw, 20px);
+    }
+    .theinmag-partnership-form__row .theinmag-partnership-form__field {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+
+  /* ----- Single field ----- */
+  .theinmag-partnership-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .theinmag-partnership-form__label {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 11.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+  }
+
+  .theinmag-partnership-form__required {
+    color: var(--color-coral-dark, #C9543E);
+    margin-left: 2px;
+  }
+
+  .theinmag-partnership-form__optional {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.55;
+    font-weight: 400;
+    margin-left: 4px;
+  }
+
+  .theinmag-partnership-form__input {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    background-color: #FFFFFF;
+    border: 1.5px solid rgba(42, 31, 61, 0.15);
+    border-radius: var(--radius-md, 12px);
+    padding: 11px 14px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color var(--transition-standard, 0.15s ease), box-shadow var(--transition-standard, 0.15s ease);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .theinmag-partnership-form__input:focus,
+  .theinmag-partnership-form__input:focus-visible {
+    border-color: var(--color-purple-dark, #5D3A7A);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(93, 58, 122, 0.15);
+  }
+
+  .theinmag-partnership-form__input[aria-invalid="true"] {
+    border-color: var(--color-coral-dark, #C9543E);
+  }
+
+  .theinmag-partnership-form__textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.55;
+  }
+
+  /* ----- Select dropdown ----- */
+  /* Custom chevron rendered as inline SVG background so the select
+     matches the input border + radius. Padding-right reserves space
+     so the chevron doesn't collide with the longest option text. */
+  .theinmag-partnership-form__select {
+    padding-right: 40px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%232A1F3D' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px 14px;
+  }
+
+  /* Quiet the "Choose one..." placeholder so it reads as a hint, not
+     a real choice. Same trick as input::placeholder opacity. */
+  .theinmag-partnership-form__select:has(option[value=""]:checked) {
+    color: rgba(42, 31, 61, 0.55);
+  }
+
+  /* ----- Honeypot ----- */
+  .theinmag-partnership-form__honeypot {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* ----- Submit row ----- */
+  .theinmag-partnership-form__submit-row {
+    margin-top: clamp(10px, 1.4vw, 16px);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(14px, 1.6vw, 20px);
+    flex-wrap: wrap;
+  }
+
+  .theinmag-partnership-form__submit-promise {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(15px, 1.3vw, 16px);
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.9;
+  }
+
+  .theinmag-partnership-form__submit-btn {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    border-radius: 50%;
+    box-shadow: 0 4px 0 var(--color-yellow-shadow, #D4A02E);
+    transition: transform 0.15s ease,
+                box-shadow 0.15s ease,
+                background-color 0.15s ease,
+                color 0.15s ease;
+  }
+
+  .theinmag-partnership-form__submit-btn:hover,
+  .theinmag-partnership-form__submit-btn:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #4A2D62;
+    outline: none;
+  }
+  .theinmag-partnership-form__submit-btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-purple-dark, #5D3A7A),
+                0 2px 0 #4A2D62;
+  }
+
+  .theinmag-partnership-form__submit-icon {
+    transition: transform 0.2s ease;
+  }
+  .theinmag-partnership-form__submit-btn:hover .theinmag-partnership-form__submit-icon,
+  .theinmag-partnership-form__submit-btn:focus-visible .theinmag-partnership-form__submit-icon {
+    transform: translate(2px, -2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-partnership-form__submit-btn,
+    .theinmag-partnership-form__submit-icon {
+      transition: none;
+    }
+    .theinmag-partnership-form__submit-btn:hover,
+    .theinmag-partnership-form__submit-btn:focus-visible { transform: none; }
+    .theinmag-partnership-form__submit-btn:hover .theinmag-partnership-form__submit-icon,
+    .theinmag-partnership-form__submit-btn:focus-visible .theinmag-partnership-form__submit-icon {
+      transform: none;
+    }
+  }
+
+  /* ----- Social-proof footer ----- */
+  .theinmag-partnership-form__social {
+    margin-top: clamp(28px, 4vw, 40px);
+    padding-top: clamp(20px, 2.4vw, 28px);
+    border-top: 1px solid rgba(42, 31, 61, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .theinmag-partnership-form__social-text {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+    text-align: center;
+    max-width: 44ch;
+  }
+
+  .theinmag-partnership-form__social-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .theinmag-partnership-form__social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: #FFFFFF;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    box-shadow: 0 3px 10px rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-partnership-form__social-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+  .theinmag-partnership-form__social-icon--instagram { background-color: var(--color-purple-dark, #5D3A7A); }
+  .theinmag-partnership-form__social-icon--facebook  { background-color: var(--color-teal-dark, #2D6878); }
+
+  .theinmag-partnership-form__social-icon:hover,
+  .theinmag-partnership-form__social-icon:focus-visible {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow: 0 6px 16px rgba(42, 31, 61, 0.2);
+    outline: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-partnership-form__social-icon { transition: none; }
+    .theinmag-partnership-form__social-icon:hover,
+    .theinmag-partnership-form__social-icon:focus-visible { transform: none; }
+  }
+
+  /* ----- Thank-you block ----- */
+  .theinmag-partnership-form__thanks {
+    background-color: #FFFFFF;
+    border-radius: var(--radius-xl, 28px);
+    padding: clamp(28px, 4vw, 40px) clamp(20px, 3vw, 32px);
+    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+
+  .theinmag-partnership-form__thanks-icon {
+    width: clamp(72px, 9vw, 88px);
+    height: clamp(72px, 9vw, 88px);
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .theinmag-partnership-form__thanks-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: drop-shadow(0 4px 0 var(--color-yellow-shadow, #D4A02E));
+  }
+
+  .theinmag-partnership-form__thanks-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.2vw, 38px);
+    line-height: 1.1;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-partnership-form__thanks-body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.3vw, 16px);
+    line-height: 1.6;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    max-width: 52ch;
+  }
+
+  .theinmag-partnership-form__thanks-cta {
+    margin-top: clamp(2px, 0.4vw, 6px);
+  }
+
+  .theinmag-partnership-form__thanks-back {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: var(--color-link, #2D6878);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color var(--transition-standard, 0.15s ease), text-decoration-thickness var(--transition-standard, 0.15s ease);
+  }
+
+  .theinmag-partnership-form__thanks-back:hover,
+  .theinmag-partnership-form__thanks-back:focus-visible {
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration-thickness: 2px;
+    outline: none;
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var form = document.getElementById('theinmag-partnership-form-element');
+    if (!form) return;
+
+    form.addEventListener('submit', function (evt) {
+      var honeypot = form.querySelector('input[name="contact[website]"]');
+      if (honeypot && honeypot.value) {
+        evt.preventDefault();
+        return false;
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Partnership form",
+  "tag": "section",
+  "class": "theinmag-partnership-form-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Form copy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Tell us what you're imagining"
+    },
+    {
+      "type": "richtext",
+      "id": "intro_html",
+      "label": "Intro paragraph",
+      "default": "<p>We're open to all kinds of partnerships - brand collabs, editorial features, events, school programs, anything that celebrates kids. Even a half-formed idea is plenty. We'd rather brainstorm together than make you write a pitch deck.</p>"
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Submit button label",
+      "default": "We'll be in touch."
+    },
+    {
+      "type": "header",
+      "content": "Thank-you block (after a successful submission)"
+    },
+    {
+      "type": "text",
+      "id": "success_heading",
+      "label": "Heading",
+      "default": "Got it!"
+    },
+    {
+      "type": "textarea",
+      "id": "success_body",
+      "label": "Body",
+      "default": "Thanks for getting in touch - we read every message personally. If it feels like a good fit, we'll be back in your inbox within a week to start the brainstorm properly."
+    },
+    {
+      "type": "text",
+      "id": "success_cta_label",
+      "label": "Primary CTA label",
+      "default": "Read field notes"
+    },
+    {
+      "type": "text",
+      "id": "success_cta_url",
+      "label": "Primary CTA URL",
+      "default": "/blogs/field-notes"
+    },
+    {
+      "type": "text",
+      "id": "success_secondary_label",
+      "label": "Secondary link label",
+      "default": "← Send another idea"
+    },
+    {
+      "type": "header",
+      "content": "Social-proof footer"
+    },
+    {
+      "type": "textarea",
+      "id": "social_text",
+      "label": "Footer text",
+      "default": "Curious to see what theINmag is about? Find us on Instagram and Facebook.",
+      "info": "Leave blank to hide the footer entirely."
+    },
+    {
+      "type": "text",
+      "id": "instagram_url",
+      "label": "Instagram URL",
+      "default": "https://www.instagram.com/the.inmag/"
+    },
+    {
+      "type": "text",
+      "id": "facebook_url",
+      "label": "Facebook URL",
+      "default": "https://www.facebook.com/theINmagazine"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    }
+  ],
+  "presets": [
+    {
+      "name": "Partnership form"
+    }
+  ]
+}
+{% endschema %}

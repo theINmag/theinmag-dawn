@@ -1,0 +1,272 @@
+{%- comment -%}
+  theinmag-partnership-hero
+  Section 1 of /pages/partnerships. Cloned from theinmag-stockist-apply-hero
+  (same visual register, same lavender-pair + photo-scrim treatment) so
+  the partnerships page reads as part of the same "specialist apply"
+  family as Become a stockist. Form section below is the centre of gravity.
+
+  Page-level JSON-LD (BreadcrumbList + WebPage) lives at the bottom of
+  this file because the hero is always the first section on the page.
+  Breadcrumb name + WebPage defaults are partnerships-specific so search
+  engines and AI crawlers see the right page identity.
+
+  Default background image is HERO_founders-atthemarket.jpg - Ryan + Tam
+  at the market reads as "meet the people behind this" which sets the
+  partnership-brainstorm vibe better than a product shot.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign bg_filename = section.settings.bg_filename
+  assign bg_url = ''
+  if bg_filename != blank
+    assign bg_filename = bg_filename | strip
+    assign bg_url = bg_filename | asset_url
+  endif
+
+  assign heading_html = heading
+  capture emphasis_wrap
+    echo '<span class="theinmag-partnership-hero__heading-emphasis">IN</span>'
+  endcapture
+  assign heading_html = heading_html | replace_first: 'IN', emphasis_wrap
+
+  assign section_style = '--pth-pt: ' | append: section.settings.padding_top | append: 'px; --pth-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  if bg_url != blank
+    assign section_style = section_style | append: ' --pth-bg: url(' | append: bg_url | append: ');'
+  endif
+-%}
+
+<section
+  class="theinmag-partnership-hero{% if bg_url != blank %} theinmag-partnership-hero--has-bg{% endif %}"
+  data-theinmag-partnership-hero
+  aria-labelledby="theinmag-partnership-hero-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-partnership-hero__inner">
+    {%- if heading != blank -%}
+      <h1 id="theinmag-partnership-hero-heading" class="theinmag-partnership-hero__heading">{{ heading_html }}</h1>
+    {%- endif -%}
+
+    {%- if subhead != blank -%}
+      <p class="theinmag-partnership-hero__subhead">{{ subhead }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- comment -%} Page-level JSON-LD - BreadcrumbList + WebPage {%- endcomment -%}
+{%- assign page_origin = request.origin | default: 'https://theinmag.com.au' -%}
+{%- assign page_path = page.url | default: '/pages/partnerships' -%}
+{%- assign page_url = page_origin | append: page_path -%}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": {{ page_origin | json }}
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Partnerships",
+        "item": {{ page_url | json }}
+      }
+    ]
+  }
+</script>
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": {{ heading | default: 'Partnerships' | json }},
+    "description": {{ subhead | default: "Partner with theINmag - Australia's magazine made by kids, for kids. Brand collaborations, editorial features, events, school programs. Tell us what you're imagining." | json }},
+    "url": {{ page_url | json }},
+    "mainEntityOfPage": {{ page_url | json }},
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "theINmag",
+      "url": {{ page_origin | json }}
+    }
+  }
+</script>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-partnership-hero
+     Lavender band - purple pair (light bg + dark companion). Visual
+     twin of theinmag-stockist-apply-hero / theinmag-contact-hero so
+     the apply pages all read as the same family. Kept short
+     (~30vh desktop) so the form section is the real centre of gravity.
+     ================================================================ */
+
+  .theinmag-partnership-hero {
+    background-color: var(--color-lavender, #E8DEEF);
+    color: var(--color-purple-dark, #5D3A7A);
+    padding: var(--pth-pt, 48px) clamp(16px, 4vw, 32px) var(--pth-pb, 40px);
+    position: relative;
+    min-height: clamp(240px, 34vh, 300px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theinmag-partnership-hero--has-bg {
+    background-image: var(--pth-bg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    isolation: isolate; /* contains the ::before stacking context */
+  }
+
+  /* White-on-scrim treatment when a hero photo is present (per the
+     premium-photo-text rule - no coloured pills on photography). Top-
+     anchored dark gradient gives the heading legibility against any
+     image, fades to transparent so the lower portion stays photo. */
+  .theinmag-partnership-hero--has-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(20, 14, 30, 0.6) 0%,
+      rgba(20, 14, 30, 0.32) 45%,
+      rgba(20, 14, 30, 0.05) 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-partnership-hero {
+      min-height: clamp(320px, 44vh, 460px);
+      padding-top: calc(var(--pth-pt, 48px) * 1.6);
+      padding-bottom: calc(var(--pth-pb, 40px) * 1.4);
+    }
+  }
+
+  .theinmag-partnership-hero__inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(10px, 1.4vw, 16px);
+    position: relative;
+    z-index: 2; /* sits above the scrim ::before */
+  }
+
+  .theinmag-partnership-hero__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(34px, 6.5vw, 56px);
+    line-height: 1.05;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--color-purple-dark, #5D3A7A);
+    text-wrap: balance;
+  }
+
+  .theinmag-partnership-hero__heading-emphasis {
+    display: inline-block;
+    font-size: 1.4em;
+    line-height: 1;
+    vertical-align: -0.06em;
+  }
+
+  .theinmag-partnership-hero__subhead {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.9;
+    max-width: none;
+    margin: 0;
+  }
+
+  /* Photography variant: white type with a soft text-shadow scrim,
+     matched to the article-template overlay (rgba 20,14,30,0.35). */
+  .theinmag-partnership-hero--has-bg .theinmag-partnership-hero__heading {
+    color: #FFFFFF;
+    text-shadow: 0 1px 12px rgba(20, 14, 30, 0.45),
+                 0 1px 3px rgba(20, 14, 30, 0.35);
+  }
+  .theinmag-partnership-hero--has-bg .theinmag-partnership-hero__subhead {
+    color: #FFFFFF;
+    opacity: 1;
+    text-shadow: 0 1px 8px rgba(20, 14, 30, 0.45),
+                 0 1px 3px rgba(20, 14, 30, 0.35);
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Partnership hero",
+  "tag": "section",
+  "class": "theinmag-partnership-hero-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Headline",
+      "default": "Build something with theINmag"
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "Brands, schools, festivals, fellow creators - if you've got an idea that celebrates kids, we'd love to chat. Even rough thoughts welcome.",
+      "info": "Sits on one line at desktop. Wraps on mobile."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "text",
+      "id": "bg_filename",
+      "label": "Background image filename",
+      "default": "Market_setup2.jpg",
+      "info": "File inside theme assets/. Lavender shows as fallback if blank or missing."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "Partnership hero"
+    }
+  ]
+}
+{% endschema %}
