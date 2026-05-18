@@ -906,7 +906,11 @@
         var progress = Math.max(0, Math.min(1, raw));
         var innerH = rightInner.offsetHeight;
         var maxOffset = Math.max(0, innerH - wH);
-        var offset = progress * maxOffset;
+        /* Damping factor 0.80 (tuned 2026-05-18 after the original
+           6-curated-blocks balance got disturbed by the heading-size
+           hierarchy bump + auto-pull card sizes). Lower = slower
+           parallax. Bump toward 1.0 if it ever feels too sleepy. */
+        var offset = progress * maxOffset * 0.80;
         rightInner.style.transform = 'translate3d(0, ' + (-offset).toFixed(2) + 'px, 0)';
       }
 
