@@ -321,11 +321,11 @@
      heading_style_post - reserved for brand-pun headings ("IN the
      classroom", "INside the magazine"). The .theinmag-in span (1.4em)
      does the IN lift on top of Post Regular. Compresses top padding +
-     header-to-cards spacing so the centred treatment doesn't float in
-     a sea of cream. */
+     all the internal heading-subhead-cards gaps so the centred
+     treatment reads as one tight unit and doesn't float in cream. */
   .theinmag-for-parents-pillars__header--centered {
     text-align: center;
-    margin-bottom: clamp(24px, 3vw, 36px);
+    margin-bottom: clamp(16px, 2vw, 24px);
   }
 
   .theinmag-for-parents-pillars:has(.theinmag-for-parents-pillars__header--centered) {
@@ -338,6 +338,7 @@
     font-size: clamp(40px, 6vw, 64px);
     line-height: 1.1;
     letter-spacing: 0;
+    margin-bottom: clamp(2px, 0.4vw, 6px);
   }
 
   .theinmag-for-parents-pillars__header--centered .theinmag-for-parents-pillars__intro {

@@ -220,11 +220,17 @@
 }
 
 .theinmag-curriculum-accordion__trigger {
+    /* min-height locks the trigger to a uniform value across all items.
+       Without this, rows containing the .theinmag-in lift (1.4em
+       inline-block with a vertical-align shift) render a few px taller
+       than rows without IN. min-height takes the line-height fix from
+       belt to belt-and-suspenders. */
     display: flex;
     align-items: center;
     gap: 12px;
     width: 100%;
     padding: 16px 20px;
+    min-height: 64px;
     background: transparent;
     border: none;
     color: inherit;
@@ -237,6 +243,7 @@
     .theinmag-curriculum-accordion__trigger {
         padding: 20px 24px;
         gap: 16px;
+        min-height: 80px;
     }
 }
 
