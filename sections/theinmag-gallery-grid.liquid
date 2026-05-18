@@ -1,0 +1,174 @@
+{%- comment -%}
+  theinmag-gallery-grid
+  Section 3 of /pages/gallery. The masonry grid. Renders one card per
+  ACTIVE published gallery_submission metaobject via the
+  theinmag-gallery-card snippet.
+
+  Layout = CSS column-count (4/3/2/1 across breakpoints 1200/768/480/0).
+  Cards use break-inside: avoid to prevent splits.
+
+  Lazy load = server-side render ALL cards but mark cards past
+  `initial_batch` with the --hidden modifier; the JS Intersection Observer
+  toggles batches of `batch_size` cards visible as the sentinel enters
+  the viewport. This avoids any fetch-on-scroll round-trip while keeping
+  initial render cheap.
+
+  Empty state = friendly "first creations coming soon" CTA so the page
+  never looks broken even before the metaobject definition exists or
+  any entries are seeded.
+
+  Background = fixed-attachment image (desktop) on top of the dark
+  wave-purple #2A1F3D fallback (mobile + when image absent). See
+  gallery-build-spec.md Section 3 brief.
+{%- endcomment -%}
+
+{%- liquid
+  assign bg_filename = section.settings.bg_filename | strip
+  assign bg_url = ''
+  if bg_filename != blank
+    assign bg_url = bg_filename | asset_url
+  endif
+
+  assign initial_batch = section.settings.initial_batch | default: 24
+  assign batch_size = section.settings.batch_size | default: 24
+
+  assign published_subs = ''
+  assign submissions = shop.metaobjects.gallery_submission.values
+  assign total_published = 0
+  for sub in submissions
+    if sub.status == 'published'
+      assign total_published = total_published | plus: 1
+    endif
+  endfor
+
+  assign section_style = ''
+  if bg_url != blank
+    assign section_style = "--gg-bg: url('" | append: bg_url | append: "');"
+  endif
+-%}
+
+<section
+  class="theinmag-gallery-grid{% if bg_url != blank %} theinmag-gallery-grid--has-bg{% endif %}"
+  data-theinmag-gallery-grid
+  data-initial-batch="{{ initial_batch }}"
+  data-batch-size="{{ batch_size }}"
+  data-total="{{ total_published }}"
+  aria-labelledby="theinmag-gallery-grid-heading"
+  style="{{ section_style }}"
+>
+  <h2 id="theinmag-gallery-grid-heading" class="visually-hidden">Browse creations</h2>
+
+  {%- if total_published > 0 -%}
+    <div class="theinmag-gallery-grid__columns" data-theinmag-gallery-columns>
+      {%- assign rendered_index = 0 -%}
+      {%- for sub in submissions -%}
+        {%- if sub.status == 'published' -%}
+          {%- assign is_hidden = false -%}
+          {%- if rendered_index >= initial_batch -%}
+            {%- assign is_hidden = true -%}
+          {%- endif -%}
+          {%- render 'theinmag-gallery-card', submission: sub, is_hidden: is_hidden, index: rendered_index -%}
+          {%- assign rendered_index = rendered_index | plus: 1 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    {%- if total_published > initial_batch -%}
+      <div class="theinmag-gallery-grid__sentinel" data-theinmag-gallery-sentinel aria-hidden="true"></div>
+    {%- endif -%}
+
+    <p class="theinmag-gallery-grid__live-region visually-hidden" aria-live="polite" data-theinmag-gallery-live></p>
+  {%- else -%}
+    <div class="theinmag-gallery-grid__empty">
+      <h3 class="theinmag-gallery-grid__empty-heading">{{ section.settings.empty_heading | default: 'First creations coming soon.' }}</h3>
+      {%- if section.settings.empty_body != blank -%}
+        <p class="theinmag-gallery-grid__empty-body">{{ section.settings.empty_body }}</p>
+      {%- endif -%}
+      {%- if section.settings.empty_cta_label != blank and section.settings.empty_cta_url != blank -%}
+        <a class="theinmag-gallery-grid__empty-cta button button--primary" href="{{ section.settings.empty_cta_url }}">
+          {{ section.settings.empty_cta_label }}
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  <p class="theinmag-gallery-grid__no-results visually-hidden" data-theinmag-gallery-no-results>
+    Nothing matches that search yet. Try a different word.
+  </p>
+</section>
+
+{% schema %}
+{
+  "name": "theINmag Gallery grid",
+  "tag": "section",
+  "class": "theinmag-gallery-grid-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "text",
+      "id": "bg_filename",
+      "label": "Background image filename",
+      "default": "gallery-bg.jpg",
+      "info": "File inside theme assets/. Dark wave-purple fallback shows if blank or missing."
+    },
+    {
+      "type": "header",
+      "content": "Lazy load"
+    },
+    {
+      "type": "range",
+      "id": "initial_batch",
+      "label": "Initial batch size",
+      "min": 12,
+      "max": 60,
+      "step": 6,
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "batch_size",
+      "label": "Reveal batch size",
+      "min": 12,
+      "max": 60,
+      "step": 6,
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Empty state (no entries yet)"
+    },
+    {
+      "type": "text",
+      "id": "empty_heading",
+      "label": "Empty heading",
+      "default": "First creations coming soon."
+    },
+    {
+      "type": "textarea",
+      "id": "empty_body",
+      "label": "Empty body",
+      "default": "We're just opening the doors. Be one of the first kids in here."
+    },
+    {
+      "type": "text",
+      "id": "empty_cta_label",
+      "label": "Empty CTA label",
+      "default": "Send IN your creation"
+    },
+    {
+      "type": "url",
+      "id": "empty_cta_url",
+      "label": "Empty CTA URL"
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Gallery grid"
+    }
+  ]
+}
+{% endschema %}

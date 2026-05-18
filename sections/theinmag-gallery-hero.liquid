@@ -1,0 +1,137 @@
+{%- comment -%}
+  theinmag-gallery-hero
+  Section 1 of /pages/gallery. Stripped to two lines per Ryan's
+  18 May iteration: H1 + subhead, nothing else. No live count, no
+  hero CTA - the Send-IN conversion lives in the floating CTA
+  pill (theinmag-gallery-float-cta) which is persistent across
+  the page.
+
+  Also loads the page-wide gallery CSS + JS for every gallery section.
+{%- endcomment -%}
+
+{{ 'theinmag-gallery.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'theinmag-gallery.js' | asset_url }}" defer></script>
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+
+  assign heading_html = heading
+  capture emphasis_wrap
+    echo '<span class="theinmag-gallery-hero__heading-emphasis">IN</span>'
+  endcapture
+  assign heading_html = heading_html | replace: 'IN', emphasis_wrap
+
+  assign section_style = '--gh-pt: ' | append: section.settings.padding_top | append: 'px; --gh-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-gallery-hero"
+  data-theinmag-gallery-hero
+  aria-labelledby="theinmag-gallery-hero-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-gallery-hero__inner">
+    {%- if heading != blank -%}
+      <h1 id="theinmag-gallery-hero-heading" class="theinmag-gallery-hero__heading">{{ heading_html }}</h1>
+    {%- endif -%}
+
+    {%- if subhead != blank -%}
+      <p class="theinmag-gallery-hero__subhead">{{ subhead }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- comment -%} Page-level JSON-LD - BreadcrumbList + WebPage {%- endcomment -%}
+{%- assign page_origin = request.origin | default: 'https://theinmag.com.au' -%}
+{%- assign page_url = page_origin | append: '/pages/gallery' -%}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": {{ page_origin | json }}
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Gallery",
+        "item": {{ page_url | json }}
+      }
+    ]
+  }
+</script>
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": {{ heading | default: 'Real kids. Real creations.' | json }},
+    "description": {{ subhead | default: 'Live from across Australia.' | json }},
+    "url": {{ page_url | json }},
+    "mainEntityOfPage": {{ page_url | json }},
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "theINmag",
+      "url": {{ page_origin | json }}
+    }
+  }
+</script>
+
+{% schema %}
+{
+  "name": "theINmag Gallery hero",
+  "tag": "section",
+  "class": "theinmag-gallery-hero-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Headline",
+      "default": "Real kids. Real creations."
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "Live from across Australia."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 24,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 24,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Gallery hero"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,153 @@
+{%- comment -%}
+  theinmag-gallery-lightbox
+  Section 5 of /pages/gallery. The modal markup is rendered once and
+  hidden by default; JS populates content + opens it on card tap.
+
+  Multi-page submissions become navigable here via the image carousel
+  (left / right buttons + keyboard arrows + swipe). The cover-page card
+  shows only the first image with a 1/N badge; the lightbox is where
+  the kid flicks through the rest.
+{%- endcomment -%}
+
+{%- liquid
+  assign town_link_template = section.settings.town_link_label | default: 'More from kids in [town]'
+  assign age_link_template = section.settings.age_link_label | default: 'More from kids age [age]'
+  assign cta_label = section.settings.cta_label
+  assign cta_url = section.settings.cta_url
+-%}
+
+<div
+  class="theinmag-gallery-lightbox"
+  data-theinmag-gallery-lightbox
+  data-town-template="{{ town_link_template | escape }}"
+  data-age-template="{{ age_link_template | escape }}"
+  hidden
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="theinmag-gallery-lightbox-attribution"
+>
+  <div class="theinmag-gallery-lightbox__backdrop" data-theinmag-gallery-lightbox-backdrop></div>
+
+  <div class="theinmag-gallery-lightbox__panel" role="document">
+    <button
+      class="theinmag-gallery-lightbox__close"
+      type="button"
+      aria-label="Close"
+      data-theinmag-gallery-lightbox-close
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <line x1="4" y1="4" x2="16" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <line x1="16" y1="4" x2="4" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="theinmag-gallery-lightbox__media" data-theinmag-gallery-lightbox-media>
+      <button
+        class="theinmag-gallery-lightbox__nav theinmag-gallery-lightbox__nav--prev"
+        type="button"
+        aria-label="Previous page"
+        data-theinmag-gallery-lightbox-prev
+        hidden
+      >
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <polyline points="14,4 6,11 14,18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </button>
+
+      <img
+        class="theinmag-gallery-lightbox__image"
+        data-theinmag-gallery-lightbox-image
+        alt=""
+        draggable="false"
+        oncontextmenu="return false;"
+      />
+
+      <button
+        class="theinmag-gallery-lightbox__nav theinmag-gallery-lightbox__nav--next"
+        type="button"
+        aria-label="Next page"
+        data-theinmag-gallery-lightbox-next
+        hidden
+      >
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <polyline points="8,4 16,11 8,18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </button>
+    </div>
+
+    <p
+      class="theinmag-gallery-lightbox__counter"
+      data-theinmag-gallery-lightbox-counter
+      aria-live="polite"
+      hidden
+    ></p>
+
+    <div class="theinmag-gallery-lightbox__body">
+      <p id="theinmag-gallery-lightbox-attribution" class="theinmag-gallery-lightbox__attribution" data-theinmag-gallery-lightbox-attribution></p>
+      <p class="theinmag-gallery-lightbox__writeup" data-theinmag-gallery-lightbox-writeup></p>
+
+      <div class="theinmag-gallery-lightbox__cross-links">
+        <button class="theinmag-gallery-lightbox__cross-link" type="button" data-theinmag-gallery-lightbox-town hidden></button>
+        <button class="theinmag-gallery-lightbox__cross-link" type="button" data-theinmag-gallery-lightbox-age hidden></button>
+      </div>
+
+      {%- if cta_label != blank and cta_url != blank -%}
+        <a class="theinmag-gallery-lightbox__cta" href="{{ cta_url }}">
+          {{ cta_label }}
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      {%- endif -%}
+
+      <p class="theinmag-gallery-lightbox__belongs-note">These creations belong to the kids.</p>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "theINmag Gallery lightbox",
+  "tag": "section",
+  "class": "theinmag-gallery-lightbox-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Cross-link labels"
+    },
+    {
+      "type": "text",
+      "id": "town_link_label",
+      "label": "Town link template",
+      "default": "More from kids in [town]",
+      "info": "Placeholder: [town]"
+    },
+    {
+      "type": "text",
+      "id": "age_link_label",
+      "label": "Age link template",
+      "default": "More from kids age [age]",
+      "info": "Placeholder: [age]"
+    },
+    {
+      "type": "header",
+      "content": "Footer CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA label",
+      "default": "Send IN your creation"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "CTA URL"
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Gallery lightbox"
+    }
+  ]
+}
+{% endschema %}

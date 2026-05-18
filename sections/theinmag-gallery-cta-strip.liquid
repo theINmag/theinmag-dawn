@@ -1,0 +1,117 @@
+{%- comment -%}
+  theinmag-gallery-cta-strip
+  Section 4 (visual order 6) of /pages/gallery. Small cream band that
+  breaks the dark grid before the global footer. The conversion point of
+  the page - kid has just spent 2 minutes scrolling, the Send IN CTA
+  needs to be waiting.
+
+  Archetype 6.8 (cream CTA strip).
+{%- endcomment -%}
+
+{%- liquid
+  assign headline = section.settings.headline
+  assign cta_label = section.settings.cta_label
+  assign cta_url = section.settings.cta_url
+  assign secondary_label = section.settings.secondary_label
+  assign secondary_url = section.settings.secondary_url
+
+  assign section_style = '--gcs-pt: ' | append: section.settings.padding_top | append: 'px; --gcs-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-gallery-cta-strip"
+  data-theinmag-gallery-cta-strip
+  aria-labelledby="theinmag-gallery-cta-strip-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-gallery-cta-strip__inner">
+    {%- if headline != blank -%}
+      <h2 id="theinmag-gallery-cta-strip-heading" class="theinmag-gallery-cta-strip__heading">{{ headline }}</h2>
+    {%- endif -%}
+
+    {%- if cta_label != blank and cta_url != blank -%}
+      <a class="theinmag-gallery-cta-strip__cta button button--primary" href="{{ cta_url }}">
+        {{ cta_label }}
+        <span class="theinmag-gallery-cta-strip__cta-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+    {%- endif -%}
+
+    {%- if secondary_label != blank and secondary_url != blank -%}
+      <a class="theinmag-gallery-cta-strip__secondary" href="{{ secondary_url }}">
+        {{ secondary_label }}
+        <span aria-hidden="true">&rarr;</span>
+      </a>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "theINmag Gallery CTA",
+  "tag": "section",
+  "class": "theinmag-gallery-cta-strip-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "headline",
+      "label": "Headline",
+      "default": "Want to be in here?"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Primary CTA label",
+      "default": "Send IN your creation"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Primary CTA URL"
+    },
+    {
+      "type": "text",
+      "id": "secondary_label",
+      "label": "Secondary link label",
+      "default": "See how it works"
+    },
+    {
+      "type": "url",
+      "id": "secondary_url",
+      "label": "Secondary link URL"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 24,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 24,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Gallery CTA"
+    }
+  ]
+}
+{% endschema %}

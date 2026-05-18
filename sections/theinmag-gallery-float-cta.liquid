@@ -1,0 +1,62 @@
+{%- comment -%}
+  theinmag-gallery-float-cta
+  Persistent floating Send-IN CTA pinned to the bottom-right of
+  the viewport. Scoped to /pages/gallery only via inclusion in
+  page.gallery.json - keeps the kid one tap away from submitting
+  no matter how deep they scroll.
+
+  Yellow pill with the canonical 3D shadow stack (firm bottom edge
+  + soft ambient) so it feels lifted off the page. Hides itself
+  when the lightbox is open via the `body[data-gallery-lightbox-open]`
+  attribute (set by theinmag-gallery.js).
+
+  Z-index 50 - above the sticky filter bar (z-index 5) and below
+  the lightbox backdrop (z-index 100).
+{%- endcomment -%}
+
+{%- liquid
+  assign cta_label = section.settings.cta_label
+  assign cta_url = section.settings.cta_url
+-%}
+
+{%- if cta_label != blank and cta_url != blank -%}
+  <a
+    class="theinmag-gallery-float-cta"
+    href="{{ cta_url }}"
+    data-theinmag-gallery-float-cta
+    aria-label="{{ cta_label }}"
+  >
+    <span class="theinmag-gallery-float-cta__label">{{ cta_label }}</span>
+    <span class="theinmag-gallery-float-cta__arrow" aria-hidden="true">&rarr;</span>
+  </a>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "theINmag Float CTA",
+  "tag": "section",
+  "class": "theinmag-gallery-float-cta-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Floating CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA label",
+      "default": "Send IN your creation"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "CTA URL"
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Float CTA"
+    }
+  ]
+}
+{% endschema %}

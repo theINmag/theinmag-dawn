@@ -1,0 +1,142 @@
+{%- comment -%}
+  theinmag-gallery-card
+  One card in the masonry grid. Params:
+    - submission: a gallery_submission metaobject entry
+    - is_hidden: true if rendered past the initial-batch threshold
+    - index: 0-based render order inside the published set
+
+  Card carries all data needed by the lightbox + filter / search JS via
+  data-* attributes - no extra fetch when a card is tapped. Multi-page
+  image URLs are pipe-pipe-pipe delimited (URLs never contain |||).
+
+  No visible tags rendered on the card (subject_tags are search-only per
+  spec). No dates rendered anywhere kid-facing (submitted_at is for sort
+  only).
+{%- endcomment -%}
+
+{%- liquid
+  assign first_name = submission.first_name | default: 'Anon'
+  assign last_initial = submission.last_initial | upcase | strip
+  assign age = submission.age
+  assign town = submission.town | default: ''
+  assign state = submission.state | upcase | strip
+  assign category = submission.category | default: 'art' | downcase | strip
+  assign write_up = submission.write_up
+  assign alt_text = submission.alt_text | default: ''
+  assign submitted_at = submission.submitted_at
+
+  comment
+    Metaobject list-type fields need `.value` accessor to get the
+    underlying array (same trap as metafield list types). Direct
+    access returns a JSON-stringified placeholder, not an iterable.
+  endcomment
+  assign images = submission.image_files.value
+  if images == blank
+    assign images = submission.image_files
+  endif
+  assign image_count = images | size
+
+  assign is_text_only = submission.is_text_only
+
+  assign tags_arr = submission.subject_tags.value
+  if tags_arr == blank
+    assign tags_arr = submission.subject_tags
+  endif
+  assign tags_str = ''
+  if tags_arr
+    assign tags_str = tags_arr | join: ',' | downcase
+  endif
+
+  comment
+    Derive cover_url + image_urls_str in the same for-loop so cover
+    binds to the exact same `img` reference the loop iterates.
+    `images.first` returns nothing on the metaobject Drop type even
+    though `for` iterates fine.
+  endcomment
+  assign cover_url = ''
+  assign image_urls_str = ''
+  for img in images
+    assign full_url = img | image_url: width: 1800
+    if full_url == blank
+      assign full_url = img.preview_image | image_url: width: 1800
+    endif
+    if full_url == blank
+      assign full_url = img.image | image_url: width: 1800
+    endif
+    if full_url == blank
+      assign full_url = img.url
+    endif
+
+    if forloop.first
+      assign cover_url = img | image_url: width: 800
+      if cover_url == blank
+        assign cover_url = img.preview_image | image_url: width: 800
+      endif
+      if cover_url == blank
+        assign cover_url = img.image | image_url: width: 800
+      endif
+      if cover_url == blank
+        assign cover_url = img.url
+      endif
+      assign image_urls_str = full_url
+    else
+      assign image_urls_str = image_urls_str | append: '|||' | append: full_url
+    endif
+  endfor
+
+  assign attribution_parts = first_name | append: ' ' | append: last_initial | append: '.'
+  if town != blank
+    assign attribution_parts = attribution_parts | append: ' │ ' | append: town
+    if state != blank
+      assign attribution_parts = attribution_parts | append: ' ' | append: state
+    endif
+    if age != blank
+      assign attribution_parts = attribution_parts | append: ', age ' | append: age
+    endif
+  endif
+-%}
+
+<article
+  class="theinmag-gallery-card{% if is_hidden %} theinmag-gallery-card--hidden{% endif %}{% if is_text_only %} theinmag-gallery-card--text{% endif %}"
+  data-theinmag-gallery-card
+  data-category="{{ category }}"
+  data-first-name="{{ first_name | downcase | strip }}"
+  data-last-initial="{{ last_initial | downcase }}"
+  data-town="{{ town | downcase | strip }}"
+  data-state="{{ state | downcase }}"
+  data-age="{{ age }}"
+  data-tags="{{ tags_str }}"
+  data-submitted-at="{{ submitted_at }}"
+  data-image-urls="{{ image_urls_str | escape }}"
+  data-image-count="{{ image_count }}"
+  data-write-up="{{ write_up | escape }}"
+  data-attribution="{{ attribution_parts | strip_html | escape }}"
+  data-index="{{ index }}"
+  tabindex="0"
+  role="button"
+  aria-label="View creation by {{ first_name }} {{ last_initial }}{% if town != blank %} from {{ town }}{% endif %}"
+>
+  <div class="theinmag-gallery-card__media">
+    <img
+      class="theinmag-gallery-card__image"
+      src="{{ cover_url }}"
+      alt="{{ alt_text }}"
+      loading="lazy"
+      decoding="async"
+      draggable="false"
+      oncontextmenu="return false;"
+    />
+    {%- if image_count > 1 -%}
+      <span class="theinmag-gallery-card__badge" aria-label="{{ image_count }} pages">
+        <span class="theinmag-gallery-card__badge-current">1</span>/<span class="theinmag-gallery-card__badge-total">{{ image_count }}</span>
+      </span>
+    {%- endif -%}
+  </div>
+
+  <div class="theinmag-gallery-card__meta">
+    <p class="theinmag-gallery-card__attribution">{{ attribution_parts }}</p>
+    {%- if write_up != blank -%}
+      <p class="theinmag-gallery-card__writeup">{{ write_up }}</p>
+    {%- endif -%}
+  </div>
+</article>

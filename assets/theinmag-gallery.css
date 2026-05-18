@@ -1,0 +1,889 @@
+/* ================================================================
+   theinmag-gallery.css
+   Page-wide styles for /pages/gallery. Loaded once from the hero
+   section. Covers: hero, filter bar (sticky), masonry grid (4/3/2/1
+   columns), card, lightbox, CTA strip.
+
+   Image-led page - cream hero/filter/CTA bookend a dark image-bg
+   grid. Card surface is #1F1A2E (dark wave-purple variant) so it
+   contrasts cleanly with the static bg.
+
+   Card numbers per gallery-build-spec.md:
+     #1F1A2E  card surface
+     #2A1F3D  dark wave-purple grid bg fallback (== --color-inky-purple-navy)
+   ================================================================ */
+
+/* ---------- Section 1: Hero ---------- */
+
+.theinmag-gallery-hero {
+  background-color: var(--color-cream, #FBF6EA);
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  padding: var(--gh-pt, 56px) clamp(16px, 4vw, 32px) var(--gh-pb, 56px);
+  text-align: center;
+}
+
+.theinmag-gallery-hero__inner {
+  max-width: 880px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 1.6vw, 18px);
+}
+
+.theinmag-gallery-hero__heading {
+  font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+  font-weight: 400;
+  font-size: clamp(30px, 5vw, 52px);
+  line-height: 1.08;
+  letter-spacing: 0;
+  margin: 0;
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  text-wrap: balance;
+}
+
+.theinmag-gallery-hero__heading-emphasis {
+  display: inline-block;
+  font-size: 1.15em;
+  line-height: 1;
+  vertical-align: -0.04em;
+}
+
+.theinmag-gallery-hero__subhead {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 400;
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.5;
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  opacity: 0.85;
+  margin: 0;
+  max-width: 640px;
+}
+
+.theinmag-gallery-hero__count {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 500;
+  font-size: clamp(13px, 1.2vw, 14px);
+  letter-spacing: 0.02em;
+  color: var(--color-purple-dark, #5D3A7A);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.theinmag-gallery-hero__cta {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theinmag-gallery-hero__cta-arrow {
+  transition: transform 200ms ease;
+}
+
+.theinmag-gallery-hero__cta:hover .theinmag-gallery-hero__cta-arrow,
+.theinmag-gallery-hero__cta:focus-visible .theinmag-gallery-hero__cta-arrow {
+  transform: translateX(3px);
+}
+
+/* ---------- Combined header strip (heading + controls) ---------- */
+
+.theinmag-gallery-filter-bar {
+  /* Same dark wave-purple as the grid below so the page reads as
+     one continuous dark surface, with the cream card floating on top. */
+  background-color: #2A1F3D;
+}
+
+.theinmag-gallery-filter-bar__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(18px, 2.5vw, 32px) clamp(16px, 4vw, 32px) clamp(12px, 1.5vw, 20px);
+}
+
+.theinmag-gallery-filter-bar__card {
+  background-color: var(--color-cream, #FBF6EA);
+  border-radius: var(--radius-md, 12px);
+  /* Tighter left/right padding shifts the heading visually left and
+     gives the larger character + controls a bit more horizontal room. */
+  padding: clamp(10px, 1.3vw, 16px) clamp(12px, 1.6vw, 22px);
+  /* Shadow removed - the ambient component (40px blur) was bleeding
+     past the filter bar section into the grid and reading as a darker
+     band / seam between the two dark sections. */
+  /* Anchor for the absolutely-positioned character so it can be
+     vertically centered against the card without inflating row height. */
+  position: relative;
+}
+
+.theinmag-gallery-filter-bar__row {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media (min-width: 768px) {
+  .theinmag-gallery-filter-bar__row {
+    flex-direction: row;
+    /* Top-align so the heading's top edge sits on the same baseline
+       as the top of the search input - per Ryan's iteration. */
+    align-items: flex-start;
+    /* flex-start + titles{flex:1} so the heading hugs the character
+       with only `gap` between them. space-between was eating my gap
+       and pushing the titles toward center. */
+    justify-content: flex-start;
+    gap: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .theinmag-gallery-filter-bar__titles {
+    /* Grow to fill the row's extra horizontal space so the controls
+       stay glued to the right edge without space-between. */
+    flex: 1 1 auto;
+  }
+}
+
+.theinmag-gallery-filter-bar__character {
+  /* Hidden on mobile - the column stack leaves no room. The titles
+     stay flush-left without it. */
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .theinmag-gallery-filter-bar__character {
+    /* Absolutely positioned so it doesn't drive the flex row's height -
+       the card height is now set by titles alone, killing the dead
+       space below the subhead. Character vertically centered against
+       the card; if it's slightly taller than the card it pokes above
+       + below by a few px which adds to the "popping off the card"
+       feel rather than detracts. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: clamp(12px, 1.6vw, 22px);
+    transform: translateY(-50%);
+    height: clamp(96px, 9.5vw, 120px);
+    width: clamp(88px, 8vw, 110px);
+  }
+
+  .theinmag-gallery-filter-bar__row {
+    /* Leave room on the left for the absolutely-positioned character
+       (its width clamp + a ~14px gap). */
+    padding-left: clamp(100px, 9vw, 130px);
+  }
+}
+
+.theinmag-gallery-filter-bar__character [data-theinmag-pool-character] {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+}
+
+.theinmag-gallery-filter-bar__character .theinmag-pool-character__img {
+  /* Cap the image to the slot height; width follows the aspect ratio.
+     Overrides the pool snippet's width:100% default. The pool uses a
+     specificity-0 :where() wrapper so the two-class selector here wins
+     without !important. */
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.theinmag-gallery-filter-bar__titles {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.6vw, 8px);
+  min-width: 0;
+}
+
+.theinmag-gallery-filter-bar__heading {
+  font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+  font-weight: 400;
+  font-size: clamp(28px, 3.6vw, 44px);
+  line-height: 1.05;
+  letter-spacing: 0;
+  margin: 0;
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  text-wrap: balance;
+}
+
+.theinmag-gallery-filter-bar__subhead {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 400;
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.45;
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  opacity: 0.78;
+  margin: 0;
+}
+
+.theinmag-gallery-filter-bar__controls-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.theinmag-gallery-filter-bar__controls {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.theinmag-gallery-filter-bar__search {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .theinmag-gallery-filter-bar__search {
+    /* 380px after round-4 - just wider enough for "Search by town..."
+       to breathe without the input running too long. */
+    flex: 0 0 380px;
+  }
+}
+
+.theinmag-gallery-filter-bar__search-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: rgba(42, 31, 61, 0.55);
+  pointer-events: none;
+  display: inline-flex;
+}
+
+.theinmag-gallery-filter-bar__search-input {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: 14px;
+  width: 100%;
+  padding: 10px 14px 10px 36px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(42, 31, 61, 0.18);
+  background-color: rgba(255, 255, 255, 0.7);
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  transition: border-color 160ms ease;
+}
+
+.theinmag-gallery-filter-bar__search-input:focus {
+  outline: none;
+  border-color: var(--color-purple-dark, #5D3A7A);
+}
+
+.theinmag-gallery-filter-bar__search-input::placeholder {
+  color: rgba(42, 31, 61, 0.55);
+}
+
+.theinmag-gallery-filter-bar__sort {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.theinmag-gallery-filter-bar__sort-select {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 28px 10px 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(42, 31, 61, 0.18);
+  background-color: rgba(255, 255, 255, 0.7);
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  cursor: pointer;
+}
+
+.theinmag-gallery-filter-bar__sort-chevron {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: rgba(42, 31, 61, 0.55);
+  font-size: 12px;
+}
+
+.theinmag-gallery-filter-bar__disclaimer {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: 12px;
+  line-height: 1.3;
+  color: rgba(42, 31, 61, 0.6);
+  margin: 0;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .theinmag-gallery-filter-bar__disclaimer {
+    display: none;
+  }
+}
+
+/* ---------- Section 3: Grid ---------- */
+
+.theinmag-gallery-grid {
+  background-color: #2A1F3D;
+  padding: clamp(20px, 3vw, 36px) clamp(12px, 2.5vw, 24px) clamp(40px, 6vw, 72px);
+  position: relative;
+  min-height: 50vh;
+}
+
+.theinmag-gallery-grid--has-bg {
+  background-image: var(--gg-bg);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+@media (max-width: 768px) {
+  .theinmag-gallery-grid--has-bg {
+    background-attachment: scroll;
+  }
+}
+
+.theinmag-gallery-grid__columns {
+  max-width: 1640px;
+  margin: 0 auto;
+  column-count: 1;
+  column-gap: clamp(10px, 1.5vw, 18px);
+}
+
+@media (min-width: 480px) {
+  .theinmag-gallery-grid__columns {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 768px) {
+  .theinmag-gallery-grid__columns {
+    column-count: 3;
+  }
+}
+
+@media (min-width: 1200px) {
+  .theinmag-gallery-grid__columns {
+    column-count: 4;
+  }
+}
+
+.theinmag-gallery-grid__sentinel {
+  width: 100%;
+  height: 1px;
+  margin-top: 40px;
+}
+
+.theinmag-gallery-grid__empty {
+  max-width: 480px;
+  margin: 60px auto;
+  padding: 32px 24px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md, 12px);
+  color: #FFFFFF;
+}
+
+.theinmag-gallery-grid__empty-heading {
+  font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+  font-weight: 400;
+  font-size: 24px;
+  margin: 0 0 12px;
+  color: #FFFFFF;
+}
+
+.theinmag-gallery-grid__empty-body {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.theinmag-gallery-grid__no-results.is-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 60px auto;
+  padding: 24px;
+  max-width: 420px;
+  clip: auto;
+  text-align: center;
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md, 12px);
+  white-space: normal;
+  overflow: visible;
+}
+
+/* ---------- Section 4: Card ---------- */
+
+.theinmag-gallery-card {
+  display: block;
+  background-color: #1F1A2E;
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  margin: 0 0 clamp(10px, 1.5vw, 18px);
+  break-inside: avoid;
+  page-break-inside: avoid;
+  cursor: pointer;
+  color: #FFFFFF;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.theinmag-gallery-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.theinmag-gallery-card:focus-visible {
+  outline: 3px solid var(--color-yellow, #F9C23C);
+  outline-offset: 2px;
+}
+
+.theinmag-gallery-card--hidden {
+  display: none;
+}
+
+.theinmag-gallery-card--filtered-out {
+  display: none;
+}
+
+.theinmag-gallery-card__media {
+  position: relative;
+  display: block;
+  line-height: 0;
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.theinmag-gallery-card__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
+}
+
+.theinmag-gallery-card__badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background-color: rgba(20, 15, 30, 0.85);
+  color: #FFFFFF;
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.theinmag-gallery-card__meta {
+  padding: 12px;
+}
+
+.theinmag-gallery-card__attribution {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.theinmag-gallery-card__writeup {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 8px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---------- Section 5: Lightbox ---------- */
+
+.theinmag-gallery-lightbox[hidden] {
+  display: none !important;
+}
+
+.theinmag-gallery-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 3vw, 32px);
+}
+
+.theinmag-gallery-lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(20, 15, 30, 0.95);
+  cursor: pointer;
+}
+
+.theinmag-gallery-lightbox__panel {
+  position: relative;
+  background-color: #1F1A2E;
+  border-radius: var(--radius-md, 12px);
+  max-width: 720px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 600px) {
+  .theinmag-gallery-lightbox {
+    padding: 0;
+  }
+
+  .theinmag-gallery-lightbox__panel {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+.theinmag-gallery-lightbox__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background-color: rgba(20, 15, 30, 0.7);
+  color: #FFFFFF;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 160ms ease;
+}
+
+.theinmag-gallery-lightbox__close:hover {
+  background-color: rgba(20, 15, 30, 0.9);
+}
+
+.theinmag-gallery-lightbox__media {
+  position: relative;
+  background-color: #14101E;
+  line-height: 0;
+}
+
+.theinmag-gallery-lightbox__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
+}
+
+.theinmag-gallery-lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: none;
+  background-color: rgba(20, 15, 30, 0.7);
+  color: #FFFFFF;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 160ms ease;
+}
+
+.theinmag-gallery-lightbox__nav:hover {
+  background-color: rgba(20, 15, 30, 0.9);
+}
+
+.theinmag-gallery-lightbox__nav--prev {
+  left: 12px;
+}
+
+.theinmag-gallery-lightbox__nav--next {
+  right: 12px;
+}
+
+.theinmag-gallery-lightbox__nav[hidden] {
+  /* `position: absolute` would otherwise override the browser-default
+     [hidden]{display:none}, so the prev/next chevrons would render on
+     single-page submissions. */
+  display: none !important;
+}
+
+.theinmag-gallery-lightbox__counter {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  padding: 10px 16px 0;
+  text-align: center;
+}
+
+.theinmag-gallery-lightbox__body {
+  padding: 20px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.theinmag-gallery-lightbox__attribution {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.theinmag-gallery-lightbox__writeup {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.theinmag-gallery-lightbox__writeup:empty {
+  display: none;
+}
+
+.theinmag-gallery-lightbox__cross-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.theinmag-gallery-lightbox__cross-link {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background-color: transparent;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.theinmag-gallery-lightbox__cross-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.theinmag-gallery-lightbox__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin-top: 6px;
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background-color: var(--color-yellow, #F9C23C);
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  text-decoration: none;
+  box-shadow: 0 4px 0 var(--color-yellow-shadow, #D4A02E);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.theinmag-gallery-lightbox__cta:hover {
+  background-color: var(--color-purple-dark, #5D3A7A);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.25);
+}
+
+.theinmag-gallery-lightbox__belongs-note {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 4px 0 0;
+}
+
+/* ---------- Floating Send-IN CTA ---------- */
+
+.theinmag-gallery-float-cta {
+  position: fixed;
+  bottom: clamp(16px, 2.5vw, 24px);
+  right: clamp(16px, 2.5vw, 24px);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background-color: var(--color-yellow, #F9C23C);
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  /* Smaller per Ryan's note: tighter padding/font + slimmer shadow stack
+     while keeping the 3D pop feel. */
+  box-shadow:
+    0 4px 0 var(--color-yellow-shadow, #D4A02E),
+    0 8px 18px rgba(20, 15, 30, 0.22);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.theinmag-gallery-float-cta:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 var(--color-yellow-shadow, #D4A02E),
+    0 12px 22px rgba(20, 15, 30, 0.28);
+}
+
+.theinmag-gallery-float-cta:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 var(--color-yellow-shadow, #D4A02E),
+    0 4px 8px rgba(20, 15, 30, 0.18);
+}
+
+.theinmag-gallery-float-cta:focus-visible {
+  outline: 3px solid var(--color-purple-dark, #5D3A7A);
+  outline-offset: 3px;
+}
+
+.theinmag-gallery-float-cta__arrow {
+  transition: transform 200ms ease;
+}
+
+.theinmag-gallery-float-cta:hover .theinmag-gallery-float-cta__arrow {
+  transform: translateX(3px);
+}
+
+/* Hide while the lightbox is open so it doesn't show through the
+   backdrop or fight the lightbox's own Send-IN CTA. */
+body.theinmag-gallery-lightbox-open .theinmag-gallery-float-cta {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .theinmag-gallery-float-cta {
+    bottom: 14px;
+    right: 14px;
+    padding: 8px 14px;
+    font-size: 12px;
+    box-shadow:
+      0 3px 0 var(--color-yellow-shadow, #D4A02E),
+      0 6px 12px rgba(20, 15, 30, 0.2);
+  }
+}
+
+/* ---------- Section 6: Cream CTA strip (kept on disk, unused) ---------- */
+
+.theinmag-gallery-cta-strip {
+  background-color: var(--color-cream, #FBF6EA);
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  padding: var(--gcs-pt, 64px) clamp(16px, 4vw, 32px) var(--gcs-pb, 80px);
+  text-align: center;
+}
+
+.theinmag-gallery-cta-strip__inner {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.theinmag-gallery-cta-strip__heading {
+  font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+  font-weight: 400;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.1;
+  margin: 0;
+  color: var(--color-inky-purple-navy, #2A1F3D);
+  text-wrap: balance;
+}
+
+.theinmag-gallery-cta-strip__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theinmag-gallery-cta-strip__cta-arrow {
+  transition: transform 200ms ease;
+}
+
+.theinmag-gallery-cta-strip__cta:hover .theinmag-gallery-cta-strip__cta-arrow,
+.theinmag-gallery-cta-strip__cta:focus-visible .theinmag-gallery-cta-strip__cta-arrow {
+  transform: translateX(3px);
+}
+
+.theinmag-gallery-cta-strip__secondary {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-purple-dark, #5D3A7A);
+  text-decoration: none;
+  border-bottom: 1.5px solid currentColor;
+  padding-bottom: 1px;
+}
+
+.theinmag-gallery-cta-strip__secondary:hover {
+  color: var(--color-inky-purple-navy, #2A1F3D);
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .theinmag-gallery-card,
+  .theinmag-gallery-hero__cta-arrow,
+  .theinmag-gallery-cta-strip__cta-arrow,
+  .theinmag-gallery-lightbox__cta,
+  .theinmag-gallery-lightbox__close,
+  .theinmag-gallery-lightbox__nav,
+  .theinmag-gallery-float-cta,
+  .theinmag-gallery-float-cta__arrow,
+  .theinmag-gallery-lightbox__cross-link {
+    transition: none !important;
+    transform: none !important;
+  }
+}
