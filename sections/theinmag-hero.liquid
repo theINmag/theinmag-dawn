@@ -14,6 +14,8 @@
 {%- assign image_right = section.settings.image_right -%}
 {%- assign image_left_alt = section.settings.image_left_alt | default: 'An Australian child reading theINmag, the magazine for creative kids.' -%}
 {%- assign image_right_alt = section.settings.image_right_alt | default: 'A creation by an Australian kid published in theINmag.' -%}
+{%- assign image_left_filename = section.settings.image_left_filename | default: 'HERO_kid-reading-mag.jpg' -%}
+{%- assign image_right_filename = section.settings.image_right_filename | default: 'HERO_kid-creation-art.jpg' -%}
 {%- assign eyebrow_text = section.settings.eyebrow_text -%}
 {%- assign aeo_h1_text = section.settings.aeo_h1_text -%}
 {%- comment -%}
@@ -90,7 +92,7 @@
       {%- else -%}
         <img
           class="theinmag-hero__image"
-          src="{{ 'HERO_kid-reading-mag.jpg' | asset_url }}"
+          src="{{ image_left_filename | asset_url }}"
           alt="{{ image_left_alt | escape }}"
           loading="eager"
           fetchpriority="high"
@@ -126,7 +128,7 @@
       {%- else -%}
         <img
           class="theinmag-hero__image"
-          src="{{ 'HERO_kid-creation-art.jpg' | asset_url }}"
+          src="{{ image_right_filename | asset_url }}"
           alt="{{ image_right_alt | escape }}"
           loading="eager"
         >
@@ -258,14 +260,16 @@
   }
 
   /* Flat darken overlay - applied to BOTH panes so the photos sit at
-     a consistent (slightly cooler) brightness. Subtle enough that the
-     photo still leads visually, dark enough to take the edge off the
-     brightness and help white text on the left pane sit cleanly. */
+     a consistent (slightly cooler) brightness. Bumped from 0.20 to
+     0.32 on audience pages where the photos run hot (parents_ned has
+     vibrant grass + pink artwork) and need more weight to keep white
+     text legible. The gradient scrim on top still adds extra darkness
+     specifically where the text sits. */
   .theinmag-hero__pane::before {
     content: '';
     position: absolute;
     inset: 0;
-    background-color: rgba(42, 31, 61, 0.20);
+    background-color: rgba(42, 31, 61, 0.32);
     z-index: 1;
     pointer-events: none;
   }
@@ -314,7 +318,19 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-md);
+    /* Per-child margins instead of flex gap so the eyebrow can sit
+       tight against the headline while subhead + CTAs keep their
+       normal breathing room. */
+    gap: 0;
+  }
+
+  .theinmag-hero__content > * + * {
+    margin-top: var(--space-md);
+  }
+
+  /* Eyebrow + headline read as one unit: tiny gap between them. */
+  .theinmag-hero__eyebrow + .theinmag-hero__headline {
+    margin-top: 6px;
   }
 
   @media (min-width: 750px) {
@@ -579,6 +595,12 @@
     },
     {
       "type": "text",
+      "id": "image_left_filename",
+      "label": "Left image fallback filename in /assets/",
+      "info": "Used when no image picker value is set. Defaults to HERO_kid-reading-mag.jpg (homepage). Audience pages set their own (e.g. parents_ned.jpg)."
+    },
+    {
+      "type": "text",
       "id": "image_left_alt",
       "label": "Left image alt text",
       "info": "Descriptive and keyword-aware. Drives AEO."
@@ -595,6 +617,12 @@
       "type": "image_picker",
       "id": "image_right",
       "label": "Right image"
+    },
+    {
+      "type": "text",
+      "id": "image_right_filename",
+      "label": "Right image fallback filename in /assets/",
+      "info": "Used when no image picker value is set. Defaults to HERO_kid-creation-art.jpg (homepage)."
     },
     {
       "type": "text",

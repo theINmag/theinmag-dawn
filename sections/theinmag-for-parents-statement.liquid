@@ -18,13 +18,10 @@
 {%- liquid
   assign heading = section.settings.heading
   assign body = section.settings.body
-  assign image = section.settings.image
-  assign image_alt = section.settings.image_alt
-  assign image_filename = section.settings.image_filename
   assign cta_label = section.settings.cta_label
   assign cta_link = section.settings.cta_link
   assign trust_microcopy = section.settings.trust_microcopy
-  assign bg_color = section.settings.bg_color | default: '#C9B5DB'
+  assign bg_color = section.settings.bg_color | default: '#FBF6EA'
 -%}
 
 <section
@@ -33,89 +30,82 @@
   style="--theinmag-fps-bg: {{ bg_color }};"
 >
   <div class="theinmag-for-parents-statement__inner">
-    {%- if heading != blank -%}
-      <h2
-        id="theinmag-for-parents-statement-heading-{{ section.id }}"
-        class="theinmag-for-parents-statement__heading"
-      >
-        {{ heading }}
-      </h2>
-    {%- endif -%}
+    <div class="theinmag-for-parents-statement__col theinmag-for-parents-statement__col--heading">
+      {%- if heading != blank -%}
+        <h2
+          id="theinmag-for-parents-statement-heading-{{ section.id }}"
+          class="theinmag-for-parents-statement__heading"
+        >
+          {{ heading }}
+        </h2>
+      {%- endif -%}
+    </div>
 
-    {%- if body != blank -%}
-      <p class="theinmag-for-parents-statement__body">{{ body }}</p>
-    {%- endif -%}
+    <div class="theinmag-for-parents-statement__col theinmag-for-parents-statement__col--body">
+      {%- if body != blank -%}
+        <p class="theinmag-for-parents-statement__body">{{ body }}</p>
+      {%- endif -%}
+    </div>
 
-    {%- if image != blank or image_filename != blank -%}
-      <div class="theinmag-for-parents-statement__image-wrap">
-        {%- if image != blank -%}
-          <img
-            class="theinmag-for-parents-statement__image"
-            src="{{ image | image_url: width: 1200 }}"
-            srcset="
-              {{ image | image_url: width: 600 }} 600w,
-              {{ image | image_url: width: 900 }} 900w,
-              {{ image | image_url: width: 1200 }} 1200w,
-              {{ image | image_url: width: 1600 }} 1600w
-            "
-            sizes="(min-width: 990px) 720px, 90vw"
-            width="{{ image.width }}"
-            height="{{ image.height }}"
-            alt="{{ image_alt | escape }}"
-            loading="lazy"
-          >
-        {%- else -%}
-          <img
-            class="theinmag-for-parents-statement__image"
-            src="{{ image_filename | asset_url }}"
-            alt="{{ image_alt | escape }}"
-            loading="lazy"
-          >
-        {%- endif -%}
-      </div>
-    {%- endif -%}
-
-    {%- if cta_label != blank -%}
-      <div class="theinmag-for-parents-statement__cta-wrap">
+    <div class="theinmag-for-parents-statement__col theinmag-for-parents-statement__col--cta">
+      {%- if cta_label != blank -%}
         <a
-          class="theinmag-btn theinmag-btn--primary"
+          class="theinmag-btn theinmag-btn--primary theinmag-for-parents-statement__cta"
           href="{{ cta_link | default: '/pages/send-in' }}"
         >
           {{ cta_label }}
         </a>
-      </div>
-    {%- endif -%}
+      {%- endif -%}
 
-    {%- if trust_microcopy != blank -%}
-      <p class="theinmag-for-parents-statement__trust">{{ trust_microcopy }}</p>
-    {%- endif -%}
+      {%- if trust_microcopy != blank -%}
+        <p class="theinmag-for-parents-statement__trust">{{ trust_microcopy }}</p>
+      {%- endif -%}
+    </div>
   </div>
 </section>
 
 {%- stylesheet -%}
+  /* Short conversion beat - tight vertical padding so the section
+     reads as a quick interlude between chapters, not a hero moment. */
   .theinmag-for-parents-statement {
-    background-color: var(--theinmag-fps-bg, #C9B5DB);
+    background-color: var(--theinmag-fps-bg, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(80px, 12vw, 140px) clamp(20px, 5vw, 64px);
+    padding: clamp(28px, 4vw, 48px) clamp(20px, 5vw, 64px);
     position: relative;
   }
 
+  /* 3-column horizontal layout on desktop: heading | body | CTA+trust.
+     Stacks vertically on mobile (heading -> body -> CTA -> trust).
+     Each column centers its own content. */
   .theinmag-for-parents-statement__inner {
-    max-width: 1100px;
+    max-width: 1320px;
     margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(20px, 3vw, 32px);
+    align-items: center;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-for-parents-statement__inner {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: clamp(32px, 4vw, 56px);
+    }
+  }
+
+  .theinmag-for-parents-statement__col {
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(20px, 2.5vw, 32px);
+    justify-content: center;
   }
 
   .theinmag-for-parents-statement__heading {
     margin: 0;
-    max-width: 22ch;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
-    font-size: clamp(32px, 5vw, 48px);
+    font-size: clamp(24px, 3vw, 32px);
     line-height: 1.2;
     letter-spacing: -0.01em;
     color: var(--color-inky-purple-navy, #2A1F3D);
@@ -124,40 +114,31 @@
 
   .theinmag-for-parents-statement__body {
     margin: 0;
-    max-width: 50ch;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(17px, 2vw, 19px);
+    font-size: clamp(15px, 1.6vw, 17px);
     line-height: 1.7;
     color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
-  .theinmag-for-parents-statement__image-wrap {
-    width: 100%;
-    max-width: 720px;
-    margin-top: clamp(8px, 1.5vw, 16px);
+  .theinmag-for-parents-statement__col--cta {
+    gap: clamp(10px, 1.5vw, 14px);
   }
 
-  .theinmag-for-parents-statement__image {
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: 0;
-  }
-
-  .theinmag-for-parents-statement__cta-wrap {
-    margin-top: clamp(8px, 1.5vw, 16px);
+  .theinmag-for-parents-statement__cta {
+    align-self: center;
   }
 
   .theinmag-for-parents-statement__trust {
     margin: 0;
-    max-width: 60ch;
+    max-width: 36ch;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
     font-style: italic;
     font-size: clamp(13px, 1.3vw, 14px);
     line-height: 1.5;
     color: rgba(42, 31, 61, 0.65);
+    text-align: center;
   }
 {%- endstylesheet -%}
 
@@ -169,7 +150,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Editorial statement panel. Opens the lavender chapter on /pages/for-parents. Heading + body + optional image + CTA + trust microcopy, all centered."
+      "content": "Editorial statement panel. 3-column horizontal layout (heading | body | CTA + trust). Cream bg by default - reads as a quiet conversion beat rather than a chapter opener."
     },
     {
       "type": "textarea",
@@ -182,27 +163,6 @@
       "id": "body",
       "label": "Body",
       "default": "They stand a little taller. They tell their nan about it. They go back to the page weeks later and check it's still there. It is. That feeling - being seen, being chosen, being part of something real - is the whole reason we make theINmag. And every single kid who sends in a creation has a shot at it."
-    },
-    {
-      "type": "header",
-      "content": "Centred image (optional)"
-    },
-    {
-      "type": "image_picker",
-      "id": "image",
-      "label": "Image"
-    },
-    {
-      "type": "text",
-      "id": "image_filename",
-      "label": "Fallback filename in /assets/",
-      "info": "Used only when no image is picked above."
-    },
-    {
-      "type": "text",
-      "id": "image_alt",
-      "label": "Image alt text",
-      "info": "Descriptive and keyword-aware. Drives AEO."
     },
     {
       "type": "header",
@@ -238,8 +198,8 @@
       "type": "color",
       "id": "bg_color",
       "label": "Background colour",
-      "info": "Defaults to --color-wave-purple (#C9B5DB) - the For Parents lavender chapter colour.",
-      "default": "#C9B5DB"
+      "info": "Defaults to --color-cream (#FBF6EA).",
+      "default": "#FBF6EA"
     }
   ],
   "presets": [

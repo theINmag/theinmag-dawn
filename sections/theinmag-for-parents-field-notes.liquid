@@ -34,38 +34,36 @@
   assign tag_list = tag_csv | downcase | replace: ' ', '' | split: ','
 
   assign feature_article = blank
-  assign small_articles = '' | split: ','
-
-  if target_blog != blank
-    for art in target_blog.articles limit: 60
-      assign matched = false
-      for tag in art.tags
-        assign tag_lower = tag | downcase
-        if tag_list contains tag_lower
-          assign matched = true
-          break
-        endif
-      endfor
-
-      if matched
-        if feature_article == blank
-          assign feature_article = art
-        else
-          if small_articles.size < 3
-            assign small_articles = small_articles | concat: art
-          endif
-        endif
-
-        comment
-          Stop walking once we have 1 feature + 3 small.
-        endcomment
-        if feature_article != blank and small_articles.size >= 3
-          break
-        endif
-      endif
-    endfor
-  endif
+  assign small_count = 0
 -%}
+
+{%- capture small_cards_html -%}
+  {%- if target_blog != blank -%}
+    {%- for art in target_blog.articles limit: 60 -%}
+      {%- assign matched = false -%}
+      {%- for tag in art.tags -%}
+        {%- assign tag_lower = tag | downcase -%}
+        {%- if tag_list contains tag_lower -%}
+          {%- assign matched = true -%}
+          {%- break -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- if matched -%}
+        {%- if feature_article == blank -%}
+          {%- assign feature_article = art -%}
+        {%- elsif small_count < 3 -%}
+          <div class="theinmag-for-parents-field-notes__small-row">
+            {%- render 'theinmag-editorial-card', article: art, variant: 'right_small' -%}
+          </div>
+          {%- assign small_count = small_count | plus: 1 -%}
+        {%- endif -%}
+
+        {%- if feature_article != blank and small_count >= 3 -%}{%- break -%}{%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
 
 <section
   class="theinmag-for-parents-field-notes"
@@ -102,13 +100,9 @@
           {%- render 'theinmag-editorial-card', article: feature_article, variant: 'feature' -%}
         </div>
 
-        {%- if small_articles.size > 0 -%}
+        {%- if small_count > 0 -%}
           <div class="theinmag-for-parents-field-notes__small-col" data-parallax-target>
-            {%- for art in small_articles -%}
-              <div class="theinmag-for-parents-field-notes__small-row">
-                {%- render 'theinmag-editorial-card', article: art, variant: 'right_small' -%}
-              </div>
-            {%- endfor -%}
+            {{ small_cards_html }}
           </div>
         {%- endif -%}
       </div>

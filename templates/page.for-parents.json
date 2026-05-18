@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "page-meta": {
@@ -17,31 +26,42 @@
         "headline": "Creative kids.\nPublished.",
         "emphasis_word": "",
         "subhead": "Real Aussie kids fill every page. No ads. No filler. The next one could be your kid.",
-        "cta_primary_label": "See what's inside",
+        "cta_primary_label": "See the issues",
         "cta_primary_link": "/pages/shop",
         "cta_secondary_label": "Get the Membership",
         "cta_secondary_link": "/products/membership",
+        "image_left_filename": "parents_ned.jpg",
         "image_left_alt": "An Australian kid reading their copy of theINmag.",
+        "image_right_filename": "blog-image-universal-35.jpg",
         "image_right_alt": "A creation by an Australian kid published in theINmag.",
-        "show_trust_bar": true,
-        "trust_1": "100% kid-created",
-        "trust_2": "No ads, ever",
-        "trust_3": "Printed in Australia",
-        "trust_4": "350+ kids per issue"
+        "show_trust_bar": false
+      }
+    },
+    "shop-trust-strip": {
+      "type": "theinmag-shop-trust-strip",
+      "settings": {
+        "padding_top": 24,
+        "padding_bottom": 24
       }
     },
     "pillars": {
       "type": "theinmag-for-parents-pillars",
+      "settings": {
+        "bg_image_filename": "parents_backgroundpillars.jpg",
+        "bg_image_opacity": 30,
+        "watermark_filename": ""
+      },
       "blocks": {
         "diptych-1": {
           "type": "pillar",
           "settings": {
             "weight": "hero",
             "eyebrow": "INSPIRATION",
-            "headline": "A house full of [[EM]]ideas[[/EM]]. Three times a year.",
+            "headline": "A house full of ideas. Three times a year.",
             "body": "Every issue is 120+ pages of art, writing, comics, photography, jokes, puzzles and ideas - all made by other kids the same age. Hand it to your kid on a rainy Saturday. Twenty minutes later they're drawing their version, writing their own, building the thing they just read about. The magazine doesn't ask anything of them. It just sparks something.",
             "accent_filename": "rainbow.png",
-            "accent_position": "top-right"
+            "accent_position": "top-right",
+            "accent_opacity": 48
           }
         },
         "diptych-2": {
@@ -49,17 +69,19 @@
           "settings": {
             "weight": "hero",
             "eyebrow": "PUBLISHED",
-            "headline": "Publishing real [[EM]]Aussie kids[[/EM]].",
+            "headline": "Publishing real Aussie kids.",
             "body": "Every submission is reviewed by us - a small team of teachers, artists and parents. The ones that land get published with the kid's first name, surname initial, age, town, plus any write-up they want to share alongside it. Real paper. Real ink. Real proof their voice mattered.",
             "accent_filename": "bundle3.png",
-            "accent_position": "bottom-left"
+            "accent_position": "bottom-left",
+            "accent_opacity": 48
           }
         },
         "break-1": {
           "type": "kid_creation_break",
           "settings": {
+            "image_filename": "parents_kid-created.png",
             "image_alt": "A kid creation from a recent issue of theINmag.",
-            "caption": "TBC - kid creation + attribution"
+            "caption": ""
           }
         },
         "trio-1": {
@@ -70,7 +92,8 @@
             "headline": "No ads. Ever.",
             "body": "Most kids' publications sell your kid's attention to brands. theINmag never has and never will. No banner ads, no sponsored content, no product placements, no brand integrations. This isn't a phase. It's the spine of what we built - and the reason your kid can flip through without being sold to.",
             "accent_filename": "kid-leaves_topleft.png",
-            "accent_position": "top-right"
+            "accent_position": "top-right",
+            "accent_opacity": 18
           }
         },
         "trio-2": {
@@ -81,7 +104,8 @@
             "headline": "Printed in Melbourne. Inks made from vegetables.",
             "body": "No overseas factory. No petrochemical inks landing on the page your kid puts their face near. theINmag is printed locally in Melbourne using vegetable-based inks on FSC-certified paper - the way kids' print should be made, especially when little hands and noses get involved.",
             "accent_filename": "bundle1.png",
-            "accent_position": "bottom-left"
+            "accent_position": "bottom-left",
+            "accent_opacity": 65
           }
         },
         "trio-3": {
@@ -92,11 +116,19 @@
             "headline": "Built to be read, not scrolled.",
             "body": "No notifications. No algorithm. No infinite feed. Just one beautiful object that lands three times a year and rewards slow reading. The kind of thing your kid goes back to a week later, then a month later, then years later.",
             "accent_filename": "bundle2.png",
-            "accent_position": "top-right"
+            "accent_position": "top-right",
+            "accent_opacity": 65
           }
         }
       },
-      "block_order": ["diptych-1", "diptych-2", "break-1", "trio-1", "trio-2", "trio-3"]
+      "block_order": [
+        "diptych-1",
+        "diptych-2",
+        "break-1",
+        "trio-1",
+        "trio-2",
+        "trio-3"
+      ]
     },
     "statement": {
       "type": "theinmag-for-parents-statement",
@@ -111,13 +143,87 @@
       }
     },
     "field-notes": {
-      "type": "theinmag-for-parents-field-notes",
-      "settings": {}
+      "type": "theinmag-blog-feed",
+      "settings": {
+        "heading_pre": "field",
+        "heading_emphasis": "notes",
+        "heading_post": "",
+        "heading_period": "",
+        "subhead": "",
+        "background_filename": "theinside-homepage-background.jpg",
+        "show_filters": true,
+        "active_chip": "adults",
+        "chip_all_link": "/blogs/field-notes",
+        "chip_kids_link": "/blogs/field-notes?audience=kids",
+        "chip_adults_link": "/blogs/field-notes?audience=adults",
+        "show_cta": true,
+        "cta_label": "see all blogs",
+        "cta_link": "/blogs/field-notes",
+        "padding_top": 80,
+        "padding_bottom": 80
+      },
+      "blocks": {
+        "post-1": {
+          "type": "featured_post",
+          "settings": {
+            "audience": "adults",
+            "topic": "Creativity",
+            "title_override": "why your kid stops creating around age 8.",
+            "excerpt_override": "Around age 7 or 8 most kids start to self-edit harder. The fix is small, specific, and starts with the adult in the room.",
+            "link_override": "/blogs/field-notes/why-kids-stop-creating-around-age-8",
+            "fallback_filename": "blog-image-universal-05.jpg",
+            "image_alt": "Cubist-style portrait with split colour fields on a hot pink background, sent IN by Maida S., age 9, Bendigo VIC."
+          }
+        },
+        "post-2": {
+          "type": "featured_post",
+          "settings": {
+            "audience": "adults",
+            "topic": "Numeracy",
+            "title_override": "an open numeracy task is a great place to start.",
+            "excerpt_override": "Open-ended numeracy isn't a Plan B you reach for when the worksheet bores you. It's how kids actually learn maths.",
+            "link_override": "/blogs/field-notes/open-numeracy-task-great-place-to-start",
+            "fallback_filename": "blog-image-universal-06.jpg",
+            "image_alt": "Watercolour of a desert road heading into a sunset with purple mountains, sent IN by Remy V., age 9, Castlemaine VIC."
+          }
+        },
+        "post-3": {
+          "type": "featured_post",
+          "settings": {
+            "audience": "both",
+            "topic": "Creativity",
+            "title_override": "5 things to draw when you don't know what to draw.",
+            "excerpt_override": "When your brain is stuck, you don't need a better idea. You need a weirder one. Five places to start.",
+            "link_override": "/blogs/field-notes/5-things-to-draw-when-you-dont-know-what-to-draw",
+            "fallback_filename": "blog-image-universal-03.jpg",
+            "image_alt": "Half-realistic, half-imagined portrait with everyday objects inside the head, sent IN by Felipe R., age 10, Bendigo VIC."
+          }
+        },
+        "post-4": {
+          "type": "featured_post",
+          "settings": {
+            "audience": "adults",
+            "topic": "Wellbeing",
+            "title_override": "the case for boredom.",
+            "excerpt_override": "Almost every kid creation we love most started with the sentence the parent didn't want to hear: 'I'm bored.' Lean into it.",
+            "link_override": "/blogs/field-notes/case-for-boredom",
+            "fallback_filename": "blog-image-universal-04.jpg",
+            "image_alt": "Reinterpretation of Vermeer's Girl with a Pearl Earring in muted greens and blue, sent IN by Charlie G., age 12, Bendigo VIC."
+          }
+        }
+      },
+      "block_order": ["post-1", "post-2", "post-3", "post-4"]
     },
     "founders": {
       "type": "theinmag-for-parents-founders",
       "settings": {
-        "anchor_link": "/pages/behind-the-mag"
+        "eyebrow": "WHO MAKES THIS",
+        "heading": "Two teachers, over twenty years in classrooms, one magazine.",
+        "body": "We're Ryan and Tam - partners, parents, and classroom teachers. We saw too many kids switch off the moment school turned creativity into a worksheet. theINmag is the thing we wished existed for them. Three issues a year of pure kid creativity, designed to inspire and give real kids a voice.",
+        "anchor_label": "Read our full story",
+        "anchor_link": "/pages/behind-the-mag",
+        "image_filename": "parents_tamandryan.jpg",
+        "image_alt": "Ryan and Tam, the two teachers behind theINmag."
       }
     },
     "pull-quote": {
@@ -127,10 +233,10 @@
         "attribution_name": "Lana",
         "attribution_role": "",
         "background_filename": "theinside-homepage-background.jpg",
+        "scrim_opacity": 45,
         "heading_font_style": "inter",
         "size_variant": "large",
         "attribution_style": "caveat",
-        "scrim_opacity": 45,
         "padding_top": 160,
         "padding_bottom": 160
       }
@@ -179,13 +285,15 @@
           }
         }
       },
-      "block_order": ["membership", "single", "bundle"]
+      "block_order": [
+        "membership",
+        "single",
+        "bundle"
+      ],
+      "settings": {}
     },
     "faq": {
       "type": "theinmag-membership-faq",
-      "settings": {
-        "heading": "Common questions, honestly answered."
-      },
       "blocks": {
         "q1": {
           "type": "faq_item",
@@ -230,18 +338,20 @@
           }
         }
       },
-      "block_order": ["q1", "q2", "q3", "q4", "q5", "q6"]
+      "block_order": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6"
+      ],
+      "settings": {
+        "heading": "Common questions, honestly answered."
+      }
     },
     "cross-link": {
       "type": "theinmag-audience-tiles",
-      "settings": {
-        "heading": "Not a parent? We've got you too.",
-        "heading_position": "top",
-        "intro_text": "theINmag is for kids, teachers, homeschoolers, and parents - in different ways. Here's where to go next.",
-        "exclude_label": "Parents",
-        "padding_top": 64,
-        "padding_bottom": 64
-      },
       "blocks": {
         "kids": {
           "type": "tile",
@@ -280,12 +390,26 @@
           }
         }
       },
-      "block_order": ["kids", "teachers", "homeschoolers", "parents-excluded"]
+      "block_order": [
+        "kids",
+        "teachers",
+        "homeschoolers",
+        "parents-excluded"
+      ],
+      "settings": {
+        "heading": "Not a parent? We've got you too.",
+        "heading_position": "top",
+        "intro_text": "theINmag is for kids, teachers, homeschoolers, and parents - in different ways. Here's where to go next.",
+        "exclude_label": "Parents",
+        "padding_top": 64,
+        "padding_bottom": 64
+      }
     }
   },
   "order": [
     "page-meta",
     "hero",
+    "shop-trust-strip",
     "pillars",
     "statement",
     "comps",

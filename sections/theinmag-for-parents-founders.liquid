@@ -125,6 +125,9 @@
     height: auto;
     aspect-ratio: 4 / 5;
     object-fit: cover;
+    /* Keep the bottom of the frame (Ryan + Tam) in view; let the top
+       sky get cropped when the source is taller than the 4/5 ratio. */
+    object-position: center bottom;
     border-radius: 0;
   }
 
@@ -249,13 +252,13 @@
       "type": "textarea",
       "id": "heading",
       "label": "Heading",
-      "default": "Two former teachers, over twenty years in classrooms, one magazine."
+      "default": "Two teachers, over twenty years in classrooms, one magazine."
     },
     {
       "type": "textarea",
       "id": "body",
       "label": "Body",
-      "default": "We're Ryan G. and Tam B. - partners, parents, and classroom teachers. We saw too many kids switch off the moment school turned creativity into a worksheet. theINmag is the thing we wished existed for them. Three issues a year of pure kid creativity, designed to inspire and give real kids a voice."
+      "default": "We're Ryan and Tam - partners, parents, and classroom teachers. We saw too many kids switch off the moment school turned creativity into a worksheet. theINmag is the thing we wished existed for them. Three issues a year of pure kid creativity, designed to inspire and give real kids a voice."
     },
     {
       "type": "text",
@@ -287,7 +290,7 @@
       "type": "text",
       "id": "image_alt",
       "label": "Photo alt text",
-      "default": "Ryan and Tam, the two former teachers behind theINmag."
+      "default": "Ryan and Tam, the two teachers behind theINmag."
     }
   ],
   "presets": [
