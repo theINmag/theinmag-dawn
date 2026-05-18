@@ -1,23 +1,468 @@
-<style type="text/css">
-  .template-404 .title + * {
-    margin-top: 1rem;
+{%- comment -%}
+  main-404
+  Bespoke 404 page. Two-column on desktop: big randomised kid character
+  (left) with a "Switch mINion" button below it; eyebrow "404" + the
+  hand-lettered "Hmm - this page is hiding." + "The mINions can't find
+  it either." + "Take me home" CTA on the right. Mobile stacks the
+  character above the copy.
+
+  Character source = sitewide pool (snippets/theinmag-character-pool).
+  The pool's own JS fills the initial slot and the per-img bob animation
+  is the "slight wobble" idle state. The switch button reads the same
+  sessionStorage index cache the pool wrote, picks a different valid
+  index at random, and runs a pop-out / pop-in animation around the
+  src swap. The pool's bob is paused during the switch transform so
+  the two animations don't compose into something jittery.
+
+  Brand voice:
+    - "mINions" intentionally capitalises the IN to match the theINmag /
+      theINside / Send IN content casing - it's the same brand inflection.
+    - No em dashes anywhere per CLAUDE.md - hyphens only.
+{%- endcomment -%}
+
+{% render 'theinmag-character-pool' %}
+
+<section class="theinmag-404" data-theinmag-404 aria-labelledby="theinmag-404-heading">
+  <div class="theinmag-404__inner">
+
+    <div class="theinmag-404__character-col">
+      <div class="theinmag-404__character-stage" data-theinmag-404-stage>
+        <span class="theinmag-404__character" data-theinmag-pool-character data-theinmag-404-character></span>
+      </div>
+      <button
+        type="button"
+        class="theinmag-404__switch"
+        data-theinmag-404-switch
+        aria-label="Switch to a different character"
+      >
+        <svg class="theinmag-404__switch-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 12a9 9 0 0 1 15.5-6.3M21 6v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 12a9 9 0 0 1-15.5 6.3M3 18v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Switch mINion</span>
+      </button>
+    </div>
+
+    <div class="theinmag-404__copy-col">
+      <p class="theinmag-404__eyebrow">404</p>
+      <h1 id="theinmag-404-heading" class="theinmag-404__heading">
+        Hmm - this page is hiding.
+      </h1>
+      <p class="theinmag-404__sub">
+        The mINions can't find it either.
+      </p>
+      <a href="/" class="theinmag-404__cta button">
+        Take me home
+      </a>
+    </div>
+
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-404
+     Cream background, generous vertical padding so the page feels
+     intentional rather than an apologetic stub. Two-column grid on
+     desktop, stacked on mobile.
+     ================================================================ */
+
+  .theinmag-404 {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(48px, 8vw, 96px) clamp(16px, 4vw, 48px);
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  @media screen and (min-width: 750px) {
-    .template-404 .title + * {
-      margin-top: 2rem;
+  .theinmag-404__inner {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(32px, 6vw, 64px);
+    align-items: center;
+    text-align: center;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-404__inner {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      text-align: left;
+      gap: clamp(48px, 8vw, 96px);
     }
   }
-</style>
 
-<div class="template-404 page-width page-margin center">
-  <p>
-    {{ 'templates.404.subtext' | t }}
-  </p>
-  <h1 class="title">
-    {{ 'templates.404.title' | t }}
-  </h1>
-  <a href="/pages/shop" class="button">
-    {{ 'general.continue_shopping' | t }}
-  </a>
-</div>
+  /* ================================================================
+     Character column
+     ================================================================ */
+
+  .theinmag-404__character-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(20px, 3vw, 28px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-404__character-col {
+      align-items: center;
+    }
+  }
+
+  /* The stage is the wrapper we transform during a switch - so we can
+     animate it independently of the pool's per-img bob inside. */
+  .theinmag-404__character-stage {
+    width: clamp(180px, 32vw, 320px);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center bottom;
+    transition: transform 0.32s cubic-bezier(0.55, 0, 0.7, 0.2);
+  }
+
+  /* Pop-out: shrink toward the ground with a slight rotation - reads
+     as the character ducking offstage. */
+  .theinmag-404__character-stage.is-switching-out {
+    transform: scale(0) rotate(-18deg);
+  }
+
+  /* Pop-in: bounce up from zero with overshoot. The cubic-bezier here
+     is the same "playful" easing used in the mission section's
+     scroll-pop. Different transition shape from pop-out so the swap
+     reads as two distinct beats, not a single mirrored animation. */
+  .theinmag-404__character-stage.is-switching-in {
+    animation: theinmag-404-pop-in 0.5s cubic-bezier(0.34, 1.7, 0.64, 1) both;
+  }
+
+  @keyframes theinmag-404-pop-in {
+    0% { transform: scale(0) rotate(12deg); }
+    60% { transform: scale(1.08) rotate(-4deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+
+  /* The pool slot inside the stage. The pool snippet's base CSS sets
+     opacity:0 / translateY(8px) until .is-popped is added on scroll.
+     For the 404 the character is above the fold, but the scroll-pop
+     listener only fires on scroll - so force the popped state here so
+     the character is visible immediately on page load. */
+  .theinmag-404__character {
+    display: block;
+    width: 100%;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Pause the per-img bob during the switch so the stage transform
+     reads cleanly without the bob's rotate compounding. */
+  .theinmag-404__character-stage.is-switching-out .theinmag-pool-character__img,
+  .theinmag-404__character-stage.is-switching-in .theinmag-pool-character__img {
+    animation: none;
+  }
+
+  /* ================================================================
+     Switch button - a soft pill, secondary to the "Take me home" CTA.
+     Cream-on-cream is too quiet, so it sits on a faint peach surface
+     with the inky companion text. Hover deepens the surface and lifts
+     the icon into a spin so the action telegraphs itself.
+     ================================================================ */
+
+  .theinmag-404__switch {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background-color: var(--color-peach, #FCDDB8);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+  }
+
+  .theinmag-404__switch:hover,
+  .theinmag-404__switch:focus-visible {
+    background-color: #F8C99E; /* peach wave - one step darker, same family */
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  .theinmag-404__switch:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-sandy-orange-dark, #D9783A);
+  }
+
+  .theinmag-404__switch:active {
+    transform: translateY(0);
+  }
+
+  .theinmag-404__switch:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .theinmag-404__switch-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.4s ease;
+  }
+
+  .theinmag-404__switch:hover .theinmag-404__switch-icon,
+  .theinmag-404__switch:focus-visible .theinmag-404__switch-icon {
+    transform: rotate(180deg);
+  }
+
+  /* ================================================================
+     Copy column
+     ================================================================ */
+
+  .theinmag-404__copy-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(12px, 1.6vw, 16px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-404__copy-col {
+      align-items: flex-start;
+    }
+  }
+
+  .theinmag-404__eyebrow {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-sandy-orange-dark, #D9783A);
+  }
+
+  .theinmag-404__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 44px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-404__sub {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.8vw, 19px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.8;
+    max-width: 36ch;
+  }
+
+  .theinmag-404__cta {
+    margin-top: clamp(12px, 2vw, 20px);
+  }
+
+  /* ================================================================
+     Reduced motion - skip the switch animation, the icon spin, and
+     the button lift. Bob is already silenced by the character pool
+     snippet's own reduced-motion rules.
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-404__character-stage,
+    .theinmag-404__switch,
+    .theinmag-404__switch-icon {
+      transition: none;
+      animation: none;
+    }
+    .theinmag-404__character-stage.is-switching-out,
+    .theinmag-404__character-stage.is-switching-in {
+      transform: none;
+      animation: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-404]');
+    if (!root) return;
+
+    var stage = root.querySelector('[data-theinmag-404-stage]');
+    var slot = root.querySelector('[data-theinmag-404-character]');
+    var btn = root.querySelector('[data-theinmag-404-switch]');
+    if (!stage || !slot || !btn) return;
+
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var cacheKey = 'theinmagCharacterPool'; /* shared with theinmag-character-pool snippet */
+    var poolMax = 100;
+    var validIndices = [];
+    var isSwapping = false;
+
+    /* The pool snippet's JS fills the slot async (after probe). Wait
+       until an img is in place AND the cache is populated, then enable
+       the switch button. */
+    btn.disabled = true;
+    waitForReady(function () {
+      validIndices = readCache() || [];
+      if (validIndices.length < 2) {
+        /* Only one valid character - nothing to switch to. Keep the
+           button disabled rather than dead-clickable. */
+        return;
+      }
+      btn.disabled = false;
+    });
+
+    btn.addEventListener('click', function () {
+      if (isSwapping || btn.disabled) return;
+      switchCharacter();
+    });
+
+    function switchCharacter() {
+      var img = slot.querySelector('img');
+      if (!img) return;
+
+      var currentIdx = parseIndex(img.src);
+      var nextIdx = pickDifferent(currentIdx);
+      if (nextIdx == null) return;
+
+      isSwapping = true;
+      btn.disabled = true;
+
+      if (reduced) {
+        replaceImg(nextIdx);
+        finish();
+        return;
+      }
+
+      /* Pop-out, then swap src, then pop-in. The two phases run on
+         transitionend / animationend respectively rather than fixed
+         setTimeouts so the swap stays locked to the actual easing
+         durations the CSS chose. */
+      stage.classList.add('is-switching-out');
+      onceTransitionEnd(stage, 'transform', function () {
+        replaceImg(nextIdx);
+        stage.classList.remove('is-switching-out');
+        /* Force reflow so the browser registers the class removal
+           before we add the next class - otherwise the pop-in
+           animation can be skipped because the engine batches the
+           class change. */
+        void stage.offsetWidth;
+        stage.classList.add('is-switching-in');
+        onceAnimationEnd(stage, function () {
+          stage.classList.remove('is-switching-in');
+          finish();
+        });
+      });
+    }
+
+    function finish() {
+      isSwapping = false;
+      btn.disabled = false;
+    }
+
+    function replaceImg(n) {
+      var img = slot.querySelector('img');
+      if (!img) return;
+      var newSrc = img.src.replace(/character-\d+\.png/, 'character-' + n + '.png');
+      img.src = newSrc;
+    }
+
+    function pickDifferent(currentIdx) {
+      if (!validIndices.length) return null;
+      if (validIndices.length === 1) {
+        return validIndices[0] === currentIdx ? null : validIndices[0];
+      }
+      var next;
+      var attempts = 0;
+      do {
+        next = validIndices[Math.floor(Math.random() * validIndices.length)];
+        attempts++;
+      } while (next === currentIdx && attempts < 20);
+      return next === currentIdx ? null : next;
+    }
+
+    function parseIndex(src) {
+      var m = src.match(/character-(\d+)\.png/);
+      return m ? parseInt(m[1], 10) : null;
+    }
+
+    function readCache() {
+      try {
+        var raw = sessionStorage.getItem(cacheKey);
+        if (!raw) return null;
+        var parsed = JSON.parse(raw);
+        if (!parsed || !parsed.indices) return null;
+        return parsed.indices.slice();
+      } catch (e) { return null; }
+    }
+
+    /* Poll until the pool snippet has filled the slot AND written the
+       cache. Caps at ~10s of polling before giving up (cache miss +
+       slow probe = button stays disabled, which is correct). */
+    function waitForReady(cb) {
+      var attempts = 0;
+      var maxAttempts = 100; /* 100 * 100ms = 10s */
+      (function tick() {
+        var hasImg = !!slot.querySelector('img');
+        var hasCache = !!readCache();
+        if (hasImg && hasCache) { cb(); return; }
+        if (++attempts >= maxAttempts) return;
+        setTimeout(tick, 100);
+      })();
+    }
+
+    /* transitionend can fire for any animated property; gate on the
+       one we care about and clean up after a single fire. */
+    function onceTransitionEnd(el, prop, cb) {
+      var handler = function (e) {
+        if (e.propertyName && e.propertyName !== prop) return;
+        el.removeEventListener('transitionend', handler);
+        clearTimeout(fallback);
+        cb();
+      };
+      el.addEventListener('transitionend', handler);
+      /* Fallback in case transitionend never fires (e.g. transform
+         was unchanged or device skipped the transition). 600ms covers
+         the 320ms pop-out duration with margin. */
+      var fallback = setTimeout(function () {
+        el.removeEventListener('transitionend', handler);
+        cb();
+      }, 600);
+    }
+
+    function onceAnimationEnd(el, cb) {
+      var handler = function () {
+        el.removeEventListener('animationend', handler);
+        clearTimeout(fallback);
+        cb();
+      };
+      el.addEventListener('animationend', handler);
+      var fallback = setTimeout(function () {
+        el.removeEventListener('animationend', handler);
+        cb();
+      }, 800);
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "404 page",
+  "tag": "section",
+  "class": "theinmag-404-section",
+  "settings": []
+}
+{% endschema %}
