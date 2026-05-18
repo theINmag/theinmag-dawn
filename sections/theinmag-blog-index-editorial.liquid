@@ -828,6 +828,13 @@
     outline-offset: 4px;
     border-radius: 4px;
   }
+
+  /* Banner dedupe — hides editorial cards whose article matches the
+     currently-visible audience banner. Toggled by the dedupe IIFE in
+     the section's <script> block. */
+  .theinmag-editorial__card--banner-dupe {
+    display: none !important;
+  }
 {%- endstylesheet -%}
 
 <script>
@@ -1017,7 +1024,69 @@
       setAudience(audience, { animate: !!e.detail.animate, broadcast: false });
     });
   })();
+
+  /* ================================================================
+     Banner-vs-editorial dedupe (added 2026-05-18)
+     The audience banner section sits below the editorial grid and is
+     curated by Ryan to a specific article per audience. If that
+     curated article also lands in the editorial auto-pull above, it
+     reads as a duplicate. This IIFE hides matching editorial cards
+     client-side after page render + on every audience toggle change.
+
+     Cross-section dedupe in Liquid isn't possible (each section has
+     its own scope). Doing it client-side once the DOM is settled is
+     the cleanest path - no Liquid restructure, automatic re-eval as
+     Ryan rotates banner picks in admin.
+     ================================================================ */
+  (function () {
+    var DEDUPE_CLASS = 'theinmag-editorial__card--banner-dupe';
+
+    function getBannerHrefs() {
+      var hrefs = {};
+      var bannerCards = document.querySelectorAll(
+        '.theinmag-feature-banner a[href], .theinmag-feature-banner article[data-audience]'
+      );
+      bannerCards.forEach(function (el) {
+        // Skip cards hidden by the audience toggle.
+        var rect = el.getBoundingClientRect();
+        var computed = window.getComputedStyle(el);
+        var hidden = computed.display === 'none' || computed.visibility === 'hidden' || rect.width === 0;
+        if (hidden) return;
+        var href = el.getAttribute('href');
+        if (href) hrefs[href] = true;
+      });
+      return hrefs;
+    }
+
+    function applyDedupe() {
+      var hrefs = getBannerHrefs();
+      var cards = document.querySelectorAll('.theinmag-editorial__card');
+      cards.forEach(function (card) {
+        var href = card.getAttribute('href');
+        if (href && hrefs[href]) {
+          card.classList.add(DEDUPE_CLASS);
+        } else {
+          card.classList.remove(DEDUPE_CLASS);
+        }
+      });
+    }
+
+    function run() {
+      // Small delay so the banner's own audience-toggle handler
+      // finishes hiding/showing before we read computed styles.
+      window.setTimeout(applyDedupe, 50);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', run);
+    } else {
+      run();
+    }
+
+    window.addEventListener('field-notes:audience-changed', run);
+  })();
 </script>
+
 
 {% schema %}
 {
