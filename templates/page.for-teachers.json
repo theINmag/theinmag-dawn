@@ -146,6 +146,109 @@
         "audience_token": "teachers"
       }
     },
+    "curriculum-accordion": {
+      "type": "theinmag-curriculum-accordion",
+      "settings": {
+        "heading": "What's [[IN]]side",
+        "subhead": "and how it links to your curriculum",
+        "image_alt": "An Australian classroom engaging with theINmag.",
+        "caption": ""
+      },
+      "blocks": {
+        "i1": {
+          "type": "item",
+          "settings": {
+            "number": "01",
+            "section_name": "The [[IN]] Map",
+            "kicker": "GEOGRAPHY",
+            "body": "A full Australian map, dotted with the location of every kid who's been published in the issue. Built-in geography lesson: how far apart are these creators? What landmarks sit between them? Whose dot is closest to your school? Brilliant for distance, scale, mapping conventions and place-based discussion. Bonus when one of the dots ends up belonging to your classroom.",
+            "is_open": true
+          }
+        },
+        "i2": {
+          "type": "item",
+          "settings": {
+            "number": "02",
+            "section_name": "The Featured Story",
+            "kicker": "LITERACY",
+            "body": "Each issue, one outstanding piece of kid writing is chosen as the Feature Story - typically a picture story book, complete with kid-created illustrations. A natural shared-reading text. A genuine mentor text. Written by a kid your students' age, which makes it land in a way published authors never quite can."
+          }
+        },
+        "i3": {
+          "type": "item",
+          "settings": {
+            "number": "03",
+            "section_name": "Taste the PIE",
+            "kicker": "LITERACY",
+            "body": "Writing organised by purpose: Persuade, Inform, Entertain. Every piece is a kid sample your students can study, critique and emulate. Ideal for modelled writing, text-type analysis, paragraph structure and voice. Use the PIE framework as a launching pad for your own classroom writing unit, then submit your students' best pieces to be considered for the next issue."
+          }
+        },
+        "i4": {
+          "type": "item",
+          "settings": {
+            "number": "04",
+            "section_name": "Making the Best Me",
+            "kicker": "WELLBEING",
+            "body": "Real reflections from real kids on emotions, friendships and safety. It's pretty amazing to see kids sharing the strategies they use to maintain a healthy way of being. Use as a circle-time prompt, a journal starter, or a discussion springboard for your wellbeing block."
+          }
+        },
+        "i5": {
+          "type": "item",
+          "settings": {
+            "number": "05",
+            "section_name": "The Art Hub",
+            "kicker": "VISUAL ARTS",
+            "body": "A gallery of kid-made artworks across every medium - drawing, painting, sculpture, craft, chalk, pottery, mixed media. Use any piece as a picture prompt for 'I notice, I wonder' protocols, story starters, art critique sessions, or visual literacy work. Show your students what's possible from kids their age and watch the bar rise across the whole room."
+          }
+        },
+        "i6": {
+          "type": "item",
+          "settings": {
+            "number": "06",
+            "section_name": "What's Not to Like?",
+            "kicker": "PROBLEM-SOLVING",
+            "body": "Kid-created jokes, riddles, puzzles, codes and cool facts. Brilliant warm-up content, mental break activities, or a launching pad for your own classroom problem-solving sessions. Get your students designing their own riddles to send [[IN]] - the cognitive load is significant, and the engagement is immediate."
+          }
+        },
+        "i7": {
+          "type": "item",
+          "settings": {
+            "number": "07",
+            "section_name": "We Can Solve It!",
+            "kicker": "NUMERACY",
+            "body": "Real maths problems posed by Aussie kids. The problems are surprisingly deep and thought-provoking - perfect for 'I notice, I wonder' protocols, open-ended numeracy tasks, or as a launching pad for rich classroom problem-solving sessions. A masterclass in showing students that there's more than one way to solve a problem."
+          }
+        },
+        "i8": {
+          "type": "item",
+          "settings": {
+            "number": "08",
+            "section_name": "Snaps!",
+            "kicker": "VISUAL ARTS / PHOTOGRAPHY",
+            "body": "Photography submitted by Aussie kids - landscapes, animals, plants, buildings, found-object compositions (no faces, for safety). Brilliant prompts for descriptive writing, narrative starters, visual analysis. A perfect excuse to send your students outside with a camera or device of their own, then send their best shots [[IN]] for the next issue."
+          }
+        },
+        "i9": {
+          "type": "item",
+          "settings": {
+            "number": "09",
+            "section_name": "Meet the Professional",
+            "kicker": "CAREER PATHWAYS",
+            "body": "Each issue features a working professional who loves what they do. Great for career-focused units, 'what do you want to be' conversations, or as an example of long-form interview writing. Pairs well with a class project where your students interview someone in their own community."
+          }
+        },
+        "i10": {
+          "type": "item",
+          "settings": {
+            "number": "10",
+            "section_name": "HobbyTime",
+            "kicker": "PASSIONS, INTERESTS & HOBBIES",
+            "body": "Aussie kids sharing what they love to do outside of school - and the cross-curricular links are everywhere. Cooking, music, nature, building, gaming, sport, pets, art. Use these pages to draw out your own students' passions and tie them into your curriculum. Tap into what your students already love, and watch engagement go through the roof."
+          }
+        }
+      },
+      "block_order": ["i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9", "i10"]
+    },
     "field-notes": {
       "type": "theinmag-blog-feed",
       "settings": {
@@ -438,6 +541,7 @@
     "digital-pitch",
     "statement",
     "comps",
+    "curriculum-accordion",
     "field-notes",
     "founders",
     "pull-quote",

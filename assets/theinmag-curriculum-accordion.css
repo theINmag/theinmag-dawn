@@ -1,0 +1,346 @@
+/* ==========================================================================
+   theinmag-curriculum-accordion
+   /pages/for-teachers section 6 - sticky-image-left + accordion-right.
+   Hyphens only, never em or en dashes.
+   ========================================================================== */
+
+.theinmag-curriculum-accordion {
+    /* Section bg: peach-light is a tint not in the global tokens; scoped
+       here so it stays a section-local decision until promoted. */
+    --tca-peach-light: #FDECD0;
+    --tca-purple: var(--color-purple-dark, #5D3A7A);
+    --tca-border: rgba(123, 79, 158, 0.15);
+    --tca-border-open: rgba(123, 79, 158, 0.4);
+
+    background-color: var(--tca-peach-light);
+    color: var(--color-text, #2A1F3D);
+    padding: clamp(64px, 10vw, 120px) clamp(20px, 5vw, 64px);
+    position: relative;
+}
+
+.theinmag-curriculum-accordion__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+/* ----- Heading block ----- */
+
+.theinmag-curriculum-accordion__header {
+    text-align: center;
+    margin-bottom: clamp(48px, 6vw, 80px);
+}
+
+.theinmag-curriculum-accordion__heading-row {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 2vw, 24px);
+    flex-wrap: nowrap;
+}
+
+.theinmag-curriculum-accordion__sparkle {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: clamp(28px, 4vw, 44px);
+    height: clamp(28px, 4vw, 44px);
+    color: var(--tca-purple);
+    opacity: 0.55;
+}
+
+.theinmag-curriculum-accordion__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 1.05;
+    letter-spacing: 0;
+    color: var(--color-text, #2A1F3D);
+}
+
+.theinmag-curriculum-accordion__subhead {
+    margin: clamp(8px, 1vw, 14px) 0 0;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: clamp(22px, 3vw, 32px);
+    line-height: 1.2;
+    color: var(--tca-purple);
+}
+
+/* ----- Two-column grid ----- */
+
+.theinmag-curriculum-accordion__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(28px, 4vw, 48px);
+    align-items: start;
+}
+
+@media (min-width: 768px) {
+    .theinmag-curriculum-accordion__grid {
+        grid-template-columns: 40% 1fr;
+        gap: 48px;
+    }
+}
+
+/* ----- Left image panel ----- */
+
+.theinmag-curriculum-accordion__image-col {
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .theinmag-curriculum-accordion__image-col {
+        position: sticky;
+        top: 120px;
+    }
+}
+
+.theinmag-curriculum-accordion__image-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-md, 12px);
+    background-color: rgba(42, 31, 61, 0.05);
+    aspect-ratio: 4 / 3;
+}
+
+@media (min-width: 768px) {
+    .theinmag-curriculum-accordion__image-frame {
+        aspect-ratio: 4 / 5;
+    }
+}
+
+.theinmag-curriculum-accordion__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.theinmag-curriculum-accordion__image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(123, 79, 158, 0.55);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.theinmag-curriculum-accordion__caption {
+    margin: 12px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-text-muted, #6b6b6b);
+}
+
+/* ----- Right accordion ----- */
+
+.theinmag-curriculum-accordion__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.theinmag-curriculum-accordion__item {
+    background-color: var(--color-cream, #FBF6EA);
+    border: 1px solid var(--tca-border);
+    border-radius: var(--radius-sm, 6px);
+    overflow: hidden;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.theinmag-curriculum-accordion__item:hover:not([data-open="true"]) {
+    background-color: var(--tca-peach-light);
+    transform: translateY(-2px);
+}
+
+.theinmag-curriculum-accordion__item[data-open="true"] {
+    background-color: var(--color-peach, #FCDDB8);
+    border-color: var(--tca-border-open);
+}
+
+.theinmag-curriculum-accordion__trigger {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+}
+
+@media (min-width: 600px) {
+    .theinmag-curriculum-accordion__trigger {
+        padding: 20px 24px;
+        gap: 16px;
+    }
+}
+
+.theinmag-curriculum-accordion__number {
+    flex: 0 0 32px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--tca-purple);
+    opacity: 0.6;
+}
+
+.theinmag-curriculum-accordion__title-block {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+@media (min-width: 600px) {
+    .theinmag-curriculum-accordion__title-block {
+        flex-direction: row;
+        align-items: baseline;
+        gap: 12px;
+    }
+}
+
+.theinmag-curriculum-accordion__name {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(20px, 2.5vw, 26px);
+    line-height: 1.15;
+    color: var(--color-text, #2A1F3D);
+}
+
+@media (min-width: 600px) {
+    .theinmag-curriculum-accordion__name {
+        flex: 1 1 auto;
+    }
+}
+
+.theinmag-curriculum-accordion__kicker {
+    margin: 0;
+    flex: 0 0 auto;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tca-purple);
+    white-space: nowrap;
+}
+
+@media (min-width: 600px) {
+    .theinmag-curriculum-accordion__kicker {
+        font-size: 12px;
+    }
+}
+
+.theinmag-curriculum-accordion__plus {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    color: var(--tca-purple);
+    transition: transform 0.25s ease;
+    margin-left: 4px;
+}
+
+.theinmag-curriculum-accordion__item[data-open="true"] .theinmag-curriculum-accordion__plus {
+    transform: rotate(45deg);
+}
+
+/* ----- Open panel content ----- */
+
+.theinmag-curriculum-accordion__panel {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.4s ease;
+}
+
+.theinmag-curriculum-accordion__item[data-open="true"] .theinmag-curriculum-accordion__panel {
+    /* JS sets the inline max-height to scrollHeight on open so the
+       transition animates from 0 to actual content height. The CSS
+       value here is a safety net for no-JS / SEO crawlers. */
+    max-height: 2000px;
+}
+
+.theinmag-curriculum-accordion__panel-inner {
+    padding: 0 20px 20px 64px;
+    opacity: 0;
+    transition: opacity 0.3s ease 0.1s;
+}
+
+@media (min-width: 600px) {
+    .theinmag-curriculum-accordion__panel-inner {
+        padding: 0 24px 24px 72px;
+    }
+}
+
+.theinmag-curriculum-accordion__item[data-open="true"] .theinmag-curriculum-accordion__panel-inner {
+    opacity: 1;
+}
+
+.theinmag-curriculum-accordion__body {
+    margin: 0;
+    max-width: 65ch;
+    padding-top: 4px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-text, #2A1F3D);
+}
+
+.theinmag-curriculum-accordion__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--tca-purple);
+    text-decoration: none;
+}
+
+.theinmag-curriculum-accordion__cta:hover,
+.theinmag-curriculum-accordion__cta:focus-visible {
+    text-decoration: underline;
+}
+
+.theinmag-curriculum-accordion__cta-arrow {
+    transition: transform 0.2s ease;
+}
+
+.theinmag-curriculum-accordion__cta:hover .theinmag-curriculum-accordion__cta-arrow,
+.theinmag-curriculum-accordion__cta:focus-visible .theinmag-curriculum-accordion__cta-arrow {
+    transform: translateX(4px);
+}
+
+/* ----- Reduced motion ----- */
+
+@media (prefers-reduced-motion: reduce) {
+    .theinmag-curriculum-accordion__item,
+    .theinmag-curriculum-accordion__plus,
+    .theinmag-curriculum-accordion__panel,
+    .theinmag-curriculum-accordion__panel-inner,
+    .theinmag-curriculum-accordion__cta-arrow {
+        transition: none;
+    }
+    .theinmag-curriculum-accordion__item:hover {
+        transform: none;
+    }
+}

@@ -1,0 +1,334 @@
+{%- comment -%}
+  theinmag-curriculum-accordion
+  /pages/for-teachers section 6 - curriculum-mapping accordion.
+
+  Layout: sticky-image-left + accordion-right. Heading block centred
+  above the two columns. Single-open accordion behaviour (one item
+  open at a time); first item flagged `is_open: true` in template
+  opens on load.
+
+  Brand-pun lift: any [[IN]] token in heading / subhead / section_name
+  / send_in_label renders as <span class="theinmag-in">IN</span>, which
+  combines with the parent Post Regular family for the brand-pun
+  treatment (design system 5.4, .theinmag-in lives in theinmag-base.css).
+
+  External assets:
+    - assets/theinmag-curriculum-accordion.css
+    - assets/theinmag-curriculum-accordion.js
+
+  Hyphens only, never em or en dashes.
+{%- endcomment -%}
+
+{{ 'theinmag-curriculum-accordion.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'theinmag-curriculum-accordion.js' | asset_url }}" defer></script>
+
+{%- liquid
+  assign heading_raw = section.settings.heading | default: "What's inside"
+  assign heading_html = heading_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
+
+  assign subhead_raw = section.settings.subhead | default: 'and how it links to your curriculum'
+  assign subhead_html = subhead_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
+
+  assign image = section.settings.image
+  assign image_alt = section.settings.image_alt | default: 'An Australian classroom engaging with theINmag.'
+  assign caption = section.settings.caption
+-%}
+
+<section
+  class="theinmag-curriculum-accordion"
+  aria-labelledby="theinmag-curriculum-accordion-heading-{{ section.id }}"
+>
+  <div class="theinmag-curriculum-accordion__inner">
+
+    <header class="theinmag-curriculum-accordion__header">
+      <span class="theinmag-curriculum-accordion__heading-row">
+        <svg class="theinmag-curriculum-accordion__sparkle" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <g stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none">
+            <line x1="20" y1="6" x2="20" y2="14"/>
+            <line x1="6" y1="20" x2="14" y2="20"/>
+            <line x1="10" y1="10" x2="15" y2="15"/>
+            <line x1="30" y1="10" x2="25" y2="15"/>
+            <line x1="10" y1="30" x2="15" y2="25"/>
+          </g>
+        </svg>
+
+        <h2
+          id="theinmag-curriculum-accordion-heading-{{ section.id }}"
+          class="theinmag-curriculum-accordion__heading"
+        >
+          {{ heading_html }}
+        </h2>
+
+        <svg class="theinmag-curriculum-accordion__sparkle" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <g stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none">
+            <line x1="20" y1="6" x2="20" y2="14"/>
+            <line x1="26" y1="20" x2="34" y2="20"/>
+            <line x1="30" y1="10" x2="25" y2="15"/>
+            <line x1="10" y1="10" x2="15" y2="15"/>
+            <line x1="30" y1="30" x2="25" y2="25"/>
+          </g>
+        </svg>
+      </span>
+
+      {%- if subhead_html != blank -%}
+        <p class="theinmag-curriculum-accordion__subhead">{{ subhead_html }}</p>
+      {%- endif -%}
+    </header>
+
+    <div class="theinmag-curriculum-accordion__grid">
+
+      <div class="theinmag-curriculum-accordion__image-col">
+        <figure class="theinmag-curriculum-accordion__figure">
+          <div class="theinmag-curriculum-accordion__image-frame">
+            {%- if image != blank -%}
+              <img
+                class="theinmag-curriculum-accordion__image"
+                src="{{ image | image_url: width: 1200 }}"
+                srcset="
+                  {{ image | image_url: width: 480 }} 480w,
+                  {{ image | image_url: width: 720 }} 720w,
+                  {{ image | image_url: width: 960 }} 960w,
+                  {{ image | image_url: width: 1200 }} 1200w
+                "
+                sizes="(min-width: 1280px) 480px, (min-width: 768px) 40vw, 92vw"
+                width="{{ image.width }}"
+                height="{{ image.height }}"
+                alt="{{ image_alt | escape }}"
+                loading="lazy"
+              >
+            {%- else -%}
+              <span class="theinmag-curriculum-accordion__image-placeholder">Classroom image - upload via theme editor</span>
+            {%- endif -%}
+          </div>
+
+          {%- if caption != blank -%}
+            <figcaption class="theinmag-curriculum-accordion__caption">{{ caption }}</figcaption>
+          {%- endif -%}
+        </figure>
+      </div>
+
+      <div class="theinmag-curriculum-accordion__list-col">
+        <ul
+          class="theinmag-curriculum-accordion__list"
+          role="list"
+          data-theinmag-curriculum-accordion
+        >
+          {%- assign item_index = 0 -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'item' -%}
+              {%- liquid
+                assign item_index = item_index | plus: 1
+                assign panel_id = 'theinmag-curriculum-accordion-panel-' | append: section.id | append: '-' | append: forloop.index0
+                assign trigger_id = 'theinmag-curriculum-accordion-trigger-' | append: section.id | append: '-' | append: forloop.index0
+
+                assign number = block.settings.number | default: item_index
+                assign name_raw = block.settings.section_name | default: ''
+                assign name_html = name_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
+                assign kicker = block.settings.kicker
+                assign body = block.settings.body
+
+                assign send_in_label_raw = block.settings.send_in_label | default: ''
+                assign send_in_label_html = send_in_label_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
+                assign send_in_url = block.settings.send_in_url
+
+                assign is_open_str = 'false'
+                if block.settings.is_open
+                  assign is_open_str = 'true'
+                endif
+
+                assign aria_expanded = 'false'
+                if block.settings.is_open
+                  assign aria_expanded = 'true'
+                endif
+              -%}
+              <li
+                class="theinmag-curriculum-accordion__item"
+                data-theinmag-accordion-item
+                data-open="{{ is_open_str }}"
+                {{ block.shopify_attributes }}
+              >
+                <button
+                  type="button"
+                  class="theinmag-curriculum-accordion__trigger"
+                  data-theinmag-accordion-trigger
+                  id="{{ trigger_id }}"
+                  aria-expanded="{{ aria_expanded }}"
+                  aria-controls="{{ panel_id }}"
+                >
+                  <span class="theinmag-curriculum-accordion__number" aria-hidden="true">{{ number }}</span>
+                  <span class="theinmag-curriculum-accordion__title-block">
+                    <span class="theinmag-curriculum-accordion__name">{{ name_html }}</span>
+                    {%- if kicker != blank -%}
+                      <span class="theinmag-curriculum-accordion__kicker">{{ kicker }}</span>
+                    {%- endif -%}
+                  </span>
+                  <svg class="theinmag-curriculum-accordion__plus" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                    <line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+
+                <div
+                  class="theinmag-curriculum-accordion__panel"
+                  data-theinmag-accordion-panel
+                  id="{{ panel_id }}"
+                  role="region"
+                  aria-labelledby="{{ trigger_id }}"
+                >
+                  <div class="theinmag-curriculum-accordion__panel-inner">
+                    {%- if body != blank -%}
+                      <p class="theinmag-curriculum-accordion__body">{{ body }}</p>
+                    {%- endif -%}
+
+                    {%- if send_in_label_raw != blank and send_in_url != blank -%}
+                      <a class="theinmag-curriculum-accordion__cta" href="{{ send_in_url }}">
+                        <span>{{ send_in_label_html }}</span>
+                        <svg class="theinmag-curriculum-accordion__cta-arrow" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                          <line x1="2" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                          <polyline points="7,3 11,7 7,11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                      </a>
+                    {%- endif -%}
+                  </div>
+                </div>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Curriculum accordion",
+  "tag": "section",
+  "class": "theinmag-curriculum-accordion-section",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Sticky-image-left + accordion-right curriculum mapping. Wrap brand-pun IN in headings, section names, and Send IN labels with [[IN]] - the section auto-renders it as a Post Regular lift. Mark exactly one item with 'Open by default'."
+    },
+    {
+      "type": "header",
+      "content": "Heading block"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Main heading",
+      "info": "Wrap IN with [[IN]] for the brand-pun lift, e.g. 'What''s [[IN]]side'.",
+      "default": "What's [[IN]]side"
+    },
+    {
+      "type": "text",
+      "id": "subhead",
+      "label": "Subhead (Caveat)",
+      "default": "and how it links to your curriculum"
+    },
+    {
+      "type": "header",
+      "content": "Left image panel"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Classroom image"
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text"
+    },
+    {
+      "type": "text",
+      "id": "caption",
+      "label": "Image caption",
+      "info": "Attribution, e.g. 'Maya L. | Fremantle WA, age 9'"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Accordion item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "number",
+          "label": "Number prefix",
+          "info": "Two-digit string, e.g. 01, 02. Falls back to the block index if blank.",
+          "default": "01"
+        },
+        {
+          "type": "text",
+          "id": "section_name",
+          "label": "Section name",
+          "info": "Magazine section title. Wrap IN with [[IN]] for the brand-pun lift, e.g. 'The [[IN]] Map'."
+        },
+        {
+          "type": "text",
+          "id": "kicker",
+          "label": "Curriculum kicker",
+          "info": "Uppercase learning-area label, e.g. GEOGRAPHY."
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Description body"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_open",
+          "label": "Open by default",
+          "info": "Tick exactly one item. If multiple are ticked, the first one wins.",
+          "default": false
+        },
+        {
+          "type": "header",
+          "content": "Optional Send IN link"
+        },
+        {
+          "type": "text",
+          "id": "send_in_label",
+          "label": "Send IN link label",
+          "info": "Leave blank to hide the link."
+        },
+        {
+          "type": "url",
+          "id": "send_in_url",
+          "label": "Send IN link URL"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Curriculum accordion",
+      "blocks": [
+        {
+          "type": "item",
+          "settings": {
+            "number": "01",
+            "section_name": "The [[IN]] Map",
+            "kicker": "GEOGRAPHY",
+            "body": "A full Australian map, dotted with the location of every kid who's been published in the issue.",
+            "is_open": true
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "number": "02",
+            "section_name": "The Featured Story",
+            "kicker": "LITERACY",
+            "body": "Each issue, one outstanding piece of kid writing is chosen as the Feature Story."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
