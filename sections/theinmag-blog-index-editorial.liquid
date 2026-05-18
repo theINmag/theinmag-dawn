@@ -885,24 +885,30 @@
           rightInner.style.transform = '';
           return;
         }
-        /* Hard start: progress = 0 while wrapper top is still below
-           the viewport top (first card sits cleanly at wrapper top).
-           Hard finish: progress = 1 once the wrapper BOTTOM reaches
-           the viewport bottom - meaning the last card is in view
-           while the visitor is still inside the section, not just
-           as it exits. Compressing the range from wrapperH down to
-           (wrapperH - viewportH) is what gives the right column
-           its extra speed differential vs. the page. */
+        /* Pattern: parallax starts the moment the wrapper TOP enters
+           the viewport bottom (early engagement, matches Ryan's
+           18 May feedback that the old "pinned" start fired too late
+           down the page). Progress reaches 1 when the wrapper BOTTOM
+           reaches the viewport bottom - i.e. the wrapper is fully
+           in view with bottom flush with viewport bottom. After that
+           point the section continues scrolling out but no further
+           translation happens.
+
+           Scroll range = wH (the wrapper's own height). Larger wH
+           = slower visible parallax (more scroll covers same trans-
+           lation). This is the natural "slow it down" lever now -
+           never multiply offset by <1, that always leaves the last
+           card stuck mid-translation. */
         var wRect = rightWrap.getBoundingClientRect();
         var wH = wRect.height;
         if (wH <= 0) return;
         var viewportH = window.innerHeight || document.documentElement.clientHeight;
-        var range = wH - viewportH;
+        var range = wH;
         if (range <= 0) {
           rightInner.style.transform = '';
           return;
         }
-        var raw = -wRect.top / range;
+        var raw = (viewportH - wRect.top) / range;
         var progress = Math.max(0, Math.min(1, raw));
         var innerH = rightInner.offsetHeight;
         var maxOffset = Math.max(0, innerH - wH);
