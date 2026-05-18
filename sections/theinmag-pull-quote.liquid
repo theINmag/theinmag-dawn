@@ -21,6 +21,7 @@
   endif
 
   assign quote_body = section.settings.quote_body
+  assign quote_headline = section.settings.quote_headline
   assign attribution_name = section.settings.attribution_name
   assign attribution_role = section.settings.attribution_role
 
@@ -47,6 +48,9 @@
 >
   <div class="theinmag-pull-quote__inner">
     <blockquote class="theinmag-pull-quote__quote">
+      {%- if quote_headline != blank -%}
+        <p class="theinmag-pull-quote__headline">{{ quote_headline }}</p>
+      {%- endif -%}
       <p class="theinmag-pull-quote__body">&ldquo;{{ quote_body }}&rdquo;</p>
       {%- if attribution_name != blank -%}
         <footer class="theinmag-pull-quote__attribution">
@@ -92,6 +96,23 @@
     border: 0;
     color: inherit;
     font-style: normal;
+  }
+
+  /* Optional review-style headline above the quote body. Renders as
+     a tight Inter 700 line in the same warm cream/off-white as the
+     body. Used when the source quote has a Goodreads/Judge.me-style
+     review title (e.g. "A retired principal's pick for the grandkids"). */
+  .theinmag-pull-quote__headline {
+    margin: 0 0 clamp(14px, 2vw, 22px);
+    color: #FFFFFF;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.3;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.9;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
   }
 
   .theinmag-pull-quote__body {
@@ -224,6 +245,12 @@
     {
       "type": "header",
       "content": "Quote"
+    },
+    {
+      "type": "text",
+      "id": "quote_headline",
+      "label": "Quote headline (optional)",
+      "info": "Small uppercase line above the quote body. Use for review-style headlines, e.g. 'A retired principal's pick for the grandkids'. Leave blank to hide."
     },
     {
       "type": "textarea",

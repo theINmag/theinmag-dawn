@@ -30,6 +30,7 @@
   assign subhead_html = subhead_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
 
   assign image = section.settings.image
+  assign image_filename = section.settings.image_filename
   assign image_alt = section.settings.image_alt | default: 'An Australian classroom engaging with theINmag.'
   assign caption = section.settings.caption
 -%}
@@ -38,19 +39,48 @@
   class="theinmag-curriculum-accordion"
   aria-labelledby="theinmag-curriculum-accordion-heading-{{ section.id }}"
 >
-  <div class="theinmag-curriculum-accordion__inner">
+  {% render 'theinmag-character-pool' %}
 
-    <header class="theinmag-curriculum-accordion__header">
-      <span class="theinmag-curriculum-accordion__heading-row">
-        <svg class="theinmag-curriculum-accordion__sparkle" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
-          <g stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none">
-            <line x1="20" y1="6" x2="20" y2="14"/>
-            <line x1="6" y1="20" x2="14" y2="20"/>
-            <line x1="10" y1="10" x2="15" y2="15"/>
-            <line x1="30" y1="10" x2="25" y2="15"/>
-            <line x1="10" y1="30" x2="15" y2="25"/>
-          </g>
-        </svg>
+  <div class="theinmag-curriculum-accordion__grid">
+
+    <div class="theinmag-curriculum-accordion__image-col">
+      <div class="theinmag-curriculum-accordion__image-sticky">
+        {%- if image != blank -%}
+          <img
+            class="theinmag-curriculum-accordion__image"
+            src="{{ image | image_url: width: 1600 }}"
+            srcset="
+              {{ image | image_url: width: 600 }} 600w,
+              {{ image | image_url: width: 900 }} 900w,
+              {{ image | image_url: width: 1200 }} 1200w,
+              {{ image | image_url: width: 1600 }} 1600w
+            "
+            sizes="(min-width: 768px) 40vw, 100vw"
+            width="{{ image.width }}"
+            height="{{ image.height }}"
+            alt="{{ image_alt | escape }}"
+            loading="lazy"
+          >
+        {%- elsif image_filename != blank -%}
+          <img
+            class="theinmag-curriculum-accordion__image"
+            src="{{ image_filename | asset_url }}"
+            alt="{{ image_alt | escape }}"
+            loading="lazy"
+          >
+        {%- else -%}
+          <span class="theinmag-curriculum-accordion__image-placeholder">Classroom image - upload via theme editor</span>
+        {%- endif -%}
+
+        {%- if caption != blank -%}
+          <figcaption class="theinmag-curriculum-accordion__caption">{{ caption }}</figcaption>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="theinmag-curriculum-accordion__content-col">
+      <header class="theinmag-curriculum-accordion__header">
+        <span class="theinmag-curriculum-accordion__character" data-theinmag-pool-character aria-hidden="true"></span>
 
         <h2
           id="theinmag-curriculum-accordion-heading-{{ section.id }}"
@@ -59,53 +89,10 @@
           {{ heading_html }}
         </h2>
 
-        <svg class="theinmag-curriculum-accordion__sparkle" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
-          <g stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none">
-            <line x1="20" y1="6" x2="20" y2="14"/>
-            <line x1="26" y1="20" x2="34" y2="20"/>
-            <line x1="30" y1="10" x2="25" y2="15"/>
-            <line x1="10" y1="10" x2="15" y2="15"/>
-            <line x1="30" y1="30" x2="25" y2="25"/>
-          </g>
-        </svg>
-      </span>
-
-      {%- if subhead_html != blank -%}
-        <p class="theinmag-curriculum-accordion__subhead">{{ subhead_html }}</p>
-      {%- endif -%}
-    </header>
-
-    <div class="theinmag-curriculum-accordion__grid">
-
-      <div class="theinmag-curriculum-accordion__image-col">
-        <figure class="theinmag-curriculum-accordion__figure">
-          <div class="theinmag-curriculum-accordion__image-frame">
-            {%- if image != blank -%}
-              <img
-                class="theinmag-curriculum-accordion__image"
-                src="{{ image | image_url: width: 1200 }}"
-                srcset="
-                  {{ image | image_url: width: 480 }} 480w,
-                  {{ image | image_url: width: 720 }} 720w,
-                  {{ image | image_url: width: 960 }} 960w,
-                  {{ image | image_url: width: 1200 }} 1200w
-                "
-                sizes="(min-width: 1280px) 480px, (min-width: 768px) 40vw, 92vw"
-                width="{{ image.width }}"
-                height="{{ image.height }}"
-                alt="{{ image_alt | escape }}"
-                loading="lazy"
-              >
-            {%- else -%}
-              <span class="theinmag-curriculum-accordion__image-placeholder">Classroom image - upload via theme editor</span>
-            {%- endif -%}
-          </div>
-
-          {%- if caption != blank -%}
-            <figcaption class="theinmag-curriculum-accordion__caption">{{ caption }}</figcaption>
-          {%- endif -%}
-        </figure>
-      </div>
+        {%- if subhead_html != blank -%}
+          <p class="theinmag-curriculum-accordion__subhead">{{ subhead_html }}</p>
+        {%- endif -%}
+      </header>
 
       <div class="theinmag-curriculum-accordion__list-col">
         <ul
@@ -125,7 +112,8 @@
                 assign name_raw = block.settings.section_name | default: ''
                 assign name_html = name_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
                 assign kicker = block.settings.kicker
-                assign body = block.settings.body
+                assign body_raw = block.settings.body | default: ''
+                assign body = body_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
 
                 assign send_in_label_raw = block.settings.send_in_label | default: ''
                 assign send_in_label_html = send_in_label_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
@@ -196,8 +184,8 @@
           {%- endfor -%}
         </ul>
       </div>
-
     </div>
+
   </div>
 </section>
 
@@ -237,6 +225,12 @@
       "type": "image_picker",
       "id": "image",
       "label": "Classroom image"
+    },
+    {
+      "type": "text",
+      "id": "image_filename",
+      "label": "Fallback filename in /assets/",
+      "info": "Used when no image picker value is set."
     },
     {
       "type": "text",

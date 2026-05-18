@@ -5,8 +5,6 @@
    ========================================================================== */
 
 .theinmag-curriculum-accordion {
-    /* Section bg: peach-light is a tint not in the global tokens; scoped
-       here so it stays a section-local decision until promoted. */
     --tca-peach-light: #FDECD0;
     --tca-purple: var(--color-purple-dark, #5D3A7A);
     --tca-border: rgba(123, 79, 158, 0.15);
@@ -14,98 +12,61 @@
 
     background-color: var(--tca-peach-light);
     color: var(--color-text, #2A1F3D);
-    padding: clamp(64px, 10vw, 120px) clamp(20px, 5vw, 64px);
+    padding: 0;
     position: relative;
 }
 
-.theinmag-curriculum-accordion__inner {
-    max-width: 1280px;
-    margin: 0 auto;
-}
-
-/* ----- Heading block ----- */
-
-.theinmag-curriculum-accordion__header {
-    text-align: center;
-    margin-bottom: clamp(48px, 6vw, 80px);
-}
-
-.theinmag-curriculum-accordion__heading-row {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(12px, 2vw, 24px);
-    flex-wrap: nowrap;
-}
-
-.theinmag-curriculum-accordion__sparkle {
-    display: inline-block;
-    flex: 0 0 auto;
-    width: clamp(28px, 4vw, 44px);
-    height: clamp(28px, 4vw, 44px);
-    color: var(--tca-purple);
-    opacity: 0.55;
-}
-
-.theinmag-curriculum-accordion__heading {
-    margin: 0;
-    font-family: var(--font-heading, 'Post Regular', serif);
-    font-weight: 400;
-    font-size: clamp(40px, 6vw, 64px);
-    line-height: 1.05;
-    letter-spacing: 0;
-    color: var(--color-text, #2A1F3D);
-}
-
-.theinmag-curriculum-accordion__subhead {
-    margin: clamp(8px, 1vw, 14px) 0 0;
-    font-family: 'Caveat', cursive;
-    font-weight: 700;
-    font-size: clamp(22px, 3vw, 32px);
-    line-height: 1.2;
-    color: var(--tca-purple);
-}
-
-/* ----- Two-column grid ----- */
+/* ----- Two-column grid (image edge-to-edge left, content right) ----- */
 
 .theinmag-curriculum-accordion__grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: clamp(28px, 4vw, 48px);
-    align-items: start;
+    align-items: stretch;
 }
 
 @media (min-width: 768px) {
     .theinmag-curriculum-accordion__grid {
         grid-template-columns: 40% 1fr;
-        gap: 48px;
     }
 }
 
-/* ----- Left image panel ----- */
+/* ----- Left image col -----
+   Mobile: image-col is a normal 4:3 block above the accordion, cover-cropped.
+   Desktop: image-col stretches to the full grid row height (= section top
+   to bottom) so there's no peach-light gap above or below the image area.
+   The actual image lives inside an inner .image-sticky wrapper that pins
+   at viewport top (top: 0) for the full viewport height, with the image
+   contained inside and hugged to the left edge so it always touches the
+   page's left edge. As the accordion scrolls past on the right, the
+   image stays stuck in view; it only scrolls out when the section bottom
+   catches it. */
 
 .theinmag-curriculum-accordion__image-col {
     position: relative;
+    background-color: transparent;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
 }
 
 @media (min-width: 768px) {
     .theinmag-curriculum-accordion__image-col {
-        position: sticky;
-        top: 120px;
+        aspect-ratio: auto;
+        align-self: stretch;
+        overflow: visible;
     }
 }
 
-.theinmag-curriculum-accordion__image-frame {
+.theinmag-curriculum-accordion__image-sticky {
     position: relative;
-    overflow: hidden;
-    border-radius: var(--radius-md, 12px);
-    background-color: rgba(42, 31, 61, 0.05);
-    aspect-ratio: 4 / 3;
+    width: 100%;
+    height: 100%;
 }
 
 @media (min-width: 768px) {
-    .theinmag-curriculum-accordion__image-frame {
-        aspect-ratio: 4 / 5;
+    .theinmag-curriculum-accordion__image-sticky {
+        position: sticky;
+        top: 0;
+        height: 100vh;
     }
 }
 
@@ -117,11 +78,26 @@
     object-position: center;
 }
 
+@media (min-width: 768px) {
+    .theinmag-curriculum-accordion__image {
+        /* Cover (not contain) so the image fills the sticky frame
+           edge-to-edge - touches left, top and bottom of the section
+           with no peach-light bars. Aligned left so the kid creation
+           hugs the page edge and the right side (which sits behind /
+           against the accordion column) takes any required crop. */
+        object-fit: cover;
+        object-position: left center;
+    }
+}
+
 .theinmag-curriculum-accordion__image-placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100%;
+    min-height: 320px;
+    padding: 24px;
+    text-align: center;
     color: rgba(123, 79, 158, 0.55);
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 500;
@@ -130,13 +106,88 @@
     text-transform: uppercase;
 }
 
+/* Optional caption sits as a pill at the image's bottom-right, scrim
+   for legibility on any photo. Only renders when caption is non-blank. */
 .theinmag-curriculum-accordion__caption {
-    margin: 12px 0 0;
+    position: absolute;
+    right: clamp(12px, 2vw, 20px);
+    bottom: clamp(12px, 2vw, 20px);
+    margin: 0;
+    padding: 6px 12px;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 400;
+    font-weight: 500;
     font-size: 12px;
-    line-height: 1.5;
-    color: var(--color-text-muted, #6b6b6b);
+    line-height: 1.4;
+    color: #ffffff;
+    background-color: rgba(20, 14, 30, 0.55);
+    border-radius: 999px;
+    z-index: 2;
+}
+
+/* ----- Right content col: heading + accordion ----- */
+
+.theinmag-curriculum-accordion__content-col {
+    padding: clamp(56px, 8vw, 100px) clamp(20px, 5vw, 64px);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ----- Heading block (now inside the right col, above the accordion) ----- */
+
+.theinmag-curriculum-accordion__header {
+    position: relative;
+    text-align: center;
+    margin-bottom: clamp(36px, 5vw, 64px);
+}
+
+.theinmag-curriculum-accordion__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(40px, 5.5vw, 60px);
+    line-height: 1.05;
+    letter-spacing: 0;
+    color: var(--color-text, #2A1F3D);
+}
+
+.theinmag-curriculum-accordion__subhead {
+    /* Matches the Inter 700 register used by the Competitions section
+       heading just above on the for-teachers page so the two sections
+       feel like one editorial voice. */
+    margin: clamp(10px, 1.4vw, 16px) 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(20px, 2.4vw, 26px);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--color-text, #2A1F3D);
+}
+
+/* ----- Kid character slot near the heading -----
+   Pops in via the sitewide character-pool scroll trigger. Positioned
+   absolute relative to the centred header, sitting INSIDE the section
+   in the peach-light gutter to the LEFT of the heading text. Slight
+   rotate so it reads as taped-on rather than placed-by-grid. */
+.theinmag-curriculum-accordion__character {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    width: clamp(79px, 9.9vw, 121px);
+    height: auto;
+    z-index: 3;
+    transform: rotate(-8deg) translateY(8px);
+    transform-origin: center;
+}
+
+.theinmag-curriculum-accordion__character.is-popped {
+    transform: rotate(-8deg) translateY(0);
+}
+
+@media (min-width: 768px) {
+    .theinmag-curriculum-accordion__character {
+        top: -8px;
+        left: 0;
+    }
 }
 
 /* ----- Right accordion ----- */
@@ -216,11 +267,15 @@
 }
 
 .theinmag-curriculum-accordion__name {
+    /* line-height: 1.4 so the row containing the .theinmag-in lift
+       (font-size: 1.4em, display: inline-block) doesn't render taller
+       than the rows without it - keeps every trigger row a uniform
+       height regardless of whether the section name contains IN. */
     margin: 0;
     font-family: var(--font-heading, 'Post Regular', serif);
     font-weight: 400;
     font-size: clamp(20px, 2.5vw, 26px);
-    line-height: 1.15;
+    line-height: 1.4;
     color: var(--color-text, #2A1F3D);
 }
 
