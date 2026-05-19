@@ -424,23 +424,17 @@
   }
 
   /* Header row: title-stack on the left, nav cluster (filters + see-all
-     pill) on the right. Stacks vertically on narrow viewports. */
+     pill) on the right. Always horizontal with flex-wrap so the button
+     sits adjacent to the wordmark at every viewport; very narrow widths
+     wrap the right cluster below as a graceful fallback. */
   .theinmag-blog-feed__header {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    /* Tighter gap on mobile so the chips sit close to the wordmark. */
-    gap: clamp(2px, 0.6vw, 12px);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(8px, 1.4vw, 16px);
     margin-bottom: clamp(8px, 1.4vw, 18px);
-  }
-
-  @media (min-width: 750px) {
-    .theinmag-blog-feed__header {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-md, 16px);
-    }
   }
 
   .theinmag-blog-feed__title-stack {

@@ -26,7 +26,7 @@
 -%}
 
 <section
-  class="theinmag-for-parents-shop-trio"
+  class="theinmag-for-parents-shop-trio{% if section.settings.compact_top %} theinmag-for-parents-shop-trio--compact-top{% endif %}"
   aria-labelledby="theinmag-for-parents-shop-trio-heading-{{ section.id }}"
 >
   <div class="theinmag-for-parents-shop-trio__inner">
@@ -148,6 +148,14 @@
        next section without losing the top breathing room from the
        pull-quote above. */
     padding: clamp(72px, 10vw, 120px) clamp(20px, 5vw, 64px) clamp(36px, 5vw, 56px);
+  }
+
+  /* Opt-in tighter top padding for pages that have a tactical strip
+     (e.g. school-invoice callout) sitting directly above shop-trio.
+     Lets the callout butt up against the tiles instead of floating
+     in a sea of cream. Off by default; for-parents unaffected. */
+  .theinmag-for-parents-shop-trio--compact-top {
+    padding-top: clamp(8px, 1.5vw, 20px);
   }
 
   .theinmag-for-parents-shop-trio__inner {
@@ -515,6 +523,13 @@
       "id": "trust_whisper",
       "label": "Trust whisper (under tiles)",
       "default": "Free shipping on orders over $40. Made by Aussie kids, printed in Australia, no ads inside."
+    },
+    {
+      "type": "checkbox",
+      "id": "compact_top",
+      "label": "Compact top padding",
+      "info": "Halves the top padding (use when a tactical strip / callout sits directly above this section).",
+      "default": false
     }
   ],
   "blocks": [

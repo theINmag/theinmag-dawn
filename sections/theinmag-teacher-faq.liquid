@@ -17,12 +17,29 @@
 {%- liquid
   assign heading = section.settings.heading | default: 'Teacher questions, answered.'
   assign subhead = section.settings.subhead | default: 'The stuff teachers actually ask us.'
+
+  assign bg_image_filename = section.settings.bg_image_filename
+  assign bg_image_opacity = section.settings.bg_image_opacity | default: 30
+  assign bg_image_opacity_decimal = bg_image_opacity | times: 1.0 | divided_by: 100.0
+
+  comment
+    Token substitution: writers can use [[CONSENT_PDF]] in answer
+    richtext as a stable placeholder; the section resolves it to
+    the live theme asset URL at render time. Keeps the FAQ content
+    portable - no hardcoded CDN paths to rot.
+  endcomment
+  assign consent_pdf_url = 'teachers_consentform.pdf' | asset_url
 -%}
 
 <section
   class="theinmag-teacher-faq"
   aria-labelledby="theinmag-teacher-faq-heading-{{ section.id }}"
+  style="--tfaq-bg-opacity: {{ bg_image_opacity_decimal }};{% if bg_image_filename != blank %} --tfaq-bg-image: url('{{ bg_image_filename | asset_url }}');{% endif %}"
 >
+  {%- if bg_image_filename != blank -%}
+    <div class="theinmag-teacher-faq__bg-image" aria-hidden="true"></div>
+  {%- endif -%}
+
   <div class="theinmag-teacher-faq__inner">
 
     <header class="theinmag-teacher-faq__header">
@@ -46,12 +63,13 @@
           {%- liquid
             assign panel_id = 'theinmag-teacher-faq-panel-' | append: section.id | append: '-' | append: forloop.index0
             assign trigger_id = 'theinmag-teacher-faq-trigger-' | append: section.id | append: '-' | append: forloop.index0
+            comment
+              All items default to closed. Teachers can pick the
+              question that matters to them - no item is opinionated
+              enough to deserve being open on load.
+            endcomment
             assign is_open_str = 'false'
             assign aria_expanded = 'false'
-            if forloop.first
-              assign is_open_str = 'true'
-              assign aria_expanded = 'true'
-            endif
           -%}
           <li
             class="theinmag-teacher-faq__item"
@@ -82,7 +100,7 @@
               aria-labelledby="{{ trigger_id }}"
             >
               <div class="theinmag-teacher-faq__answer">
-                {{ block.settings.answer }}
+                {{ block.settings.answer | replace: '[[CONSENT_PDF]]', consent_pdf_url }}
               </div>
             </div>
           </li>
@@ -111,7 +129,7 @@
           "name": {{ block.settings.question | json }},
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": {{ block.settings.answer | strip_html | strip_newlines | json }}
+            "text": {{ block.settings.answer | replace: '[[CONSENT_PDF]]', consent_pdf_url | strip_html | strip_newlines | json }}
           }
         }
         {%- assign item_count = item_count | plus: 1 -%}
@@ -184,11 +202,31 @@
 
 {% stylesheet %}
   .theinmag-teacher-faq {
+    position: relative;
     background-color: #FDECD0;
     padding: clamp(64px, 10vw, 120px) clamp(20px, 5vw, 64px);
+    overflow: hidden;
+  }
+
+  /* Full-bleed bg image. 2-class selector beats Dawn's
+     `div:empty { display: none }` (base.css) which would otherwise
+     collapse this decoration-only div. */
+  .theinmag-teacher-faq .theinmag-teacher-faq__bg-image {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background-image: var(--tfaq-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: var(--tfaq-bg-opacity, 0.3);
+    pointer-events: none;
+    z-index: 0;
   }
 
   .theinmag-teacher-faq__inner {
+    position: relative;
+    z-index: 1;
     max-width: 900px;
     margin: 0 auto;
   }
@@ -208,12 +246,17 @@
   }
 
   .theinmag-teacher-faq__subhead {
-    margin: clamp(8px, 1vw, 14px) 0 0;
-    font-family: 'Caveat', cursive;
+    /* Matches the Inter 700 editorial subhead register used elsewhere
+       on the page (Competitions heading, curriculum-accordion subhead).
+       Caveat is deliberately not used here - reserved for field-notes
+       author signatures only. */
+    margin: clamp(10px, 1.4vw, 16px) 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
-    font-size: clamp(20px, 2.5vw, 26px);
-    line-height: 1.2;
-    color: var(--color-purple-dark, #5D3A7A);
+    font-size: clamp(20px, 2.4vw, 26px);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--color-text, #2A1F3D);
   }
 
   .theinmag-teacher-faq__list {
@@ -369,8 +412,28 @@
     {
       "type": "text",
       "id": "subhead",
-      "label": "Subhead (Caveat)",
+      "label": "Subhead",
       "default": "The stuff teachers actually ask us."
+    },
+    {
+      "type": "header",
+      "content": "Background image"
+    },
+    {
+      "type": "text",
+      "id": "bg_image_filename",
+      "label": "Background image filename in /assets/",
+      "info": "Optional full-bleed image behind the FAQ cards. Leave blank for plain peach-light bg."
+    },
+    {
+      "type": "range",
+      "id": "bg_image_opacity",
+      "label": "Background image opacity (%)",
+      "info": "Lower = more peach shows through, higher = image dominates.",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 30
     }
   ],
   "blocks": [

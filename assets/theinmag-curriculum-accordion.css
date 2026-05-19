@@ -170,7 +170,7 @@
    rotate so it reads as taped-on rather than placed-by-grid. */
 .theinmag-curriculum-accordion__character {
     position: absolute;
-    top: 8px;
+    top: -32px;
     left: 0;
     width: clamp(79px, 9.9vw, 121px);
     height: auto;
@@ -185,7 +185,7 @@
 
 @media (min-width: 768px) {
     .theinmag-curriculum-accordion__character {
-        top: -8px;
+        top: -48px;
         left: 0;
     }
 }

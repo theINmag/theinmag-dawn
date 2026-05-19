@@ -1,19 +1,17 @@
 {%- comment -%}
   theinmag-teacher-consent-tile
-  Two-card tile pair for /pages/for-teachers - removes the biggest
-  friction point (consent admin) by surfacing the two submission
-  workflows side by side: annual classroom consent form + QR code
-  on the back of every issue. Built to read as "we thought about
-  busy teachers" at a glance.
+  Teacher-targeted "Made for busy teachers" feature: header + two
+  stacked cards in the left column, clickable poster image in the
+  right column. The two cards surface the submission workflows
+  (annual consent + back-of-issue QR code); the poster image is the
+  download teachers pin up in their classroom.
 
-  Layout: centred heading block, 50/50 card grid on desktop,
-  stacked on mobile.
   Hyphens only, never em or en dashes.
 {%- endcomment -%}
 
 {%- liquid
   assign eyebrow = section.settings.eyebrow | default: 'MADE FOR BUSY TEACHERS'
-  assign heading = section.settings.heading | default: 'Two ways to make submissions easy.'
+  assign heading = section.settings.heading | default: 'Submissions made easy.'
   assign subhead = section.settings.subhead | default: 'Because the last thing you need is more admin.'
 
   assign c1_heading = section.settings.card_1_heading | default: 'The annual consent'
@@ -21,13 +19,33 @@
   assign c1_cta_label = section.settings.card_1_cta_label | default: 'Download the consent form'
   assign c1_cta_url = section.settings.card_1_cta_url
   if c1_cta_url == blank
-    assign c1_cta_url = 'theinmag-classroom-consent-form.pdf' | asset_url
+    assign c1_cta_url = 'teachers_consentform.pdf' | asset_url
   endif
 
   assign c2_heading = section.settings.card_2_heading | default: 'The QR code on the wall'
   assign c2_body = section.settings.card_2_body | default: ''
   assign c2_cta_label = section.settings.card_2_cta_label | default: 'See how it works'
-  assign c2_cta_url = section.settings.card_2_cta_url | default: '/pages/send-in'
+  assign c2_cta_url = section.settings.card_2_cta_url
+
+  assign image = section.settings.image
+  assign image_filename = section.settings.image_filename
+  assign image_alt = section.settings.image_alt | default: 'theINmag classroom poster - print and pin up in your room.'
+
+  comment
+    The poster click-target defaults to the image itself (so a click
+    opens the JPG for the teacher to save). Override via the schema
+    if a higher-res or separate poster file gets uploaded later.
+  endcomment
+  assign poster_url = section.settings.poster_url
+  assign image_src = ''
+  if image != blank
+    assign image_src = image | image_url: width: 1400
+  elsif image_filename != blank
+    assign image_src = image_filename | asset_url
+  endif
+  if poster_url == blank
+    assign poster_url = image_src
+  endif
 -%}
 
 <section
@@ -35,57 +53,98 @@
   aria-labelledby="theinmag-teacher-consent-tile-heading-{{ section.id }}"
 >
   <div class="theinmag-teacher-consent-tile__inner">
-
-    <header class="theinmag-teacher-consent-tile__header">
-      {%- if eyebrow != blank -%}
-        <p class="theinmag-teacher-consent-tile__eyebrow">{{ eyebrow }}</p>
-      {%- endif -%}
-
-      {%- if heading != blank -%}
-        <h2
-          id="theinmag-teacher-consent-tile-heading-{{ section.id }}"
-          class="theinmag-teacher-consent-tile__heading"
-        >
-          {{ heading }}
-        </h2>
-      {%- endif -%}
-
-      {%- if subhead != blank -%}
-        <p class="theinmag-teacher-consent-tile__subhead">{{ subhead }}</p>
-      {%- endif -%}
-    </header>
-
     <div class="theinmag-teacher-consent-tile__grid">
 
-      <article class="theinmag-teacher-consent-tile__card">
-        <h3 class="theinmag-teacher-consent-tile__card-heading">{{ c1_heading }}</h3>
-        {%- if c1_body != blank -%}
-          <div class="theinmag-teacher-consent-tile__card-body">{{ c1_body }}</div>
-        {%- endif -%}
-        {%- if c1_cta_label != blank -%}
-          <a
-            class="theinmag-btn theinmag-btn--primary theinmag-teacher-consent-tile__cta"
-            href="{{ c1_cta_url }}"
-          >
-            {{- c1_cta_label -}}
-          </a>
-        {%- endif -%}
-      </article>
+      <div class="theinmag-teacher-consent-tile__text-col">
+        <header class="theinmag-teacher-consent-tile__header">
+          {%- if eyebrow != blank -%}
+            <p class="theinmag-teacher-consent-tile__eyebrow">{{ eyebrow }}</p>
+          {%- endif -%}
 
-      <article class="theinmag-teacher-consent-tile__card">
-        <h3 class="theinmag-teacher-consent-tile__card-heading">{{ c2_heading }}</h3>
-        {%- if c2_body != blank -%}
-          <div class="theinmag-teacher-consent-tile__card-body">{{ c2_body }}</div>
-        {%- endif -%}
-        {%- if c2_cta_label != blank -%}
+          {%- if heading != blank -%}
+            <h2
+              id="theinmag-teacher-consent-tile-heading-{{ section.id }}"
+              class="theinmag-teacher-consent-tile__heading"
+            >
+              {{ heading }}
+            </h2>
+          {%- endif -%}
+
+          {%- if subhead != blank -%}
+            <p class="theinmag-teacher-consent-tile__subhead">{{ subhead }}</p>
+          {%- endif -%}
+        </header>
+
+        <ul class="theinmag-teacher-consent-tile__cards" role="list">
+          <li class="theinmag-teacher-consent-tile__card">
+            <h3 class="theinmag-teacher-consent-tile__card-heading">{{ c1_heading }}</h3>
+            {%- if c1_body != blank -%}
+              <div class="theinmag-teacher-consent-tile__card-body">{{ c1_body }}</div>
+            {%- endif -%}
+            {%- if c1_cta_label != blank -%}
+              <a
+                class="theinmag-btn theinmag-btn--primary theinmag-teacher-consent-tile__cta"
+                href="{{ c1_cta_url }}"
+              >
+                {{- c1_cta_label -}}
+              </a>
+            {%- endif -%}
+          </li>
+
+          <li class="theinmag-teacher-consent-tile__card">
+            <h3 class="theinmag-teacher-consent-tile__card-heading">{{ c2_heading }}</h3>
+            {%- if c2_body != blank -%}
+              <div class="theinmag-teacher-consent-tile__card-body">{{ c2_body }}</div>
+            {%- endif -%}
+            {%- if c2_cta_label != blank and c2_cta_url != blank -%}
+              <a
+                class="theinmag-teacher-consent-tile__textlink"
+                href="{{ c2_cta_url }}"
+              >
+                {{ c2_cta_label }} <span class="theinmag-teacher-consent-tile__textlink-arrow" aria-hidden="true">&rarr;</span>
+              </a>
+            {%- endif -%}
+          </li>
+        </ul>
+      </div>
+
+      <div class="theinmag-teacher-consent-tile__image-col">
+        {%- if image_src != blank -%}
           <a
-            class="theinmag-teacher-consent-tile__textlink"
-            href="{{ c2_cta_url }}"
+            class="theinmag-teacher-consent-tile__poster"
+            href="{{ poster_url }}"
+            download
+            target="_blank"
+            rel="noopener"
+            aria-label="Download the classroom poster"
           >
-            {{ c2_cta_label }} <span class="theinmag-teacher-consent-tile__textlink-arrow" aria-hidden="true">&rarr;</span>
+            <img
+              class="theinmag-teacher-consent-tile__image"
+              src="{{ image_src }}"
+              {%- if image != blank -%}
+                srcset="
+                  {{ image | image_url: width: 600 }} 600w,
+                  {{ image | image_url: width: 900 }} 900w,
+                  {{ image | image_url: width: 1200 }} 1200w,
+                  {{ image | image_url: width: 1400 }} 1400w
+                "
+                sizes="(min-width: 990px) 40vw, 92vw"
+                width="{{ image.width }}"
+                height="{{ image.height }}"
+              {%- endif -%}
+              alt="{{ image_alt | escape }}"
+              loading="lazy"
+            >
+            <span class="theinmag-teacher-consent-tile__poster-badge">
+              Click to download
+            </span>
           </a>
+        {%- else -%}
+          <div class="theinmag-teacher-consent-tile__image-placeholder">
+            Classroom poster - upload via theme editor
+          </div>
         {%- endif -%}
-      </article>
+      </div>
 
     </div>
   </div>
@@ -102,10 +161,30 @@
     margin: 0 auto;
   }
 
+  .theinmag-teacher-consent-tile__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(32px, 4vw, 56px);
+    align-items: start;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-teacher-consent-tile__grid {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: clamp(40px, 5vw, 72px);
+    }
+  }
+
+  /* Left column: header + stacked cards */
+  .theinmag-teacher-consent-tile__text-col {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(24px, 3vw, 36px);
+  }
+
   .theinmag-teacher-consent-tile__header {
-    text-align: center;
-    max-width: 700px;
-    margin: 0 auto clamp(48px, 6vw, 80px);
+    text-align: left;
+    max-width: 60ch;
   }
 
   .theinmag-teacher-consent-tile__eyebrow {
@@ -119,34 +198,34 @@
     color: var(--color-purple-dark, #5D3A7A);
   }
 
+  /* Heading flipped from Post Regular to Inter 700 - matches the
+     Competitions heading register used elsewhere on the page. */
   .theinmag-teacher-consent-tile__heading {
     margin: 0;
-    font-family: var(--font-heading, 'Post Regular', serif);
-    font-weight: 400;
-    font-size: clamp(32px, 5vw, 48px);
-    line-height: 1.1;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
     color: var(--color-text, #2A1F3D);
   }
 
   .theinmag-teacher-consent-tile__subhead {
-    margin: clamp(12px, 1.5vw, 18px) 0 0;
+    margin: clamp(10px, 1.2vw, 14px) 0 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(16px, 1.7vw, 18px);
+    font-size: clamp(15px, 1.7vw, 17px);
     line-height: 1.5;
     color: var(--color-text-muted, #6b6b6b);
   }
 
-  .theinmag-teacher-consent-tile__grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: clamp(20px, 3vw, 32px);
-  }
-
-  @media (min-width: 768px) {
-    .theinmag-teacher-consent-tile__grid {
-      grid-template-columns: 1fr 1fr;
-    }
+  .theinmag-teacher-consent-tile__cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 2vw, 24px);
   }
 
   .theinmag-teacher-consent-tile__card {
@@ -158,11 +237,11 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
   }
 
   .theinmag-teacher-consent-tile__card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(42, 31, 61, 0.10);
   }
 
@@ -194,12 +273,12 @@
 
   .theinmag-teacher-consent-tile__cta {
     align-self: flex-start;
-    margin-top: 8px;
+    margin-top: 4px;
   }
 
   .theinmag-teacher-consent-tile__textlink {
     align-self: flex-start;
-    margin-top: 8px;
+    margin-top: 4px;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 500;
     font-size: 14px;
@@ -224,12 +303,84 @@
     transform: translateX(4px);
   }
 
+  /* Right column: clickable poster image */
+  .theinmag-teacher-consent-tile__image-col {
+    position: relative;
+  }
+
+  .theinmag-teacher-consent-tile__poster {
+    position: relative;
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-md, 12px);
+    overflow: hidden;
+    background-color: rgba(42, 31, 61, 0.05);
+    box-shadow: 0 4px 16px rgba(42, 31, 61, 0.10);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    text-decoration: none;
+  }
+
+  .theinmag-teacher-consent-tile__poster:hover,
+  .theinmag-teacher-consent-tile__poster:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(42, 31, 61, 0.15);
+  }
+
+  .theinmag-teacher-consent-tile__poster:focus-visible {
+    outline: 2px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 4px;
+  }
+
+  .theinmag-teacher-consent-tile__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .theinmag-teacher-consent-tile__poster-badge {
+    position: absolute;
+    right: clamp(12px, 2vw, 20px);
+    bottom: clamp(12px, 2vw, 20px);
+    padding: 6px 14px;
+    border-radius: 999px;
+    background-color: rgba(20, 14, 30, 0.7);
+    color: #ffffff;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+  }
+
+  .theinmag-teacher-consent-tile__image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-md, 12px);
+    background-color: rgba(123, 79, 158, 0.08);
+    color: rgba(123, 79, 158, 0.65);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 24px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .theinmag-teacher-consent-tile__card,
-    .theinmag-teacher-consent-tile__textlink-arrow {
+    .theinmag-teacher-consent-tile__textlink-arrow,
+    .theinmag-teacher-consent-tile__poster {
       transition: none;
     }
-    .theinmag-teacher-consent-tile__card:hover {
+    .theinmag-teacher-consent-tile__card:hover,
+    .theinmag-teacher-consent-tile__poster:hover,
+    .theinmag-teacher-consent-tile__poster:focus-visible {
       transform: none;
     }
   }
@@ -243,11 +394,11 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Two-card tile pair: annual consent form + QR code workflow. Surfaces the two submission paths for teachers as a hero feature."
+      "content": "Header + two stacked cards on the left, clickable poster image on the right. The two cards surface the submission workflows; the poster is what teachers pin up in their classroom."
     },
     {
       "type": "header",
-      "content": "Heading block"
+      "content": "Header block"
     },
     {
       "type": "text",
@@ -259,7 +410,7 @@
       "type": "text",
       "id": "heading",
       "label": "Main heading",
-      "default": "Two ways to make submissions easy."
+      "default": "Submissions made easy."
     },
     {
       "type": "text",
@@ -293,7 +444,7 @@
       "type": "url",
       "id": "card_1_cta_url",
       "label": "CTA URL",
-      "info": "Leave blank to default to /assets/theinmag-classroom-consent-form.pdf"
+      "info": "Leave blank to default to /assets/teachers_consentform.pdf"
     },
     {
       "type": "header",
@@ -321,6 +472,32 @@
       "type": "url",
       "id": "card_2_cta_url",
       "label": "CTA URL"
+    },
+    {
+      "type": "header",
+      "content": "Right-column poster"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Poster image"
+    },
+    {
+      "type": "text",
+      "id": "image_filename",
+      "label": "Fallback filename in /assets/",
+      "info": "Used when no image picker value is set. Default: teachers_sendincontent.jpg"
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text"
+    },
+    {
+      "type": "url",
+      "id": "poster_url",
+      "label": "Click-to-download target",
+      "info": "Leave blank to default to the poster image itself (click opens / downloads the JPG)."
     }
   ],
   "presets": [

@@ -39,20 +39,38 @@
       endunless
     endfor
   endif
-  assign padding_top = section.settings.padding_top
-  assign padding_bottom = section.settings.padding_bottom
+  assign padding_top = section.settings.padding_top | default: 0
+  assign padding_bottom = section.settings.padding_bottom | default: 0
+
+  assign bg_image_filename = section.settings.bg_image_filename
+  assign bg_image_opacity = section.settings.bg_image_opacity | default: 30
+  assign bg_image_opacity_decimal = bg_image_opacity | times: 1.0 | divided_by: 100.0
+
+  assign tile_shadow = section.settings.tile_shadow
 
   assign root_class = 'theinmag-tiles'
   if heading_position == 'top'
     assign root_class = root_class | append: ' theinmag-tiles--heading-top'
+  endif
+  if tile_shadow
+    assign root_class = root_class | append: ' theinmag-tiles--shadow'
+  endif
+
+  assign bg_image_url = ''
+  if bg_image_filename != blank
+    assign bg_image_url = bg_image_filename | asset_url
   endif
 -%}
 
 <section
   class="{{ root_class }}"
   aria-labelledby="theinmag-tiles-heading-{{ section.id }}"
-  style="--theinmag-tiles-count: {{ tile_count }}; --theinmag-tiles-pt: {{ padding_top | default: 0 }}px; --theinmag-tiles-pb: {{ padding_bottom | default: 0 }}px;"
+  style="--theinmag-tiles-count: {{ tile_count }}; --theinmag-tiles-pt: {{ padding_top }}px; --theinmag-tiles-pb: {{ padding_bottom }}px; --theinmag-tiles-bg-opacity: {{ bg_image_opacity_decimal }};{% if bg_image_url != blank %} --theinmag-tiles-bg-image: url('{{ bg_image_url }}');{% endif %}"
 >
+  {%- if bg_image_url != blank -%}
+    <div class="theinmag-tiles__bg-image" aria-hidden="true"></div>
+  {%- endif -%}
+
   {%- comment -%}
     Check the RAW setting (not heading_text with its | default: fallback)
     so an empty-string template override actually hides the heading.
@@ -160,6 +178,60 @@
   /* ================================================================
      theinmag-audience-tiles (Section 4)
      ================================================================ */
+
+  /* Optional full-bleed bg image (per-instance). 2-class selector
+     beats Dawn's `div:empty { display: none }` rule so the empty
+     decoration div renders. Sits behind every section child. */
+  .theinmag-tiles .theinmag-tiles__bg-image {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background-image: var(--theinmag-tiles-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: var(--theinmag-tiles-bg-opacity, 0.3);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Lift every other direct child above the bg-image's stacking
+     context (z-index: 0) so heading + tiles render in front. */
+  .theinmag-tiles > :not(.theinmag-tiles__bg-image) {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Optional white-border + drop-shadow treatment (opt-in via the
+     tile_shadow setting, default off so other audience pages don't
+     change). Adds a thin white frame, rounded corners and a layered
+     shadow for a friendly 3D pop. */
+  .theinmag-tiles--shadow .theinmag-tile {
+    border: 4px solid #ffffff;
+    border-radius: var(--radius-md, 12px);
+    box-shadow:
+      0 10px 30px rgba(20, 14, 30, 0.18),
+      0 4px 12px rgba(20, 14, 30, 0.10);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .theinmag-tiles--shadow .theinmag-tile:hover,
+  .theinmag-tiles--shadow .theinmag-tile:focus-visible {
+    transform: translateY(-3px);
+    box-shadow:
+      0 14px 36px rgba(20, 14, 30, 0.22),
+      0 6px 16px rgba(20, 14, 30, 0.14);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-tiles--shadow .theinmag-tile {
+      transition: none;
+    }
+    .theinmag-tiles--shadow .theinmag-tile:hover,
+    .theinmag-tiles--shadow .theinmag-tile:focus-visible {
+      transform: none;
+    }
+  }
 
   .theinmag-tiles {
     position: relative;
@@ -562,6 +634,36 @@
       "max": 160,
       "step": 8,
       "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Background image (optional)"
+    },
+    {
+      "type": "text",
+      "id": "bg_image_filename",
+      "label": "Background image filename in /assets/",
+      "info": "Optional full-bleed image behind the tiles. Leave blank for plain cream bg."
+    },
+    {
+      "type": "range",
+      "id": "bg_image_opacity",
+      "label": "Background image opacity (%)",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Tile treatment"
+    },
+    {
+      "type": "checkbox",
+      "id": "tile_shadow",
+      "label": "White border + drop shadow on tiles",
+      "info": "Adds a thin white frame, rounded corners, and a layered shadow for a friendly 3D pop. Off by default; other audience pages unaffected.",
+      "default": false
     }
   ],
   "blocks": [

@@ -57,7 +57,7 @@
       "settings": {
         "heading": "[[IN]] the classroom",
         "heading_style_post": true,
-        "intro_text": "Three pillars of a great classroom task. One magazine that hits all three.",
+        "intro_text": "There's so many reasons teachers love theINmag. Here's three we keep hearing...",
         "bg_image_filename": "teachers_background1.jpg",
         "bg_image_opacity": 30,
         "watermark_filename": ""
@@ -264,7 +264,7 @@
       "type": "theinmag-teacher-consent-tile",
       "settings": {
         "eyebrow": "MADE FOR BUSY TEACHERS",
-        "heading": "Two ways to make submissions easy.",
+        "heading": "Submissions made easy.",
         "subhead": "Because the last thing you need is more admin.",
         "card_1_heading": "The annual consent",
         "card_1_body": "<p>One signed form, all year covered. Download it, hand it out at the start of the year, collect them back, and you're good to submit student creations every issue.</p>",
@@ -272,7 +272,9 @@
         "card_2_heading": "The QR code on the wall",
         "card_2_body": "<p>Every issue has a cut-out page with a massive QR code on the back. Pin it up. Kids scan with any iPad, take a photo of their creation, and submit themselves - even Grade 1 kids are doing this independently. Bonus: it's a great IT skill for them to practise.</p>",
         "card_2_cta_label": "See how it works",
-        "card_2_cta_url": "/pages/send-in"
+        "card_2_cta_url": "/pages/send-in",
+        "image_filename": "teachers_sendincontent.jpg",
+        "image_alt": "theINmag classroom poster - print it, pin it up, let students submit themselves via the QR code."
       }
     },
     "field-notes": {
@@ -384,22 +386,23 @@
         "size_variant": "default",
         "attribution_style": "uppercase_inter",
         "padding_top": 96,
-        "padding_bottom": 96
+        "padding_bottom": 48
       }
     },
     "school-invoice-callout": {
       "type": "theinmag-callout-strip",
       "settings": {
-        "body": "<strong>Paying by school invoice?</strong> Just hit the <strong>School invoice</strong> button at checkout - we'll send it the same day, Net 14 terms.",
+        "body": "<strong>Paying by school invoice?</strong> Just hit the <strong>School invoice</strong> button at checkout - we'll send it the same day.",
         "bg_color": "cream",
         "padding_top": 32,
-        "padding_bottom": 16
+        "padding_bottom": 0
       }
     },
     "shop-trio": {
       "type": "theinmag-for-parents-shop-trio",
       "settings": {
-        "heading": ""
+        "heading": "",
+        "compact_top": true
       },
       "blocks": {
         "membership": {
@@ -409,9 +412,9 @@
             "tile_link": "/products/membership",
             "eyebrow": "RECOMMENDED",
             "title": "theINmag Membership",
-            "tagline": "A new issue, every school term.",
+            "tagline": "Your classroom never misses an issue.",
             "price": "From $89 / 4 issues",
-            "trust_dots": "One issue per term · Free shipping over $40 · Cancel anytime",
+            "trust_dots": "3 issues a year · Free shipping over $40 · Cancel anytime",
             "cta_label": "Get the Membership",
             "image_filename": "product-membership.jpg",
             "image_alt": "A kid opening their copy of theINmag at the kitchen bench."
@@ -456,7 +459,9 @@
       "type": "theinmag-teacher-faq",
       "settings": {
         "heading": "Teacher questions, answered.",
-        "subhead": "The stuff teachers actually ask us."
+        "subhead": "The stuff teachers actually ask us.",
+        "bg_image_filename": "teacher_backgroundFAQ.jpg",
+        "bg_image_opacity": 30
       },
       "blocks": {
         "q1": {
@@ -505,7 +510,7 @@
           "type": "item",
           "settings": {
             "question": "How do I submit my students' creations to theINmag?",
-            "answer": "<p>Easy - head to the <a href=\"/pages/send-in\">Send IN page</a> and follow the prompts. Every published creation needs parent or guardian consent, so the form includes a permission step.</p><p>Two workflows that work for busy teachers:</p><p><strong>The annual consent:</strong> Download our consent form, hand it out at the start of the year, collect them back, and you're good to submit student creations all year. No chasing consent every time inspiration strikes.</p><p><strong>The QR code on the wall:</strong> Every issue of theINmag has a cut-out page at the back with a massive QR code on it. Pin it up. If there's a spare iPad floating around the school, students can scan the code, take a photo of their creation and submit themselves - even kids from Grade 1 are doing this independently. Bonus: it's a great little IT skill for them to practise.</p>"
+            "answer": "<p>Easy - head to the <a href=\"/pages/send-in\">Send IN page</a> and follow the prompts. Every published creation needs parent or guardian consent, so the form includes a permission step.</p><p>Two workflows that work for busy teachers:</p><p><strong>The annual consent:</strong> <a href=\"[[CONSENT_PDF]]\">Download our consent form</a>, hand it out at the start of the year, collect them back, and you're good to submit student creations all year. No chasing consent every time inspiration strikes.</p><p><strong>The QR code on the wall:</strong> Every issue of theINmag has a cut-out page at the back with a massive QR code on it. Pin it up. If there's a spare iPad floating around the school, students can scan the code, take a photo of their creation and submit themselves - even kids from Grade 1 are doing this independently. Bonus: it's a great little IT skill for them to practise.</p>"
           }
         },
         "q8": {
@@ -580,7 +585,10 @@
         "exclude_label": "Teachers",
         "caveat_label": "",
         "padding_top": 32,
-        "padding_bottom": 64
+        "padding_bottom": 64,
+        "bg_image_filename": "singlemag_faq.jpg",
+        "bg_image_opacity": 30,
+        "tile_shadow": true
       }
     }
   },
