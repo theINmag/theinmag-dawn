@@ -53,7 +53,7 @@
     assign kw_str = kw_arr | join: ' ' | downcase
   endif
 
-  comment Image (cover + preview). Reference field needs .value. endcomment
+  # Image (cover + preview). Reference field needs .value.
   assign img = freebie.image.value
   if img == blank
     assign img = freebie.image
@@ -61,7 +61,7 @@
   assign cover_url = img | image_url: width: 600
   assign preview_url = img | image_url: width: 1400
   assign image_fullres = img | image_url: width: 2400
-  comment Fall back to a theme-asset filename when no Shopify File is set. endcomment
+  # Fall back to a theme-asset filename when no Shopify File is set.
   if cover_url == blank and freebie.image_filename != blank
     assign asset_img = freebie.image_filename | asset_url
     assign cover_url = asset_img
@@ -93,10 +93,10 @@
     assign download_name = handle | append: '.jpg'
   endif
 
-  comment Search haystack - everything a kid or parent might type. endcomment
+  # Search haystack - everything a kid or parent might type.
   assign haystack = title | append: ' ' | append: short_desc | append: ' ' | append: category_label | append: ' ' | append: mag_label | append: ' ' | append: kid_name | append: ' ' | append: kid_location | append: ' ' | append: kw_str | downcase | strip
 
-  comment Kid creator attribution string for the lightbox. endcomment
+  # Kid creator attribution string for the lightbox.
   assign kid_attr = ''
   if kid_name != blank
     assign kid_attr = 'Inspired by ' | append: kid_name

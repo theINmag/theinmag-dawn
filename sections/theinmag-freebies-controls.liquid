@@ -22,7 +22,7 @@
 
   assign sticky_top = section.settings.sticky_top | default: 0
 
-  comment Distinct mag_issue values, delimiter-guarded against substring clashes. endcomment
+  # Distinct mag_issue values, delimiter-guarded against substring clashes.
   assign mags = '|'
   assign freebies = shop.metaobjects.freebie.values
   for fb in freebies
