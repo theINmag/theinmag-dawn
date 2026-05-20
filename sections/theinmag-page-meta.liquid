@@ -24,6 +24,8 @@
     assign webpage_url_path = request.path
   endif
 
+  assign webpage_audience = section.settings.webpage_audience
+
   assign breadcrumbs_raw = section.settings.breadcrumbs_csv
 -%}
 
@@ -33,6 +35,12 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "name": {{ webpage_name | json }},
+  {%- if webpage_audience != blank %}
+  "audience": {
+    "@type": "Audience",
+    "audienceType": {{ webpage_audience | json }}
+  },
+  {%- endif %}
   {%- if webpage_description != blank %}
   "description": {{ webpage_description | strip_html | strip | json }},
   {%- endif %}
@@ -102,6 +110,12 @@
       "id": "webpage_url_path",
       "label": "Page URL path",
       "info": "e.g. /pages/for-parents. Defaults to the current request path."
+    },
+    {
+      "type": "text",
+      "id": "webpage_audience",
+      "label": "Audience (WebPage > audience)",
+      "info": "Optional. Comma-separated audience types, e.g. 'Homeschool Families, Home Educators'. Leave blank to omit."
     },
     {
       "type": "header",

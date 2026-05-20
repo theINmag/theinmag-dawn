@@ -1,0 +1,594 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "page-meta": {
+      "type": "theinmag-page-meta",
+      "settings": {
+        "webpage_name": "theINmag for Homeschoolers",
+        "webpage_description": "A print and digital magazine for Australian homeschool kids. Real kid creations from across the country. Rich open tasks, no worksheets, ad-free. Made by former educators on the road.",
+        "webpage_url_path": "/pages/for-homeschoolers",
+        "webpage_audience": "Homeschool Families, Home Educators, Home Education Australia",
+        "breadcrumbs_csv": "Home|/;For homeschoolers|/pages/for-homeschoolers"
+      }
+    },
+    "hero": {
+      "type": "theinmag-teachers-hero",
+      "settings": {
+        "eyebrow_text": "For Homeschoolers",
+        "aeo_h1_text": "theINmag for Australian Homeschool Families - Kid-Created Print and Digital Magazine",
+        "headline": "Kids inspiring kids.",
+        "emphasis_word": "inspiring",
+        "subhead": "Real Aussie kid creations - 120+ pages, no ads, no timetable.<br>The kind of learning that sticks because it's theirs.",
+        "cta_primary_label": "See the gallery",
+        "cta_primary_link": "/pages/gallery",
+        "cta_secondary_label": "Get the Membership",
+        "cta_secondary_link": "/products/membership",
+        "dish_strip": "WONDERINGS · RABBIT HOLES · KID-LED · MULTI-AGE · REAL · PRINTED",
+        "image_filename": "HERO_audiences-homeschoolers.jpg",
+        "image_alt": "An Australian homeschool kid with their copy of theINmag at the kitchen table.",
+        "show_trust_bar": false
+      }
+    },
+    "shop-trust-strip": {
+      "type": "theinmag-shop-trust-strip",
+      "settings": {
+        "padding_top": 24,
+        "padding_bottom": 24
+      }
+    },
+    "consent-banner": {
+      "type": "theinmag-consent-banner",
+      "settings": {
+        "headline": "Free downloads for all Aussie homeschoolers",
+        "button_label": "Grab the freebies",
+        "button_url": "/pages/freebies",
+        "bg_color": "#F9C23C",
+        "button_color": "#5D3A7A",
+        "enable_wobble": true
+      }
+    },
+    "in-your-home": {
+      "type": "theinmag-homeschool-pillars",
+      "settings": {
+        "heading": "In your home",
+        "intro_text": "There's so many reasons homeschoolers love theINmag. Here's three we keep hearing...",
+        "show_character": true,
+        "bg_color": "cream",
+        "padding_top": 96,
+        "padding_bottom": 96
+      },
+      "blocks": {
+        "card-1": {
+          "type": "card",
+          "settings": {
+            "eyebrow": "INTERESTS",
+            "headline": "The first read of the day.",
+            "body": "Real Aussie kids fill every page. Their stories, their art, their jokes, their wonderings. The reader who 'doesn't love reading' suddenly does - because the content actually belongs to them. Hand it over with a cuppa and watch.",
+            "image_alt": "A homeschool kid reading theINmag at the kitchen table."
+          }
+        },
+        "card-2": {
+          "type": "card",
+          "settings": {
+            "eyebrow": "NO PLANNING",
+            "headline": "Open it. That's the plan.",
+            "body": "Each issue is 120+ pages of open-ended prompts, rich tasks, and rabbit holes your kid can chase wherever they like. No prep. No worksheets. No 'lesson' baked in. Just permission to go.",
+            "image_alt": "A kid mid-creation with an open spread of theINmag."
+          }
+        },
+        "card-3": {
+          "type": "card",
+          "settings": {
+            "eyebrow": "COMMUNITY",
+            "headline": "Your kid is not alone.",
+            "body": "The biggest gift theINmag gives homeschool kids - seeing other kids their age, doing wild creative things, all over Australia. Suddenly their world is bigger. Suddenly there's a community on the page.",
+            "image_alt": "A mosaic of Aussie kids holding their published creations."
+          }
+        }
+      },
+      "block_order": ["card-1", "card-2", "card-3"]
+    },
+    "print-vs-digital": {
+      "type": "theinmag-print-vs-digital",
+      "settings": {
+        "eyebrow": "Print or digital?",
+        "closing_line": "Whichever you pick, every one of the 120+ pages is filled with real kid creations from across Australia. That's not a feature. That's the whole magazine.",
+        "bg_color": "cream",
+        "padding_top": 80,
+        "padding_bottom": 80
+      },
+      "blocks": {
+        "print": {
+          "type": "column",
+          "settings": {
+            "heading": "Print",
+            "image_alt": "A printed copy of theINmag.",
+            "bullets": "Something to hold, fold, and live with\nReading off-screen is good for brains and bodies\nLands in your letterbox - the excitement is real\nBecomes part of the homeschool shelf forever",
+            "cta_label": "See print memberships",
+            "cta_link": "/products/membership"
+          }
+        },
+        "digital": {
+          "type": "column",
+          "settings": {
+            "heading": "Digital",
+            "image_alt": "theINmag on a tablet.",
+            "bullets": "Instant access, anywhere - bush, beach, road trip\nGrab any back issue, even sold-out ones\nPrint pages you love, share with the whole family\nBuilds the digital literacy kids need anyway",
+            "cta_label": "See digital memberships",
+            "cta_link": "/products/membership"
+          }
+        }
+      },
+      "block_order": ["print", "digital"]
+    },
+    "statement": {
+      "type": "theinmag-for-parents-statement",
+      "settings": {
+        "heading": "Every kid has something to send IN.",
+        "body": "Some kids draw. Some kids write. Some kids build shelters out of sticks, invent maths shortcuts, take photos of the weirdest bugs they can find, or come up with story ideas that nobody else would. The wild, untaught, messy bits - that's where the real learning lives. Send those bits IN.",
+        "cta_label": "Send IN a creation",
+        "cta_link": "/pages/send-in",
+        "trust_microcopy": "Free to submit. Open to every Aussie kid. Curated kindly."
+      }
+    },
+    "branching-out": {
+      "type": "theinmag-behind-the-mag-see-more",
+      "settings": {
+        "heading": "From our van to your letterbox.",
+        "subhead": "We're three years into driving Australia with our baby Nora and a printing schedule. Most of what we share is kid-led, screen-light, real. Come along for the ride.",
+        "aeo_heading": "What is life like behind theINmag?"
+      },
+      "blocks": {
+        "youtube": {
+          "type": "social_card",
+          "settings": {
+            "platform": "youtube",
+            "heading": "Branching Out",
+            "subheading": "Adventures from the road.",
+            "body": "Our YouTube channel - the places we land, the kids we meet, and what Nora's up to.",
+            "button_label": "Follow our journey",
+            "link": "https://www.youtube.com/@Branchingout-tnr",
+            "youtube_video_id": "https://www.youtube.com/watch?v=r2LK1DBuyOo",
+            "fallback_filename": "behind-the-mag-branching-out.jpg",
+            "image_alt": "Still from the Branching Out YouTube channel - Ryan, Tam and Nora on the road."
+          }
+        },
+        "instagram": {
+          "type": "social_card",
+          "settings": {
+            "platform": "instagram",
+            "heading": "@the.inmag",
+            "subheading": "Behind every page.",
+            "body": "Sneak peeks of upcoming issues, kid creations, and the messy bits between. If you want the day-to-day, this is where it lives.",
+            "button_label": "Follow on Instagram",
+            "link": "https://www.instagram.com/the.inmag/",
+            "fallback_filename": "behind-the-mag-instagram.jpg",
+            "image_alt": "Grid preview of the @the.inmag Instagram feed."
+          }
+        }
+      },
+      "block_order": ["youtube", "instagram"]
+    },
+    "comps": {
+      "type": "theinmag-for-parents-comps",
+      "settings": {
+        "heading": "Real competitions.",
+        "subhead": "We comb through every kids' competition in Australia - art, writing, photography, science - and curate the best ones into a single hub.",
+        "featured_id": "banabae-artists",
+        "audience_token": "homeschoolers",
+        "all_cta_label": "See all current competitions",
+        "all_cta_link": "/pages/competitions"
+      }
+    },
+    "curriculum-accordion": {
+      "type": "theinmag-curriculum-accordion",
+      "settings": {
+        "heading": "What's [[IN]]side",
+        "subhead": "No textbooks. No worksheets. Just kids. Real-life experiences, rich open tasks, and a few hundred Aussie kids your kid hasn't met yet. Here's how each issue is broken down.",
+        "image_filename": "blog-image-universal-03.jpg",
+        "image_alt": "An Australian homeschool kid engaging with theINmag at home.",
+        "caption": ""
+      },
+      "blocks": {
+        "i1": {
+          "type": "item",
+          "settings": {
+            "number": "01",
+            "section_name": "The [[IN]] Map",
+            "kicker": "GEOGRAPHY",
+            "body": "A full Australian map, dotted with the home town of every kid published in the issue. Whose dot is closest to yours? How far would you have to drive to meet them? Brilliant for kids who love maps, road trips, or wondering where other kids live.",
+            "is_open": true
+          }
+        },
+        "i2": {
+          "type": "item",
+          "settings": {
+            "number": "02",
+            "section_name": "The Featured Story",
+            "kicker": "LITERACY",
+            "body": "Each issue, one standout piece of kid writing gets the spotlight - usually a picture story book with the kid's own illustrations. A read-aloud your kid actually asks for, written by someone their own age, which lands in a way grown-up authors never quite do."
+          }
+        },
+        "i3": {
+          "type": "item",
+          "settings": {
+            "number": "03",
+            "section_name": "Taste the PIE",
+            "kicker": "LITERACY",
+            "body": "Real kid writing, with real intent - to persuade, inform, or entertain. The mentor texts your homeschooler actually wants to read, because the writer is their age. Pick one apart together, then have a go at your own and send it [[IN]]."
+          }
+        },
+        "i4": {
+          "type": "item",
+          "settings": {
+            "number": "04",
+            "section_name": "Making the Best Me",
+            "kicker": "WELLBEING",
+            "body": "Real reflections from real kids on big feelings, friendships and staying safe. It's something to see kids share the little strategies that keep them steady. A gentle conversation starter for the kitchen table whenever you need one."
+          }
+        },
+        "i5": {
+          "type": "item",
+          "settings": {
+            "number": "05",
+            "section_name": "The Art Hub",
+            "kicker": "VISUAL ARTS",
+            "body": "Every issue, dozens of kids share their art and the story behind it. Your kid sees what's possible - and what's allowed. Use any piece as an 'I notice, I wonder' starter, then hand over the pencils and see where it goes."
+          }
+        },
+        "i6": {
+          "type": "item",
+          "settings": {
+            "number": "06",
+            "section_name": "What's Not to Like?",
+            "kicker": "PROBLEM-SOLVING",
+            "body": "Real problems, solved by real kids - jokes, riddles, codes and puzzles included. Open-ended, multi-solution, the kind of thinking that doesn't fit on a worksheet. Get your kid inventing their own to send [[IN]]; the engagement is immediate."
+          }
+        },
+        "i7": {
+          "type": "item",
+          "settings": {
+            "number": "07",
+            "section_name": "We Can Solve It!",
+            "kicker": "NUMERACY",
+            "body": "Real maths problems dreamed up by Aussie kids. Surprisingly deep, often with more than one right answer, perfect for slow thinking out loud together. A quiet way to show your kid that maths is something you play with, not just something you finish."
+          }
+        },
+        "i8": {
+          "type": "item",
+          "settings": {
+            "number": "08",
+            "section_name": "Snaps!",
+            "kicker": "VISUAL ARTS / PHOTOGRAPHY",
+            "body": "Photography sent [[IN]] by Aussie kids - landscapes, animals, plants, found-object compositions (no faces, for safety). The perfect nudge to hand your kid a camera and send them out the door, then send their best shot [[IN]] for the next issue."
+          }
+        },
+        "i9": {
+          "type": "item",
+          "settings": {
+            "number": "09",
+            "section_name": "Meet the Professional",
+            "kicker": "CAREER PATHWAYS",
+            "body": "Each issue, a real person shares the job they love and how they got there. Great for the 'what do you want to be?' chats, and a lovely prompt for your kid to go and interview someone in your own community."
+          }
+        },
+        "i10": {
+          "type": "item",
+          "settings": {
+            "number": "10",
+            "section_name": "HobbyTime",
+            "kicker": "PASSIONS, INTERESTS & HOBBIES",
+            "body": "Aussie kids sharing what they love outside of any lesson - cooking, music, nature, building, gaming, sport, pets, art. Real fuel for following your kid's own obsessions wherever they lead, and proof there's a whole country of kids into the same wild stuff."
+          }
+        }
+      },
+      "block_order": ["i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9", "i10"]
+    },
+    "field-notes": {
+      "type": "theinmag-blog-feed",
+      "settings": {
+        "heading_pre": "field",
+        "heading_emphasis": "notes",
+        "heading_post": "",
+        "heading_period": "",
+        "subhead": "",
+        "background_filename": "theinside-homepage-background.jpg",
+        "show_filters": false,
+        "active_chip": "adults",
+        "chip_all_link": "/blogs/field-notes",
+        "chip_kids_link": "/blogs/field-notes?audience=kids",
+        "chip_adults_link": "/blogs/field-notes?audience=adults",
+        "show_cta": true,
+        "cta_label": "see all blogs",
+        "cta_link": "/blogs/field-notes",
+        "padding_top": 80,
+        "padding_bottom": 80,
+        "auto_pull": true,
+        "auto_blog_handle": "field-notes",
+        "auto_audience": "adults",
+        "auto_rjrp_tag": "real-jobs-real-people",
+        "auto_rjrp_cap": 1,
+        "auto_pool_size": 8,
+        "auto_take": 4
+      },
+      "blocks": {
+        "post-1": {
+          "type": "featured_post",
+          "settings": {
+            "audience": "adults",
+            "topic": "Creativity",
+            "title_override": "why your kid stops creating around age 8.",
+            "excerpt_override": "Around age 7 or 8 most kids start to self-edit harder. The fix is small, specific, and starts with the adult in the room.",
+            "link_override": "/blogs/field-notes/why-kids-stop-creating-around-age-8",
+            "fallback_filename": "blog-image-universal-05.jpg",
+            "image_alt": "Cubist-style portrait with split colour fields on a hot pink background, sent IN by Maida S., age 9, Bendigo VIC."
+          }
+        },
+        "post-2": {
+          "type": "featured_post",
+          "settings": {
+            "audience": "adults",
+            "topic": "Numeracy",
+            "title_override": "an open numeracy task is a great place to start.",
+            "excerpt_override": "Open-ended numeracy isn't a Plan B you reach for when the worksheet bores you. It's how kids actually learn maths.",
+            "link_override": "/blogs/field-notes/open-numeracy-task-great-place-to-start",
+            "fallback_filename": "blog-image-universal-06.jpg",
+            "image_alt": "Watercolour of a desert road heading into a sunset with purple mountains, sent IN by Remy V., age 9, Castlemaine VIC."
+          }
+        },
+        "post-3": {
+          "type": "featured_post",
+          "settings": {
+            "audience": "both",
+            "topic": "Creativity",
+            "title_override": "5 things to draw when you don't know what to draw.",
+            "excerpt_override": "When your brain is stuck, you don't need a better idea. You need a weirder one. Five places to start.",
+            "link_override": "/blogs/field-notes/5-things-to-draw-when-you-dont-know-what-to-draw",
+            "fallback_filename": "blog-image-universal-03.jpg",
+            "image_alt": "Half-realistic, half-imagined portrait with everyday objects inside the head, sent IN by Felipe R., age 10, Bendigo VIC."
+          }
+        },
+        "post-4": {
+          "type": "featured_post",
+          "settings": {
+            "audience": "adults",
+            "topic": "Wellbeing",
+            "title_override": "the case for boredom.",
+            "excerpt_override": "Almost every kid creation we love most started with the sentence the parent didn't want to hear: 'I'm bored.' Lean into it.",
+            "link_override": "/blogs/field-notes/case-for-boredom",
+            "fallback_filename": "blog-image-universal-04.jpg",
+            "image_alt": "Reinterpretation of Vermeer's Girl with a Pearl Earring in muted greens and blue, sent IN by Charlie G., age 12, Bendigo VIC."
+          }
+        }
+      },
+      "block_order": ["post-1", "post-2", "post-3", "post-4"]
+    },
+    "founders": {
+      "type": "theinmag-for-parents-founders",
+      "settings": {
+        "eyebrow": "WHO MAKES THIS",
+        "heading": "Two teachers, three years on the road, one magazine.",
+        "body": "We're Ryan and Tam - partners, parents, and former classroom teachers. We saw too many kids switch off the moment learning turned creativity into a worksheet. theINmag is the thing we wished existed for them. Three issues a year of pure kid creativity, designed to inspire and give real kids a voice.",
+        "anchor_label": "Read our full story",
+        "anchor_link": "/pages/behind-the-mag",
+        "image_filename": "parents_tamandryan.jpg",
+        "image_alt": "Ryan and Tam, the two former teachers behind theINmag."
+      }
+    },
+    "pull-quote": {
+      "type": "theinmag-pull-quote",
+      "settings": {
+        "quote_headline": "A retired principal's pick for the grandkids",
+        "quote_body": "Many thanks! Congratulations on a great effort. I'm a retired principal from primary schools and I am now looking for things for my grandchildren of an educational nature.",
+        "attribution_name": "Doug F.",
+        "attribution_role": "retired primary principal",
+        "background_filename": "theinside-homepage-background.jpg",
+        "scrim_opacity": 45,
+        "heading_font_style": "inter",
+        "size_variant": "default",
+        "attribution_style": "uppercase_inter",
+        "padding_top": 96,
+        "padding_bottom": 48
+      }
+    },
+    "shop-trio": {
+      "type": "theinmag-for-parents-shop-trio",
+      "settings": {
+        "heading": "",
+        "compact_top": true
+      },
+      "blocks": {
+        "membership": {
+          "type": "tile",
+          "settings": {
+            "weight": "dominant",
+            "tile_link": "/products/membership",
+            "eyebrow": "RECOMMENDED",
+            "title": "theINmag Membership",
+            "tagline": "Your kid never misses an issue.",
+            "price": "From $89 / 4 issues",
+            "trust_dots": "3 issues a year · Free shipping over $40 · Cancel anytime",
+            "cta_label": "Get the Membership",
+            "image_filename": "product-membership.jpg",
+            "image_alt": "A kid opening their copy of theINmag at the kitchen bench."
+          }
+        },
+        "single": {
+          "type": "tile",
+          "settings": {
+            "weight": "standard",
+            "tile_link": "/collections/single-issues",
+            "eyebrow": "LOWER COMMITMENT",
+            "title": "Single Issues",
+            "tagline": "Try one. See what they make of it.",
+            "price": "From $23.95",
+            "cta_label": "Browse issues",
+            "image_filename": "product-mag.jpg",
+            "image_alt": "A fanned spread of recent theINmag covers."
+          }
+        },
+        "bundle": {
+          "type": "tile",
+          "settings": {
+            "weight": "standard",
+            "tile_link": "/products/build-a-bundle",
+            "eyebrow": "BUILD YOUR OWN",
+            "title": "Build a Bundle",
+            "tagline": "Mix copies for siblings, friends, or your co-op. Save 5-15%.",
+            "badge": "Save more with more",
+            "cta_label": "Build yours",
+            "image_filename": "product-bundle.jpg",
+            "image_alt": "A mixed stack of theINmag issues and Membership cards."
+          }
+        }
+      },
+      "block_order": ["membership", "single", "bundle"]
+    },
+    "faq": {
+      "type": "theinmag-teacher-faq",
+      "settings": {
+        "heading": "Frequently asked questions",
+        "subhead": "The questions homeschool families actually ask us."
+      },
+      "blocks": {
+        "q1": {
+          "type": "item",
+          "settings": {
+            "question": "Is theINmag a curriculum?",
+            "answer": "<p>No. theINmag is a 120+ page print and digital magazine made entirely by Australian kids. It sits alongside whatever you're doing - it's not a replacement for your homeschool curriculum, it's the bit your kid will actually want to pick up.</p><p>Most homeschool families use it as a launchpad for rich open tasks, mentor texts, art prompts, and rabbit holes their kid chooses.</p>"
+          }
+        },
+        "q2": {
+          "type": "item",
+          "settings": {
+            "question": "How does theINmag fit into a homeschool week?",
+            "answer": "<p>However you want. Some families read it cover-to-cover over a weekend. Some pull one spread per day and let it spark a week's worth of learning. Some leave it on the kitchen table and let their kid find it.</p><p>There's no 'right' way. The magazine is designed to be open-ended - your kid drives, you steer when needed.</p>"
+          }
+        },
+        "q3": {
+          "type": "item",
+          "settings": {
+            "question": "What ages is theINmag good for?",
+            "answer": "<p>Five to thirteen, roughly. Because every page is made by kids of different ages, there's something in every issue for every reader in that range.</p><p>Multi-age families love it - older kids and younger kids can read the same issue and get different things out of it. Younger kids look at the pictures and have things read to them. Older kids dig into the writing, the comics, the science.</p>"
+          }
+        },
+        "q4": {
+          "type": "item",
+          "settings": {
+            "question": "Can I use theINmag as part of my homeschool registration or learning evidence?",
+            "answer": "<p>Plenty of families do. Reading theINmag, responding to the prompts, or sending in your kid's own creation all count as legitimate learning - and you'll have a real physical magazine on your shelf as evidence of the work. If your kid gets published in an issue, that's a documented piece of nationally-distributed writing or art for your portfolio.</p><p>Reporting requirements vary by state, so check what your regulator accepts - but the magazine itself gives you real material to work with.</p>"
+          }
+        },
+        "q5": {
+          "type": "item",
+          "settings": {
+            "question": "My kid doesn't love reading or writing - will they actually engage with this?",
+            "answer": "<p>Honestly, this is where theINmag does its best work. The reluctant reader who sees other kids their age in print suddenly wants to read it. The kid who hates writing sees a comic by a 9-year-old and asks if they can make one too.</p><p>Nothing about theINmag feels like school - it's a magazine, made by kids, for kids. That changes everything.</p>"
+          }
+        },
+        "q6": {
+          "type": "item",
+          "settings": {
+            "question": "What's the difference between the print and digital memberships?",
+            "answer": "<p>Both give you the same magazine. Print is the tri-annual paper edition, posted to your letterbox three times a year (February, June, October). Digital is the full PDF version - instantly downloadable, including back issues that have sold out in print.</p><p>Some families pick one. Some get both. There's no wrong answer - see the comparison section above.</p>"
+          }
+        },
+        "q7": {
+          "type": "item",
+          "settings": {
+            "question": "Why don't you have any ads?",
+            "answer": "<p>Most kids' magazines make most of their money from advertising. We don't run a single ad. Not one. Kids are already exposed to thousands of ads a week, and we wanted theINmag to be the one place where their attention belongs to them and to the other kids on the page.</p><p>Every issue is funded by memberships and single sales - every dollar goes back into printing, paper, and putting more kids in print.</p>"
+          }
+        },
+        "q8": {
+          "type": "item",
+          "settings": {
+            "question": "Where can I follow theINmag on Instagram?",
+            "answer": "<p>We're at <a href=\"https://www.instagram.com/the.inmag\">@the.inmag</a> on Instagram. That's where we share kid creations, behind-the-scenes from the road, and the day-to-day of running a kid-made magazine out of a van. We'd love to see you over there.</p>"
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8"]
+    },
+    "cross-link": {
+      "type": "theinmag-audience-tiles",
+      "blocks": {
+        "kids": {
+          "type": "tile",
+          "settings": {
+            "label": "Kids",
+            "link": "/pages/for-kids",
+            "fallback_filename": "HERO_audiences-kids.jpg",
+            "image_alt": "An Australian kid drawing alongside their copy of theINmag."
+          }
+        },
+        "teachers": {
+          "type": "tile",
+          "settings": {
+            "label": "Teachers",
+            "link": "/pages/for-teachers",
+            "fallback_filename": "HERO_audiences-teachers.jpg",
+            "image_alt": "An Australian teacher using theINmag with their classroom."
+          }
+        },
+        "homeschoolers": {
+          "type": "tile",
+          "settings": {
+            "label": "Homeschoolers",
+            "link": "/pages/for-homeschoolers",
+            "fallback_filename": "HERO_audiences-homeschoolers.jpg",
+            "image_alt": "An Australian homeschool family at the kitchen table with theINmag."
+          }
+        },
+        "parents-excluded": {
+          "type": "tile",
+          "settings": {
+            "label": "Parents",
+            "link": "/pages/for-parents",
+            "fallback_filename": "HERO_audiences-parents.jpg",
+            "image_alt": "An Australian parent reading theINmag with their child."
+          }
+        }
+      },
+      "block_order": ["kids", "teachers", "homeschoolers", "parents-excluded"],
+      "settings": {
+        "heading": "",
+        "heading_position": "top",
+        "intro_text": "",
+        "exclude_label": "Homeschoolers",
+        "caveat_label": "",
+        "padding_top": 32,
+        "padding_bottom": 64,
+        "bg_image_filename": "singlemag_faq.jpg",
+        "bg_image_opacity": 30,
+        "tile_shadow": true
+      }
+    }
+  },
+  "order": [
+    "page-meta",
+    "hero",
+    "shop-trust-strip",
+    "consent-banner",
+    "in-your-home",
+    "print-vs-digital",
+    "statement",
+    "branching-out",
+    "comps",
+    "curriculum-accordion",
+    "field-notes",
+    "founders",
+    "pull-quote",
+    "shop-trio",
+    "faq",
+    "cross-link"
+  ]
+}

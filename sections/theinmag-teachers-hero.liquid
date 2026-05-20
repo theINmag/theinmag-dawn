@@ -31,6 +31,7 @@
 {%- endif -%}
 
 {%- assign subhead_html = section.settings.subhead -%}
+{%- assign dish_strip = section.settings.dish_strip -%}
 
 {%- if aeo_h1_text != blank -%}
   <h1 class="visually-hidden">{{ aeo_h1_text }}</h1>
@@ -113,6 +114,10 @@
           </a>
         {%- endif -%}
       </div>
+
+      {%- if dish_strip != blank -%}
+        <p class="theinmag-teachers-hero__dish">{{ dish_strip }}</p>
+      {%- endif -%}
     </div>
   </div>
 
@@ -304,6 +309,23 @@
     }
   }
 
+  /* Dish strip - thin white-on-scrim word-list below the CTAs. No
+     coloured pills (reads cheap on photography); white + text-shadow. */
+  .theinmag-teachers-hero__dish {
+    margin-top: var(--space-md);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(11px, 1.3vw, 13px);
+    line-height: 1.5;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #ffffff;
+    opacity: 0.95;
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.60),
+      0 2px 8px rgba(0, 0, 0, 0.40);
+  }
+
   /* Trust micro-bar - peach pair, matches theinmag-hero. */
   .theinmag-teachers-hero__trust {
     list-style: none;
@@ -429,6 +451,16 @@
       "type": "url",
       "id": "cta_secondary_link",
       "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Dish strip (optional)"
+    },
+    {
+      "type": "text",
+      "id": "dish_strip",
+      "label": "Dish strip",
+      "info": "Thin word-list below the CTAs, e.g. WONDERINGS · RABBIT HOLES · KID-LED. Leave blank to hide."
     },
     {
       "type": "header",

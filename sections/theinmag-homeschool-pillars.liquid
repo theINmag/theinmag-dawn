@@ -1,0 +1,460 @@
+{%- comment -%}
+  theinmag-homeschool-pillars
+  "In your home" three-card block for /pages/for-homeschoolers.
+
+  Image-topped cards (4:3) + purple eyebrow + Inter-bold headline +
+  body + optional low-opacity corner accent. Header: Post Regular
+  centred heading, Inter intro, optional kid character popping in to
+  the right (random-of-pool, scroll-pop) - matches the For Teachers
+  pillars character placement.
+
+  Standalone fork of theinmag-for-parents-pillars (which uses corner
+  accent art on a textless card, no card-top image) so the shared
+  parents/teachers pillars section stays untouched.
+
+  bg_color picks a six-pair light ground (cream default); cards stay
+  white so they pop off the ground. Set neighbouring sections to cream
+  so an off-cream choice here reads as a chapter break, not noise.
+
+  Hyphens only, never em or en dashes.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading_raw = section.settings.heading | default: 'In your home'
+  assign heading = heading_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
+  assign intro_text = section.settings.intro_text
+  assign show_character = section.settings.show_character
+
+  assign bg = section.settings.bg_color | default: 'cream'
+  assign bg_var = '--color-cream'
+  case bg
+    when 'cream'
+      assign bg_var = '--color-cream'
+    when 'white'
+      assign bg_var = '--color-white'
+    when 'lavender'
+      assign bg_var = '--color-lavender'
+    when 'peach'
+      assign bg_var = '--color-peach'
+    when 'mint'
+      assign bg_var = '--color-mint'
+    when 'sky'
+      assign bg_var = '--color-sky'
+  endcase
+
+  assign pt = section.settings.padding_top | default: 96
+  assign pb = section.settings.padding_bottom | default: 96
+-%}
+
+<section
+  class="theinmag-homeschool-pillars"
+  aria-labelledby="theinmag-homeschool-pillars-heading-{{ section.id }}"
+  style="--hp-bg: var({{ bg_var }}, #FBF6EA); --hp-pt: {{ pt }}px; --hp-pb: {{ pb }}px;"
+>
+  {%- if show_character -%}
+    {% render 'theinmag-character-pool' %}
+  {%- endif -%}
+
+  <div class="theinmag-homeschool-pillars__inner">
+    <header class="theinmag-homeschool-pillars__header">
+      {%- if show_character -%}
+        <span class="theinmag-homeschool-pillars__character" data-theinmag-pool-character aria-hidden="true"></span>
+      {%- endif -%}
+
+      {%- if heading != blank -%}
+        <h2
+          id="theinmag-homeschool-pillars-heading-{{ section.id }}"
+          class="theinmag-homeschool-pillars__heading"
+        >
+          {{ heading }}
+        </h2>
+      {%- endif -%}
+
+      {%- if intro_text != blank -%}
+        <p class="theinmag-homeschool-pillars__intro">{{ intro_text }}</p>
+      {%- endif -%}
+    </header>
+
+    <div class="theinmag-homeschool-pillars__grid">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'card' -%}
+          {%- liquid
+            assign card_image = block.settings.image
+            assign card_filename = block.settings.image_filename
+            assign card_alt = block.settings.image_alt | default: 'A kid creation from a recent issue of theINmag.'
+            assign accent_filename = block.settings.accent_filename
+            assign accent_op = block.settings.accent_opacity | default: 35 | divided_by: 100.0
+          -%}
+          <article class="theinmag-homeschool-pillars__card" {{ block.shopify_attributes }}>
+            <div class="theinmag-homeschool-pillars__card-media">
+              {%- if card_image != blank -%}
+                <img
+                  class="theinmag-homeschool-pillars__card-image"
+                  src="{{ card_image | image_url: width: 800 }}"
+                  srcset="
+                    {{ card_image | image_url: width: 400 }} 400w,
+                    {{ card_image | image_url: width: 600 }} 600w,
+                    {{ card_image | image_url: width: 800 }} 800w,
+                    {{ card_image | image_url: width: 1000 }} 1000w
+                  "
+                  sizes="(min-width: 990px) 360px, 90vw"
+                  width="{{ card_image.width }}"
+                  height="{{ card_image.height }}"
+                  alt="{{ card_alt | escape }}"
+                  loading="lazy"
+                >
+              {%- elsif card_filename != blank -%}
+                <img
+                  class="theinmag-homeschool-pillars__card-image"
+                  src="{{ card_filename | asset_url }}"
+                  alt="{{ card_alt | escape }}"
+                  loading="lazy"
+                >
+              {%- else -%}
+                <div class="theinmag-homeschool-pillars__card-placeholder" aria-hidden="true">
+                  <span>TBC<br>Card image</span>
+                </div>
+              {%- endif -%}
+            </div>
+
+            <div class="theinmag-homeschool-pillars__card-body">
+              {%- if accent_filename != blank -%}
+                <img
+                  class="theinmag-homeschool-pillars__accent"
+                  src="{{ accent_filename | asset_url }}"
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  style="--hp-accent-opacity: {{ accent_op }};"
+                >
+              {%- endif -%}
+
+              {%- if block.settings.eyebrow != blank -%}
+                <p class="theinmag-homeschool-pillars__eyebrow">{{ block.settings.eyebrow }}</p>
+              {%- endif -%}
+
+              {%- if block.settings.headline != blank -%}
+                <p class="theinmag-homeschool-pillars__headline">{{ block.settings.headline }}</p>
+              {%- endif -%}
+
+              {%- if block.settings.body != blank -%}
+                <p class="theinmag-homeschool-pillars__body">{{ block.settings.body }}</p>
+              {%- endif -%}
+            </div>
+          </article>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-homeschool-pillars {
+    position: relative;
+    background-color: var(--hp-bg, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--hp-pt, 96px) clamp(20px, 5vw, 64px) var(--hp-pb, 96px);
+    overflow: hidden;
+  }
+
+  .theinmag-homeschool-pillars__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .theinmag-homeschool-pillars__header {
+    position: relative;
+    text-align: center;
+    margin: 0 0 clamp(36px, 5vw, 56px);
+  }
+
+  /* Kid character pops in from off-screen right via translateX, sized
+     to balance the centred Post Regular heading. Hidden on mobile to
+     avoid clashing with the wrapping heading text. */
+  .theinmag-homeschool-pillars__character {
+    position: absolute;
+    top: 50%;
+    right: clamp(8px, 4vw, 56px);
+    width: clamp(100px, 12vw, 150px);
+    height: auto;
+    z-index: 3;
+    transform: translateY(-50%) translateX(60px) rotate(6deg);
+    transform-origin: center;
+  }
+
+  .theinmag-homeschool-pillars__character.is-popped {
+    transform: translateY(-50%) translateX(0) rotate(6deg);
+  }
+
+  @media (max-width: 767px) {
+    .theinmag-homeschool-pillars__character {
+      display: none;
+    }
+  }
+
+  .theinmag-homeschool-pillars__heading {
+    margin: 0 0 clamp(10px, 1.4vw, 16px);
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 1.1;
+    letter-spacing: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-homeschool-pillars__intro {
+    margin: 0 auto;
+    max-width: 60ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.6;
+    color: rgba(42, 31, 61, 0.78);
+  }
+
+  .theinmag-homeschool-pillars__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 3vw, 36px);
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-homeschool-pillars__grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(24px, 2.5vw, 36px);
+    }
+  }
+
+  .theinmag-homeschool-pillars__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(42, 31, 61, 0.06);
+  }
+
+  .theinmag-homeschool-pillars__card-media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background-color: var(--color-lavender, #E8DEEF);
+    overflow: hidden;
+  }
+
+  .theinmag-homeschool-pillars__card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .theinmag-homeschool-pillars__card-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: rgba(123, 79, 158, 0.65);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .theinmag-homeschool-pillars__card-body {
+    position: relative;
+    padding: clamp(22px, 2.6vw, 32px);
+    overflow: hidden;
+  }
+
+  /* Optional decorative accent, low z-index behind the card text. */
+  .theinmag-homeschool-pillars__accent {
+    position: absolute;
+    bottom: -8%;
+    right: -6%;
+    width: clamp(90px, 16vw, 150px);
+    height: auto;
+    opacity: var(--hp-accent-opacity, 0.35);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .theinmag-homeschool-pillars__eyebrow,
+  .theinmag-homeschool-pillars__headline,
+  .theinmag-homeschool-pillars__body {
+    position: relative;
+    z-index: 1;
+  }
+
+  .theinmag-homeschool-pillars__eyebrow {
+    margin: 0 0 clamp(10px, 1.2vw, 14px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(123, 79, 158, 0.85);
+  }
+
+  .theinmag-homeschool-pillars__headline {
+    margin: 0 0 clamp(10px, 1.4vw, 14px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(20px, 2.4vw, 24px);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-homeschool-pillars__body {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.7;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Homeschool pillars",
+  "tag": "section",
+  "class": "theinmag-homeschool-pillars-section",
+  "max_blocks": 3,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Three image-topped cards. Card order in the editor controls render order. Heading renders Post Regular centred; wrap brand-pun IN with [[IN]]."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "In your home"
+    },
+    {
+      "type": "textarea",
+      "id": "intro_text",
+      "label": "Intro line",
+      "default": "There's so many reasons homeschoolers love theINmag. Here's three we keep hearing..."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_character",
+      "label": "Show kid character beside heading",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Section background",
+      "options": [
+        { "value": "cream", "label": "Cream" },
+        { "value": "white", "label": "White" },
+        { "value": "lavender", "label": "Lavender" },
+        { "value": "peach", "label": "Peach" },
+        { "value": "mint", "label": "Mint" },
+        { "value": "sky", "label": "Sky" }
+      ],
+      "default": "cream"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top (px)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom (px)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "default": 96
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Card",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Card image (top)"
+        },
+        {
+          "type": "text",
+          "id": "image_filename",
+          "label": "Fallback filename in /assets/",
+          "info": "Used when no image picker value is set. 4:3 crop."
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Image alt text"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Eyebrow",
+          "info": "Small uppercase label, e.g. INTERESTS."
+        },
+        {
+          "type": "textarea",
+          "id": "headline",
+          "label": "Headline"
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Body"
+        },
+        {
+          "type": "text",
+          "id": "accent_filename",
+          "label": "Accent artwork filename in /assets/",
+          "info": "Optional decorative PNG, bottom-right, behind the text."
+        },
+        {
+          "type": "range",
+          "id": "accent_opacity",
+          "label": "Accent opacity (%)",
+          "min": 5,
+          "max": 80,
+          "step": 1,
+          "default": 35
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Homeschool pillars",
+      "blocks": [
+        { "type": "card" },
+        { "type": "card" },
+        { "type": "card" }
+      ]
+    }
+  ]
+}
+{% endschema %}
