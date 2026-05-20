@@ -15,16 +15,13 @@
   indices get cached in sessionStorage with a 1-hour TTL so subsequent
   page loads in the same tab don't re-probe.
 
-  When you upload more characters (e.g. character-38.png), they're
-  picked up automatically. No code edit needed unless you cross 100
-  (decades away at 3 issues per year). To cross 100, bump pool_max
-  below; the cache invalidates next time TTL expires or tab closes.
+  When you upload more characters, bump pool_max below to the new
+  total; the cache invalidates next time the TTL expires or tab closes.
 
-  Expected network noise: the first page load in a tab fires up to
-  100 parallel image requests, and the indices beyond the actual file
-  count return 404. That looks alarming in DevTools Network tab but
-  it's expected - Shopify CDN serves 404s in <50ms and the probes
-  don't block render. Slots stay opacity:0 until probes settle.
+  Keep pool_max equal to the actual file count (no headroom) so the
+  per-load probes never 404 - that keeps the console clean. The first
+  page load in a tab fires pool_max parallel image probes; slots stay
+  opacity:0 until they settle.
 
   Cache invalidation: sessionStorage clears with the tab. If you add
   files mid-session and want to see them immediately, open a new tab.
@@ -35,7 +32,7 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign pool_max = 100
+  assign pool_max = 53
   assign first_url = 'character-1.png' | asset_url
 -%}
 

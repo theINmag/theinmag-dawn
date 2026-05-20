@@ -228,7 +228,7 @@
   # (/assets/character-1.png .. character-N.png - same files the
   # homepage uses). Schema lets the count + prefix be tuned per
   # article; defaults match the sitewide pool size.
-  assign kid_character_count = section.settings.kid_character_count | default: 100
+  assign kid_character_count = section.settings.kid_character_count | default: 53
   assign kid_character_prefix = section.settings.kid_character_prefix | default: 'character-'
   assign kid_character_ext = section.settings.kid_character_ext | default: '.png'
   capture kid_character_attrs
@@ -2062,7 +2062,7 @@
     },
     {
       "type": "paragraph",
-      "content": "Kid posts use a kid-character illustration instead of a photo (locked brand-safety rule). Pulls from the sitewide pool in /assets/ as character-1.png .. character-N.png. One is picked at random per page load; JS retries on 404 so missing indices self-heal. Set this to your maximum expected file count - drop new PNGs in /assets/, no edit needed unless you cross 100."
+      "content": "Kid posts use a kid-character illustration instead of a photo (locked brand-safety rule). Pulls from the sitewide pool in /assets/ as character-1.png .. character-N.png. One is picked at random per page load; JS retries on 404 so missing indices self-heal. Set this to your maximum expected file count - drop new PNGs in /assets/, then bump this when you cross the value below."
     },
     {
       "type": "range",
@@ -2071,7 +2071,7 @@
       "min": 3,
       "max": 100,
       "step": 1,
-      "default": 100
+      "default": 53
     },
     {
       "type": "text",

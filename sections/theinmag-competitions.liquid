@@ -77,7 +77,7 @@
     JS retries on 404 so missing indices self-heal). Drop new PNGs in
     /assets/ - no count edit needed unless you cross 100.
   endcomment
-  assign character_count = section.settings.character_count | default: 100
+  assign character_count = section.settings.character_count | default: 53
   assign character_prefix = section.settings.character_prefix | default: 'character-'
   assign character_ext = section.settings.character_ext | default: '.png'
   capture character_attrs
@@ -2146,7 +2146,7 @@
       "min": 3,
       "max": 100,
       "step": 1,
-      "default": 100
+      "default": 53
     },
     {
       "type": "text",
