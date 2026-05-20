@@ -781,7 +781,13 @@
     background-color: #FFFFFF;
     box-shadow: 0 -2px 12px rgba(42, 31, 61, 0.12);
   }
-  .theinmag-freebies-lightbox__btn { flex: 1 1 auto; }
+  /* Compact, left-aligned action buttons on mobile (full-width felt heavy). */
+  .theinmag-freebies-lightbox__actions { justify-content: flex-start; }
+  .theinmag-freebies-lightbox__btn {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
 }
 
 /* ==========================================================================
