@@ -3,10 +3,9 @@
    Page-wide JS for /pages/freebies. Loaded once from the banner section.
 
    Subsystems (all vanilla, no framework, state lives in the DOM):
-     1. Order     - seeded shuffle of the rendered cards. Seed is held in
-                    sessionStorage so a refresh keeps the same order, a new
-                    visitor / new day gets a fresh one, and the SHUFFLE
-                    button regenerates it. Featured cards float to the top.
+     1. Order     - random shuffle of the rendered cards on every page load
+                    (and again whenever the SHUFFLE button is hit). Featured
+                    cards always float to the top of the shuffle.
      2. Filter    - category + mag dropdowns + debounced search apply
                     client-side over the rendered DOM via data-* attrs.
                     Filter state is mirrored into the URL (?category&mag&q)
@@ -114,9 +113,9 @@
       this.batchSize = parseInt(this.grid.getAttribute('data-batch-size'), 10) || 18;
       this.revealed = this.initialBatch;
 
-      // Seed + initial shuffle.
+      // Fresh random order on every page load.
       if (this.cards.length && this.columns) {
-        this.order = orderCards(this.cards, getSeed(false));
+        this.order = orderCards(this.cards, getSeed(true));
         this.applyDOMOrder();
       } else {
         this.order = this.cards.slice();

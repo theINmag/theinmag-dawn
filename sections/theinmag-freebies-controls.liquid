@@ -1,13 +1,12 @@
 {%- comment -%}
   theinmag-freebies-controls
-  Section 3 of /pages/freebies. Category filter | search | shuffle | mag.
+  Section 3 of /pages/freebies. Category filter | search | shuffle.
   Desktop = one row (sticky under the header, toggleable). Mobile stacks.
 
   Categories are LOCKED (freebies-build-spec.md Section 3) - the option
   values are the handleized form of each label, which is exactly what the
   freebie card emits in data-category, so the JS match is a plain string
-  compare. The mag dropdown is built from the distinct mag_issue values
-  across the published freebie metaobjects.
+  compare.
 
   All behaviour (filter / search / shuffle / URL state) lives in
   theinmag-freebies.js. This section is functional - no editable copy
@@ -21,20 +20,6 @@
   endif
 
   assign sticky_top = section.settings.sticky_top | default: 0
-
-  # Distinct mag_issue values, delimiter-guarded against substring clashes.
-  assign mags = '|'
-  assign freebies = shop.metaobjects.freebie.values
-  for fb in freebies
-    assign m = fb.mag_issue | strip
-    if m != blank
-      assign token = '|' | append: m | append: '|'
-      unless mags contains token
-        assign mags = mags | append: m | append: '|'
-      endunless
-    endif
-  endfor
-  assign mag_list = mags | remove_first: '|' | split: '|' | sort
 -%}
 
 <section
@@ -94,19 +79,6 @@
           <line x1="4" y1="4" x2="9" y2="9"/>
         </svg>
       </button>
-    </div>
-
-    <div class="theinmag-freebies-controls__field theinmag-freebies-controls__field--mag">
-      <label class="visually-hidden" for="theinmag-freebies-mag">Filter by magazine issue</label>
-      <div class="theinmag-freebies-controls__select-wrap">
-        <select id="theinmag-freebies-mag" class="theinmag-freebies-controls__select" data-theinmag-freebies-mag>
-          <option value="all">All mags</option>
-          {%- for mag in mag_list -%}
-            <option value="{{ mag | handleize }}">{{ mag }}</option>
-          {%- endfor -%}
-        </select>
-        <span class="theinmag-freebies-controls__select-chevron" aria-hidden="true">&#9662;</span>
-      </div>
     </div>
   </div>
 </section>
