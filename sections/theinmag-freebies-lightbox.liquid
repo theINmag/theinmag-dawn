@@ -1,0 +1,125 @@
+{%- comment -%}
+  theinmag-freebies-lightbox
+  Section 4.5 of /pages/freebies. The modal markup is rendered once and
+  hidden by default; theinmag-freebies.js populates it from the tapped
+  card's data-* attrs and opens it. Two columns on desktop (preview left,
+  info right), full-screen takeover with a sticky action bar on mobile.
+
+  v1 shows the freebie's preview image. The Download button pulls the real
+  asset (full PDF or full-res image). An inline multi-page PDF.js page
+  flipper is deferred - see freebies-build-spec.md Section 4.5.
+{%- endcomment -%}
+
+{%- liquid
+  assign download_label = section.settings.download_label | default: 'Download'
+  assign share_label = section.settings.share_label | default: 'Share with a friend'
+-%}
+
+<div
+  class="theinmag-freebies-lightbox"
+  data-theinmag-freebies-lightbox
+  hidden
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="theinmag-freebies-lightbox-title"
+>
+  <div class="theinmag-freebies-lightbox__backdrop" data-theinmag-freebies-lightbox-backdrop></div>
+
+  <div class="theinmag-freebies-lightbox__panel" role="document">
+    <button
+      class="theinmag-freebies-lightbox__close"
+      type="button"
+      aria-label="Close"
+      data-theinmag-freebies-lightbox-close
+    >
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <line x1="4" y1="4" x2="16" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <line x1="16" y1="4" x2="4" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="theinmag-freebies-lightbox__media">
+      <img
+        class="theinmag-freebies-lightbox__image"
+        data-theinmag-freebies-lightbox-image
+        alt=""
+        draggable="false"
+      />
+      <span class="theinmag-freebie-card__badge theinmag-freebie-card__badge--pages theinmag-freebies-lightbox__pages-badge" data-theinmag-freebies-lightbox-pages hidden></span>
+    </div>
+
+    <div class="theinmag-freebies-lightbox__body">
+      <h2 id="theinmag-freebies-lightbox-title" class="theinmag-freebies-lightbox__title" data-theinmag-freebies-lightbox-title></h2>
+      <p class="theinmag-freebies-lightbox__mag" data-theinmag-freebies-lightbox-mag hidden></p>
+      <p class="theinmag-freebies-lightbox__creator" data-theinmag-freebies-lightbox-creator hidden></p>
+
+      <div class="theinmag-freebies-lightbox__writeup" data-theinmag-freebies-lightbox-writeup></div>
+
+      <div class="theinmag-freebies-lightbox__pills">
+        <span class="theinmag-freebies-lightbox__pill theinmag-freebies-lightbox__pill--category" data-theinmag-freebies-lightbox-category hidden></span>
+        <span class="theinmag-freebies-lightbox__pills-audience" data-theinmag-freebies-lightbox-audience style="display:contents;"></span>
+      </div>
+
+      <div class="theinmag-freebies-lightbox__actions">
+        <a
+          class="theinmag-freebies-lightbox__btn theinmag-freebies-lightbox__btn--download"
+          data-theinmag-freebies-lightbox-download
+          href="#"
+          rel="noopener"
+        >
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 3v9m0 0 4-4m-4 4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 15h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          {{ download_label }}
+        </a>
+
+        <button
+          class="theinmag-freebies-lightbox__btn theinmag-freebies-lightbox__btn--share"
+          type="button"
+          data-theinmag-freebies-lightbox-share
+        >
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="5" cy="10" r="2" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="15" cy="5" r="2" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="15" cy="15" r="2" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M6.8 9 13.2 6M6.8 11l6.4 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          {{ share_label }}
+        </button>
+      </div>
+
+      <p class="theinmag-freebies-lightbox__share-feedback" data-theinmag-freebies-lightbox-share-feedback hidden></p>
+
+      <button class="theinmag-freebies-lightbox__more" type="button" data-theinmag-freebies-lightbox-more hidden></button>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "theINmag Freebies modal",
+  "tag": "section",
+  "class": "theinmag-freebies-lightbox-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "download_label",
+      "label": "Download button label",
+      "default": "Download"
+    },
+    {
+      "type": "text",
+      "id": "share_label",
+      "label": "Share button label",
+      "default": "Share with a friend"
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Freebies modal"
+    }
+  ]
+}
+{% endschema %}

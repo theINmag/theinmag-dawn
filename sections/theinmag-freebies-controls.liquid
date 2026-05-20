@@ -1,0 +1,149 @@
+{%- comment -%}
+  theinmag-freebies-controls
+  Section 3 of /pages/freebies. Category filter | search | shuffle | mag.
+  Desktop = one row (sticky under the header, toggleable). Mobile stacks.
+
+  Categories are LOCKED (freebies-build-spec.md Section 3) - the option
+  values are the handleized form of each label, which is exactly what the
+  freebie card emits in data-category, so the JS match is a plain string
+  compare. The mag dropdown is built from the distinct mag_issue values
+  across the published freebie metaobjects.
+
+  All behaviour (filter / search / shuffle / URL state) lives in
+  theinmag-freebies.js. This section is functional - no editable copy
+  beyond the search placeholder + sticky controls.
+{%- endcomment -%}
+
+{%- liquid
+  assign sticky_class = ''
+  if section.settings.sticky_desktop
+    assign sticky_class = ' theinmag-freebies-controls--sticky'
+  endif
+
+  assign sticky_top = section.settings.sticky_top | default: 0
+
+  comment Distinct mag_issue values, delimiter-guarded against substring clashes. endcomment
+  assign mags = '|'
+  assign freebies = shop.metaobjects.freebie.values
+  for fb in freebies
+    assign m = fb.mag_issue | strip
+    if m != blank
+      assign token = '|' | append: m | append: '|'
+      unless mags contains token
+        assign mags = mags | append: m | append: '|'
+      endunless
+    endif
+  endfor
+  assign mag_list = mags | remove_first: '|' | split: '|' | sort
+-%}
+
+<section
+  class="theinmag-freebies-controls{{ sticky_class }}"
+  data-theinmag-freebies-controls
+  style="--freebies-sticky-top: {{ sticky_top }}px;"
+  aria-label="Filter and search freebies"
+>
+  <div class="theinmag-freebies-controls__bar">
+    <div class="theinmag-freebies-controls__field theinmag-freebies-controls__field--category">
+      <label class="visually-hidden" for="theinmag-freebies-category">Filter by category</label>
+      <div class="theinmag-freebies-controls__select-wrap">
+        <select id="theinmag-freebies-category" class="theinmag-freebies-controls__select" data-theinmag-freebies-category>
+          <option value="all">All Categories</option>
+          <option value="lesson-planning">Lesson Planning</option>
+          <option value="puzzles-games">Puzzles &amp; Games</option>
+          <option value="writing-literacy">Writing &amp; Literacy</option>
+          <option value="animals-nature">Animals &amp; Nature</option>
+          <option value="photography-snaps">Photography SNAPS</option>
+          <option value="art-creativity">Art &amp; Creativity</option>
+          <option value="inspiration-quotes">Inspiration &amp; Quotes</option>
+          <option value="well-being-mindfulness">Well-Being &amp; Mindfulness</option>
+          <option value="problem-solving-numeracy">Problem Solving &amp; Numeracy</option>
+        </select>
+        <span class="theinmag-freebies-controls__select-chevron" aria-hidden="true">&#9662;</span>
+      </div>
+    </div>
+
+    <div class="theinmag-freebies-controls__field theinmag-freebies-controls__field--search">
+      <div class="theinmag-freebies-controls__search">
+        <label class="visually-hidden" for="theinmag-freebies-search">Search freebies</label>
+        <input
+          id="theinmag-freebies-search"
+          class="theinmag-freebies-controls__search-input"
+          type="search"
+          autocomplete="off"
+          placeholder="{{ section.settings.search_placeholder | default: 'e.g. dog, puzzles, art' | escape }}"
+          data-theinmag-freebies-search
+        />
+        <button type="button" class="theinmag-freebies-controls__search-btn" data-theinmag-freebies-search-btn aria-label="Search">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/>
+            <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="theinmag-freebies-controls__field theinmag-freebies-controls__field--shuffle">
+      <button type="button" class="theinmag-freebies-controls__shuffle" data-theinmag-freebies-shuffle>
+        Shuffle
+        <svg class="theinmag-freebies-controls__shuffle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="16 3 21 3 21 8"/>
+          <line x1="4" y1="20" x2="21" y2="3"/>
+          <polyline points="21 16 21 21 16 21"/>
+          <line x1="15" y1="15" x2="21" y2="21"/>
+          <line x1="4" y1="4" x2="9" y2="9"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="theinmag-freebies-controls__field theinmag-freebies-controls__field--mag">
+      <label class="visually-hidden" for="theinmag-freebies-mag">Filter by magazine issue</label>
+      <div class="theinmag-freebies-controls__select-wrap">
+        <select id="theinmag-freebies-mag" class="theinmag-freebies-controls__select" data-theinmag-freebies-mag>
+          <option value="all">All mags</option>
+          {%- for mag in mag_list -%}
+            <option value="{{ mag | handleize }}">{{ mag }}</option>
+          {%- endfor -%}
+        </select>
+        <span class="theinmag-freebies-controls__select-chevron" aria-hidden="true">&#9662;</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "theINmag Freebies filter",
+  "tag": "section",
+  "class": "theinmag-freebies-controls-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "e.g. dog, puzzles, art"
+    },
+    {
+      "type": "checkbox",
+      "id": "sticky_desktop",
+      "label": "Stick to top on desktop scroll",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "sticky_top",
+      "label": "Sticky offset (under header)",
+      "min": 0,
+      "max": 140,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Freebies filter"
+    }
+  ]
+}
+{% endschema %}

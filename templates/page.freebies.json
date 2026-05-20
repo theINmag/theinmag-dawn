@@ -1,0 +1,79 @@
+{
+  "sections": {
+    "banner": {
+      "type": "theinmag-freebies-banner",
+      "settings": {
+        "heading": "Ohh goodie!",
+        "subhead": "Bite-sized creative ideas inspired by real Aussie kids. Take them, print them, share them. They're yours.",
+        "tag": "Made by kids. For everyone."
+      }
+    },
+    "controls": {
+      "type": "theinmag-freebies-controls",
+      "settings": {
+        "search_placeholder": "e.g. dog, puzzles, art",
+        "sticky_desktop": true,
+        "sticky_top": 0
+      }
+    },
+    "grid": {
+      "type": "theinmag-freebies-grid",
+      "blocks": {
+        "faq1": { "type": "faq", "settings": { "question": "Are these really free?", "answer": "Yes. Every freebie is 100% free to download, print and share. No email, no account, no catch." } },
+        "faq2": { "type": "faq", "settings": { "question": "Can teachers use these in class?", "answer": "Absolutely. Print them, pop them on the smartboard, build a lesson around them. They're made to be used." } },
+        "faq3": { "type": "faq", "settings": { "question": "Can I share them on socials?", "answer": "Please do. Tag theINmag so the kid who inspired it gets a little buzz." } }
+      },
+      "block_order": ["faq1", "faq2", "faq3"],
+      "settings": {
+        "initial_batch": 18,
+        "batch_size": 18,
+        "more_label": "Show me more",
+        "empty_heading": "Fresh freebies landing soon.",
+        "empty_body": "We're filling this page with goodies. Check back in a sec.",
+        "empty_cta_label": "Browse the mags",
+        "empty_cta_url": "/pages/shop",
+        "faq_heading": "Good to know",
+        "seo_name": "Free creative ideas inspired by real Aussie kids",
+        "seo_description": "Free downloadable creative ideas, lesson resources, photography and inspiration inspired by real Aussie kids. For parents, teachers, homeschoolers and kids. All freely shareable."
+      }
+    },
+    "lightbox": {
+      "type": "theinmag-freebies-lightbox",
+      "settings": {
+        "download_label": "Download",
+        "share_label": "Share with a friend"
+      }
+    },
+    "cta": {
+      "type": "theinmag-freebies-cta",
+      "blocks": {
+        "membership": {
+          "type": "cta_card",
+          "settings": {
+            "heading": "Loving the freebies?",
+            "body": "These all started life in the mag. Get a whole one, made by Aussie kids, landing in your letterbox every few months.",
+            "button_label": "Get a whole mag every 4 months",
+            "link": "/products/membership",
+            "color": "lavender"
+          }
+        },
+        "sendin": {
+          "type": "cta_card",
+          "settings": {
+            "heading": "Got a creative kid?",
+            "body": "Drawings, stories, photos, puzzles, anything. If they made it and they're proud of it, send it IN.",
+            "button_label": "Send their work to theINmag",
+            "link": "/pages/send-in",
+            "color": "coral"
+          }
+        }
+      },
+      "block_order": ["membership", "sendin"],
+      "settings": {
+        "heading": "Want a whole mag full of these?",
+        "aeo_heading": "Where do theINmag freebies come from?"
+      }
+    }
+  },
+  "order": ["banner", "controls", "grid", "lightbox", "cta"]
+}

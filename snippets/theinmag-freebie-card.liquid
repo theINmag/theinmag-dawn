@@ -1,0 +1,174 @@
+{%- comment -%}
+  theinmag-freebie-card
+  One tile in the /pages/freebies masonry grid. Params:
+    - freebie:   a `freebie` metaobject entry
+    - is_hidden: true if rendered past the initial load-more batch
+    - index:     0-based render order inside the published set
+
+  The tile is image-only (native aspect, no forced crop). Title, write-up
+  and download all live in the lightbox - this card carries every value
+  the lightbox + filter / search / shuffle JS needs via data-* attributes,
+  so tapping a tile never triggers a fetch.
+
+  Reference / list metaobject fields need the `.value` accessor to return
+  the underlying object / array (same trap as metafield list types) - see
+  theinmag-gallery-card.liquid.
+{%- endcomment -%}
+
+{%- liquid
+  assign title = freebie.title | default: 'Freebie'
+  assign handle = freebie.system.handle | default: title | handleize
+  assign short_desc = freebie.short_description | default: ''
+  assign category_label = freebie.category | default: ''
+  assign category_slug = category_label | handleize
+  assign mag_label = freebie.mag_issue | strip
+  assign mag_slug = mag_label | handleize
+  assign kid_name = freebie.kid_creator_name | strip
+  assign kid_age = freebie.kid_creator_age
+  assign kid_location = freebie.kid_creator_location | strip
+  assign pdf_pages = freebie.pdf_pages | default: 0 | plus: 0
+
+  comment
+    Audience tags - multi-select list. Lowercase slugs (parents / teachers
+    / homeschoolers / kids).
+  endcomment
+  assign audience_arr = freebie.audience_tags.value
+  if audience_arr == blank
+    assign audience_arr = freebie.audience_tags
+  endif
+  assign audience_str = ''
+  if audience_arr
+    assign audience_str = audience_arr | join: ',' | downcase
+  endif
+
+  comment
+    Keywords - list of text. Search-only, never rendered visibly.
+  endcomment
+  assign kw_arr = freebie.seo_keywords.value
+  if kw_arr == blank
+    assign kw_arr = freebie.seo_keywords
+  endif
+  assign kw_str = ''
+  if kw_arr
+    assign kw_str = kw_arr | join: ' ' | downcase
+  endif
+
+  comment Image (cover + preview). Reference field needs .value. endcomment
+  assign img = freebie.image.value
+  if img == blank
+    assign img = freebie.image
+  endif
+  assign cover_url = img | image_url: width: 600
+  assign preview_url = img | image_url: width: 1400
+  assign image_fullres = img | image_url: width: 2400
+  comment Fall back to a theme-asset filename when no Shopify File is set. endcomment
+  if cover_url == blank and freebie.image_filename != blank
+    assign asset_img = freebie.image_filename | asset_url
+    assign cover_url = asset_img
+    assign preview_url = asset_img
+    assign image_fullres = asset_img
+  endif
+  assign image_alt = title
+  if short_desc != blank
+    assign image_alt = title | append: ' - ' | append: short_desc
+  endif
+
+  comment
+    Download target. A PDF wins if present, else the full-res image.
+    Generic file references expose .value.url; images render via image_url.
+  endcomment
+  assign pdf = freebie.pdf_download.value
+  if pdf == blank
+    assign pdf = freebie.pdf_download
+  endif
+  assign is_pdf = false
+  assign download_url = ''
+  assign download_name = handle
+  if pdf != blank and pdf.url != blank
+    assign is_pdf = true
+    assign download_url = pdf.url
+    assign download_name = handle | append: '.pdf'
+  else
+    assign download_url = image_fullres
+    assign download_name = handle | append: '.jpg'
+  endif
+
+  comment Search haystack - everything a kid or parent might type. endcomment
+  assign haystack = title | append: ' ' | append: short_desc | append: ' ' | append: category_label | append: ' ' | append: mag_label | append: ' ' | append: kid_name | append: ' ' | append: kid_location | append: ' ' | append: kw_str | downcase | strip
+
+  comment Kid creator attribution string for the lightbox. endcomment
+  assign kid_attr = ''
+  if kid_name != blank
+    assign kid_attr = 'Inspired by ' | append: kid_name
+    if kid_age != blank and kid_age != 0
+      assign kid_attr = kid_attr | append: ', age ' | append: kid_age
+    endif
+    if kid_location != blank
+      assign kid_attr = kid_attr | append: ', ' | append: kid_location
+    endif
+  endif
+
+  assign aria_label = 'Freebie: ' | append: title
+  if mag_label != blank
+    assign aria_label = aria_label | append: ', from ' | append: mag_label
+  endif
+  if category_label != blank
+    assign aria_label = aria_label | append: ', category ' | append: category_label
+  endif
+  assign aria_label = aria_label | append: '. Activate to preview and download.'
+-%}
+
+<article
+  class="theinmag-freebie-card{% if is_hidden %} theinmag-freebie-card--hidden{% endif %}"
+  data-theinmag-freebie-card
+  data-handle="{{ handle | escape }}"
+  data-title="{{ title | escape }}"
+  data-category="{{ category_slug }}"
+  data-category-label="{{ category_label | escape }}"
+  data-mag="{{ mag_slug }}"
+  data-mag-label="{{ mag_label | escape }}"
+  data-audience="{{ audience_str | escape }}"
+  data-short="{{ short_desc | escape }}"
+  data-kid-attr="{{ kid_attr | escape }}"
+  data-preview-url="{{ preview_url | escape }}"
+  data-image-alt="{{ image_alt | escape }}"
+  data-download-url="{{ download_url | escape }}"
+  data-download-name="{{ download_name | escape }}"
+  data-is-pdf="{{ is_pdf }}"
+  data-pdf-pages="{{ pdf_pages }}"
+  data-featured="{{ freebie.featured | default: false }}"
+  data-search="{{ haystack | strip_html | escape }}"
+  data-index="{{ index }}"
+  tabindex="0"
+  role="button"
+  aria-label="{{ aria_label | escape }}"
+>
+  <div class="theinmag-freebie-card__media">
+    <img
+      class="theinmag-freebie-card__image"
+      src="{{ cover_url }}"
+      alt="{{ image_alt | escape }}"
+      loading="lazy"
+      decoding="async"
+      draggable="false"
+    />
+
+    {%- if pdf_pages > 1 -%}
+      <span class="theinmag-freebie-card__badge theinmag-freebie-card__badge--pages" aria-label="{{ pdf_pages }} pages">{{ pdf_pages }} pages</span>
+    {%- endif -%}
+
+    {%- if mag_label != blank -%}
+      <span class="theinmag-freebie-card__badge theinmag-freebie-card__badge--mag">{{ mag_label }}</span>
+    {%- endif -%}
+
+    <div class="theinmag-freebie-card__overlay" aria-hidden="true">
+      <span class="theinmag-freebie-card__overlay-title">{{ title }}</span>
+      <span class="theinmag-freebie-card__overlay-hint">Tap to preview</span>
+    </div>
+
+    <span class="theinmag-freebie-card__tap" aria-hidden="true">Tap &rarr;</span>
+  </div>
+
+  {%- comment -%} Rich-text write-up cloned into the lightbox on open. {%- endcomment -%}
+  <div class="theinmag-freebie-card__longdesc visually-hidden" data-freebie-long>{{ freebie.long_description | newline_to_br }}</div>
+</article>

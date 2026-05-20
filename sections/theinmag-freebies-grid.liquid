@@ -1,0 +1,339 @@
+{%- comment -%}
+  theinmag-freebies-grid
+  Section 4 of /pages/freebies - the hero. A randomised masonry of
+  freebie tiles (CSS column-count, JS-seeded shuffle), a Load-more
+  button (no infinite scroll), an empty state, a no-results state and
+  a compact AEO FAQ.
+
+  Every published (ACTIVE) `freebie` metaobject renders one card via the
+  theinmag-freebie-card snippet - all of them server-side so crawlers see
+  the full set. Cards past the initial batch get the --hidden modifier;
+  theinmag-freebies.js owns reveal / shuffle / filter from there.
+
+  Featured freebies render first so they lead the no-JS fallback order;
+  the JS keeps them floated to the top after shuffling too.
+
+  JSON-LD: CollectionPage (mainEntity = ItemList of CreativeWork, one per
+  freebie) + BreadcrumbList + FAQPage. Per-freebie deep-link state
+  (?id=handle) is handled client-side - Liquid can't read query params.
+  See freebies-build-spec.md Sections 4 + 8.
+{%- endcomment -%}
+
+{%- liquid
+  assign freebies = shop.metaobjects.freebie.values
+  assign total = freebies | size
+  assign initial_batch = section.settings.initial_batch | default: 18
+  assign batch_size = section.settings.batch_size | default: 18
+
+  assign page_origin = request.origin | default: 'https://theinmag.com.au'
+  assign page_url = page_origin | append: '/pages/freebies'
+
+  assign faqs = section.blocks | where: 'type', 'faq'
+-%}
+
+<section
+  class="theinmag-freebies-grid"
+  data-theinmag-freebies-grid
+  data-initial-batch="{{ initial_batch }}"
+  data-batch-size="{{ batch_size }}"
+  data-total="{{ total }}"
+  aria-labelledby="theinmag-freebies-grid-heading"
+>
+  <h2 id="theinmag-freebies-grid-heading" class="visually-hidden">Browse the freebies</h2>
+
+  <div class="theinmag-freebies-grid__inner">
+    {%- if total > 0 -%}
+      <div class="theinmag-freebies-grid__columns" data-theinmag-freebies-columns>
+        {%- assign rendered_index = 0 -%}
+        {%- for fb in freebies -%}
+          {%- if fb.featured -%}
+            {%- assign is_hidden = false -%}
+            {%- if rendered_index >= initial_batch -%}{%- assign is_hidden = true -%}{%- endif -%}
+            {%- render 'theinmag-freebie-card', freebie: fb, is_hidden: is_hidden, index: rendered_index -%}
+            {%- assign rendered_index = rendered_index | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- for fb in freebies -%}
+          {%- unless fb.featured -%}
+            {%- assign is_hidden = false -%}
+            {%- if rendered_index >= initial_batch -%}{%- assign is_hidden = true -%}{%- endif -%}
+            {%- render 'theinmag-freebie-card', freebie: fb, is_hidden: is_hidden, index: rendered_index -%}
+            {%- assign rendered_index = rendered_index | plus: 1 -%}
+          {%- endunless -%}
+        {%- endfor -%}
+      </div>
+
+      <p class="theinmag-freebies-grid__no-results" data-theinmag-freebies-no-results>
+        Hmm, no freebies match that. Try a different filter or shuffle for inspiration.
+      </p>
+
+      <p class="theinmag-freebies-grid__live-region visually-hidden" aria-live="polite" data-theinmag-freebies-live></p>
+
+      <div class="theinmag-freebies-grid__more-wrap">
+        <button
+          type="button"
+          class="theinmag-freebies-grid__more"
+          data-theinmag-freebies-more
+          {% if total <= initial_batch %}hidden{% endif %}
+        >
+          {{ section.settings.more_label | default: 'Show me more' }}
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </div>
+    {%- else -%}
+      <div class="theinmag-freebies-grid__empty">
+        <h3 class="theinmag-freebies-grid__empty-heading">{{ section.settings.empty_heading | default: 'Fresh freebies landing soon.' }}</h3>
+        {%- if section.settings.empty_body != blank -%}
+          <p>{{ section.settings.empty_body }}</p>
+        {%- endif -%}
+        {%- if section.settings.empty_cta_label != blank and section.settings.empty_cta_url != blank -%}
+          <p><a class="theinmag-freebies-grid__more" href="{{ section.settings.empty_cta_url }}">{{ section.settings.empty_cta_label }} <span aria-hidden="true">&rarr;</span></a></p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if faqs.size > 0 -%}
+      <div class="theinmag-freebies-grid__faq">
+        <h2 class="theinmag-freebies-grid__faq-heading">{{ section.settings.faq_heading | default: 'Good to know' }}</h2>
+        {%- for block in faqs -%}
+          <div class="theinmag-freebies-grid__faq-item" {{ block.shopify_attributes }}>
+            {%- if block.settings.question != blank -%}
+              <p class="theinmag-freebies-grid__faq-q">{{ block.settings.question }}</p>
+            {%- endif -%}
+            {%- if block.settings.answer != blank -%}
+              <p class="theinmag-freebies-grid__faq-a">{{ block.settings.answer }}</p>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- comment -%} ===== Page-level JSON-LD: CollectionPage + ItemList of CreativeWork ===== {%- endcomment -%}
+{%- if total > 0 -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": {{ section.settings.seo_name | default: 'Free creative ideas inspired by real Aussie kids' | json }},
+  "description": {{ section.settings.seo_description | default: 'Free downloadable creative ideas, lesson resources, photography and inspiration inspired by real Aussie kids. For parents, teachers, homeschoolers and kids. All freely shareable.' | json }},
+  "url": {{ page_url | json }},
+  "isAccessibleForFree": true,
+  "inLanguage": "en-AU",
+  "isPartOf": { "@type": "WebSite", "name": "theINmag", "url": {{ page_origin | json }} },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": {{ total }},
+    "itemListElement": [
+      {%- assign pos = 0 -%}
+      {%- for fb in freebies -%}
+        {%- assign pos = pos | plus: 1 -%}
+        {%- liquid
+          assign fb_handle = fb.system.handle | default: fb.title | handleize
+          assign item_url = page_url | append: '?id=' | append: fb_handle
+          assign fb_img = fb.image.value
+          if fb_img == blank
+            assign fb_img = fb.image
+          endif
+          assign fb_img_url = fb_img | image_url: width: 1200
+          if fb_img_url == blank and fb.image_filename != blank
+            assign fb_img_url = fb.image_filename | asset_url
+          endif
+          if fb_img_url != blank
+            unless fb_img_url contains 'http'
+              assign fb_img_url = 'https:' | append: fb_img_url
+            endunless
+          endif
+          assign kw_arr = fb.seo_keywords.value
+          if kw_arr == blank
+            assign kw_arr = fb.seo_keywords
+          endif
+          assign aud_arr = fb.audience_tags.value
+          if aud_arr == blank
+            assign aud_arr = fb.audience_tags
+          endif
+          assign kid_name = fb.kid_creator_name | strip
+          assign kid_age = fb.kid_creator_age
+          assign kid_loc = fb.kid_creator_location | strip
+          assign mag = fb.mag_issue | strip
+        -%}
+        {
+          "@type": "ListItem",
+          "position": {{ pos }},
+          "item": {
+            "@type": "CreativeWork",
+            "name": {{ fb.title | json }},
+            "description": {{ fb.long_description | strip_html | strip | json }},
+            "url": {{ item_url | json }},
+            "image": {{ fb_img_url | json }},
+            "isAccessibleForFree": true,
+            "inLanguage": "en-AU",
+            "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+            "publisher": { "@type": "Organization", "name": "theINmag", "url": {{ page_origin | json }} }
+            {%- if kid_name != blank -%}
+              {%- assign creator_name = kid_name -%}
+              {%- if kid_age != blank and kid_age != 0 -%}{%- assign creator_name = creator_name | append: ', age ' | append: kid_age -%}{%- endif -%}
+              ,"creator": { "@type": "Person", "name": {{ creator_name | json }} }
+            {%- endif -%}
+            {%- if mag != blank -%}
+              ,"isPartOf": { "@type": "PublicationIssue", "name": {{ mag | json }} }
+            {%- endif -%}
+            {%- if kw_arr and kw_arr.size > 0 -%}
+              ,"keywords": {{ kw_arr | join: ', ' | json }}
+            {%- endif -%}
+            {%- if aud_arr and aud_arr.size > 0 -%}
+              ,"audience": [
+                {%- for a in aud_arr -%}
+                  { "@type": "Audience", "audienceType": {{ a | json }} }{%- unless forloop.last -%},{%- endunless -%}
+                {%- endfor -%}
+              ]
+            {%- endif -%}
+            {%- if kid_loc != blank -%}
+              ,"contentLocation": { "@type": "Place", "name": {{ kid_loc | json }} }
+            {%- endif -%}
+          }
+        }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    ]
+  }
+}
+</script>
+{%- endif -%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": {{ page_origin | json }} },
+    { "@type": "ListItem", "position": 2, "name": "Freebies", "item": {{ page_url | json }} }
+  ]
+}
+</script>
+
+{%- if faqs.size > 0 -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- for block in faqs -%}
+      {
+        "@type": "Question",
+        "name": {{ block.settings.question | json }},
+        "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.answer | strip_html | strip | json }} }
+      }{%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+  ]
+}
+</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "theINmag Freebies grid",
+  "tag": "section",
+  "class": "theinmag-freebies-grid-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Pagination"
+    },
+    {
+      "type": "range",
+      "id": "initial_batch",
+      "label": "Initial tiles shown",
+      "min": 6,
+      "max": 60,
+      "step": 6,
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "batch_size",
+      "label": "Load-more batch size",
+      "min": 6,
+      "max": 60,
+      "step": 6,
+      "default": 18
+    },
+    {
+      "type": "text",
+      "id": "more_label",
+      "label": "Load-more button label",
+      "default": "Show me more"
+    },
+    {
+      "type": "header",
+      "content": "Empty state (no freebies yet)"
+    },
+    {
+      "type": "text",
+      "id": "empty_heading",
+      "label": "Empty heading",
+      "default": "Fresh freebies landing soon."
+    },
+    {
+      "type": "textarea",
+      "id": "empty_body",
+      "label": "Empty body",
+      "default": "We're filling this page with goodies. Check back in a sec."
+    },
+    {
+      "type": "text",
+      "id": "empty_cta_label",
+      "label": "Empty CTA label",
+      "default": "Browse the mags"
+    },
+    {
+      "type": "url",
+      "id": "empty_cta_url",
+      "label": "Empty CTA link"
+    },
+    {
+      "type": "header",
+      "content": "FAQ + SEO"
+    },
+    {
+      "type": "text",
+      "id": "faq_heading",
+      "label": "FAQ heading",
+      "default": "Good to know"
+    },
+    {
+      "type": "text",
+      "id": "seo_name",
+      "label": "JSON-LD collection name",
+      "default": "Free creative ideas inspired by real Aussie kids"
+    },
+    {
+      "type": "textarea",
+      "id": "seo_description",
+      "label": "JSON-LD collection description",
+      "default": "Free downloadable creative ideas, lesson resources, photography and inspiration inspired by real Aussie kids. For parents, teachers, homeschoolers and kids. All freely shareable."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq",
+      "name": "FAQ item",
+      "limit": 8,
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question" },
+        { "type": "textarea", "id": "answer", "label": "Answer" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Freebies grid",
+      "blocks": [
+        { "type": "faq", "settings": { "question": "Are these really free?", "answer": "Yes. Every freebie is 100% free to download, print and share. No email, no account, no catch." } },
+        { "type": "faq", "settings": { "question": "Can teachers use these in class?", "answer": "Absolutely. Print them, pop them on the smartboard, build a lesson around them. They're made to be used." } },
+        { "type": "faq", "settings": { "question": "Can I share them on socials?", "answer": "Please do. Tag theINmag so the kid who inspired it gets a little buzz." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

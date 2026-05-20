@@ -1,0 +1,293 @@
+{%- comment -%}
+  theinmag-freebies-cta
+  Section 5 of /pages/freebies. Page-closer split CTA - mirrors
+  theinmag-behind-the-mag-cta. Single overarching heading + two equally
+  weighted cards: "Loving the freebies?" -> Membership and "Got a
+  creative kid?" -> Send IN.
+
+  Cream-pair section. Self-contained scoped styles so the freebies page
+  never depends on the BtM section file. See freebies-build-spec.md
+  Section 5.
+{%- endcomment -%}
+
+{%- liquid
+  assign cards = section.blocks | where: 'type', 'cta_card'
+  assign heading = section.settings.heading
+  assign aeo_heading = section.settings.aeo_heading | default: 'Where do theINmag freebies come from?'
+-%}
+
+<section
+  class="theinmag-freebies-cta"
+  data-theinmag-freebies-cta
+  aria-labelledby="theinmag-freebies-cta-heading"
+>
+  <span class="visually-hidden">{{ aeo_heading }}</span>
+
+  <div class="theinmag-freebies-cta__inner">
+    {%- if heading != blank -%}
+      <h2 id="theinmag-freebies-cta-heading" class="theinmag-freebies-cta__heading">{{ heading }}</h2>
+    {%- endif -%}
+
+    <ul class="theinmag-freebies-cta__cards" role="list">
+      {%- for block in cards -%}
+        {%- liquid
+          assign card_src = ''
+          if block.settings.image != blank
+            assign card_src = block.settings.image | image_url: width: 1600
+          elsif block.settings.fallback_filename != blank
+            assign card_src = block.settings.fallback_filename | asset_url
+          endif
+          assign card_color = block.settings.color | default: 'lavender'
+        -%}
+        <li class="theinmag-freebies-cta__card-item" {{ block.shopify_attributes }}>
+          <article class="theinmag-freebies-cta__card theinmag-freebies-cta__card--{{ card_color }}">
+            <div class="theinmag-freebies-cta__card-media">
+              {%- if card_src != blank -%}
+                <img src="{{ card_src }}" alt="{{ block.settings.image_alt | default: block.settings.heading | escape }}" loading="lazy" width="1200" height="900">
+              {%- else -%}
+                <div class="theinmag-freebies-cta__card-placeholder" aria-hidden="true"></div>
+              {%- endif -%}
+            </div>
+            <div class="theinmag-freebies-cta__card-body">
+              {%- if block.settings.heading != blank -%}
+                <h3 class="theinmag-freebies-cta__card-heading">{{ block.settings.heading }}</h3>
+              {%- endif -%}
+              {%- if block.settings.body != blank -%}
+                <p class="theinmag-freebies-cta__card-text">{{ block.settings.body }}</p>
+              {%- endif -%}
+              {%- if block.settings.button_label != blank -%}
+                <a class="theinmag-freebies-cta__btn" href="{{ block.settings.link | default: '#' }}">
+                  {{ block.settings.button_label }}
+                </a>
+              {%- endif -%}
+            </div>
+          </article>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-freebies-cta {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(32px, 4.5vw, 64px) clamp(20px, 5vw, 48px);
+  }
+  .theinmag-freebies-cta__inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .theinmag-freebies-cta__heading {
+    margin: 0 0 clamp(20px, 3vw, 32px);
+    text-align: center;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.6vw, 44px);
+    line-height: 1.05;
+    color: var(--color-purple-dark, #5D3A7A);
+    text-wrap: balance;
+  }
+  .theinmag-freebies-cta__cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(20px, 3vw, 32px);
+  }
+  @media (min-width: 750px) {
+    .theinmag-freebies-cta__cards { grid-template-columns: 1fr 1fr; }
+  }
+  .theinmag-freebies-cta__card-item { margin: 0; display: flex; }
+  .theinmag-freebies-cta__card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.10);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: #FFFFFF;
+  }
+  .theinmag-freebies-cta__card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(42, 31, 61, 0.16);
+  }
+  .theinmag-freebies-cta__card--lavender { background-color: var(--color-lavender, #E8DEEF); }
+  .theinmag-freebies-cta__card--coral { background-color: var(--color-salmon, #FBE0D6); }
+  .theinmag-freebies-cta__card--peach { background-color: var(--color-peach, #FCDDB8); }
+  .theinmag-freebies-cta__card--mint { background-color: var(--color-mint, #D6EAD9); }
+  .theinmag-freebies-cta__card--sky { background-color: var(--color-sky, #C9E5E8); }
+  .theinmag-freebies-cta__card--cream { background-color: var(--color-cream, #FBF6EA); }
+
+  .theinmag-freebies-cta__card-media {
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+  .theinmag-freebies-cta__card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .theinmag-freebies-cta__card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.15) 100%);
+  }
+  .theinmag-freebies-cta__card-body {
+    padding: clamp(14px, 1.8vw, 22px) clamp(16px, 2vw, 24px) clamp(16px, 2.2vw, 26px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 0.9vw, 10px);
+    flex: 1;
+    align-items: center;
+    text-align: center;
+  }
+  .theinmag-freebies-cta__card-heading {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(17px, 1.9vw, 20px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-freebies-cta__card--lavender .theinmag-freebies-cta__card-heading { color: var(--color-purple-dark, #5D3A7A); }
+  .theinmag-freebies-cta__card--coral .theinmag-freebies-cta__card-heading { color: var(--color-coral-dark, #C9543E); }
+  .theinmag-freebies-cta__card--peach .theinmag-freebies-cta__card-heading { color: var(--color-sandy-orange-dark, #D9783A); }
+  .theinmag-freebies-cta__card--mint .theinmag-freebies-cta__card-heading { color: var(--color-sage-dark, #4A7C5C); }
+  .theinmag-freebies-cta__card--sky .theinmag-freebies-cta__card-heading { color: var(--color-teal-dark, #2D6878); }
+  .theinmag-freebies-cta__card--cream .theinmag-freebies-cta__card-heading { color: var(--color-purple-dark, #5D3A7A); }
+
+  .theinmag-freebies-cta__card-text {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(13px, 1.3vw, 14px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.88;
+    max-width: 36ch;
+  }
+  .theinmag-freebies-cta__btn {
+    display: inline-block;
+    align-self: center;
+    margin-top: auto;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    padding: 9px 22px;
+    border: 0;
+    border-radius: 32px;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    box-shadow: 0 3px 0 var(--color-yellow-shadow, #D4A02E);
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .theinmag-freebies-cta__btn:hover,
+  .theinmag-freebies-cta__btn:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #4A2D62;
+    outline: none;
+  }
+
+  .theinmag-freebies-cta .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-freebies-cta__card,
+    .theinmag-freebies-cta__btn { transition: none; }
+    .theinmag-freebies-cta__card:hover,
+    .theinmag-freebies-cta__btn:hover { transform: none; }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag Freebies CTA",
+  "tag": "section",
+  "class": "theinmag-freebies-cta-section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Overarching heading (H2)", "info": "Leave blank to hide." },
+    { "type": "text", "id": "aeo_heading", "label": "Hidden question-form H2 (AEO)" }
+  ],
+  "blocks": [
+    {
+      "type": "cta_card",
+      "name": "CTA card",
+      "limit": 2,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Card heading (H3)" },
+        { "type": "textarea", "id": "body", "label": "Body" },
+        { "type": "text", "id": "button_label", "label": "Button label" },
+        { "type": "url", "id": "link", "label": "Link" },
+        {
+          "type": "select",
+          "id": "color",
+          "label": "Card colour pair",
+          "options": [
+            { "value": "lavender", "label": "Lavender (primary purple)" },
+            { "value": "coral", "label": "Coral (warmth)" },
+            { "value": "peach", "label": "Peach (have-a-go)" },
+            { "value": "mint", "label": "Mint (kids / fresh)" },
+            { "value": "sky", "label": "Sky (callout teal)" },
+            { "value": "cream", "label": "Cream (universal)" }
+          ],
+          "default": "lavender"
+        },
+        { "type": "image_picker", "id": "image", "label": "Card image" },
+        { "type": "text", "id": "fallback_filename", "label": "Fallback filename" },
+        { "type": "text", "id": "image_alt", "label": "Image alt text" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Freebies CTA",
+      "settings": {
+        "heading": "Want a whole mag full of these?",
+        "aeo_heading": "Where do theINmag freebies come from?"
+      },
+      "blocks": [
+        {
+          "type": "cta_card",
+          "settings": {
+            "heading": "Loving the freebies?",
+            "body": "These all started life in the mag. Get a whole one, made by Aussie kids, landing in your letterbox every few months.",
+            "button_label": "Get a whole mag every 4 months",
+            "link": "/products/membership",
+            "color": "lavender"
+          }
+        },
+        {
+          "type": "cta_card",
+          "settings": {
+            "heading": "Got a creative kid?",
+            "body": "Drawings, stories, photos, puzzles, anything. If they made it and they're proud of it, send it IN.",
+            "button_label": "Send their work to theINmag",
+            "link": "/pages/send-in",
+            "color": "coral"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

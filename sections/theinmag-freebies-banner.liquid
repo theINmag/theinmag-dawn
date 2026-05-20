@@ -1,0 +1,63 @@
+{%- comment -%}
+  theinmag-freebies-banner
+  Section 2 of /pages/freebies. Small cream banner - quick context only,
+  it must not compete with the grid below. This section also loads the
+  page-wide freebies CSS + JS once for every downstream section.
+
+  Carries the page H1. No hero photo by design (utility page - don't
+  delay the grid paint). See freebies-build-spec.md Section 2.
+{%- endcomment -%}
+
+{{ 'theinmag-freebies.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'theinmag-freebies.js' | asset_url }}" defer></script>
+
+{%- liquid
+  assign heading = section.settings.heading | default: 'Ohh goodie!'
+  assign subhead = section.settings.subhead
+  assign tag = section.settings.tag
+-%}
+
+<section class="theinmag-freebies-banner" aria-labelledby="theinmag-freebies-banner-heading">
+  <div class="theinmag-freebies-banner__inner">
+    <h1 id="theinmag-freebies-banner-heading" class="theinmag-freebies-banner__heading">{{ heading }}</h1>
+    {%- if subhead != blank -%}
+      <p class="theinmag-freebies-banner__subhead">{{ subhead }}</p>
+    {%- endif -%}
+    {%- if tag != blank -%}
+      <p class="theinmag-freebies-banner__tag">{{ tag }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "theINmag Freebies banner",
+  "tag": "section",
+  "class": "theinmag-freebies-banner-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading (H1)",
+      "default": "Ohh goodie!"
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "Bite-sized creative ideas inspired by real Aussie kids. Take them, print them, share them. They're yours."
+    },
+    {
+      "type": "text",
+      "id": "tag",
+      "label": "Small tag line",
+      "default": "Made by kids. For everyone."
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag Freebies banner"
+    }
+  ]
+}
+{% endschema %}
