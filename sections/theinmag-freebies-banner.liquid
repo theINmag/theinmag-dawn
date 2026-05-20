@@ -24,9 +24,14 @@
   <div class="theinmag-freebies-banner__inner">
     <span class="theinmag-freebies-banner__character" data-theinmag-pool-character></span>
     <div class="theinmag-freebies-banner__text">
-      <h1 id="theinmag-freebies-banner-heading" class="theinmag-freebies-banner__heading">{{ heading }}</h1>
+      <h1 id="theinmag-freebies-banner-heading" class="theinmag-freebies-banner__heading">
+        <span class="theinmag-freebies-banner__goodie">{{ heading }}</span>
+        <span class="theinmag-freebies-banner__freebies">freebies!</span>
+      </h1>
       {%- if subhead != blank -%}
-        <p class="theinmag-freebies-banner__subhead">{{ subhead }}</p>
+        {%- assign sub_line1 = subhead | split: '. ' | first | append: '.' -%}
+        {%- assign sub_line2 = subhead | remove_first: sub_line1 | strip -%}
+        <p class="theinmag-freebies-banner__subhead">{{ sub_line1 }}{%- if sub_line2 != blank -%}<br>{{ sub_line2 }}{%- endif -%}</p>
       {%- endif -%}
     </div>
   </div>

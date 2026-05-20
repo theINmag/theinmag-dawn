@@ -18,11 +18,9 @@
     "grid": {
       "type": "theinmag-freebies-grid",
       "blocks": {
-        "faq1": { "type": "faq", "settings": { "question": "Are these really free?", "answer": "Yes. Every freebie is 100% free to download, print and share. No email, no account, no catch." } },
-        "faq2": { "type": "faq", "settings": { "question": "Can teachers use these in class?", "answer": "Absolutely. Print them, pop them on the smartboard, build a lesson around them. They're made to be used." } },
-        "faq3": { "type": "faq", "settings": { "question": "Can I share them on socials?", "answer": "Please do. Tag theINmag so the kid who inspired it gets a little buzz." } }
+        "faq1": { "type": "faq", "settings": { "question": "Free to use, print and share?", "answer": "Yes, all of them. Use them, print them, share them with whoever you like. Every freebie is 100% free, no email or account needed. Enjoy." } }
       },
-      "block_order": ["faq1", "faq2", "faq3"],
+      "block_order": ["faq1"],
       "settings": {
         "initial_batch": 18,
         "batch_size": 18,

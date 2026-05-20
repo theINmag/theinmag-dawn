@@ -75,13 +75,26 @@
 
 .theinmag-freebies-banner__heading {
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.28em;
   font-family: var(--font-heading, 'Post Regular', Georgia, serif);
   font-weight: 400;
-  font-size: clamp(34px, 5vw, 52px);
-  line-height: 1.05;
+  font-size: clamp(32px, 4.6vw, 48px);
+  line-height: 1.0;
   letter-spacing: 0;
-  color: var(--color-purple-dark, #5D3A7A);
-  text-wrap: balance;
+  /* Deep mauve drawn from the freebies_heading.jpg artwork (its darker
+     right-side tone #C891BF), deepened so the text stays legible on the
+     light-left part of the artwork where it sits. */
+  color: #8A4A80;
+}
+
+.theinmag-freebies-banner__freebies {
+  font-size: 1.55em;
+  display: inline-block;
+  transform: rotate(-6deg);
+  transform-origin: left center;
 }
 
 .theinmag-freebies-banner__subhead {
@@ -676,9 +689,10 @@
   border: 0;
   cursor: pointer;
   text-decoration: none;
-  font-family: var(--font-emphasis, 'Caveat', cursive);
-  font-size: 18px;
-  letter-spacing: 0.02em;
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0;
   transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
