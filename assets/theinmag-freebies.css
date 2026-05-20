@@ -546,6 +546,9 @@
 
 .theinmag-freebies-lightbox[hidden] { display: none; }
 
+/* Hide the sitewide FREE e-mag flyout while a freebie preview is open. */
+body.theinmag-freebies-modal-open .theinmag-flyout { display: none !important; }
+
 .theinmag-freebies-lightbox__backdrop {
   position: absolute;
   inset: 0;
@@ -772,16 +775,9 @@
     grid-template-rows: auto 1fr;
   }
   .theinmag-freebies-lightbox__image { max-height: 45vh; }
-  .theinmag-freebies-lightbox__body { padding-bottom: 92px; }
-  .theinmag-freebies-lightbox__actions {
-    position: sticky;
-    bottom: 0;
-    margin: 0 -20px -20px;
-    padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
-    background-color: #FFFFFF;
-    box-shadow: 0 -2px 12px rgba(42, 31, 61, 0.12);
-  }
-  /* Compact, left-aligned action buttons on mobile (full-width felt heavy). */
+  /* Compact, left-aligned action buttons that sit at the bottom via the base
+     margin-top:auto. No sticky bar - its shadow + overlap left stray lines
+     over the See-more link. */
   .theinmag-freebies-lightbox__actions { justify-content: flex-start; }
   .theinmag-freebies-lightbox__btn {
     flex: 0 0 auto;

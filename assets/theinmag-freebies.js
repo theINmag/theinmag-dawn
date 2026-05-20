@@ -466,6 +466,7 @@
       this.root.hidden = false;
       this.root.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('theinmag-freebies-modal-open');
       if (this.panel) this.panel.scrollTop = 0;
       this.closeBtn && this.closeBtn.focus();
 
@@ -497,6 +498,7 @@
       this.root.hidden = true;
       this.root.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
+      document.body.classList.remove('theinmag-freebies-modal-open');
       if (this.lastFocused && this.lastFocused.focus) this.lastFocused.focus();
     },
 
