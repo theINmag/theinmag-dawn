@@ -418,7 +418,7 @@
       var longEl = card.querySelector('[data-freebie-long]');
 
       if (this.image) { this.image.src = preview; this.image.alt = alt; }
-      if (this.titleEl) this.titleEl.textContent = title;
+      if (this.titleEl) this.titleEl.innerHTML = card.getAttribute('data-title-html') || title;
 
       if (this.magEl) {
         if (magLabel) { this.magEl.textContent = 'From ' + magLabel; this.magEl.hidden = false; }

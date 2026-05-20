@@ -17,6 +17,37 @@
 
 {%- liquid
   assign title = freebie.title | default: 'Freebie'
+
+  # Emphasised title: wrap each word listed in title_emphasis (comma-separated)
+  # in a bigger Post-font span. Used for the card overlay + cloned into the
+  # lightbox heading via data-title-html. Falls back to the plain title.
+  assign title_emph = freebie.title_emphasis | default: ''
+  assign title_html = title
+  if title_emph != blank
+    assign emph_list = title_emph | downcase | replace: ', ', ',' | split: ','
+    assign title_words = title | split: ' '
+    assign title_html = ''
+    for w in title_words
+      assign w_key = w | downcase | replace: '?', '' | replace: ':', '' | replace: ',', '' | replace: '.', '' | strip
+      assign is_emph = false
+      for et in emph_list
+        if et == w_key
+          assign is_emph = true
+        endif
+      endfor
+      if is_emph
+        assign piece = '<span class="theinmag-freebie-em">' | append: w | append: '</span>'
+      else
+        assign piece = w
+      endif
+      if forloop.first
+        assign title_html = piece
+      else
+        assign title_html = title_html | append: ' ' | append: piece
+      endif
+    endfor
+  endif
+
   assign handle = freebie.system.handle | default: title | handleize
   assign short_desc = freebie.short_description | default: ''
   assign category_label = freebie.category | default: ''
@@ -123,6 +154,7 @@
   data-theinmag-freebie-card
   data-handle="{{ handle | escape }}"
   data-title="{{ title | escape }}"
+  data-title-html="{{ title_html | escape }}"
   data-category="{{ category_slug }}"
   data-category-label="{{ category_label | escape }}"
   data-mag="{{ mag_slug }}"
@@ -162,7 +194,7 @@
     {%- endif -%}
 
     <div class="theinmag-freebie-card__overlay" aria-hidden="true">
-      <span class="theinmag-freebie-card__overlay-title">{{ title }}</span>
+      <span class="theinmag-freebie-card__overlay-title">{{ title_html }}</span>
     </div>
   </div>
 
