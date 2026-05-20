@@ -14,16 +14,21 @@
   assign subhead = section.settings.subhead
 -%}
 
+{% render 'theinmag-character-pool' %}
+
 <section
   class="theinmag-freebies-banner"
   aria-labelledby="theinmag-freebies-banner-heading"
   style="background-image: url('{{ 'freebies_heading.jpg' | asset_url }}');"
 >
   <div class="theinmag-freebies-banner__inner">
-    <h1 id="theinmag-freebies-banner-heading" class="theinmag-freebies-banner__heading">{{ heading }}</h1>
-    {%- if subhead != blank -%}
-      <p class="theinmag-freebies-banner__subhead">{{ subhead }}</p>
-    {%- endif -%}
+    <span class="theinmag-freebies-banner__character" data-theinmag-pool-character></span>
+    <div class="theinmag-freebies-banner__text">
+      <h1 id="theinmag-freebies-banner-heading" class="theinmag-freebies-banner__heading">{{ heading }}</h1>
+      {%- if subhead != blank -%}
+        <p class="theinmag-freebies-banner__subhead">{{ subhead }}</p>
+      {%- endif -%}
+    </div>
   </div>
 </section>
 

@@ -4,8 +4,7 @@
       "type": "theinmag-freebies-banner",
       "settings": {
         "heading": "Ohh goodie!",
-        "subhead": "Bite-sized creative ideas inspired by real Aussie kids. Take them, print them, share them. They're yours.",
-        "tag": "Made by kids. For everyone."
+        "subhead": "Bite-sized creative ideas inspired by real Aussie kids. Take them, print them, share them. They're yours."
       }
     },
     "controls": {
@@ -44,36 +43,38 @@
         "share_label": "Share with a friend"
       }
     },
-    "cta": {
-      "type": "theinmag-freebies-cta",
+    "mission": {
+      "type": "theinmag-mission",
       "blocks": {
-        "membership": {
-          "type": "cta_card",
-          "settings": {
-            "heading": "Loving the freebies?",
-            "body": "These all started life in the mag. Get a whole one, made by Aussie kids, landing in your letterbox every few months.",
-            "button_label": "Get a whole mag every 4 months",
-            "link": "/products/membership",
-            "color": "lavender"
-          }
-        },
-        "sendin": {
-          "type": "cta_card",
-          "settings": {
-            "heading": "Got a creative kid?",
-            "body": "Drawings, stories, photos, puzzles, anything. If they made it and they're proud of it, send it IN.",
-            "button_label": "Send their work to theINmag",
-            "link": "/pages/send-in",
-            "color": "coral"
-          }
-        }
+        "feature-1": { "type": "feature", "settings": { "label": "Printed sustainably in Australia", "hover_message": "That's right, locally in Melbourne by our friends at <strong>PrintGraphics PrintGreen</strong>." } },
+        "feature-2": { "type": "feature", "settings": { "label": "100% kid-created", "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a <strong>voice</strong>." } },
+        "feature-3": { "type": "feature", "settings": { "label": "Always ad-free", "hover_message": "This is super important to us. <strong>No ads. Ever.</strong>" } },
+        "feature-4": { "type": "feature", "settings": { "label": "Tri-annual", "hover_message": "New issues drop each <strong>February, June and October</strong>." } },
+        "product-membership": { "type": "product_link", "settings": { "label": "theINmag Membership", "tagline": "Every issue delivered, no fuss.", "price": "From $89", "link": "/products/membership", "fallback_filename": "product-membership.jpg", "fallback_hover_filename": "product-membership-hover.jpg", "image_alt": "theINmag membership pack with the latest issue." } },
+        "product-mag": { "type": "product_link", "settings": { "label": "Single issue", "tagline": "120+ pages of kid-made creativity.", "price": "$23.95", "link": "/products/mag10", "fallback_filename": "product-mag.jpg", "fallback_hover_filename": "product-mag-hover.jpg", "image_alt": "Cover of the latest theINmag issue." } },
+        "product-bundle": { "type": "product_link", "settings": { "label": "Build a bundle", "tagline": "Pick the issues your kid will love most.", "price": "", "link": "/pages/build-a-bundle", "fallback_filename": "product-bundle.jpg", "fallback_hover_filename": "product-bundle-hover.jpg", "image_alt": "Stack of hand-picked theINmag issues." } }
       },
-      "block_order": ["membership", "sendin"],
+      "block_order": ["feature-1", "feature-2", "feature-3", "feature-4", "product-membership", "product-mag", "product-bundle"],
       "settings": {
-        "heading": "Want a whole mag full of these?",
-        "aeo_heading": "Where do theINmag freebies come from?"
+        "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
+        "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>"
+      }
+    },
+    "press": {
+      "type": "theinmag-press-band",
+      "blocks": {
+        "press-1": { "type": "press_logo", "settings": { "fallback_filename": "press-1.png", "alt": "Press mention" } },
+        "press-2": { "type": "press_logo", "settings": { "fallback_filename": "press-2.png", "alt": "Press mention" } },
+        "press-3": { "type": "press_logo", "settings": { "fallback_filename": "press-3.png", "alt": "Press mention" } },
+        "press-4": { "type": "press_logo", "settings": { "fallback_filename": "press-4.png", "alt": "Press mention" } },
+        "press-5": { "type": "press_logo", "settings": { "fallback_filename": "press-5.png", "alt": "Press mention", "size": "large" } },
+        "press-6": { "type": "press_logo", "settings": { "fallback_filename": "press-6.png", "alt": "Press mention" } }
+      },
+      "block_order": ["press-1", "press-2", "press-3", "press-4", "press-5", "press-6"],
+      "settings": {
+        "heading": "Seen IN"
       }
     }
   },
-  "order": ["banner", "controls", "grid", "lightbox", "cta"]
+  "order": ["banner", "controls", "grid", "lightbox", "mission", "press"]
 }

@@ -69,17 +69,7 @@
 
       <p class="theinmag-freebies-grid__live-region visually-hidden" aria-live="polite" data-theinmag-freebies-live></p>
 
-      <div class="theinmag-freebies-grid__more-wrap">
-        <button
-          type="button"
-          class="theinmag-freebies-grid__more"
-          data-theinmag-freebies-more
-          {% if total <= initial_batch %}hidden{% endif %}
-        >
-          {{ section.settings.more_label | default: 'Show me more' }}
-          <span aria-hidden="true">&rarr;</span>
-        </button>
-      </div>
+      <div class="theinmag-freebies-grid__sentinel" data-theinmag-freebies-sentinel aria-hidden="true"></div>
     {%- else -%}
       <div class="theinmag-freebies-grid__empty">
         <h3 class="theinmag-freebies-grid__empty-heading">{{ section.settings.empty_heading | default: 'Fresh freebies landing soon.' }}</h3>
@@ -94,7 +84,7 @@
 
     {%- if faqs.size > 0 -%}
       <div class="theinmag-freebies-grid__faq">
-        <h2 class="theinmag-freebies-grid__faq-heading">{{ section.settings.faq_heading | default: 'Good to know' }}</h2>
+        <h2 class="theinmag-freebies-grid__faq-heading visually-hidden">{{ section.settings.faq_heading | default: 'Good to know' }}</h2>
         {%- for block in faqs -%}
           <div class="theinmag-freebies-grid__faq-item" {{ block.shopify_attributes }}>
             {%- if block.settings.question != blank -%}

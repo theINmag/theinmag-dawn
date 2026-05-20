@@ -91,7 +91,7 @@
     columns: null,
     cards: [],
     order: [],
-    moreBtn: null,
+    sentinel: null,
     noResults: null,
     liveRegion: null,
     initialBatch: 18,
@@ -105,7 +105,7 @@
 
       this.columns = this.grid.querySelector('[data-theinmag-freebies-columns]');
       this.cards = slice(this.grid.querySelectorAll('[data-theinmag-freebie-card]'));
-      this.moreBtn = this.grid.querySelector('[data-theinmag-freebies-more]');
+      this.sentinel = this.grid.querySelector('[data-theinmag-freebies-sentinel]');
       this.noResults = this.grid.querySelector('[data-theinmag-freebies-no-results]');
       this.liveRegion = this.grid.querySelector('[data-theinmag-freebies-live]');
 
@@ -124,6 +124,7 @@
       this.bindControls();
       this.readFilterFromURL();
       this.render();
+      this.setupLazyLoad();
 
       Lightbox.init(this);
     },
@@ -189,12 +190,25 @@
         });
       }
 
-      if (this.moreBtn) {
-        this.moreBtn.addEventListener('click', function () {
+    },
+
+    // Lazy-load: reveal the next batch as the grid bottom nears the viewport.
+    setupLazyLoad: function () {
+      var self = this;
+      if (!this.sentinel) return;
+      var onScroll = function () {
+        if (self.isFiltering()) return;
+        var guard = 0;
+        while (self.revealed < self.order.length && guard < 100) {
+          if (self.grid.getBoundingClientRect().bottom > window.innerHeight * 1.5) break;
           self.revealed = Math.min(self.revealed + self.batchSize, self.order.length);
           self.render();
-        });
-      }
+          guard++;
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      onScroll();
     },
 
     isFiltering: function () {
@@ -219,7 +233,6 @@
           card.classList.toggle('theinmag-freebie-card--filtered-out', !ok);
           if (ok) count++;
         });
-        if (this.moreBtn) this.moreBtn.hidden = true;
       } else {
         var revealed = this.revealed;
         this.order.forEach(function (card, i) {
@@ -227,7 +240,6 @@
           card.classList.toggle('theinmag-freebie-card--hidden', i >= revealed);
         });
         count = Math.min(revealed, this.order.length);
-        if (this.moreBtn) this.moreBtn.hidden = revealed >= this.order.length;
       }
 
       if (this.noResults) {
