@@ -45,13 +45,6 @@
             "link": "/pages/for-homeschoolers"
           }
         },
-        "info-kids": {
-          "type": "dropdown_item",
-          "settings": {
-            "label": "For Kids",
-            "link": "/pages/for-kids"
-          }
-        },
         "info-our-story": {
           "type": "dropdown_item",
           "settings": {
@@ -61,11 +54,10 @@
         }
       },
       "block_order": [
-        "info-competitions",
         "info-parents",
         "info-teachers",
         "info-homeschoolers",
-        "info-kids",
+        "info-competitions",
         "info-our-story"
       ],
       "settings": {
@@ -81,8 +73,7 @@
         "nav_5_label": "Freebies",
         "nav_5_link": "/pages/freebies",
         "instagram_url": "https://www.instagram.com/the.inmag/",
-        "facebook_url": "https://www.facebook.com/theINmagazine/",
-        "youtube_url": "https://www.youtube.com/@theINmag/videos"
+        "facebook_url": "https://www.facebook.com/theINmagazine/"
       }
     }
   },

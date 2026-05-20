@@ -40,9 +40,31 @@
 
   assign instagram_url = section.settings.instagram_url
   assign facebook_url = section.settings.facebook_url
-  assign youtube_url = section.settings.youtube_url
 
   assign cart_count = cart.item_count
+
+  comment
+    Active-page state for the mobile drawer. request.path is the current
+    URL path (e.g. /pages/shop). Top-level links match by equality; Field
+    notes uses contains so blog articles under it still read as current.
+    info_active opens the INfo accordion automatically when the visitor
+    is on one of its sub-pages.
+  endcomment
+  assign current_path = request.path
+
+  assign nav_1_link = section.settings.nav_1_link | default: '/pages/shop'
+  assign nav_3_link = section.settings.nav_3_link | default: '/pages/gallery'
+  assign nav_4_link = section.settings.nav_4_link | default: '/blogs/field-notes'
+  assign nav_5_link = section.settings.nav_5_link | default: '/pages/freebies'
+
+  assign info_active = false
+  for block in section.blocks
+    if block.type == 'dropdown_item' and block.settings.link != blank
+      if current_path == block.settings.link
+        assign info_active = true
+      endif
+    endif
+  endfor
 -%}
 
 <header
@@ -254,51 +276,65 @@
     </a>
 
     {%- comment -%}
-      Drawer nav is FLAT - no accordion. INfo is a small group label
-      and its sub-items appear inline as their own tappable links.
-      Matches the live mobile drawer's flat list aesthetic and avoids
-      a tap-to-expand step.
+      Drawer nav. INfo reads at heading size and acts as a tap-to-expand
+      accordion: its caret rotates and the sub-pages slide open beneath
+      it (slightly smaller). The group auto-opens when the visitor is on
+      one of its sub-pages. The current page is dulled via .is-current.
     {%- endcomment -%}
     <nav class="theinmag-drawer__nav" aria-label="Primary mobile">
       <ul class="theinmag-drawer__list" role="list">
 
         <li>
-          <a class="theinmag-drawer__link" href="{{ section.settings.nav_1_link | default: '/pages/shop' }}">
+          <a class="theinmag-drawer__link{% if current_path == nav_1_link %} is-current{% endif %}" href="{{ nav_1_link }}"{% if current_path == nav_1_link %} aria-current="page"{% endif %}>
             {{ section.settings.nav_1_label | default: 'Shop' }}
           </a>
         </li>
 
         {%- if section.blocks.size > 0 -%}
-          <li class="theinmag-drawer__group">
-            <span class="theinmag-drawer__group-label" aria-hidden="true">{{ section.settings.nav_2_label | default: 'INfo' }}</span>
-            <ul class="theinmag-drawer__sublist" role="list" aria-label="{{ section.settings.nav_2_label | default: 'INfo' }} pages">
-              {%- for block in section.blocks -%}
-                {%- if block.type == 'dropdown_item' -%}
-                  <li {{ block.shopify_attributes }}>
-                    <a class="theinmag-drawer__sublink" href="{{ block.settings.link | default: '#' }}">
-                      {{ block.settings.label }}
-                    </a>
-                  </li>
-                {%- endif -%}
-              {%- endfor -%}
-            </ul>
+          <li class="theinmag-drawer__group{% if info_active %} is-open{% endif %}" data-drawer-accordion>
+            <button
+              type="button"
+              class="theinmag-drawer__group-toggle"
+              aria-expanded="{% if info_active %}true{% else %}false{% endif %}"
+              aria-controls="theinmag-drawer-info"
+              data-accordion-toggle
+            >
+              {{ section.settings.nav_2_label | default: 'INfo' }}
+              <svg class="theinmag-drawer__group-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                <path d="M7 10l5 5 5-5z"></path>
+              </svg>
+            </button>
+            <div class="theinmag-drawer__subwrap" id="theinmag-drawer-info" data-accordion-panel>
+              <ul class="theinmag-drawer__sublist" role="list" aria-label="{{ section.settings.nav_2_label | default: 'INfo' }} pages">
+                {%- for block in section.blocks -%}
+                  {%- if block.type == 'dropdown_item' -%}
+                    {%- assign sub_link = block.settings.link | default: '#' -%}
+                    <li {{ block.shopify_attributes }}>
+                      <a class="theinmag-drawer__sublink{% if current_path == sub_link %} is-current{% endif %}" href="{{ sub_link }}"{% if current_path == sub_link %} aria-current="page"{% endif %}>
+                        {{ block.settings.label }}
+                      </a>
+                    </li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ul>
+            </div>
           </li>
         {%- endif -%}
 
         <li>
-          <a class="theinmag-drawer__link" href="{{ section.settings.nav_3_link | default: '/pages/gallery' }}">
+          <a class="theinmag-drawer__link{% if current_path == nav_3_link %} is-current{% endif %}" href="{{ nav_3_link }}"{% if current_path == nav_3_link %} aria-current="page"{% endif %}>
             {{ section.settings.nav_3_label | default: 'Gallery' }}
           </a>
         </li>
 
         <li>
-          <a class="theinmag-drawer__link" href="{{ section.settings.nav_4_link | default: '/blogs/field-notes' }}">
+          <a class="theinmag-drawer__link{% if current_path contains nav_4_link %} is-current{% endif %}" href="{{ nav_4_link }}"{% if current_path contains nav_4_link %} aria-current="page"{% endif %}>
             {{ section.settings.nav_4_label | default: 'Field notes' }}
           </a>
         </li>
 
         <li>
-          <a class="theinmag-drawer__link" href="{{ section.settings.nav_5_link | default: '/pages/freebies' }}">
+          <a class="theinmag-drawer__link{% if current_path == nav_5_link %} is-current{% endif %}" href="{{ nav_5_link }}"{% if current_path == nav_5_link %} aria-current="page"{% endif %}>
             {{ section.settings.nav_5_label | default: 'Freebies' }}
           </a>
         </li>
@@ -307,10 +343,19 @@
     </nav>
 
     <a class="theinmag-btn theinmag-btn--primary theinmag-drawer__cta" href="{{ cta_link }}">
+      <svg class="theinmag-drawer__cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="m22 2-7 20-4-9-9-4Z"></path>
+        <path d="M22 2 11 13"></path>
+      </svg>
       {{ cta_label }}
     </a>
 
-    {%- if instagram_url != blank or facebook_url != blank or youtube_url != blank -%}
+    {%- comment -%}
+      Socials: Instagram + Facebook only. YouTube is intentionally
+      excluded sitewide (channel too sparse, reserved for an eventual
+      story page).
+    {%- endcomment -%}
+    {%- if instagram_url != blank or facebook_url != blank -%}
       <ul class="theinmag-drawer__socials" role="list" aria-label="Follow theINmag">
         {%- if instagram_url != blank -%}
           <li>
@@ -328,15 +373,6 @@
             <a class="theinmag-drawer__social-link" href="{{ facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="theINmag on Facebook">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
                 <path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.7c0-.9.3-1.5 1.6-1.5h1.7V4.3a23 23 0 0 0-2.5-.1c-2.5 0-4.2 1.5-4.2 4.3v2.4H7.4V14h2.7v8h3.4Z"></path>
-              </svg>
-            </a>
-          </li>
-        {%- endif -%}
-        {%- if youtube_url != blank -%}
-          <li>
-            <a class="theinmag-drawer__social-link" href="{{ youtube_url }}" target="_blank" rel="noopener noreferrer" aria-label="theINmag on YouTube">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-                <path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15V9l5.2 3-5.2 3Z"></path>
               </svg>
             </a>
           </li>
@@ -823,11 +859,16 @@
     z-index: 100;
     visibility: hidden;
     pointer-events: none;
+    /* Delay the visibility:hidden flip until the panel has finished
+       sliding out, so the close animation is actually visible. On open
+       the override below flips it to visible instantly. */
+    transition: visibility 0s linear var(--transition-hover);
   }
 
   .theinmag-drawer.is-open {
     visibility: visible;
     pointer-events: auto;
+    transition: visibility 0s;
   }
 
   .theinmag-drawer__overlay {
@@ -842,24 +883,42 @@
     opacity: 1;
   }
 
+  /* Off-canvas side panel - anchored to the right, leaves a strip of
+     the page (under the scrim) visible on the left. Slides in from the
+     right edge; the scrim covers the rest and closes on tap. */
   .theinmag-drawer__panel {
     position: absolute;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    width: min(360px, 86vw);
+    max-width: 100%;
     background-color: var(--color-cream);
+    /* Reset the line-height:0 inherited from the sticky section wrapper
+       so drawer text (and the collapsed sub-list height maths) is sane. */
+    line-height: 1.4;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: var(--space-2xl) var(--space-lg) var(--space-xl);
+    padding: var(--space-lg) var(--space-lg) var(--space-xl);
     overflow-y: auto;
-    transform: translateY(-12px);
-    opacity: 0;
-    transition: transform var(--transition-hover),
-                opacity var(--transition-hover);
+    -webkit-overflow-scrolling: touch;
+    box-shadow: -8px 0 28px rgba(42, 31, 61, 0.18);
+    transform: translateX(100%);
+    transition: transform var(--transition-hover);
   }
 
   .theinmag-drawer.is-open .theinmag-drawer__panel {
-    transform: translateY(0);
-    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* The panel is a scrollable flex column. Without this, when the menu
+     is taller than the viewport, flexbox shrinks the children to fit -
+     which clipped the last INfo sub-item. Pin natural sizes and let the
+     panel scroll instead. */
+  .theinmag-drawer__panel > * {
+    flex-shrink: 0;
   }
 
   .theinmag-drawer__close {
@@ -892,19 +951,19 @@
 
   .theinmag-drawer__logo-link {
     display: inline-flex;
-    margin-top: var(--space-md);
-    margin-bottom: var(--space-xl);
+    margin-top: var(--space-sm);
+    margin-bottom: var(--space-lg);
   }
 
   .theinmag-drawer__logo {
     display: block;
-    width: clamp(180px, 55vw, 260px);
+    width: clamp(200px, 64vw, 300px);
     height: auto;
   }
 
   .theinmag-drawer__nav {
     width: 100%;
-    margin-bottom: var(--space-2xl);
+    margin-bottom: var(--space-xl);
   }
 
   .theinmag-drawer__list {
@@ -914,18 +973,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Generous breathing room between items - matches the live site's
-       mobile drawer where each link gets its own visual line of space. */
-    gap: var(--space-xl);
+    /* Tighter stack - closer to the live site's spacing. */
+    gap: 20px;
   }
 
+  /* Editorial Inter 700 with tight tracking - mirrors the Field Notes
+     post-title treatment. Post Regular stays on the CTA button only. */
   .theinmag-drawer__link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-body);
-    font-weight: 500;
-    font-size: 22px;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.01em;
     color: var(--color-inky-purple-navy);
     text-decoration: none;
     padding: 4px 12px;
@@ -939,29 +1000,72 @@
     outline: none;
   }
 
-  /* INfo group - the label sits as a quiet section heading and the
-     sub-pages render directly underneath as their own tappable links.
-     No accordion. Gives the drawer a flat, scannable feel. */
+  /* INfo accordion - the trigger reads at the same size as the other
+     nav headings, with a caret that rotates when open. Sub-pages live
+     in a grid-rows collapse so the drawer stays short until tapped. */
   .theinmag-drawer__group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-md);
+    display: block;
+    width: 100%;
+    text-align: center;
   }
 
-  .theinmag-drawer__group-label {
+  .theinmag-drawer__group-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     font-family: var(--font-body);
     font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
+    font-size: 24px;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy);
+    background: transparent;
+    border: none;
+    padding: 4px 12px;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: color var(--transition-standard);
+  }
+
+  /* Keyboard focus highlights; hover is gated behind real hover so a
+     touch tap doesn't leave INfo stuck in the purple hover colour
+     (it's a button that doesn't navigate away, unlike the links). */
+  .theinmag-drawer__group-toggle:focus-visible {
+    color: var(--color-purple-dark);
+    outline: none;
+  }
+
+  @media (hover: hover) {
+    .theinmag-drawer__group-toggle:hover {
+      color: var(--color-purple-dark);
+    }
+  }
+
+  .theinmag-drawer__group-caret {
+    width: 17px;
+    height: 17px;
+    transition: transform var(--transition-standard);
+  }
+
+  .theinmag-drawer__group.is-open .theinmag-drawer__group-caret {
+    transform: rotate(180deg);
+  }
+
+  /* JS animates height between 0 and the content's exact height (see
+     the accordion handler), then sets height:auto so it stays correct
+     if the INfo item count ever changes. overflow:hidden clips the
+     collapse - no magic max-height number, never lands short. */
+  .theinmag-drawer__subwrap {
+    height: 0;
+    overflow: hidden;
+    width: 100%;
+    transition: height var(--transition-hover) ease;
   }
 
   .theinmag-drawer__sublist {
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: var(--space-md) 0 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -969,9 +1073,11 @@
   }
 
   .theinmag-drawer__sublink {
+    display: inline-flex;
     font-family: var(--font-body);
     font-weight: 500;
-    font-size: 19px;
+    font-size: 18px;
+    line-height: 1.2;
     color: var(--color-inky-purple-navy);
     text-decoration: none;
     padding: 4px 12px;
@@ -984,10 +1090,55 @@
     outline: none;
   }
 
-  .theinmag-drawer__cta {
+  /* Current page - dulled to a muted grey (a lightness shift, so it
+     stays legible for colourblind users), matching the live site's
+     "you are here" treatment. Still tappable. */
+  .theinmag-drawer__link.is-current,
+  .theinmag-drawer__sublink.is-current {
+    color: var(--color-text-muted);
+  }
+
+  /* Staggered reveal - items ease in from the right just behind the
+     panel slide. Reduced-motion users get them instantly (see below). */
+  .theinmag-drawer__list > li,
+  .theinmag-drawer__cta,
+  .theinmag-drawer__socials {
+    opacity: 0;
+    transform: translateX(14px);
+    transition: opacity var(--transition-hover),
+                transform var(--transition-hover);
+  }
+
+  .theinmag-drawer.is-open .theinmag-drawer__list > li,
+  .theinmag-drawer.is-open .theinmag-drawer__cta,
+  .theinmag-drawer.is-open .theinmag-drawer__socials {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .theinmag-drawer.is-open .theinmag-drawer__list > li:nth-child(1) { transition-delay: 0.10s; }
+  .theinmag-drawer.is-open .theinmag-drawer__list > li:nth-child(2) { transition-delay: 0.15s; }
+  .theinmag-drawer.is-open .theinmag-drawer__list > li:nth-child(3) { transition-delay: 0.20s; }
+  .theinmag-drawer.is-open .theinmag-drawer__list > li:nth-child(4) { transition-delay: 0.25s; }
+  .theinmag-drawer.is-open .theinmag-drawer__list > li:nth-child(5) { transition-delay: 0.30s; }
+  .theinmag-drawer.is-open .theinmag-drawer__cta { transition-delay: 0.35s; }
+  .theinmag-drawer.is-open .theinmag-drawer__socials { transition-delay: 0.40s; }
+
+  /* Two-class selector beats Dawn's base .theinmag-btn--primary
+     (font-size + padding) which otherwise wins the cascade. */
+  .theinmag-btn.theinmag-drawer__cta {
+    gap: 10px;
     margin-bottom: var(--space-xl);
-    padding: 14px 32px;
-    font-size: 16px;
+    /* Longer pill, same height: more horizontal padding, vertical
+       padding trimmed to offset the larger Post text. */
+    padding: 11px 48px;
+    font-size: 21px;
+  }
+
+  .theinmag-drawer__cta-icon {
+    width: 23px;
+    height: 23px;
+    flex-shrink: 0;
   }
 
   .theinmag-drawer__socials {
@@ -1034,10 +1185,20 @@
   @media (prefers-reduced-motion: reduce) {
     .theinmag-drawer__panel,
     .theinmag-drawer__overlay,
+    .theinmag-drawer__subwrap,
+    .theinmag-drawer__group-caret,
     .theinmag-header__dropdown,
     .theinmag-header__sticker,
     .theinmag-header__caret {
       transition-duration: 0.01ms;
+    }
+
+    .theinmag-drawer__list > li,
+    .theinmag-drawer__cta,
+    .theinmag-drawer__socials {
+      opacity: 1 !important;
+      transform: none !important;
+      transition-delay: 0s !important;
     }
 
     .theinmag-header__sticker-link:hover .theinmag-header__sticker,
@@ -1115,6 +1276,7 @@
 
     if (drawer && openButton) {
       var lastFocused = null;
+      var panel = drawer.querySelector('.theinmag-drawer__panel');
 
       var getFocusable = function () {
         return drawer.querySelectorAll(
@@ -1124,6 +1286,12 @@
 
       var openDrawer = function () {
         lastFocused = document.activeElement;
+        /* Clear any inline transform/transition left over from a swipe
+           so the panel always opens cleanly from its CSS resting state. */
+        if (panel) {
+          panel.style.transition = '';
+          panel.style.transform = '';
+        }
         drawer.classList.add('is-open');
         drawer.setAttribute('aria-hidden', 'false');
         openButton.setAttribute('aria-expanded', 'true');
@@ -1173,6 +1341,96 @@
           first.focus();
         }
       });
+
+      /* ----- INfo accordion (drawer only) -----
+         Height is animated to the sub-list's exact pixel height, then
+         set to auto so it self-corrects if items change. The .is-open
+         class also drives the caret rotation in CSS. */
+      var accordion = drawer.querySelector('[data-drawer-accordion]');
+      var accToggle = drawer.querySelector('[data-accordion-toggle]');
+      var accPanel = accordion ? accordion.querySelector('[data-accordion-panel]') : null;
+
+      if (accordion && accToggle && accPanel) {
+        /* Server-rendered open (visitor is on an INfo sub-page). */
+        if (accordion.classList.contains('is-open')) {
+          accPanel.style.height = 'auto';
+        }
+
+        accToggle.addEventListener('click', function () {
+          if (accordion.classList.contains('is-open')) {
+            /* Collapse: pin the current height, reflow, then animate to 0. */
+            accPanel.style.height = accPanel.scrollHeight + 'px';
+            void accPanel.offsetHeight;
+            accordion.classList.remove('is-open');
+            accToggle.setAttribute('aria-expanded', 'false');
+            accPanel.style.height = '0px';
+          } else {
+            /* Expand: animate to content height, then release to auto. */
+            accordion.classList.add('is-open');
+            accToggle.setAttribute('aria-expanded', 'true');
+            accPanel.style.height = accPanel.scrollHeight + 'px';
+            var onEnd = function (e) {
+              if (e.propertyName !== 'height') return;
+              accPanel.style.height = 'auto';
+              accPanel.removeEventListener('transitionend', onEnd);
+            };
+            accPanel.addEventListener('transitionend', onEnd);
+          }
+          /* e.detail > 0 means a real pointer/touch click - drop focus so
+             the button doesn't stay in its highlighted colour. Keyboard
+             activation (detail 0) keeps focus for accessibility. */
+          if (e.detail > 0) accToggle.blur();
+        });
+      }
+
+      /* ----- Swipe-right to close (touch) -----
+         Drag the panel rightward; past ~70px on release it slides out,
+         otherwise it snaps back. Listeners stay passive (no scroll
+         hijack); we only translate on a clearly horizontal drag. */
+      if (panel) {
+        var startX = 0, startY = 0, dragX = 0;
+        var swiping = false, decided = false, horizontal = false;
+
+        panel.addEventListener('touchstart', function (e) {
+          if (e.touches.length !== 1) return;
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          dragX = 0;
+          swiping = true;
+          decided = false;
+          horizontal = false;
+          panel.style.transition = 'none';
+        }, { passive: true });
+
+        panel.addEventListener('touchmove', function (e) {
+          if (!swiping) return;
+          var dx = e.touches[0].clientX - startX;
+          var dy = e.touches[0].clientY - startY;
+          if (!decided && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+            decided = true;
+            horizontal = Math.abs(dx) > Math.abs(dy);
+          }
+          if (horizontal && dx > 0) {
+            dragX = dx;
+            panel.style.transform = 'translateX(' + dx + 'px)';
+          }
+        }, { passive: true });
+
+        var endSwipe = function () {
+          if (!swiping) return;
+          swiping = false;
+          panel.style.transition = '';
+          if (horizontal && dragX > 70) {
+            panel.style.transform = 'translateX(100%)';
+            closeDrawer();
+          } else {
+            panel.style.transform = '';
+          }
+        };
+
+        panel.addEventListener('touchend', endSwipe, { passive: true });
+        panel.addEventListener('touchcancel', endSwipe, { passive: true });
+      }
     }
 
   })();
@@ -1303,12 +1561,6 @@
       "id": "facebook_url",
       "label": "Facebook URL",
       "default": "https://www.facebook.com/theINmagazine/"
-    },
-    {
-      "type": "text",
-      "id": "youtube_url",
-      "label": "YouTube URL",
-      "default": "https://www.youtube.com/@theINmag/videos"
     }
   ],
   "blocks": [
@@ -1332,11 +1584,10 @@
   ],
   "default": {
     "blocks": [
-      { "type": "dropdown_item", "settings": { "label": "Competitions for Kids", "link": "/pages/competitions" } },
       { "type": "dropdown_item", "settings": { "label": "For Parents" } },
       { "type": "dropdown_item", "settings": { "label": "For Teachers" } },
       { "type": "dropdown_item", "settings": { "label": "For Homeschoolers" } },
-      { "type": "dropdown_item", "settings": { "label": "For Kids" } },
+      { "type": "dropdown_item", "settings": { "label": "Competitions for Kids", "link": "/pages/competitions" } },
       { "type": "dropdown_item", "settings": { "label": "Behind the mag" } }
     ]
   }
