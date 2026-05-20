@@ -93,7 +93,7 @@
 .theinmag-freebies-banner__freebies {
   font-size: 1.55em;
   display: inline-block;
-  transform: rotate(-6deg);
+  transform: translateY(0.1em) rotate(-3deg);
   transform-origin: left center;
 }
 
@@ -676,7 +676,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 8px;
+  /* Anchor the action buttons (+ the See more link below them) to the
+     bottom of the info column - the condensed write-ups leave space above. */
+  margin-top: auto;
 }
 
 .theinmag-freebies-lightbox__btn {
