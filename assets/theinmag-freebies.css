@@ -549,10 +549,15 @@
 /* Hide the sitewide FREE e-mag flyout while a freebie preview is open. */
 body.theinmag-freebies-modal-open .theinmag-flyout { display: none !important; }
 
-.theinmag-freebies-lightbox__backdrop {
+/* Two-class selector + display:block beats Dawn base.css `div:empty {
+   display: none }`, which was hiding this (empty) backdrop div entirely -
+   that's why earlier opacity bumps did nothing. 0.6 = moderate dim so the
+   preview pops without going near-black. */
+.theinmag-freebies-lightbox .theinmag-freebies-lightbox__backdrop {
   position: absolute;
   inset: 0;
-  background-color: rgba(42, 31, 61, 0.88);
+  display: block;
+  background-color: rgba(42, 31, 61, 0.6);
 }
 
 .theinmag-freebies-lightbox__panel {
