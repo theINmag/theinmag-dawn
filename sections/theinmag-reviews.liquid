@@ -40,6 +40,14 @@
   assign review_count = section.settings.review_count | default: 0
   assign threshold = section.settings.show_count_threshold | default: 100
 
+  assign jm = shop.metafields.judgeme
+  assign jm_carousel = jm.featured_carousel
+  assign judgeme_card_count = section.settings.judgeme_card_count | default: 4
+  assign show_judgeme_cards = false
+  if section.settings.use_judgeme_cards and jm_carousel != blank
+    assign show_judgeme_cards = true
+  endif
+
   assign bg_src = ''
   if section.settings.background_image != blank
     assign bg_src = section.settings.background_image | image_url: width: 2400
@@ -142,11 +150,36 @@
       {%- endif -%}
     </header>
 
-    {%- if section.blocks.size > 0 -%}
+    {%- if show_judgeme_cards -%}
       {%- comment -%}
-        New layout: two-column on desktop. Left = stack of text-only
-        review cards. Right = single video review card (video frame on
-        top, written review below). Mobile: video card first, then
+        Judge.me masonry. shop.metafields.judgeme.featured_carousel renders
+        Judge.me's carousel markup server-side; the script block below
+        reparents the .jdgm-carousel-item nodes into this grid (so CSS
+        columns can lay them out), caps to judgeme_card_count, and strips
+        the carousel chrome. Falls back to the manual blocks below when the
+        metafield is blank (e.g. before any reviews are featured).
+      {%- endcomment -%}
+      <div
+        class="theinmag-reviews__jdgm"
+        data-theinmag-reviews-jdgm
+        data-card-cap="{{ judgeme_card_count }}"
+      >
+        <div class="theinmag-reviews__jdgm-grid" data-theinmag-reviews-jdgm-host>
+          {{ jm_carousel }}
+        </div>
+      </div>
+
+      {%- if show_cta and cta_label != blank and cta_link != blank -%}
+        <div class="theinmag-reviews__cta-wrap theinmag-reviews__cta-wrap--jdgm">
+          <a class="theinmag-reviews__cta" href="{{ cta_link }}">{{ cta_label }}</a>
+        </div>
+      {%- endif -%}
+
+    {%- elsif section.blocks.size > 0 -%}
+      {%- comment -%}
+        Fallback (no Judge.me data): two-column on desktop. Left = stack of
+        text-only review cards. Right = single video review card (video frame
+        on top, written review below). Mobile: video card first, then
         text stack.
 
         Reviews are split by whether video_url is set. Multiple videos:
@@ -274,6 +307,41 @@
     {%- endif -%}
   </div>
 </section>
+
+<script>
+  /* Reparent Judge.me's featured_carousel items into the grid host so CSS columns can lay them out; cap the count + strip the carousel chrome. Mirrors the proven single-mags-hero port; re-runs on load in case Judge.me's app embed rearranges the markup after first paint. */
+  (function () {
+    function reparent(host) {
+      var items = host.querySelectorAll('.jdgm-carousel-item');
+      Array.prototype.forEach.call(items, function (item) {
+        if (item.parentNode !== host) host.appendChild(item);
+      });
+      var cruft = host.querySelectorAll('.jdgm-carousel, .jdgm-carousel__items, .jdgm-carousel__item-container, .jdgm-carousel-title-and-link, .jdgm-carousel-title, .jdgm-carousel__arrows, .jdgm-carousel__arrow-left, .jdgm-carousel__arrow-right, .jdgm-carousel-number-of-reviews');
+      Array.prototype.forEach.call(cruft, function (c) {
+        if (c.parentNode) c.parentNode.removeChild(c);
+      });
+    }
+    function initOne(root) {
+      var host = root.querySelector('[data-theinmag-reviews-jdgm-host]');
+      if (!host) return;
+      reparent(host);
+      var cap = parseInt(root.getAttribute('data-card-cap'), 10) || 4;
+      var items = Array.prototype.slice.call(host.querySelectorAll('.jdgm-carousel-item'));
+      if (!items.length) return;
+      items.slice(cap).forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+      root.classList.add('is-ready');
+    }
+    function init() {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-theinmag-reviews-jdgm]'), initOne);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+    window.addEventListener('load', function () { setTimeout(init, 50); });
+  })();
+</script>
 
 {%- stylesheet -%}
   /* ================================================================
@@ -676,6 +744,118 @@
   }
 
   /* ================================================================
+     Judge.me masonry - featured_carousel items reparented into a
+     CSS-columns mosaic, restyled as cream cards. The position / opacity
+     / transform / display overrides are load-bearing: Judge.me's own
+     carousel CSS stacks all but the active item off-screen, so without
+     them only one card would show.
+     ================================================================ */
+
+  .theinmag-reviews__jdgm {
+    position: relative;
+    z-index: 1;
+    padding: 0 clamp(0px, 2vw, 32px);
+  }
+
+  .theinmag-reviews__jdgm-grid {
+    column-count: 1;
+    column-gap: clamp(12px, 1.4vw, 16px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-reviews__jdgm-grid {
+      column-count: 2;
+      column-gap: clamp(16px, 1.6vw, 20px);
+    }
+  }
+
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item {
+    display: flex !important;
+    flex-direction: column;
+    position: static !important;
+    transform: none !important;
+    opacity: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    margin: 0 0 clamp(12px, 1.4vw, 16px) !important;
+    padding: clamp(14px, 1.6vw, 20px) !important;
+    background-color: var(--color-cream, #FBF6EA) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: 0 4px 18px rgba(42, 31, 61, 0.14) !important;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Field order inside each card: stars -> title -> body -> name -> date. */
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__review-rating { order: 1; margin-bottom: 8px; }
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__review-title { order: 2; }
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__review-body { order: 3; }
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__reviewer-name { order: 4; }
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__timestamp { order: 5; }
+
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__review-rating .jdgm-star {
+    font-size: 14px;
+  }
+  .theinmag-reviews__jdgm-grid .jdgm-star.jdgm--on { color: var(--color-yellow, #F9C23C) !important; }
+  .theinmag-reviews__jdgm-grid .jdgm-star.jdgm--off { color: rgba(42, 31, 61, 0.18) !important; }
+
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__review-title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(13px, 1.2vw, 15px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0 0 6px;
+  }
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__review-body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(12px, 1vw, 13.5px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0;
+  }
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__reviewer-name {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 11.5px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 10px 0 0;
+  }
+  /* Drop Judge.me's carousel chrome + per-item product link, timestamp
+     (ships as an empty spinner in the static metafield), verified badge,
+     and any empty title. We strip Judge.me's own <style> block when
+     reparenting, so these must be hidden here rather than relying on its
+     injected display:none rules. */
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-title-and-link,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-title,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-number-of-reviews,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel__arrows,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel__left-arrow,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel__right-arrow,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__product,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__product-title,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__product-info,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__product-image,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__timestamp,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__verified-badge,
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__reviewer-verified,
+  .theinmag-reviews__jdgm-grid .jdgm-spinner {
+    display: none !important;
+  }
+
+  .theinmag-reviews__jdgm-grid .jdgm-carousel-item__review-title:empty {
+    display: none;
+  }
+
+  .theinmag-reviews__cta-wrap--jdgm {
+    margin-top: clamp(16px, 2vw, 24px);
+  }
+
+  /* ================================================================
      Random kid character - slides in horizontally from off-screen
      LEFT, fills the empty lavender gap between the section's left
      edge and the inner container. Only shows at >=1200px viewport
@@ -821,6 +1001,29 @@
       "label": "Show count from this many reviews",
       "default": 100,
       "info": "Below this number only stars show. Once you have this many reviews, the rating value and count appear too."
+    },
+    {
+      "type": "header",
+      "content": "Review cards"
+    },
+    {
+      "type": "paragraph",
+      "content": "When on, the cards pull live from your Judge.me featured carousel - mark reviews as 'featured' in Judge.me to choose which ones show. When off, or before any reviews are featured, the manual review blocks are shown instead."
+    },
+    {
+      "type": "checkbox",
+      "id": "use_judgeme_cards",
+      "label": "Pull review cards from Judge.me",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "judgeme_card_count",
+      "label": "Number of cards to show",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
     },
     {
       "type": "header",

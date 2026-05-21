@@ -1,0 +1,470 @@
+{%- comment -%}
+  theinmag-reviews-page
+  Body of /pages/reviews. Server-rendered masonry of every Judge.me
+  review, sourced from the shop metafield shop.metafields.judgeme.reviews_grid
+  (type: json). That metafield exposes ~25 reviews as structured JSON
+  (all_reviews.reviews[]) including per-review media fields, so this needs
+  NO Judge.me API token, NO sync script, and NO client-side widget JS.
+
+  Each review object carries: title, body, rating, reviewer_name,
+  created_at, plus media arrays pictures_urls / video_external_ids /
+  media_platform_hosted_video_infos. As of build time all media arrays
+  are empty (no photo/video reviews exist yet); the markup below renders
+  them when they appear. Photo handling tolerates both string URLs and
+  Judge.me's sized-object shape; video handling is best-effort (YouTube
+  embed for external ids, <video> for hosted) and should be re-checked
+  against a real media review once one lands.
+
+  Stars are drawn in pure CSS (SVG mask) from each review's integer
+  rating, so they do not depend on Judge.me's web font loading.
+
+  Note: Judge.me count/rating come back as strings, so they are coerced
+  with `| plus: 0` before any numeric use.
+{%- endcomment -%}
+
+{%- liquid
+  assign grid = shop.metafields.judgeme.reviews_grid.value
+  assign reviews = grid.all_reviews.reviews
+
+  assign jm_count = grid.number_of_reviews | default: 0 | plus: 0
+  assign jm_rating = grid.average_rating | default: 0 | plus: 0
+  assign rating_x10 = jm_rating | times: 10 | round
+
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+  assign cta_label = section.settings.review_cta_label
+  assign cta_link = section.settings.review_cta_link
+
+  assign bg_color = section.settings.background_color | default: '#FBF6EA'
+  assign section_style = '--rp-pt: ' | append: section.settings.padding_top | append: 'px; --rp-pb: ' | append: section.settings.padding_bottom | append: 'px; --rp-bg: ' | append: bg_color | append: ';'
+-%}
+
+<section
+  class="theinmag-reviews-page"
+  data-theinmag-reviews-page
+  aria-labelledby="theinmag-reviews-page-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-reviews-page__inner">
+    <header class="theinmag-reviews-page__header">
+      {%- if heading != blank -%}
+        <h1 id="theinmag-reviews-page-heading" class="theinmag-reviews-page__heading">{{ heading }}</h1>
+      {%- endif -%}
+      {%- if subhead != blank -%}
+        <p class="theinmag-reviews-page__subhead">{{ subhead }}</p>
+      {%- endif -%}
+
+      {%- if jm_count > 0 -%}
+        <div class="theinmag-reviews-page__aggregate">
+          <span class="theinmag-reviews-page__stars" role="img" aria-label="{{ jm_rating | round: 1 }} out of 5 stars">
+            {%- for i in (1..5) -%}
+              {%- assign full_at = i | times: 10 -%}
+              {%- assign prev_at = i | minus: 1 | times: 10 -%}
+              {%- assign fill_pct = 0 -%}
+              {%- if rating_x10 >= full_at -%}
+                {%- assign fill_pct = 100 -%}
+              {%- elsif rating_x10 > prev_at -%}
+                {%- assign fill_pct = rating_x10 | minus: prev_at | times: 10 -%}
+              {%- endif -%}
+              <span class="theinmag-reviews-page__star" style="--fill: {{ fill_pct }}%"></span>
+            {%- endfor -%}
+          </span>
+          <span class="theinmag-reviews-page__aggregate-text">
+            <span class="theinmag-reviews-page__aggregate-value">{{ jm_rating | round: 1 }}</span>
+            <span aria-hidden="true"> · </span>
+            <span class="theinmag-reviews-page__aggregate-count">{{ jm_count }} reviews</span>
+          </span>
+        </div>
+      {%- endif -%}
+
+      {%- if cta_label != blank and cta_link != blank -%}
+        <a class="theinmag-reviews-page__cta" href="{{ cta_link }}">{{ cta_label }}</a>
+      {%- endif -%}
+    </header>
+
+    {%- if reviews.size > 0 -%}
+      <div class="theinmag-reviews-page__grid">
+        {%- for r in reviews -%}
+          {%- assign r_rating = r.rating | default: 5 | plus: 0 -%}
+          <article class="theinmag-reviews-page__card">
+            <div class="theinmag-reviews-page__card-stars" role="img" aria-label="{{ r_rating }} out of 5 stars">
+              {%- for i in (1..5) -%}
+                {%- assign fill_pct = 0 -%}
+                {%- if i <= r_rating -%}{%- assign fill_pct = 100 -%}{%- endif -%}
+                <span class="theinmag-reviews-page__star" style="--fill: {{ fill_pct }}%"></span>
+              {%- endfor -%}
+            </div>
+
+            {%- assign pics = r.pictures_urls -%}
+            {%- assign vids = r.video_external_ids -%}
+            {%- assign hosted = r.media_platform_hosted_video_infos -%}
+            {%- if pics.size > 0 or vids.size > 0 or hosted.size > 0 -%}
+              <div class="theinmag-reviews-page__card-media">
+                {%- for pic in pics -%}
+                  {%- assign pic_src = pic.huge | default: pic.original | default: pic.compact | default: pic.url | default: pic -%}
+                  <img class="theinmag-reviews-page__card-photo" src="{{ pic_src }}" alt="Photo from {{ r.reviewer_name | escape }}'s review" loading="lazy">
+                {%- endfor -%}
+                {%- for vid in vids -%}
+                  <div class="theinmag-reviews-page__card-video">
+                    <iframe src="https://www.youtube.com/embed/{{ vid }}" title="Review video" loading="lazy" allowfullscreen></iframe>
+                  </div>
+                {%- endfor -%}
+                {%- for v in hosted -%}
+                  {%- assign v_src = v.url | default: v.video_url | default: v.src -%}
+                  {%- if v_src != blank -%}
+                    <video class="theinmag-reviews-page__card-hostedvideo" src="{{ v_src }}" controls playsinline preload="metadata"{% if v.poster != blank %} poster="{{ v.poster }}"{% endif %}></video>
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+
+            {%- if r.title != blank -%}
+              <h2 class="theinmag-reviews-page__card-title">{{ r.title }}</h2>
+            {%- endif -%}
+            {%- if r.body != blank -%}
+              <p class="theinmag-reviews-page__card-body">{{ r.body | escape | newline_to_br }}</p>
+            {%- endif -%}
+
+            <p class="theinmag-reviews-page__card-meta">
+              {%- if r.reviewer_name != blank -%}
+                <span class="theinmag-reviews-page__card-name">{{ r.reviewer_name | escape }}</span>
+              {%- endif -%}
+              {%- if r.created_at != blank -%}
+                <span class="theinmag-reviews-page__card-date" aria-hidden="true"> · {{ r.created_at | date: "%b %Y" }}</span>
+              {%- endif -%}
+            </p>
+          </article>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p class="theinmag-reviews-page__empty">First reviews coming soon.</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- comment -%} Page JSON-LD - BreadcrumbList. {%- endcomment -%}
+{%- assign page_origin = request.origin | default: 'https://theinmag.com.au' -%}
+{%- assign page_url = page_origin | append: '/pages/reviews' -%}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": {{ page_origin | json }} },
+      { "@type": "ListItem", "position": 2, "name": "Reviews", "item": {{ page_url | json }} }
+    ]
+  }
+</script>
+
+{%- stylesheet -%}
+  .theinmag-reviews-page {
+    background-color: var(--rp-bg, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--rp-pt, 64px) clamp(16px, 3vw, 32px) var(--rp-pb, 80px);
+  }
+
+  .theinmag-reviews-page__inner {
+    max-width: 940px;
+    margin: 0 auto;
+  }
+
+  .theinmag-reviews-page__header {
+    text-align: center;
+    margin-bottom: clamp(28px, 4vw, 48px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .theinmag-reviews-page__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(34px, 5vw, 56px);
+    line-height: 1.05;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-reviews-page__subhead {
+    margin: clamp(8px, 1vw, 14px) 0 0;
+    max-width: 52ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.78;
+  }
+
+  .theinmag-reviews-page__aggregate {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(8px, 1.2vw, 14px);
+    margin-top: clamp(14px, 1.8vw, 22px);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .theinmag-reviews-page__aggregate-text {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(14px, 1.4vw, 16px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-reviews-page__aggregate-value {
+    color: var(--color-cherry, #B8265E);
+  }
+
+  /* Star primitive - SVG mask shape, grey base, yellow fill clipped by
+     --fill so fractional aggregate ratings render cleanly. Drawn in CSS
+     so it doesn't depend on Judge.me's web font. */
+  .theinmag-reviews-page__stars,
+  .theinmag-reviews-page__card-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .theinmag-reviews-page__star {
+    --star-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2L9.19 8.62 2 9.27l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7L22 9.27l-7.19-.65z'/></svg>");
+    position: relative;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    background-color: rgba(42, 31, 61, 0.18);
+    -webkit-mask-image: var(--star-mask);
+            mask-image: var(--star-mask);
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+            mask-position: center;
+    -webkit-mask-size: contain;
+            mask-size: contain;
+  }
+
+  .theinmag-reviews-page__star::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-yellow, #F9C23C);
+    clip-path: inset(0 calc(100% - var(--fill, 100%)) 0 0);
+  }
+
+  .theinmag-reviews-page__card-stars .theinmag-reviews-page__star {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+  }
+
+  .theinmag-reviews-page__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: clamp(16px, 2vw, 24px);
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    border-radius: 32px;
+    padding: 11px 26px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+  }
+
+  .theinmag-reviews-page__cta:hover,
+  .theinmag-reviews-page__cta:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(42, 31, 61, 0.18);
+    outline: none;
+  }
+
+  .theinmag-reviews-page__empty {
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
+  }
+
+  /* Masonry via CSS columns - cards of varying height flow into the
+     columns, break-inside keeps each card intact. */
+  .theinmag-reviews-page__grid {
+    column-count: 1;
+    column-gap: clamp(14px, 1.6vw, 18px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-reviews-page__grid {
+      column-count: 2;
+      column-gap: clamp(16px, 1.8vw, 22px);
+    }
+  }
+
+  .theinmag-reviews-page__card {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    margin: 0 0 clamp(14px, 1.6vw, 18px);
+    padding: clamp(16px, 1.8vw, 22px);
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    box-shadow: 0 4px 18px rgba(42, 31, 61, 0.12);
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .theinmag-reviews-page__card-media {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 2px;
+  }
+
+  .theinmag-reviews-page__card-photo {
+    width: 100%;
+    max-width: 140px;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-reviews-page__card-video,
+  .theinmag-reviews-page__card-hostedvideo {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 0;
+    background: rgba(42, 31, 61, 0.08);
+  }
+
+  .theinmag-reviews-page__card-video iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .theinmag-reviews-page__card-title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(14px, 1.3vw, 16px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 10px 0 6px;
+  }
+
+  .theinmag-reviews-page__card-body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(13px, 1vw, 14.5px);
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0;
+  }
+
+  .theinmag-reviews-page__card-meta {
+    margin: 12px 0 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 12px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-reviews-page__card-name {
+    font-weight: 600;
+  }
+
+  .theinmag-reviews-page__card-date {
+    opacity: 0.6;
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag reviews page",
+  "tag": "section",
+  "class": "theinmag-reviews-page-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What families are saying"
+    },
+    {
+      "type": "textarea",
+      "id": "subhead",
+      "label": "Subhead",
+      "default": "Real reviews from families across Australia."
+    },
+    {
+      "type": "header",
+      "content": "Write a review button"
+    },
+    {
+      "type": "paragraph",
+      "content": "Paste your Judge.me store-review link to show a 'Write a review' button. Find it in Judge.me: Settings > Request reviews > Links, QR codes and point of sale review collection."
+    },
+    {
+      "type": "text",
+      "id": "review_cta_label",
+      "label": "Button label",
+      "default": "Write a review"
+    },
+    {
+      "type": "url",
+      "id": "review_cta_link",
+      "label": "Button link (Judge.me store-review link)"
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background colour",
+      "default": "#FBF6EA"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 24,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 24,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "theINmag reviews page"
+    }
+  ]
+}
+{% endschema %}
