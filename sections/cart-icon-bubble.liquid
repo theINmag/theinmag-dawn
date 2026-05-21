@@ -26,4 +26,6 @@
   <path d="M5 7h14l-1.2 12.2A2 2 0 0 1 15.81 21H8.19a2 2 0 0 1-1.99-1.8L5 7Z"></path>
   <path d="M9 7V5.5a3 3 0 0 1 6 0V7"></path>
 </svg>
-<span class="theinmag-header__cart-count" data-cart-count>{{ cart.item_count }}</span>
+{%- if cart.item_count > 0 -%}
+  <span class="theinmag-header__cart-count" data-cart-count>{{ cart.item_count }}</span>
+{%- endif -%}
