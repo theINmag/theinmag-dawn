@@ -32,10 +32,37 @@
     var initialBatch = parseInt(gridSection.getAttribute('data-initial-batch'), 10) || 24;
     var batchSize = parseInt(gridSection.getAttribute('data-batch-size'), 10) || 24;
 
+    cards = sortCardsNewestFirst(gridSection, cards, initialBatch);
+
     LazyLoad.init(gridSection, cards, initialBatch, batchSize);
     Filter.init(gridSection, cards);
     Lightbox.init(cards);
     PlaceholderRotator.init();
+  }
+
+  /* ---------- Newest-first ordering ----------
+     Server-side metaobject sort (Liquid `sort` by a field key) returns an empty
+     list, so order here by each card's data-submitted-at (ISO string, lexical
+     sort == chronological). Re-append cards in date order via one fragment
+     (single reflow) and reset the lazy-load hidden flags so the first batch
+     shown is the newest. */
+  function sortCardsNewestFirst(gridSection, cards, initialBatch) {
+    var columns = gridSection.querySelector('[data-theinmag-gallery-columns]');
+    if (!columns || cards.length < 2) return cards;
+    var sorted = cards.slice().sort(function (a, b) {
+      var da = a.getAttribute('data-submitted-at') || '';
+      var db = b.getAttribute('data-submitted-at') || '';
+      if (da === db) return 0;
+      return da < db ? 1 : -1;
+    });
+    var frag = document.createDocumentFragment();
+    sorted.forEach(function (card, i) {
+      if (i < initialBatch) card.classList.remove('theinmag-gallery-card--hidden');
+      else card.classList.add('theinmag-gallery-card--hidden');
+      frag.appendChild(card);
+    });
+    columns.appendChild(frag);
+    return sorted;
   }
 
   /* ---------- LazyLoad ---------- */

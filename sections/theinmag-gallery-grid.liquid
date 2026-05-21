@@ -34,13 +34,11 @@
 
   assign published_subs = ''
   comment
-    Newest submissions first. shop.metaobjects returns entries in creation
-    order (i.e. the order Make/the backfill upserted them), which is NOT
-    submission order - especially during the retrospective import. Sort by the
-    submitted_at field (ISO date string -> lexical sort == chronological), then
-    reverse for descending (newest at the top).
+    Order: server-side metaobject sort proved unreliable (sort by a metaobject
+    field key returned an empty list). Newest-first ordering is done client-side
+    in theinmag-gallery.js, sorting cards by their data-submitted-at attribute.
   endcomment
-  assign submissions = shop.metaobjects.gallery_submission.values | sort: 'submitted_at' | reverse
+  assign submissions = shop.metaobjects.gallery_submission.values
   assign total_published = 0
   for sub in submissions
     if sub.status == 'published'
