@@ -22,13 +22,24 @@
   assign cta_link = section.settings.cta_link
   assign trust_microcopy = section.settings.trust_microcopy
   assign bg_color = section.settings.bg_color | default: '#FBF6EA'
+  assign show_character = section.settings.show_character
+  assign statement_layout = section.settings.layout | default: 'three_col'
+  assign layout_class = ''
+  if statement_layout == 'two_col'
+    assign layout_class = ' theinmag-for-parents-statement--two-col'
+  endif
 -%}
 
 <section
-  class="theinmag-for-parents-statement"
+  class="theinmag-for-parents-statement{{ layout_class }}"
   aria-labelledby="theinmag-for-parents-statement-heading-{{ section.id }}"
   style="--theinmag-fps-bg: {{ bg_color }};"
 >
+  {%- if show_character -%}
+    {% render 'theinmag-character-pool' %}
+    <span class="theinmag-for-parents-statement__character" data-theinmag-pool-character aria-hidden="true"></span>
+  {%- endif -%}
+
   <div class="theinmag-for-parents-statement__inner">
     <div class="theinmag-for-parents-statement__col theinmag-for-parents-statement__col--heading">
       {%- if heading != blank -%}
@@ -74,6 +85,30 @@
     position: relative;
   }
 
+  /* Kid character peeking in near the heading (top-left). Slightly bigger
+     than the standard pillar character. Pops in from the left on scroll;
+     the pool snippet's bob keeps it gently moving. Hidden below desktop so
+     it never clashes with the stacked, centred heading. */
+  .theinmag-for-parents-statement__character {
+    position: absolute;
+    top: clamp(0px, 1vw, 14px);
+    left: clamp(0px, 2vw, 36px);
+    width: clamp(120px, 14vw, 180px);
+    height: auto;
+    z-index: 2;
+    transform: translateX(-44px) rotate(-6deg);
+  }
+
+  .theinmag-for-parents-statement__character.is-popped {
+    transform: translateX(0) rotate(-6deg);
+  }
+
+  @media (max-width: 989px) {
+    .theinmag-for-parents-statement__character {
+      display: none;
+    }
+  }
+
   /* 3-column horizontal layout on desktop: heading | body | CTA+trust.
      Stacks vertically on mobile (heading -> body -> CTA -> trust).
      Each column centers its own content. */
@@ -90,6 +125,35 @@
     .theinmag-for-parents-statement__inner {
       grid-template-columns: 1fr 1fr 1fr;
       gap: clamp(32px, 4vw, 56px);
+    }
+  }
+
+  /* Two-column variant: heading + CTA + trust stack in the left column
+     (CTA sits directly under the heading); the body paragraph sits on the
+     right by itself. Narrower max-width so the block reads more centred. */
+  @media (min-width: 990px) {
+    .theinmag-for-parents-statement--two-col .theinmag-for-parents-statement__inner {
+      max-width: 1040px;
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "heading body"
+        "cta body";
+      column-gap: clamp(40px, 5vw, 72px);
+      row-gap: clamp(16px, 2vw, 24px);
+    }
+
+    .theinmag-for-parents-statement--two-col .theinmag-for-parents-statement__col--heading {
+      grid-area: heading;
+      align-self: end;
+    }
+
+    .theinmag-for-parents-statement--two-col .theinmag-for-parents-statement__col--cta {
+      grid-area: cta;
+      align-self: start;
+    }
+
+    .theinmag-for-parents-statement--two-col .theinmag-for-parents-statement__col--body {
+      grid-area: body;
     }
   }
 
@@ -151,6 +215,23 @@
     {
       "type": "paragraph",
       "content": "Editorial statement panel. 3-column horizontal layout (heading | body | CTA + trust). Cream bg by default - reads as a quiet conversion beat rather than a chapter opener."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_character",
+      "label": "Show kid character near the heading",
+      "info": "Random kid character pops in top-left beside the heading (desktop only).",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "three_col", "label": "Three columns (heading | body | CTA)" },
+        { "value": "two_col", "label": "Two columns (heading + CTA | body)" }
+      ],
+      "default": "three_col"
     },
     {
       "type": "textarea",

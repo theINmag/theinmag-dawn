@@ -48,6 +48,14 @@
     overflow: hidden;
 }
 
+/* Tall-image variant on mobile: near full-height portrait crop so the
+   artwork lands as a big, exciting visual on phones. Opt-in per page. */
+@media (max-width: 767px) {
+    .theinmag-curriculum-accordion--tall-image .theinmag-curriculum-accordion__image-col {
+        aspect-ratio: 3 / 4;
+    }
+}
+
 @media (min-width: 768px) {
     .theinmag-curriculum-accordion__image-col {
         aspect-ratio: auto;

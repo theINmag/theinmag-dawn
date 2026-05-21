@@ -150,6 +150,15 @@
     border-radius: 0;
     box-shadow: none;
   }
+
+  /* Mobile: hug the neighbouring sections so the full-bleed spread doesn't
+     add a big scroll gap above/below. */
+  @media (max-width: 749px) {
+    .theinmag-spread-break {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
 {%- endstylesheet -%}
 
 {% schema %}

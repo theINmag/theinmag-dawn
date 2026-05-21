@@ -107,9 +107,9 @@
         "image_filename": "teachers_sample.jpg",
         "image_alt": "A spread from a recent issue of theINmag - a kid's watercolour air ambulance and a 'Save Dingoes' feature written and drawn by Elsie W., age 11.",
         "caption": "",
-        "full_bleed": false,
+        "full_bleed": true,
         "bg_color": "cream",
-        "padding_top": 24,
+        "padding_top": 0,
         "padding_bottom": 56
       }
     },
@@ -117,7 +117,7 @@
       "type": "theinmag-print-vs-digital",
       "settings": {
         "eyebrow": "",
-        "closing_line": "Whichever you pick, every one of the 120+ pages is filled with real kid creations from across Australia. That's not a feature. That's the whole magazine.",
+        "closing_line": "",
         "show_versus": true,
         "versus_label": "VS",
         "bg_color": "cream",
@@ -157,6 +157,8 @@
       "settings": {
         "heading": "Every kid has something to send IN.",
         "body": "Some kids draw. Some kids write. Some kids build shelters out of sticks, invent maths shortcuts, take photos of the weirdest bugs they can find, or come up with story ideas that nobody else would. The wild, untaught, messy bits - that's where the real learning lives. Send those bits IN.",
+        "show_character": false,
+        "layout": "two_col",
         "cta_label": "Send IN a creation",
         "cta_link": "/pages/send-in",
         "trust_microcopy": "Free to submit. Open to every Aussie kid. Curated kindly."
@@ -173,7 +175,7 @@
       "type": "theinmag-behind-the-mag-see-more",
       "settings": {
         "heading": "From our van to your letterbox.",
-        "subhead": "We're three years into driving Australia with our baby Nora and a printing schedule. Most of what we share is kid-led, screen-light, real. Come along for the ride.",
+        "subhead": "We're two years into driving Australia with our baby Nora, connecting with creative Aussie kids. Come along for the ride.",
         "aeo_heading": "What is life like behind theINmag?"
       },
       "blocks": {
@@ -224,6 +226,7 @@
         "heading": "What's [[IN]]side",
         "subhead": "Real-life experiences, rich open tasks, and a few hundred Aussie kids your kid hasn't met yet. Here's how each issue is broken down.",
         "subhead_size": "small",
+        "mobile_tall_image": true,
         "image_filename": "blog-image-universal-03.jpg",
         "image_alt": "An Australian homeschool kid engaging with theINmag at home.",
         "caption": ""
@@ -263,7 +266,7 @@
             "number": "04",
             "section_name": "Making the Best Me",
             "kicker": "WELLBEING",
-            "body": "Real reflections from real kids on big feelings, friendships and staying safe. It's something to see kids share the little strategies that keep them steady. A gentle conversation starter for the kitchen table whenever you need one."
+            "body": "Real reflections from real kids on big feelings, friendships and staying safe. It's quite empowering to see kids share the little strategies that help them find balance. A gentle conversation starter for the kitchen table whenever you need one."
           }
         },
         "i5": {
@@ -406,7 +409,7 @@
       "type": "theinmag-for-parents-founders",
       "settings": {
         "eyebrow": "WHO MAKES THIS",
-        "heading": "Two teachers, three years on the road, one magazine.",
+        "heading": "Two teachers, two years on the road, one magazine.",
         "body": "We're Ryan and Tam - partners, parents, and former classroom teachers. We saw too many kids switch off the moment learning turned creativity into a worksheet. theINmag is the thing we wished existed for them. Three issues a year of pure kid creativity, designed to inspire and give real kids a voice.",
         "anchor_label": "Read our full story",
         "anchor_link": "/pages/behind-the-mag",
@@ -486,9 +489,11 @@
     "faq": {
       "type": "theinmag-teacher-faq",
       "settings": {
-        "heading": "Frequently asked questions",
-        "subhead": "The questions homeschool families actually ask us.",
-        "bg_image_filename": "background_homeschoolFAQ.jpg",
+        "heading": "Ask away",
+        "subhead": "The questions homeschool families actually&nbsp;ask&nbsp;us.",
+        "compact": true,
+        "show_character": true,
+        "bg_image_filename": "background_homeschoolFAQ1.jpg",
         "bg_image_opacity": 30
       },
       "blocks": {
@@ -496,7 +501,7 @@
           "type": "item",
           "settings": {
             "question": "Is theINmag a curriculum?",
-            "answer": "<p>No. theINmag is a 120+ page print and digital magazine made entirely by Australian kids. It sits alongside whatever you're doing - it's not a replacement for your homeschool curriculum, it's the bit your kid will actually want to pick up.</p><p>Most homeschool families use it as a launchpad for rich open tasks, mentor texts, art prompts, and rabbit holes their kid chooses.</p>"
+            "answer": "<p>No. theINmag is a 120+ page print and digital magazine made entirely by Australian kids. It sits alongside whatever you're doing - it's not a replacement for your homeschool curriculum, but it is something your kid will actually want to pick up.</p><p>Most homeschool families use it as a launchpad for rich open tasks, mentor texts, and art prompts.</p>"
           }
         },
         "q2": {

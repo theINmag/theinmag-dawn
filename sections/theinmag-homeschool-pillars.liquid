@@ -168,6 +168,13 @@
     overflow: hidden;
   }
 
+  /* Mobile: tighten the bottom gap so the spread below sits closer. */
+  @media (max-width: 749px) {
+    .theinmag-homeschool-pillars {
+      padding-bottom: 32px;
+    }
+  }
+
   /* Soft full-bleed background wash, sits over the --hp-bg ground colour
      so the ground tints through wherever the image is transparent. Opacity
      keeps the heading + intro readable. Doubled-class selector + display:block

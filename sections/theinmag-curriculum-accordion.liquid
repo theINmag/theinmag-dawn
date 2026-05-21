@@ -35,6 +35,12 @@
     assign subhead_modifier = ' theinmag-curriculum-accordion__subhead--small'
   endif
 
+  assign tall_image = section.settings.mobile_tall_image
+  assign section_modifier = ''
+  if tall_image
+    assign section_modifier = ' theinmag-curriculum-accordion--tall-image'
+  endif
+
   assign image = section.settings.image
   assign image_filename = section.settings.image_filename
   assign image_alt = section.settings.image_alt | default: 'An Australian classroom engaging with theINmag.'
@@ -42,7 +48,7 @@
 -%}
 
 <section
-  class="theinmag-curriculum-accordion"
+  class="theinmag-curriculum-accordion{{ section_modifier }}"
   aria-labelledby="theinmag-curriculum-accordion-heading-{{ section.id }}"
 >
   {% render 'theinmag-character-pool' %}
@@ -238,6 +244,13 @@
         { "value": "small", "label": "Small" }
       ],
       "default": "default"
+    },
+    {
+      "type": "checkbox",
+      "id": "mobile_tall_image",
+      "label": "Tall image on mobile",
+      "info": "Makes the left image near full-height on phones (portrait 3:4) instead of the default 4:3.",
+      "default": false
     },
     {
       "type": "header",

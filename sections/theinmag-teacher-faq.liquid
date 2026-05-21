@@ -17,6 +17,8 @@
 {%- liquid
   assign heading = section.settings.heading | default: 'Teacher questions, answered.'
   assign subhead = section.settings.subhead | default: 'The stuff teachers actually ask us.'
+  assign compact = section.settings.compact
+  assign show_character = section.settings.show_character
 
   assign bg_image_filename = section.settings.bg_image_filename
   assign bg_image_opacity = section.settings.bg_image_opacity | default: 30
@@ -32,7 +34,7 @@
 -%}
 
 <section
-  class="theinmag-teacher-faq"
+  class="theinmag-teacher-faq{% if compact %} theinmag-teacher-faq--compact{% endif %}"
   aria-labelledby="theinmag-teacher-faq-heading-{{ section.id }}"
   style="--tfaq-bg-opacity: {{ bg_image_opacity_decimal }};{% if bg_image_filename != blank %} --tfaq-bg-image: url('{{ bg_image_filename | asset_url }}');{% endif %}"
 >
@@ -43,6 +45,11 @@
   <div class="theinmag-teacher-faq__inner">
 
     <header class="theinmag-teacher-faq__header">
+      {%- if show_character -%}
+        {% render 'theinmag-character-pool' %}
+        <span class="theinmag-teacher-faq__character" data-theinmag-pool-character aria-hidden="true"></span>
+      {%- endif -%}
+
       {%- if heading != blank -%}
         <h2
           id="theinmag-teacher-faq-heading-{{ section.id }}"
@@ -232,8 +239,32 @@
   }
 
   .theinmag-teacher-faq__header {
+    position: relative;
     text-align: center;
     margin-bottom: clamp(48px, 6vw, 80px);
+  }
+
+  /* Kid character to the left of the centred heading. Bigger than the
+     standard pool character, pops in from the left on scroll. Hidden on
+     mobile so it never clashes with the centred heading. */
+  .theinmag-teacher-faq__character {
+    position: absolute;
+    top: clamp(-44px, -2.5vw, -16px);
+    left: clamp(0px, 3vw, 56px);
+    width: clamp(120px, 13vw, 180px);
+    height: auto;
+    z-index: 3;
+    transform: translateX(-32px) rotate(-7deg);
+  }
+
+  .theinmag-teacher-faq__character.is-popped {
+    transform: translateX(0) rotate(-7deg);
+  }
+
+  @media (max-width: 767px) {
+    .theinmag-teacher-faq__character {
+      display: none;
+    }
   }
 
   .theinmag-teacher-faq__heading {
@@ -257,6 +288,25 @@
     line-height: 1.3;
     letter-spacing: -0.01em;
     color: var(--color-text, #2A1F3D);
+  }
+
+  /* Compact variant - tighter top/bottom space, smaller header gap and a
+     lighter, smaller subhead. Opt-in per page so the teachers FAQ keeps
+     its roomier default. */
+  .theinmag-teacher-faq--compact {
+    padding-top: clamp(36px, 5vw, 64px);
+    padding-bottom: clamp(36px, 5vw, 64px);
+  }
+
+  .theinmag-teacher-faq--compact .theinmag-teacher-faq__header {
+    margin-bottom: clamp(24px, 3vw, 40px);
+  }
+
+  .theinmag-teacher-faq--compact .theinmag-teacher-faq__subhead {
+    font-weight: 500;
+    font-size: clamp(15px, 1.7vw, 18px);
+    line-height: 1.5;
+    color: rgba(42, 31, 61, 0.78);
   }
 
   .theinmag-teacher-faq__list {
@@ -414,6 +464,19 @@
       "id": "subhead",
       "label": "Subhead",
       "default": "The stuff teachers actually ask us."
+    },
+    {
+      "type": "checkbox",
+      "id": "compact",
+      "label": "Compact spacing + smaller subhead",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_character",
+      "label": "Show kid character left of the heading",
+      "info": "Random kid character pops in to the left of the heading (desktop only).",
+      "default": false
     },
     {
       "type": "header",
