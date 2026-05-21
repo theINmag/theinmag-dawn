@@ -116,27 +116,48 @@
   role="button"
   aria-label="View creation by {{ first_name }} {{ last_initial }}{% if town != blank %} from {{ town }}{% endif %}"
 >
-  <div class="theinmag-gallery-card__media">
-    <img
-      class="theinmag-gallery-card__image"
-      src="{{ cover_url }}"
-      alt="{{ alt_text }}"
-      loading="lazy"
-      decoding="async"
-      draggable="false"
-      oncontextmenu="return false;"
-    />
-    {%- if image_count > 1 -%}
-      <span class="theinmag-gallery-card__badge" aria-label="{{ image_count }} pages">
-        <span class="theinmag-gallery-card__badge-current">1</span>/<span class="theinmag-gallery-card__badge-total">{{ image_count }}</span>
-      </span>
-    {%- endif -%}
-  </div>
+  {%- comment -%}
+    Text-only submissions have no image_files, so they render a native styled
+    "writing" card (cream surface + quote mark) instead of an <img> - an empty
+    src="" otherwise shows as a broken image. See gallery-build-spec Section 4
+    "Text-only submission tiles" (the Canva-card approach was deferred; this is
+    the in-Liquid v1).
+  {%- endcomment -%}
+  {%- if is_text_only -%}
+    {%- comment -%}
+      Text-only: no media block (an empty <img> renders as a broken image).
+      Same dark tile + white text as image cards - just attribution + the
+      writing. newline_to_br preserves the kid's paragraph breaks.
+    {%- endcomment -%}
+    <div class="theinmag-gallery-card__meta">
+      <p class="theinmag-gallery-card__attribution">{{ attribution_parts }}</p>
+      {%- if write_up != blank -%}
+        <p class="theinmag-gallery-card__writeup theinmag-gallery-card__writeup--text">{{ write_up | escape | newline_to_br }}</p>
+      {%- endif -%}
+    </div>
+  {%- else -%}
+    <div class="theinmag-gallery-card__media">
+      <img
+        class="theinmag-gallery-card__image"
+        src="{{ cover_url }}"
+        alt="{{ alt_text }}"
+        loading="lazy"
+        decoding="async"
+        draggable="false"
+        oncontextmenu="return false;"
+      />
+      {%- if image_count > 1 -%}
+        <span class="theinmag-gallery-card__badge" aria-label="{{ image_count }} pages">
+          <span class="theinmag-gallery-card__badge-current">1</span>/<span class="theinmag-gallery-card__badge-total">{{ image_count }}</span>
+        </span>
+      {%- endif -%}
+    </div>
 
-  <div class="theinmag-gallery-card__meta">
-    <p class="theinmag-gallery-card__attribution">{{ attribution_parts }}</p>
-    {%- if write_up != blank -%}
-      <p class="theinmag-gallery-card__writeup">{{ write_up }}</p>
-    {%- endif -%}
-  </div>
+    <div class="theinmag-gallery-card__meta">
+      <p class="theinmag-gallery-card__attribution">{{ attribution_parts }}</p>
+      {%- if write_up != blank -%}
+        <p class="theinmag-gallery-card__writeup">{{ write_up }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
 </article>

@@ -124,14 +124,20 @@
 @media (min-width: 768px) {
   .theinmag-gallery-filter-bar__row {
     flex-direction: row;
-    /* Top-align so the heading's top edge sits on the same baseline
-       as the top of the search input - per Ryan's iteration. */
+    /* Heading stays top-left; the controls drop to the bottom (see
+       __controls-wrap align-self below). */
     align-items: flex-start;
     /* flex-start + titles{flex:1} so the heading hugs the character
        with only `gap` between them. space-between was eating my gap
        and pushing the titles toward center. */
     justify-content: flex-start;
     gap: 14px;
+  }
+
+  .theinmag-gallery-filter-bar__controls-wrap {
+    /* Bottom-align the controls so the disclaimer's bottom edge lines up
+       with the subhead's bottom (no extra tile height). Ryan, 21 May. */
+    align-self: flex-end;
   }
 }
 
@@ -218,6 +224,12 @@
   color: var(--color-inky-purple-navy, #2A1F3D);
   opacity: 0.78;
   margin: 0;
+}
+
+@media (max-width: 600px) {
+  .theinmag-gallery-filter-bar__subhead {
+    font-size: 13px;
+  }
 }
 
 .theinmag-gallery-filter-bar__controls-wrap {
@@ -516,6 +528,13 @@
   overflow: hidden;
 }
 
+/* Text-only (writing) card: same dark tile + white text as image cards, no
+   media. The writing is the card's content, so it shows more lines than the
+   image-card teaser. newline_to_br (in the snippet) preserves paragraph breaks. */
+.theinmag-gallery-card__writeup--text {
+  -webkit-line-clamp: 10;
+}
+
 /* ---------- Section 5: Lightbox ---------- */
 
 .theinmag-gallery-lightbox[hidden] {
@@ -546,10 +565,19 @@
   max-width: 720px;
   width: 100%;
   max-height: 92vh;
-  overflow-y: auto;
+  /* Panel itself no longer scrolls - the inner __scroll does - so the
+     absolutely-positioned close button stays pinned top-right. overflow
+     hidden clips the scroll child to the rounded corners. */
+  overflow: hidden;
   color: #FFFFFF;
   display: flex;
   flex-direction: column;
+}
+
+.theinmag-gallery-lightbox__scroll {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 @media (max-width: 600px) {
@@ -573,7 +601,8 @@
   height: 36px;
   border-radius: 999px;
   border: none;
-  background-color: rgba(20, 15, 30, 0.7);
+  /* Near-solid so it stays legible over text scrolling beneath it. */
+  background-color: rgba(20, 15, 30, 0.92);
   color: #FFFFFF;
   cursor: pointer;
   display: inline-flex;
@@ -583,7 +612,7 @@
 }
 
 .theinmag-gallery-lightbox__close:hover {
-  background-color: rgba(20, 15, 30, 0.9);
+  background-color: rgba(20, 15, 30, 1);
 }
 
 .theinmag-gallery-lightbox__media {
