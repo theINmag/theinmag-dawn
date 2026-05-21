@@ -77,13 +77,15 @@
 {%- capture right_small_cards -%}{%- endcapture -%}
 
 {%- comment -%}
-  Slot counts: 2 large_left + 2 bottom_small + 5 right_small = 9.
-  Dropped from 6 -> 5 right_small (18 May, Ryan tuning) to slow
-  the parallax further - smaller column = smaller maxOffset = same
-  translation completes over more scroll = slower visible pace.
+  Slot counts: 2 large_left + 2 bottom_small + 7 right_small = 11.
+  Bumped right 5 -> 7 (2026-05-22, Ryan) to refill the right column:
+  the left column is taller, so too few right cards left the
+  parallax window (height = left column) under-filled, showing blank
+  lavender that read as a dropped blog. More right cards = taller
+  filmstrip than the left = window stays full through the scroll.
 {%- endcomment -%}
 {%- for auto_article in blog.articles limit: 50 -%}
-  {%- if auto_count >= 9 -%}{%- break -%}{%- endif -%}
+  {%- if auto_count >= 11 -%}{%- break -%}{%- endif -%}
   {%- if auto_article.handle == feature_handle -%}{%- continue -%}{%- endif -%}
 
   {%- if auto_count < 2 -%}
@@ -699,14 +701,15 @@
     aspect-ratio: 4 / 3;
   }
 
-  /* Regular card title size unified across large_left, bottom_small,
-     and right_small. The 18 May hierarchy attempt (large/bottom bigger
-     than right) broke the parallax tuning - the JS reads rightInner
-     vs leftCol heights and a height mismatch between columns made
-     the scroll feel either too fast or too late. Restored to the
-     original unified clamp so the parallax stays calm. */
+  /* Heading hierarchy (re-introduced 2026-05-22 per Ryan): the left
+     column (large_left + bottom_small) sits a step larger than
+     right_small so the left reads as the lead. The 18 May revert to a
+     unified size was because the size gap shrank the right filmstrip
+     vs the left column and threw the parallax pace; compensated here by
+     bumping the right_small auto-pull count (5 -> 7) so the right column
+     still out-heights the left and the parallax window stays filled. */
   .theinmag-editorial__card--large_left .theinmag-editorial__card-title {
-    font-size: clamp(21px, 1.9vw, 24px);
+    font-size: clamp(22px, 2.1vw, 27px);
   }
 
   /* ================================================================
@@ -729,7 +732,7 @@
   }
 
   .theinmag-editorial__card--bottom_small .theinmag-editorial__card-title {
-    font-size: clamp(21px, 1.9vw, 24px);
+    font-size: clamp(22px, 2.1vw, 27px);
     -webkit-line-clamp: 2;
   }
 
@@ -768,7 +771,7 @@
   }
 
   .theinmag-editorial__card--right_small .theinmag-editorial__card-title {
-    font-size: clamp(21px, 1.9vw, 24px);
+    font-size: clamp(18px, 1.6vw, 21px);
     -webkit-line-clamp: 2;
   }
 
