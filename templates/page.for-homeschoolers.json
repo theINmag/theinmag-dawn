@@ -26,12 +26,12 @@
         "aeo_h1_text": "theINmag for Australian Homeschool Families - Kid-Created Print and Digital Magazine",
         "headline": "Kids inspiring kids.",
         "emphasis_word": "inspiring",
-        "subhead": "Real Aussie kid creations - 120+ pages, no ads, no timetable.<br>The kind of learning that sticks because it's theirs.",
+        "subhead": "Real Aussie kid creations - 120+ pages, no ads, no timetable. The kind of learning that sticks.",
         "cta_primary_label": "See the gallery",
         "cta_primary_link": "/pages/gallery",
         "cta_secondary_label": "Get the Membership",
         "cta_secondary_link": "/products/membership",
-        "dish_strip": "WONDERINGS · RABBIT HOLES · KID-LED · MULTI-AGE · REAL · PRINTED",
+        "dish_strip": "KID-LED · MULTI-AGE · RICH & AUTHENTIC LEARNING",
         "image_filename": "HERO_audiences-homeschoolers.jpg",
         "image_alt": "An Australian homeschool kid with their copy of theINmag at the kitchen table.",
         "show_trust_bar": false
@@ -62,6 +62,8 @@
         "intro_text": "There's so many reasons homeschoolers love theINmag. Here's three we keep hearing...",
         "show_character": true,
         "bg_color": "cream",
+        "bg_image_filename": "homeschool_background.jpg",
+        "bg_image_opacity": 55,
         "padding_top": 96,
         "padding_bottom": 96
       },
@@ -69,15 +71,17 @@
         "card-1": {
           "type": "card",
           "settings": {
+            "image_filename": "homeschool1.jpg",
             "eyebrow": "INTERESTS",
             "headline": "The first read of the day.",
-            "body": "Real Aussie kids fill every page. Their stories, their art, their jokes, their wonderings. The reader who 'doesn't love reading' suddenly does - because the content actually belongs to them. Hand it over with a cuppa and watch.",
+            "body": "Real Aussie kids fill every page. Their stories, their art, their jokes, their wonderings. The reader who 'doesn't love reading' suddenly does - because the content actually belongs to them. Hand it over, grab a cuppa and watch.",
             "image_alt": "A homeschool kid reading theINmag at the kitchen table."
           }
         },
         "card-2": {
           "type": "card",
           "settings": {
+            "image_filename": "homeschool2.jpg",
             "eyebrow": "NO PLANNING",
             "headline": "Open it. That's the plan.",
             "body": "Each issue is 120+ pages of open-ended prompts, rich tasks, and rabbit holes your kid can chase wherever they like. No prep. No worksheets. No 'lesson' baked in. Just permission to go.",
@@ -87,6 +91,7 @@
         "card-3": {
           "type": "card",
           "settings": {
+            "image_filename": "homeschool3.jpg",
             "eyebrow": "COMMUNITY",
             "headline": "Your kid is not alone.",
             "body": "The biggest gift theINmag gives homeschool kids - seeing other kids their age, doing wild creative things, all over Australia. Suddenly their world is bigger. Suddenly there's a community on the page.",
@@ -96,11 +101,25 @@
       },
       "block_order": ["card-1", "card-2", "card-3"]
     },
+    "spread-break": {
+      "type": "theinmag-spread-break",
+      "settings": {
+        "image_filename": "teachers_sample.jpg",
+        "image_alt": "A spread from a recent issue of theINmag - a kid's watercolour air ambulance and a 'Save Dingoes' feature written and drawn by Elsie W., age 11.",
+        "caption": "",
+        "full_bleed": false,
+        "bg_color": "cream",
+        "padding_top": 24,
+        "padding_bottom": 56
+      }
+    },
     "print-vs-digital": {
       "type": "theinmag-print-vs-digital",
       "settings": {
-        "eyebrow": "Print or digital?",
+        "eyebrow": "",
         "closing_line": "Whichever you pick, every one of the 120+ pages is filled with real kid creations from across Australia. That's not a feature. That's the whole magazine.",
+        "show_versus": true,
+        "versus_label": "VS",
         "bg_color": "cream",
         "padding_top": 80,
         "padding_bottom": 80
@@ -110,9 +129,11 @@
           "type": "column",
           "settings": {
             "heading": "Print",
-            "image_alt": "A printed copy of theINmag.",
+            "image_filename": "membership-hero-print.jpg",
+            "image_alt": "An Australian kid reading the printed theINmag, a stack of past issues on her lap.",
             "bullets": "Something to hold, fold, and live with\nReading off-screen is good for brains and bodies\nLands in your letterbox - the excitement is real\nBecomes part of the homeschool shelf forever",
             "cta_label": "See print memberships",
+            "cta_emphasis": "print",
             "cta_link": "/products/membership"
           }
         },
@@ -120,9 +141,11 @@
           "type": "column",
           "settings": {
             "heading": "Digital",
-            "image_alt": "theINmag on a tablet.",
+            "image_filename": "membership-hero-digital.jpg",
+            "image_alt": "An Australian kid reading theINmag on a tablet.",
             "bullets": "Instant access, anywhere - bush, beach, road trip\nGrab any back issue, even sold-out ones\nPrint pages you love, share with the whole family\nBuilds the digital literacy kids need anyway",
             "cta_label": "See digital memberships",
+            "cta_emphasis": "digital",
             "cta_link": "/products/membership"
           }
         }
@@ -137,6 +160,13 @@
         "cta_label": "Send IN a creation",
         "cta_link": "/pages/send-in",
         "trust_microcopy": "Free to submit. Open to every Aussie kid. Curated kindly."
+      }
+    },
+    "ugc": {
+      "type": "theinmag-membership-ugc",
+      "settings": {
+        "padding_top": 0,
+        "padding_bottom": 0
       }
     },
     "branching-out": {
@@ -192,7 +222,8 @@
       "type": "theinmag-curriculum-accordion",
       "settings": {
         "heading": "What's [[IN]]side",
-        "subhead": "No textbooks. No worksheets. Just kids. Real-life experiences, rich open tasks, and a few hundred Aussie kids your kid hasn't met yet. Here's how each issue is broken down.",
+        "subhead": "Real-life experiences, rich open tasks, and a few hundred Aussie kids your kid hasn't met yet. Here's how each issue is broken down.",
+        "subhead_size": "small",
         "image_filename": "blog-image-universal-03.jpg",
         "image_alt": "An Australian homeschool kid engaging with theINmag at home.",
         "caption": ""
@@ -379,17 +410,17 @@
         "body": "We're Ryan and Tam - partners, parents, and former classroom teachers. We saw too many kids switch off the moment learning turned creativity into a worksheet. theINmag is the thing we wished existed for them. Three issues a year of pure kid creativity, designed to inspire and give real kids a voice.",
         "anchor_label": "Read our full story",
         "anchor_link": "/pages/behind-the-mag",
-        "image_filename": "parents_tamandryan.jpg",
-        "image_alt": "Ryan and Tam, the two former teachers behind theINmag."
+        "image_filename": "homeschoolers_founders.jpg",
+        "image_alt": "Ryan and Tam, the two former teachers behind theINmag, holding a copy of the magazine."
       }
     },
     "pull-quote": {
       "type": "theinmag-pull-quote",
       "settings": {
-        "quote_headline": "A retired principal's pick for the grandkids",
-        "quote_body": "Many thanks! Congratulations on a great effort. I'm a retired principal from primary schools and I am now looking for things for my grandchildren of an educational nature.",
-        "attribution_name": "Doug F.",
-        "attribution_role": "retired primary principal",
+        "quote_headline": "A mum's high-five for the whole team",
+        "quote_body": "A hearty high-five to you and your team at theINmag on a wonderful idea and the resulting fantastic magazine.",
+        "attribution_name": "Eza V",
+        "attribution_role": "mum",
         "background_filename": "theinside-homepage-background.jpg",
         "scrim_opacity": 45,
         "heading_font_style": "inter",
@@ -456,7 +487,9 @@
       "type": "theinmag-teacher-faq",
       "settings": {
         "heading": "Frequently asked questions",
-        "subhead": "The questions homeschool families actually ask us."
+        "subhead": "The questions homeschool families actually ask us.",
+        "bg_image_filename": "background_homeschoolFAQ.jpg",
+        "bg_image_opacity": 30
       },
       "blocks": {
         "q1": {
@@ -579,8 +612,10 @@
     "shop-trust-strip",
     "consent-banner",
     "in-your-home",
+    "spread-break",
     "print-vs-digital",
     "statement",
+    "ugc",
     "branching-out",
     "comps",
     "curriculum-accordion",

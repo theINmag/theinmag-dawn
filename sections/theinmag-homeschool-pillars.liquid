@@ -42,6 +42,9 @@
       assign bg_var = '--color-sky'
   endcase
 
+  assign bg_image = section.settings.bg_image_filename
+  assign bg_op = section.settings.bg_image_opacity | default: 55 | divided_by: 100.0
+
   assign pt = section.settings.padding_top | default: 96
   assign pb = section.settings.padding_bottom | default: 96
 -%}
@@ -51,6 +54,14 @@
   aria-labelledby="theinmag-homeschool-pillars-heading-{{ section.id }}"
   style="--hp-bg: var({{ bg_var }}, #FBF6EA); --hp-pt: {{ pt }}px; --hp-pb: {{ pb }}px;"
 >
+  {%- if bg_image != blank -%}
+    <div
+      class="theinmag-homeschool-pillars__bg"
+      aria-hidden="true"
+      style="background-image: url('{{ bg_image | asset_url }}'); --hp-bg-opacity: {{ bg_op }};"
+    ></div>
+  {%- endif -%}
+
   {%- if show_character -%}
     {% render 'theinmag-character-pool' %}
   {%- endif -%}
@@ -157,6 +168,23 @@
     overflow: hidden;
   }
 
+  /* Soft full-bleed background wash, sits over the --hp-bg ground colour
+     so the ground tints through wherever the image is transparent. Opacity
+     keeps the heading + intro readable. Doubled-class selector + display:block
+     beats Dawn base.css `div:empty {display:none}` (0,1,1) - this decorative
+     layer has no children so it would otherwise collapse. */
+  .theinmag-homeschool-pillars__bg.theinmag-homeschool-pillars__bg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: var(--hp-bg-opacity, 0.55);
+    z-index: 0;
+    pointer-events: none;
+  }
+
   .theinmag-homeschool-pillars__inner {
     position: relative;
     z-index: 1;
@@ -206,7 +234,7 @@
 
   .theinmag-homeschool-pillars__intro {
     margin: 0 auto;
-    max-width: 60ch;
+    max-width: min(100%, 840px);
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
     font-size: clamp(15px, 1.6vw, 17px);
@@ -371,6 +399,21 @@
         { "value": "sky", "label": "Sky" }
       ],
       "default": "cream"
+    },
+    {
+      "type": "text",
+      "id": "bg_image_filename",
+      "label": "Background image filename in /assets/",
+      "info": "Optional. Soft full-bleed image behind the cards. Use Background opacity to keep the heading and intro readable."
+    },
+    {
+      "type": "range",
+      "id": "bg_image_opacity",
+      "label": "Background opacity (%)",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 55
     },
     {
       "type": "range",

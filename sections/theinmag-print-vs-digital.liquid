@@ -4,9 +4,12 @@
   Replaces the single-column "Built to be shared" split-tile on the
   audience pages with a two-column compare.
 
-  Layout: centred eyebrow, then two columns (thumbnail + heading + tick
-  bullets + CTA) side-by-side on desktop, stacked on mobile (first block
-  first). A full-width centred closing line sits below both columns.
+  Layout: centred eyebrow, then two image-led tiles side-by-side on desktop
+  (stacked on mobile, first block first) with an optional Post-font "VS"
+  divider between them. Each tile = full-bleed image filling the top with the
+  PRINT / DIGITAL heading overlaid (white-on-scrim, Post font), then tick
+  bullets + CTA below. The CTA can enlarge one word (cta_emphasis) in Post
+  font. A full-width centred closing line sits below both tiles.
 
   Bullets are entered one-per-line in each column's Bullets textarea and
   split on render. Tick icon matches theinmag-split-tile (mint-dark).
@@ -18,6 +21,8 @@
 {%- liquid
   assign eyebrow = section.settings.eyebrow
   assign closing_line = section.settings.closing_line
+  assign show_versus = section.settings.show_versus
+  assign versus_label = section.settings.versus_label | default: 'VS'
 
   assign bg = section.settings.bg_color | default: 'cream'
   assign bg_var = '--color-cream'
@@ -50,7 +55,7 @@
       <p class="theinmag-pvd__eyebrow" id="theinmag-pvd-eyebrow-{{ section.id }}">{{ eyebrow }}</p>
     {%- endif -%}
 
-    <div class="theinmag-pvd__grid">
+    <div class="theinmag-pvd__grid{% if show_versus %} theinmag-pvd__grid--versus{% endif %}">
       {%- for block in section.blocks -%}
         {%- if block.type == 'column' -%}
           {%- liquid
@@ -58,15 +63,21 @@
             assign col_filename = block.settings.image_filename
             assign col_alt = block.settings.image_alt | default: ''
             assign bullet_rows = block.settings.bullets | newline_to_br | split: '<br />'
+            assign cta_label = block.settings.cta_label
+            assign cta_em = block.settings.cta_emphasis
+            if cta_em != blank and cta_label != blank
+              assign cta_em_html = '<span class="theinmag-pvd__cta-em">' | append: cta_em | append: '</span>'
+              assign cta_label = cta_label | replace: cta_em, cta_em_html
+            endif
           -%}
           <article class="theinmag-pvd__col" {{ block.shopify_attributes }}>
             <div class="theinmag-pvd__col-media">
               {%- if col_image != blank -%}
                 <img
                   class="theinmag-pvd__col-image"
-                  src="{{ col_image | image_url: width: 400 }}"
-                  srcset="{{ col_image | image_url: width: 200 }} 200w, {{ col_image | image_url: width: 400 }} 400w"
-                  sizes="160px"
+                  src="{{ col_image | image_url: width: 800 }}"
+                  srcset="{{ col_image | image_url: width: 500 }} 500w, {{ col_image | image_url: width: 800 }} 800w, {{ col_image | image_url: width: 1100 }} 1100w"
+                  sizes="(min-width: 768px) 45vw, 90vw"
                   width="{{ col_image.width }}"
                   height="{{ col_image.height }}"
                   alt="{{ col_alt | escape }}"
@@ -82,37 +93,43 @@
               {%- else -%}
                 <div class="theinmag-pvd__col-placeholder" aria-hidden="true"><span>TBC</span></div>
               {%- endif -%}
+
+              {%- if block.settings.heading != blank -%}
+                <h3 class="theinmag-pvd__col-heading">{{ block.settings.heading }}</h3>
+              {%- endif -%}
             </div>
 
-            {%- if block.settings.heading != blank -%}
-              <h3 class="theinmag-pvd__col-heading">{{ block.settings.heading }}</h3>
-            {%- endif -%}
+            <div class="theinmag-pvd__col-body">
+              {%- if bullet_rows.size > 0 -%}
+                <ul class="theinmag-pvd__bullets" role="list">
+                  {%- for row in bullet_rows -%}
+                    {%- assign row_text = row | strip -%}
+                    {%- if row_text != blank -%}
+                      <li class="theinmag-pvd__bullet">
+                        <svg class="theinmag-pvd__check" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                          <circle cx="10" cy="10" r="10" fill="currentColor" opacity="0.12"/>
+                          <path d="M5.5 10.5l3 3 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="theinmag-pvd__bullet-text">{{ row_text }}</span>
+                      </li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
 
-            {%- if bullet_rows.size > 0 -%}
-              <ul class="theinmag-pvd__bullets" role="list">
-                {%- for row in bullet_rows -%}
-                  {%- assign row_text = row | strip -%}
-                  {%- if row_text != blank -%}
-                    <li class="theinmag-pvd__bullet">
-                      <svg class="theinmag-pvd__check" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                        <circle cx="10" cy="10" r="10" fill="currentColor" opacity="0.12"/>
-                        <path d="M5.5 10.5l3 3 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                      <span class="theinmag-pvd__bullet-text">{{ row_text }}</span>
-                    </li>
-                  {%- endif -%}
-                {%- endfor -%}
-              </ul>
-            {%- endif -%}
-
-            {%- if block.settings.cta_label != blank -%}
-              <div class="theinmag-pvd__cta">
-                <a class="theinmag-btn theinmag-btn--primary" href="{{ block.settings.cta_link | default: '#' }}">
-                  {{- block.settings.cta_label -}}
-                </a>
-              </div>
-            {%- endif -%}
+              {%- if cta_label != blank -%}
+                <div class="theinmag-pvd__cta">
+                  <a class="theinmag-btn theinmag-btn--primary" href="{{ block.settings.cta_link | default: '#' }}">
+                    <span class="theinmag-pvd__cta-label">{{ cta_label }}</span>
+                  </a>
+                </div>
+              {%- endif -%}
+            </div>
           </article>
+
+          {%- if show_versus and forloop.first and section.blocks.size > 1 -%}
+            <div class="theinmag-pvd__vs" aria-hidden="true"><span>{{ versus_label }}</span></div>
+          {%- endif -%}
         {%- endif -%}
       {%- endfor -%}
     </div>
@@ -150,35 +167,92 @@
   .theinmag-pvd__grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: clamp(20px, 3vw, 32px);
+    gap: clamp(16px, 2.5vw, 28px);
+    align-items: stretch;
   }
 
   @media (min-width: 768px) {
     .theinmag-pvd__grid {
       grid-template-columns: 1fr 1fr;
     }
+
+    .theinmag-pvd__grid--versus {
+      grid-template-columns: 1fr auto 1fr;
+      gap: clamp(12px, 2vw, 28px);
+    }
+  }
+
+  /* Playful Post-font divider between the two tiles. Stretches the full
+     row height on desktop so the "VS" sits centred between the cards;
+     becomes a row between the stacked cards on mobile. */
+  .theinmag-pvd__vs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(4px, 1vw, 8px) 0;
+  }
+
+  .theinmag-pvd__vs span {
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(110px, 14vw, 190px);
+    line-height: 1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    transform: rotate(-6deg);
+    animation: theinmag-pvd-vs-wobble 5s ease-in-out infinite;
+  }
+
+  /* Periodic wobble around the resting -6deg tilt, matching the
+     consent-banner button micro-animation cadence. */
+  @keyframes theinmag-pvd-vs-wobble {
+    0%, 88%, 100% { transform: rotate(-6deg); }
+    91% { transform: rotate(-12deg); }
+    94% { transform: rotate(0deg); }
+    97% { transform: rotate(-8deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-pvd__vs span { animation: none; }
   }
 
   .theinmag-pvd__col {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     background-color: #ffffff;
     border-radius: var(--radius-lg, 20px);
-    padding: clamp(28px, 3.5vw, 44px);
+    overflow: hidden;
     box-shadow: 0 2px 12px rgba(42, 31, 61, 0.06);
   }
 
+  /* Image fills the top of the tile; the PRINT / DIGITAL heading sits on
+     top of it, white-on-scrim for readability over any photo. */
   .theinmag-pvd__col-media {
-    width: clamp(96px, 14vw, 140px);
-    margin-bottom: clamp(16px, 2vw, 24px);
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+  }
+
+  .theinmag-pvd__col-media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.58) 0%,
+      rgba(0, 0, 0, 0.18) 38%,
+      rgba(0, 0, 0, 0) 62%
+    );
+    pointer-events: none;
+    z-index: 1;
   }
 
   .theinmag-pvd__col-image {
     display: block;
     width: 100%;
-    height: auto;
-    object-fit: contain;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
   }
 
   .theinmag-pvd__col-placeholder {
@@ -186,9 +260,8 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    aspect-ratio: 1 / 1;
+    height: 100%;
     background-color: rgba(123, 79, 158, 0.12);
-    border-radius: var(--radius-md, 12px);
     color: rgba(123, 79, 158, 0.65);
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 500;
@@ -198,14 +271,27 @@
   }
 
   .theinmag-pvd__col-heading {
-    margin: 0 0 clamp(14px, 1.8vw, 20px);
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: clamp(22px, 2.6vw, 28px);
-    line-height: 1.15;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: var(--color-inky-purple-navy, #2A1F3D);
+    position: absolute;
+    z-index: 2;
+    left: clamp(20px, 3vw, 32px);
+    right: clamp(20px, 3vw, 32px);
+    bottom: clamp(14px, 2.2vw, 22px);
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(40px, 6vw, 60px);
+    line-height: 1;
+    letter-spacing: 0;
+    color: #ffffff;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.65), 0 1px 2px rgba(0, 0, 0, 0.6);
+  }
+
+  .theinmag-pvd__col-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: clamp(24px, 3vw, 36px);
   }
 
   .theinmag-pvd__bullets {
@@ -236,12 +322,21 @@
   .theinmag-pvd__bullet-text {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 500;
-    font-size: clamp(14px, 1.5vw, 16px);
+    font-size: clamp(13px, 1.4vw, 15px);
     line-height: 1.5;
   }
 
   .theinmag-pvd__cta {
     margin-top: auto;
+  }
+
+  /* Enlarge just the PRINT / DIGITAL word inside the button, in Post font,
+     without changing the button box. line-height:1 keeps the button height
+     stable despite the larger glyphs. */
+  .theinmag-pvd__cta-em {
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-size: 1.3em;
+    line-height: 1;
   }
 
   .theinmag-pvd__closing {
@@ -277,6 +372,18 @@
       "type": "textarea",
       "id": "closing_line",
       "label": "Closing line (full width, centred)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_versus",
+      "label": "Show VS divider between the two tiles",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "versus_label",
+      "label": "Divider text",
+      "default": "VS"
     },
     {
       "type": "header",
@@ -323,13 +430,13 @@
         {
           "type": "text",
           "id": "heading",
-          "label": "Heading",
-          "info": "e.g. PRINT or DIGITAL."
+          "label": "Heading (overlaid on image)",
+          "info": "e.g. Print or Digital. Renders large in Post font over the image."
         },
         {
           "type": "image_picker",
           "id": "image",
-          "label": "Thumbnail"
+          "label": "Image (fills the top of the tile)"
         },
         {
           "type": "text",
@@ -350,6 +457,12 @@
           "type": "text",
           "id": "cta_label",
           "label": "Button label"
+        },
+        {
+          "type": "text",
+          "id": "cta_emphasis",
+          "label": "Button word to enlarge (Post font)",
+          "info": "A word inside the label, e.g. print. Rendered larger in Post font. Must match the label's spelling/case exactly."
         },
         {
           "type": "url",

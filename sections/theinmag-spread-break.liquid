@@ -1,0 +1,234 @@
+{%- comment -%}
+  theinmag-spread-break
+  Standalone full-spread "breather" image, so a real magazine spread (e.g.
+  teachers_sample.jpg) can drop between any two sections. A section-level
+  version of the kid_creation_break slot in theinmag-for-parents-pillars.
+
+  Contained by default (max-width, rounded corners, soft shadow on the
+  section ground); flip full_bleed ON for the edge-to-edge 100vw treatment
+  used at the bottom of the for-teachers pillars section. Optional
+  bottom-right attribution caption.
+
+  Hyphens only, never em or en dashes.
+{%- endcomment -%}
+
+{%- liquid
+  assign img = section.settings.image
+  assign img_filename = section.settings.image_filename
+  assign img_alt = section.settings.image_alt | default: 'A spread from a recent issue of theINmag.'
+  assign caption = section.settings.caption
+  assign full_bleed = section.settings.full_bleed
+
+  assign bg = section.settings.bg_color | default: 'cream'
+  assign bg_var = '--color-cream'
+  case bg
+    when 'cream'
+      assign bg_var = '--color-cream'
+    when 'white'
+      assign bg_var = '--color-white'
+    when 'lavender'
+      assign bg_var = '--color-lavender'
+    when 'peach'
+      assign bg_var = '--color-peach'
+    when 'mint'
+      assign bg_var = '--color-mint'
+    when 'sky'
+      assign bg_var = '--color-sky'
+  endcase
+
+  assign pt = section.settings.padding_top | default: 48
+  assign pb = section.settings.padding_bottom | default: 48
+-%}
+
+<section
+  class="theinmag-spread-break{% if full_bleed %} theinmag-spread-break--full{% endif %}"
+  style="--sb-bg: var({{ bg_var }}, #FBF6EA); --sb-pt: {{ pt }}px; --sb-pb: {{ pb }}px;"
+>
+  <figure class="theinmag-spread-break__figure">
+    {%- if img != blank -%}
+      <img
+        class="theinmag-spread-break__image"
+        src="{{ img | image_url: width: 1600 }}"
+        srcset="
+          {{ img | image_url: width: 700 }} 700w,
+          {{ img | image_url: width: 1000 }} 1000w,
+          {{ img | image_url: width: 1400 }} 1400w,
+          {{ img | image_url: width: 1800 }} 1800w
+        "
+        sizes="{% if full_bleed %}100vw{% else %}(min-width: 1180px) 1120px, 92vw{% endif %}"
+        width="{{ img.width }}"
+        height="{{ img.height }}"
+        alt="{{ img_alt | escape }}"
+        loading="lazy"
+      >
+    {%- elsif img_filename != blank -%}
+      <img
+        class="theinmag-spread-break__image"
+        src="{{ img_filename | asset_url }}"
+        alt="{{ img_alt | escape }}"
+        loading="lazy"
+      >
+    {%- else -%}
+      <div class="theinmag-spread-break__placeholder" aria-label="Placeholder for the spread image (TBC asset)">
+        <span>TBC<br>Spread</span>
+      </div>
+    {%- endif -%}
+
+    {%- if caption != blank -%}
+      <figcaption class="theinmag-spread-break__caption">{{ caption }}</figcaption>
+    {%- endif -%}
+  </figure>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-spread-break {
+    background-color: var(--sb-bg, #FBF6EA);
+    padding: var(--sb-pt, 48px) clamp(20px, 5vw, 64px) var(--sb-pb, 48px);
+  }
+
+  .theinmag-spread-break__figure {
+    position: relative;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  .theinmag-spread-break__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border-radius: var(--radius-lg, 20px);
+    box-shadow: 0 10px 34px rgba(42, 31, 61, 0.14);
+  }
+
+  .theinmag-spread-break__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    background-color: rgba(123, 79, 158, 0.15);
+    color: rgba(123, 79, 158, 0.65);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: var(--radius-lg, 20px);
+  }
+
+  .theinmag-spread-break__caption {
+    position: absolute;
+    right: clamp(16px, 2vw, 24px);
+    bottom: clamp(16px, 2vw, 24px);
+    margin: 0;
+    padding: 6px 12px;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.3;
+    color: #ffffff;
+    background-color: rgba(20, 14, 30, 0.55);
+    border-radius: 999px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Edge-to-edge variant - image spans the full viewport with square
+     corners, matching the bottom-of-section spread on for-teachers. */
+  .theinmag-spread-break--full {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .theinmag-spread-break--full .theinmag-spread-break__figure {
+    max-width: none;
+  }
+
+  .theinmag-spread-break--full .theinmag-spread-break__image {
+    border-radius: 0;
+    box-shadow: none;
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Spread break",
+  "tag": "section",
+  "class": "theinmag-spread-break-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "A single full-spread image used as a visual breather between sections. Contained by default; turn on Full bleed for the edge-to-edge treatment."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Spread image"
+    },
+    {
+      "type": "text",
+      "id": "image_filename",
+      "label": "Fallback filename in /assets/",
+      "info": "Used when no image picker value is set, e.g. teachers_sample.jpg."
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text"
+    },
+    {
+      "type": "text",
+      "id": "caption",
+      "label": "Caption (bottom-right)",
+      "info": "Optional named attribution, e.g. 'Elsie W., age 11'."
+    },
+    {
+      "type": "checkbox",
+      "id": "full_bleed",
+      "label": "Full bleed (edge to edge)",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Section background",
+      "options": [
+        { "value": "cream", "label": "Cream" },
+        { "value": "white", "label": "White" },
+        { "value": "lavender", "label": "Lavender" },
+        { "value": "peach", "label": "Peach" },
+        { "value": "mint", "label": "Mint" },
+        { "value": "sky", "label": "Sky" }
+      ],
+      "default": "cream"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top (px)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom (px)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "default": 48
+    }
+  ],
+  "presets": [
+    { "name": "Spread break" }
+  ]
+}
+{% endschema %}

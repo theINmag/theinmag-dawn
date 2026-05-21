@@ -163,6 +163,16 @@
     color: var(--color-text, #2A1F3D);
 }
 
+/* Smaller, lighter subhead for longer intro copy (e.g. homeschoolers).
+   Opt-in via the section's Subhead size = Small setting so the teachers
+   page keeps its larger default. */
+.theinmag-curriculum-accordion__subhead--small {
+    font-weight: 500;
+    font-size: clamp(15px, 1.7vw, 18px);
+    line-height: 1.5;
+    color: rgba(42, 31, 61, 0.78);
+}
+
 /* ----- Kid character slot near the heading -----
    Pops in via the sitewide character-pool scroll trigger. Positioned
    absolute relative to the centred header, sitting INSIDE the section

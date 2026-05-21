@@ -29,6 +29,12 @@
   assign subhead_raw = section.settings.subhead | default: 'and how it links to your curriculum'
   assign subhead_html = subhead_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
 
+  assign subhead_size = section.settings.subhead_size | default: 'default'
+  assign subhead_modifier = ''
+  if subhead_size == 'small'
+    assign subhead_modifier = ' theinmag-curriculum-accordion__subhead--small'
+  endif
+
   assign image = section.settings.image
   assign image_filename = section.settings.image_filename
   assign image_alt = section.settings.image_alt | default: 'An Australian classroom engaging with theINmag.'
@@ -90,7 +96,7 @@
         </h2>
 
         {%- if subhead_html != blank -%}
-          <p class="theinmag-curriculum-accordion__subhead">{{ subhead_html }}</p>
+          <p class="theinmag-curriculum-accordion__subhead{{ subhead_modifier }}">{{ subhead_html }}</p>
         {%- endif -%}
       </header>
 
@@ -113,7 +119,13 @@
                 assign name_html = name_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
                 assign kicker = block.settings.kicker
                 assign body_raw = block.settings.body | default: ''
-                assign body = body_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
+                comment
+                  Body keeps [[IN]] as plain "IN" - the .theinmag-in Post lift
+                  is reserved for the IN inside theINmag / brand-pun headings.
+                  A lifted standalone "IN" in running body copy reads as a
+                  giant all-caps blip (Ryan's call).
+                endcomment
+                assign body = body_raw | replace: '[[IN]]', 'IN'
 
                 assign send_in_label_raw = block.settings.send_in_label | default: ''
                 assign send_in_label_html = send_in_label_raw | replace: '[[IN]]', '<span class="theinmag-in">IN</span>'
@@ -216,6 +228,16 @@
       "id": "subhead",
       "label": "Subhead (Caveat)",
       "default": "and how it links to your curriculum"
+    },
+    {
+      "type": "select",
+      "id": "subhead_size",
+      "label": "Subhead size",
+      "options": [
+        { "value": "default", "label": "Default" },
+        { "value": "small", "label": "Small" }
+      ],
+      "default": "default"
     },
     {
       "type": "header",
