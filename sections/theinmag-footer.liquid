@@ -51,14 +51,12 @@
 
   assign aoc_heading = section.settings.aoc_heading | default: 'Acknowledgement of Country'
   assign aoc_text = section.settings.aoc_text
-  assign aoc_link = section.settings.aoc_link | default: '/pages/acknowledgement'
-  assign aoc_link_label = section.settings.aoc_link_label | default: 'Read the full acknowledgement'
   assign aoc_artist_image = section.settings.aoc_artist_image
   assign aoc_artist_credit = section.settings.aoc_artist_credit
 
   assign white_logo = section.settings.white_logo
-  assign copyright_text = section.settings.copyright_text | default: 'giving kids a place to be seen, heard and celebrated.'
   assign abn = section.settings.abn
+  assign contact_email = section.settings.contact_email
 
   assign legal_url = section.settings.legal_url | default: '/pages/child-safety-terms-conditions-privacy-policy'
   assign legal_label = section.settings.legal_label | default: 'Child Safety, Terms and Privacy'
@@ -246,13 +244,6 @@
           {%- if aoc_text != blank -%}
             <div class="theinmag-footer__aoc-text">{{ aoc_text }}</div>
           {%- endif -%}
-
-          {%- if aoc_link != blank -%}
-            <a class="theinmag-footer__aoc-link" href="{{ aoc_link }}">
-              {{ aoc_link_label }}
-              <span class="theinmag-footer__aoc-link-arrow" aria-hidden="true">&rsaquo;</span>
-            </a>
-          {%- endif -%}
         </div>
       </section>
 
@@ -266,9 +257,12 @@
         </a>
 
         <p class="theinmag-footer__copyright">
-          &copy; {{ current_year }} theINmag &middot; {{ copyright_text }}
+          <span class="theinmag-footer__copyright-line">&copy; {{ current_year }} theINmag</span>
           {%- if abn != blank -%}
-            &middot; ABN {{ abn }}
+            <span class="theinmag-footer__copyright-line">ABN {{ abn }}</span>
+          {%- endif -%}
+          {%- if contact_email != blank -%}
+            <span class="theinmag-footer__copyright-line"><a class="theinmag-footer__copyright-link" href="mailto:{{ contact_email }}">{{ contact_email }}</a></span>
           {%- endif -%}
         </p>
 
@@ -804,36 +798,6 @@
     margin-bottom: 0;
   }
 
-  .theinmag-footer__aoc-link {
-    font-family: var(--font-body);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-cream);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    transition: color var(--transition-standard);
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: var(--space-md);
-  }
-
-  .theinmag-footer__aoc-link:hover,
-  .theinmag-footer__aoc-link:focus-visible {
-    color: var(--color-yellow);
-    outline: none;
-  }
-
-  .theinmag-footer__aoc-link-arrow {
-    font-size: 16px;
-    line-height: 1;
-    transition: transform var(--transition-standard);
-  }
-
-  .theinmag-footer__aoc-link:hover .theinmag-footer__aoc-link-arrow {
-    transform: translateX(2px);
-  }
-
   /* ================================================================
      Brand stack - sits to the right of the AOC on desktop.
      White logo (top) | copyright + tagline (middle) | legal links (bottom).
@@ -883,6 +847,24 @@
     line-height: 1.5;
   }
 
+  .theinmag-footer__copyright-line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .theinmag-footer__copyright-link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--transition-standard);
+  }
+
+  .theinmag-footer__copyright-link:hover,
+  .theinmag-footer__copyright-link:focus-visible {
+    color: var(--color-yellow);
+    outline: none;
+  }
+
   .theinmag-footer__legal {
     list-style: none;
     margin: 0;
@@ -919,7 +901,6 @@
   /* Reduced motion - kill any hover transforms but keep state changes. */
   @media (prefers-reduced-motion: reduce) {
     .theinmag-footer__column-caret,
-    .theinmag-footer__aoc-link-arrow,
     .theinmag-footer__white-logo-link {
       transition-duration: 0.01ms;
     }
@@ -1116,18 +1097,6 @@
       "default": "Jiena O., age 11 - Perth WA"
     },
     {
-      "type": "text",
-      "id": "aoc_link_label",
-      "label": "Full statement link label",
-      "default": "Read the full acknowledgement"
-    },
-    {
-      "type": "text",
-      "id": "aoc_link",
-      "label": "Full statement link URL",
-      "default": "/pages/acknowledgement"
-    },
-    {
       "type": "header",
       "content": "Bottom row"
     },
@@ -1139,15 +1108,15 @@
     },
     {
       "type": "text",
-      "id": "copyright_text",
-      "label": "Copyright tagline",
-      "default": "giving kids a place to be seen, heard and celebrated."
+      "id": "abn",
+      "label": "ABN",
+      "info": "Displayed after the store name. Leave blank to hide."
     },
     {
       "type": "text",
-      "id": "abn",
-      "label": "ABN",
-      "info": "Displayed after the tagline. Leave blank to hide."
+      "id": "contact_email",
+      "label": "Contact email",
+      "info": "Displayed after the ABN as a mailto link. Leave blank to hide."
     },
     {
       "type": "header",
