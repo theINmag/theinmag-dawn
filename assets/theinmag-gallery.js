@@ -85,22 +85,30 @@
 
       this.batch = parseInt(section.getAttribute('data-batch-size'), 10) || 24;
       this.all = creations;
+      this.filtered = creations;
 
-      // Replace the server-rendered (capped) cards with the full set.
-      this.columns.innerHTML = '';
+      // Build the first batch OFF-DOM first. If buildCard throws, the live
+      // server-rendered cards are untouched and the outer .catch runs Fallback,
+      // so a render bug can never leave the gallery blank.
+      var firstFrag = document.createDocumentFragment();
+      var end = Math.min(this.batch, this.filtered.length);
+      for (var i = 0; i < end; i++) firstFrag.appendChild(this.buildCard(this.filtered[i], i));
+
+      // Safe to take over the DOM now.
       if (this.emptyEl) this.emptyEl.style.display = 'none';
-      this.section.classList.remove('theinmag-gallery-grid--empty');
-
-      // Remove the Liquid sentinel (if any) and create our own at the end.
       var oldSentinel = section.querySelector('[data-theinmag-gallery-sentinel]');
       if (oldSentinel && oldSentinel.parentNode) oldSentinel.parentNode.removeChild(oldSentinel);
+      this.columns.innerHTML = '';
+      this.columns.appendChild(firstFrag);
+      this.rendered = end;
+
       this.sentinel = document.createElement('div');
       this.sentinel.className = 'theinmag-gallery-grid__sentinel';
       this.sentinel.setAttribute('aria-hidden', 'true');
       this.columns.parentNode.insertBefore(this.sentinel, this.columns.nextSibling);
+      if (this.rendered >= this.filtered.length) this.sentinel.style.display = 'none';
 
       this.bindControls();
-      this.applyFilter(true);
       this.setupInfiniteScroll();
     },
 
