@@ -50,9 +50,13 @@
         .then(function (data) {
           var list = (data && data.creations) || [];
           if (!list.length) throw new Error('empty snapshot');
+          console.log('[gallery] loaded snapshot:', list.length, 'creations');
           JsonGallery.init(gridSection, list);
         })
-        .catch(function () { Fallback.init(gridSection); });
+        .catch(function (err) {
+          console.warn('[gallery] snapshot failed (' + (err && err.message) + ') - showing server cards only', jsonUrl);
+          Fallback.init(gridSection);
+        });
     } else {
       Fallback.init(gridSection);
     }
@@ -63,6 +67,8 @@
   var JsonGallery = {
     section: null,
     columns: null,
+    cols: [],
+    colCount: 0,
     sentinel: null,
     noResultsEl: null,
     liveEl: null,
@@ -74,6 +80,13 @@
     observer: null,
     state: { category: 'all', query: '' },
     searchTimer: null,
+    resizeTimer: null,
+
+    // Match the CSS breakpoints the column-count fallback used.
+    computeColCount: function () {
+      var w = window.innerWidth;
+      return w >= 1200 ? 4 : w >= 768 ? 3 : w >= 480 ? 2 : 1;
+    },
 
     init: function (section, creations) {
       this.section = section;
@@ -86,30 +99,60 @@
       this.batch = parseInt(section.getAttribute('data-batch-size'), 10) || 24;
       this.all = creations;
       this.filtered = creations;
+      this.colCount = this.computeColCount();
 
       // Build the first batch OFF-DOM first. If buildCard throws, the live
       // server-rendered cards are untouched and the outer .catch runs Fallback,
       // so a render bug can never leave the gallery blank.
-      var firstFrag = document.createDocumentFragment();
+      var firstCards = [];
       var end = Math.min(this.batch, this.filtered.length);
-      for (var i = 0; i < end; i++) firstFrag.appendChild(this.buildCard(this.filtered[i], i));
+      for (var i = 0; i < end; i++) firstCards.push(this.buildCard(this.filtered[i], i));
 
-      // Safe to take over the DOM now.
+      // Safe to take over the DOM now. Switch from CSS multi-column (fills DOWN
+      // columns) to flex columns with round-robin placement (fills ACROSS the
+      // top row), so the newest creations sit at the top reading left-to-right.
       if (this.emptyEl) this.emptyEl.style.display = 'none';
       var oldSentinel = section.querySelector('[data-theinmag-gallery-sentinel]');
       if (oldSentinel && oldSentinel.parentNode) oldSentinel.parentNode.removeChild(oldSentinel);
-      this.columns.innerHTML = '';
-      this.columns.appendChild(firstFrag);
-      this.rendered = end;
+      this.columns.classList.add('is-js-masonry');
+      this.buildCols(this.colCount);
+      this.rendered = 0;
+      this.placeCards(firstCards);
 
       this.sentinel = document.createElement('div');
       this.sentinel.className = 'theinmag-gallery-grid__sentinel';
       this.sentinel.setAttribute('aria-hidden', 'true');
       this.columns.parentNode.insertBefore(this.sentinel, this.columns.nextSibling);
-      if (this.rendered >= this.filtered.length) this.sentinel.style.display = 'none';
+      this.updateSentinel();
 
       this.bindControls();
       this.setupInfiniteScroll();
+      this.bindResize();
+    },
+
+    buildCols: function (n) {
+      this.cols = [];
+      this.columns.innerHTML = '';
+      for (var i = 0; i < n; i++) {
+        var col = document.createElement('div');
+        col.className = 'theinmag-gallery-grid__col';
+        this.columns.appendChild(col);
+        this.cols.push(col);
+      }
+    },
+
+    // Round-robin: card k -> column (k % colCount). The first colCount cards
+    // form the top row (newest across the top); the next form the second row.
+    placeCards: function (cardEls) {
+      for (var i = 0; i < cardEls.length; i++) {
+        this.cols[this.rendered % this.colCount].appendChild(cardEls[i]);
+        this.rendered++;
+      }
+      this.updateSentinel();
+    },
+
+    updateSentinel: function () {
+      if (this.sentinel) this.sentinel.style.display = this.rendered >= this.filtered.length ? 'none' : '';
     },
 
     bindControls: function () {
@@ -129,6 +172,27 @@
       });
     },
 
+    bindResize: function () {
+      var self = this;
+      window.addEventListener('resize', function () {
+        clearTimeout(self.resizeTimer);
+        self.resizeTimer = setTimeout(function () {
+          var n = self.computeColCount();
+          if (n === self.colCount) return;
+          // Column count changed: re-render the same number of cards into the
+          // new column layout, preserving newest-first round-robin order.
+          var shown = self.rendered;
+          self.colCount = n;
+          self.buildCols(n);
+          self.rendered = 0;
+          var target = Math.min(shown || self.batch, self.filtered.length);
+          var cards = [];
+          for (var i = 0; i < target; i++) cards.push(self.buildCard(self.filtered[i], i));
+          self.placeCards(cards);
+        }, 200);
+      });
+    },
+
     matches: function (c) {
       if (this.state.category !== 'all' && c.category !== this.state.category) return false;
       var q = this.state.query;
@@ -138,41 +202,37 @@
       return hay.indexOf(q) !== -1;
     },
 
-    applyFilter: function (initial) {
+    applyFilter: function () {
       var self = this;
       this.filtered = this.all.filter(function (c) { return self.matches(c); });
-      this.columns.innerHTML = '';
+      this.buildCols(this.colCount);
       this.rendered = 0;
       this.renderNextBatch();
 
       var none = this.filtered.length === 0;
+      var showNo = none && (this.state.query !== '' || this.state.category !== 'all');
       if (this.noResultsEl) {
-        this.noResultsEl.classList.toggle('is-visible', none && (this.state.query !== '' || this.state.category !== 'all'));
-        this.noResultsEl.classList.toggle('visually-hidden', !(none && (this.state.query !== '' || this.state.category !== 'all')));
+        this.noResultsEl.classList.toggle('is-visible', showNo);
+        this.noResultsEl.classList.toggle('visually-hidden', !showNo);
       }
       if (this.liveEl) {
         this.liveEl.textContent = this.filtered.length + ' creation' + (this.filtered.length === 1 ? '' : 's') + ' showing.';
       }
-      if (!initial && this.section.scrollIntoView && (this.state.query || this.state.category !== 'all')) {
+      if (this.section.scrollIntoView && (this.state.query || this.state.category !== 'all')) {
         this.section.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
       }
     },
 
     renderNextBatch: function () {
       var end = Math.min(this.rendered + this.batch, this.filtered.length);
-      var frag = document.createDocumentFragment();
-      for (var i = this.rendered; i < end; i++) {
-        frag.appendChild(this.buildCard(this.filtered[i], i));
-      }
-      this.columns.appendChild(frag);
-      this.rendered = end;
-      if (this.sentinel) this.sentinel.style.display = this.rendered >= this.filtered.length ? 'none' : '';
+      var cards = [];
+      for (var i = this.rendered; i < end; i++) cards.push(this.buildCard(this.filtered[i], i));
+      this.placeCards(cards);
     },
 
     setupInfiniteScroll: function () {
       var self = this;
       if (!('IntersectionObserver' in window)) {
-        // No IO: render everything (rare).
         while (self.rendered < self.filtered.length) self.renderNextBatch();
         return;
       }
