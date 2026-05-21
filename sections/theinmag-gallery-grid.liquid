@@ -55,6 +55,7 @@
 <section
   class="theinmag-gallery-grid{% if bg_url != blank %} theinmag-gallery-grid--has-bg{% endif %}"
   data-theinmag-gallery-grid
+  data-gallery-json="{{ 'gallery-data.json' | asset_url }}"
   data-initial-batch="{{ initial_batch }}"
   data-batch-size="{{ batch_size }}"
   data-total="{{ total_published }}"
