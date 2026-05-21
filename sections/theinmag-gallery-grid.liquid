@@ -64,6 +64,27 @@
 >
   <h2 id="theinmag-gallery-grid-heading" class="visually-hidden">Browse creations</h2>
 
+  {%- comment -%} Loading screen - JS adds .is-done once the snapshot + first tiles are ready. {%- endcomment -%}
+  <div class="theinmag-gallery-grid__loader" data-theinmag-gallery-loader aria-hidden="true">
+    <img class="theinmag-gallery-grid__loader-char" data-theinmag-loader-char src="{{ 'character-1.png' | asset_url }}" alt="" width="96" height="96" loading="eager" />
+    <p class="theinmag-gallery-grid__loader-text">Gathering creations&hellip;</p>
+  </div>
+  <script>
+    /* Randomise the loader char inline+sync (it's visible from first paint, so the async character pool can't drive it). Count mirrors pool_max (53) in snippets/theinmag-character-pool.liquid; onerror reverts to character-1 if an index is missing. */
+    (function () {
+      var img = document.querySelector('[data-theinmag-loader-char]');
+      if (!img) return;
+      var base = img.getAttribute('src');
+      var pick = 1 + Math.floor(Math.random() * 53);
+      if (pick === 1) return;
+      img.addEventListener('error', function revert() {
+        img.removeEventListener('error', revert);
+        img.src = base;
+      });
+      img.src = base.replace('character-1.png', 'character-' + pick + '.png');
+    })();
+  </script>
+
   {%- if total_published > 0 -%}
     <div class="theinmag-gallery-grid__columns" data-theinmag-gallery-columns>
       {%- assign rendered_index = 0 -%}
