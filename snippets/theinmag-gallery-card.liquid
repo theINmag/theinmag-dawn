@@ -56,12 +56,12 @@
   assign cover_url = ''
   assign image_urls_str = ''
   for img in images
-    assign full_url = img | image_url: width: 1800
+    assign full_url = img | image_url: width: 1400
     if full_url == blank
-      assign full_url = img.preview_image | image_url: width: 1800
+      assign full_url = img.preview_image | image_url: width: 1400
     endif
     if full_url == blank
-      assign full_url = img.image | image_url: width: 1800
+      assign full_url = img.image | image_url: width: 1400
     endif
     if full_url == blank
       assign full_url = img.url
@@ -107,6 +107,7 @@
   data-age="{{ age }}"
   data-tags="{{ tags_str }}"
   data-submitted-at="{{ submitted_at }}"
+  data-cover-url="{{ cover_url | escape }}"
   data-image-urls="{{ image_urls_str | escape }}"
   data-image-count="{{ image_count }}"
   data-write-up="{{ write_up | escape }}"

@@ -544,7 +544,10 @@
 .theinmag-gallery-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  /* Above any sitewide fixed element (floating cart pill, sticky header). The
+     JS also re-parents this node to <body> so the overlay can't be trapped in a
+     section's stacking context. */
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -619,6 +622,31 @@
   position: relative;
   background-color: #14101E;
   line-height: 0;
+  /* Cached cover thumb shows here instantly (set by JS) while the full image
+     loads on top, so the lightbox never looks empty/broken. */
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 180px;
+}
+
+/* Spinner while the full image is still downloading. */
+.theinmag-gallery-lightbox__media.is-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: theinmag-gallery-spin 0.8s linear infinite;
+}
+
+@keyframes theinmag-gallery-spin {
+  to { transform: rotate(360deg); }
 }
 
 .theinmag-gallery-lightbox__image {
@@ -632,6 +660,14 @@
   -webkit-user-drag: none;
   -webkit-touch-callout: none;
   pointer-events: none;
+  /* Fade in once loaded (class toggled by JS) for a smooth blur-up over the
+     cached cover placeholder. */
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.theinmag-gallery-lightbox__image.is-loaded {
+  opacity: 1;
 }
 
 .theinmag-gallery-lightbox__nav {

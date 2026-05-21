@@ -205,7 +205,13 @@
     init: function (cards) {
       this.root = document.querySelector('[data-theinmag-gallery-lightbox]');
       if (!this.root) return;
+      // Re-parent the modal to <body> so no theme section wrapper (which may
+      // create a stacking/containing-block context via transform, filter, or
+      // background-attachment: fixed on a sibling) can trap the fixed overlay
+      // and let grid cards show through the backdrop. Child refs survive a move.
+      if (this.root.parentNode !== document.body) document.body.appendChild(this.root);
       this.panel = this.root.querySelector('.theinmag-gallery-lightbox__panel');
+      this.media = this.root.querySelector('[data-theinmag-gallery-lightbox-media]');
       this.image = this.root.querySelector('[data-theinmag-gallery-lightbox-image]');
       this.counter = this.root.querySelector('[data-theinmag-gallery-lightbox-counter]');
       this.prevBtn = this.root.querySelector('[data-theinmag-gallery-lightbox-prev]');
@@ -324,13 +330,39 @@
       if (!this.currentImages.length) {
         this.image.removeAttribute('src');
         this.image.alt = '';
+        if (this.media) { this.media.style.backgroundImage = ''; this.media.classList.remove('is-loading'); }
         this.prevBtn && (this.prevBtn.hidden = true);
         this.nextBtn && (this.nextBtn.hidden = true);
         this.counter && (this.counter.hidden = true);
         return;
       }
-      this.image.src = this.currentImages[this.currentIdx];
+
+      var self = this;
+      var url = this.currentImages[this.currentIdx];
+      // Instant placeholder: the grid cover thumb (~800px) is already cached, so
+      // show it immediately behind the full image, which fades in once loaded.
+      // Only the first image has a matching cached cover; later pages just show
+      // the loading state.
+      var cover = this.currentCard ? this.currentCard.getAttribute('data-cover-url') : '';
+      if (this.media) {
+        this.media.style.backgroundImage = (this.currentIdx === 0 && cover) ? 'url("' + cover + '")' : '';
+        this.media.classList.add('is-loading');
+      }
+      this.image.classList.remove('is-loaded');
       this.image.alt = this.currentCard ? (this.currentCard.querySelector('img') || {}).alt || '' : '';
+      this.image.onload = function () {
+        self.image.classList.add('is-loaded');
+        if (self.media) self.media.classList.remove('is-loading');
+      };
+      this.image.onerror = function () {
+        if (self.media) self.media.classList.remove('is-loading');
+      };
+      this.image.src = url;
+      // Cached images may already be complete - fire the loaded state now.
+      if (this.image.complete && this.image.naturalWidth) {
+        this.image.classList.add('is-loaded');
+        if (this.media) this.media.classList.remove('is-loading');
+      }
 
       var multi = this.currentImages.length > 1;
       this.prevBtn && (this.prevBtn.hidden = !multi);

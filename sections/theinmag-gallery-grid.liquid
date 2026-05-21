@@ -33,7 +33,14 @@
   assign batch_size = section.settings.batch_size | default: 24
 
   assign published_subs = ''
-  assign submissions = shop.metaobjects.gallery_submission.values
+  comment
+    Newest submissions first. shop.metaobjects returns entries in creation
+    order (i.e. the order Make/the backfill upserted them), which is NOT
+    submission order - especially during the retrospective import. Sort by the
+    submitted_at field (ISO date string -> lexical sort == chronological), then
+    reverse for descending (newest at the top).
+  endcomment
+  assign submissions = shop.metaobjects.gallery_submission.values | sort: 'submitted_at' | reverse
   assign total_published = 0
   for sub in submissions
     if sub.status == 'published'
