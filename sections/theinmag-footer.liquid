@@ -60,8 +60,7 @@
 
   assign legal_url = section.settings.legal_url | default: '/pages/child-safety-terms-conditions-privacy-policy'
   assign legal_label = section.settings.legal_label | default: 'Child Safety, Terms and Privacy'
-  assign refund_url = section.settings.refund_url | default: '/policies/refund-policy'
-  assign shipping_url = section.settings.shipping_url | default: '/policies/shipping-policy'
+  assign shipping_refunds_url = section.settings.shipping_refunds_url | default: '/pages/shipping-refunds'
 
   assign instagram_url = section.settings.instagram_url
   assign facebook_url = section.settings.facebook_url
@@ -268,8 +267,7 @@
 
         <ul class="theinmag-footer__legal" role="list" aria-label="Legal">
           <li><a class="theinmag-footer__legal-link" href="{{ legal_url }}">{{ legal_label }}</a></li>
-          <li><a class="theinmag-footer__legal-link" href="{{ refund_url }}">Refunds</a></li>
-          <li><a class="theinmag-footer__legal-link" href="{{ shipping_url }}">Shipping</a></li>
+          <li><a class="theinmag-footer__legal-link" href="{{ shipping_refunds_url }}">Shipping and Refunds</a></li>
         </ul>
       </div>
 
@@ -1137,15 +1135,9 @@
     },
     {
       "type": "text",
-      "id": "refund_url",
-      "label": "Refund Policy URL",
-      "default": "/policies/refund-policy"
-    },
-    {
-      "type": "text",
-      "id": "shipping_url",
-      "label": "Shipping Policy URL",
-      "default": "/policies/shipping-policy"
+      "id": "shipping_refunds_url",
+      "label": "Shipping and Refunds page URL",
+      "default": "/pages/shipping-refunds"
     },
     {
       "type": "header",
