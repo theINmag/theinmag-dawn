@@ -25,6 +25,7 @@
 
 {%- liquid
   assign variant = variant | default: 'large_left'
+  assign extra_class = extra_class | default: ''
 
   comment
   Resolve article source. Direct param wins (auto-pull path), else
@@ -60,14 +61,19 @@
     assign image_alt = article.image.alt | default: article.title
 
     comment
-    Audience from article metafield (kids/parents/mixed -> the
-    audience toggle's vocabulary of kids/all). Default 'all' so
-    anything not explicitly tagged kids stays visible on adults +
-    all toggles.
+    Map the article's read_audience metafield (kids/parents/mixed,
+    blank = mixed) onto the toggle's vocabulary (all/kids/adults):
+    kids -> kids, parents (legacy 'adults') -> adults, mixed/blank ->
+    all. 'all' shows on every toggle; 'kids' and 'adults' each show
+    only on their own toggle (plus 'all'). Pre-2026-05-22 this
+    collapsed parents into 'all', which let parent posts leak into
+    the kids filter.
     endcomment
     assign read_aud = article.metafields.field_notes.read_audience | downcase
     if read_aud == 'kids'
       assign audience = 'kids'
+    elsif read_aud == 'parents' or read_aud == 'adults'
+      assign audience = 'adults'
     else
       assign audience = 'all'
     endif
@@ -104,6 +110,9 @@
   endif
 
   assign card_class = 'theinmag-editorial__card theinmag-editorial__card--' | append: variant
+  if extra_class != blank
+    assign card_class = card_class | append: ' ' | append: extra_class
+  endif
 
   assign shopify_attrs = ''
   if block != blank

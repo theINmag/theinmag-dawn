@@ -77,23 +77,91 @@
 {%- capture right_small_cards -%}{%- endcapture -%}
 
 {%- comment -%}
-  Slot counts: 2 large_left + 2 bottom_small + 7 right_small = 11.
+  Slot counts: 2 large_left + 2 bottom_small (visible) + 7 right_small
+  + 1 bottom_small RESERVE = 12 auto cards.
+
   Bumped right 5 -> 7 (2026-05-22, Ryan) to refill the right column:
   the left column is taller, so too few right cards left the
   parallax window (height = left column) under-filled, showing blank
   lavender that read as a dropped blog. More right cards = taller
   filmstrip than the left = window stays full through the scroll.
+
+  Reserve card (2026-05-22): the banner-vs-editorial dedupe (script
+  block below) display:none's any editorial card whose article is
+  also the visible feature banner. When that card is one of the two
+  bottom_small slots, the 2-up row was left with a hole. We now pull
+  one extra bottom_small as a hidden reserve; the dedupe reveals it
+  to keep the row full. It stays hidden (CSS) until promoted.
+
+  Audience interleave (2026-05-22, Ryan): pure publish-date order was
+  clustering whole runs of one audience into one region (e.g. the Real
+  Jobs series, all read_audience=kids, filling the entire right
+  filmstrip while the parent essays filled the left). Combined ("all")
+  should read as a MIXTURE throughout, and each audience filter should
+  draw cards from every region rather than emptying a column. So we
+  bucket articles into kids vs other (adults/mixed) by recency, then
+  interleave them slot-by-slot. Articles are looked up from the global
+  `articles` object by handle (filters can't go inside [] - assign the
+  key first).
 {%- endcomment -%}
-{%- for auto_article in blog.articles limit: 50 -%}
-  {%- if auto_count >= 11 -%}{%- break -%}{%- endif -%}
-  {%- if auto_article.handle == feature_handle -%}{%- continue -%}{%- endif -%}
+{%- liquid
+  assign kids_handles = ''
+  assign other_handles = ''
+  for auto_article in blog.articles limit: 50
+    if auto_article.handle == feature_handle
+      continue
+    endif
+    assign ra = auto_article.metafields.field_notes.read_audience | downcase
+    if ra == 'kids'
+      assign kids_handles = kids_handles | append: auto_article.handle | append: ','
+    else
+      assign other_handles = other_handles | append: auto_article.handle | append: ','
+    endif
+  endfor
+  assign kids_arr = kids_handles | split: ','
+  assign other_arr = other_handles | split: ','
+
+  assign ordered_handles = ''
+  assign ki = 0
+  assign oi = 0
+  for i in (0..11)
+    assign slot_parity = i | modulo: 2
+    assign picked = ''
+    if slot_parity == 0
+      if oi < other_arr.size
+        assign picked = other_arr[oi]
+        assign oi = oi | plus: 1
+      elsif ki < kids_arr.size
+        assign picked = kids_arr[ki]
+        assign ki = ki | plus: 1
+      endif
+    else
+      if ki < kids_arr.size
+        assign picked = kids_arr[ki]
+        assign ki = ki | plus: 1
+      elsif oi < other_arr.size
+        assign picked = other_arr[oi]
+        assign oi = oi | plus: 1
+      endif
+    endif
+    if picked != ''
+      assign ordered_handles = ordered_handles | append: picked | append: ','
+    endif
+  endfor
+  assign ordered_arr = ordered_handles | split: ','
+-%}
+{%- for h in ordered_arr -%}
+  {%- assign auto_article = articles[h] -%}
+  {%- if auto_article == blank -%}{%- continue -%}{%- endif -%}
 
   {%- if auto_count < 2 -%}
     {%- capture large_left_cards -%}{{ large_left_cards }}{%- render 'theinmag-editorial-card', article: auto_article, variant: 'large_left' -%}{%- endcapture -%}
   {%- elsif auto_count < 4 -%}
     {%- capture bottom_small_cards -%}{{ bottom_small_cards }}{%- render 'theinmag-editorial-card', article: auto_article, variant: 'bottom_small' -%}{%- endcapture -%}
-  {%- else -%}
+  {%- elsif auto_count < 11 -%}
     {%- capture right_small_cards -%}{{ right_small_cards }}{%- render 'theinmag-editorial-card', article: auto_article, variant: 'right_small' -%}{%- endcapture -%}
+  {%- else -%}
+    {%- capture bottom_small_cards -%}{{ bottom_small_cards }}{%- render 'theinmag-editorial-card', article: auto_article, variant: 'bottom_small', extra_class: 'theinmag-editorial__card--reserve' -%}{%- endcapture -%}
   {%- endif -%}
 
   {%- assign auto_count = auto_count | plus: 1 -%}
@@ -844,6 +912,40 @@
   .theinmag-editorial__card--banner-dupe {
     display: none !important;
   }
+
+  /* Reserve bottom_small card — rendered hidden, promoted by the
+     dedupe IIFE only when a primary bottom card is deduped, so the
+     2-up row never shows a hole. Once promoted (--reserve-active) it
+     behaves like a normal card (base flex, [hidden] still applies via
+     the audience toggle). */
+  .theinmag-editorial__card--reserve:not(.theinmag-editorial__card--reserve-active) {
+    display: none !important;
+  }
+
+  /* When an audience filter (or dedupe) leaves the right filmstrip
+     with no visible cards, collapse the column and drop the grid to a
+     single track so the page doesn't show an empty lavender gutter. */
+  .theinmag-editorial.is-right-empty .theinmag-editorial__col--right {
+    display: none;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-editorial.is-right-empty .theinmag-editorial__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* Filtered (kids/adults) view: release the right column from the
+     left-height clip so audience-matched cards stack in full instead
+     of being cropped to the (now shorter) left column. */
+  .theinmag-editorial.is-filtered .theinmag-editorial__col--right {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .theinmag-editorial.is-filtered .theinmag-editorial__col-inner {
+    transform: none !important;
+  }
 {%- endstylesheet -%}
 
 <script>
@@ -870,7 +972,7 @@
       var ticking = false;
 
       function syncHeights() {
-        if (!mql.matches) {
+        if (!mql.matches || section.classList.contains('is-filtered')) {
           rightWrap.style.height = '';
           rightInner.style.transform = '';
           return;
@@ -883,7 +985,7 @@
 
       function updateParallax() {
         ticking = false;
-        if (!mql.matches) {
+        if (!mql.matches || section.classList.contains('is-filtered')) {
           rightInner.style.transform = '';
           return;
         }
@@ -930,6 +1032,14 @@
       window.addEventListener('resize', onResize);
       if (mql.addEventListener) mql.addEventListener('change', onResize);
       else if (mql.addListener) mql.addListener(onResize);
+
+      /* Audience toggle reflows which cards show, flipping is-filtered.
+         Recompute after the visibility transition settles so the clip
+         releases (filtered) or re-pins (back to all) without waiting on
+         an incidental resize. */
+      window.addEventListener('field-notes:audience-changed', function () {
+        window.setTimeout(onResize, 300);
+      });
 
       /* Watch BOTH columns: leftCol height drives the window size,
          rightInner height drives the translation range. Either
@@ -992,6 +1102,12 @@
       try { localStorage.setItem(STORAGE_KEY, audience); } catch (e) {}
       document.documentElement.setAttribute('data-field-notes-audience', audience);
 
+      /* When a filter is active the right column no longer mirrors the
+         left column's height (filtered cards cluster by audience), so
+         the parallax clipping would crop matching cards. Flag filtered
+         state; CSS releases the clip + the parallax loop bails. */
+      section.classList.toggle('is-filtered', audience !== 'all');
+
       if (opts.animate && !reduced) {
         section.classList.add('is-audience-leaving');
         setTimeout(function () {
@@ -1052,6 +1168,68 @@
      ================================================================ */
   (function () {
     var DEDUPE_CLASS = 'theinmag-editorial__card--banner-dupe';
+    var RESERVE_CLASS = 'theinmag-editorial__card--reserve';
+    var RESERVE_ON_CLASS = 'theinmag-editorial__card--reserve-active';
+    var RIGHT_EMPTY_CLASS = 'is-right-empty';
+    var editorialSection = document.querySelector('[data-theinmag-editorial]');
+
+    /* Current audience read straight from the source of truth rather
+       than the DOM's hidden state, so reserve + right-empty logic is
+       correct even mid-whoosh (the visibility transition runs longer
+       than this IIFE's 50ms delay). */
+    function currentAudience() {
+      try {
+        var stored = localStorage.getItem('field-notes-audience');
+        if (stored === 'kids' || stored === 'adults' || stored === 'all') return stored;
+      } catch (e) {}
+      var active = document.querySelector('.theinmag-editorial__chip.is-active');
+      return active ? (active.dataset.audience || 'all') : 'all';
+    }
+
+    function matchesAudience(cardAud, aud) {
+      cardAud = cardAud || 'all';
+      return aud === 'all' || cardAud === 'all' || cardAud === aud;
+    }
+
+    /* Keep the bottom 2-up row full: if a primary bottom card is hidden
+       (banner dedupe or audience filter), promote a matching reserve
+       card into its place. Idempotent - recomputes from scratch each
+       run so reserves retract when no longer needed. */
+    function manageReserve(aud) {
+      var row = document.querySelector('.theinmag-editorial__bottom-row');
+      if (!row) return;
+      var cards = Array.prototype.slice.call(row.querySelectorAll('.theinmag-editorial__card--bottom_small'));
+      var primaries = cards.filter(function (c) { return !c.classList.contains(RESERVE_CLASS); });
+      var reserves = cards.filter(function (c) { return c.classList.contains(RESERVE_CLASS); });
+
+      var visiblePrimaries = primaries.filter(function (c) {
+        return !c.classList.contains(DEDUPE_CLASS) && matchesAudience(c.dataset.audience, aud);
+      }).length;
+
+      var needed = primaries.length - visiblePrimaries; // how many holes to backfill
+      reserves.forEach(function (r) {
+        var canFill = needed > 0 && !r.classList.contains(DEDUPE_CLASS) && matchesAudience(r.dataset.audience, aud);
+        if (canFill) {
+          r.classList.add(RESERVE_ON_CLASS);
+          r.hidden = false;
+          needed -= 1;
+        } else {
+          r.classList.remove(RESERVE_ON_CLASS);
+        }
+      });
+    }
+
+    /* Collapse the right filmstrip (and drop the grid to one column)
+       when an audience filter leaves it with nothing to show, so we
+       never render an empty lavender gutter. */
+    function updateRightEmpty(aud) {
+      if (!editorialSection) return;
+      var rightCards = editorialSection.querySelectorAll('.theinmag-editorial__card--right_small');
+      var anyVisible = Array.prototype.some.call(rightCards, function (c) {
+        return !c.classList.contains(DEDUPE_CLASS) && matchesAudience(c.dataset.audience, aud);
+      });
+      editorialSection.classList.toggle(RIGHT_EMPTY_CLASS, !anyVisible);
+    }
 
     function getBannerHrefs() {
       var hrefs = {};
@@ -1081,6 +1259,10 @@
           card.classList.remove(DEDUPE_CLASS);
         }
       });
+
+      var aud = currentAudience();
+      manageReserve(aud);
+      updateRightEmpty(aud);
     }
 
     function run() {

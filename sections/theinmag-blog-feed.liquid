@@ -73,7 +73,7 @@
               assign aud_match = true
             endif
           elsif auto_audience == 'kids'
-            if art_aud == 'kids' or art_aud == 'both'
+            if art_aud == 'kids' or art_aud == 'both' or art_aud == 'mixed' or art_aud == blank
               assign aud_match = true
             endif
           endif
@@ -235,7 +235,7 @@
             assign card_audience = 'both'
             if art_aud_meta == 'kids'
               assign card_audience = 'kids'
-            elsif art_aud_meta == 'adults'
+            elsif art_aud_meta == 'adults' or art_aud_meta == 'parents'
               assign card_audience = 'adults'
             endif
           -%}
