@@ -196,8 +196,14 @@
   }
 
   /* Lift every other direct child above the bg-image's stacking
-     context (z-index: 0) so heading + tiles render in front. */
-  .theinmag-tiles > :not(.theinmag-tiles__bg-image) {
+     context (z-index: 0) so heading + tiles render in front.
+     Exclude the overlay heading + its scrim: they are intentionally
+     position:absolute (out of flow, anchored to the section bottom),
+     and this rule's higher specificity (0,2,0) would otherwise force
+     them back to position:relative - which drops the heading into the
+     flow below the tiles (cream gap) and collapses the % -height scrim.
+     They carry their own z-index (3 / 2), already above the bg-image. */
+  .theinmag-tiles > :not(.theinmag-tiles__bg-image):not(.theinmag-tiles__heading):not(.theinmag-tiles__heading-scrim) {
     position: relative;
     z-index: 1;
   }
@@ -279,6 +285,14 @@
     flex-direction: row;
     flex-wrap: nowrap;
     gap: clamp(6px, 2vw, 12px);
+  }
+
+  /* Homepage (overlay_bottom) variant: tiles butt up tight, no gap
+     side-to-side or top-to-bottom (Ryan 2026-05-22). The heading-top
+     audience-page coda keeps its spaced-square gap, so scope this to
+     the non-heading-top variant only. */
+  .theinmag-tiles:not(.theinmag-tiles--heading-top) .theinmag-tiles__grid {
+    gap: 0;
   }
 
   @media (min-width: 1200px) {
