@@ -2,13 +2,16 @@
    theinmag-gallery.js
    Page-wide JS for /pages/gallery. Loaded once from the hero section.
 
-   Data source: a JSON snapshot (assets/gallery-data.json, referenced via
-   data-gallery-json on the grid). Shopify's Liquid only exposes ~50 metaobjects
-   to a page, so the gallery renders client-side from the snapshot instead:
-   ALL published creations, newest-first, with infinite scroll + instant search.
-
-   If the snapshot can't be fetched, it falls back to the server-rendered cards
-   (the capped ~50) so the page is never blank.
+   Data source: client-side, because Shopify's Liquid only exposes ~50
+   metaobjects to a page. The grid carries an ordered list of sources:
+     1. data-gallery-json          -> the live ANCHOR Worker feed
+                                      (theinmag-gallery-review, edge-cached ~1h;
+                                      always current, no manual rebuild).
+     2. data-gallery-json-fallback -> the static assets/gallery-data.json
+                                      snapshot (last good copy).
+   It renders from the first that responds: ALL published creations, newest-first,
+   with infinite scroll + instant search. If both fail it falls back to the
+   server-rendered cards (the capped ~50) so the page is never blank.
 
    Subsystems:
      1. JsonGallery - fetch snapshot, render cards in batches on scroll,
@@ -36,6 +39,15 @@
     });
   }
 
+  function hideLoader(section) {
+    var l = section.querySelector('[data-theinmag-gallery-loader]');
+    if (!l) return;
+    l.classList.add('is-done');
+    // Bulletproof: hide inline too, so a missing/last .is-done CSS rule can
+    // never leave the loader stuck over the grid.
+    l.style.display = 'none';
+  }
+
   function init() {
     var gridSection = document.querySelector('[data-theinmag-gallery-grid]');
     if (!gridSection) return;
@@ -43,23 +55,41 @@
     Lightbox.init(gridSection);
     PlaceholderRotator.init();
 
-    var jsonUrl = gridSection.getAttribute('data-gallery-json');
-    if (jsonUrl) {
-      fetch(jsonUrl, { credentials: 'omit' })
+    // Safety net: never leave the loading screen up forever.
+    setTimeout(function () { hideLoader(gridSection); }, 6000);
+
+    // Try data sources in order: the live Worker feed first (always current),
+    // then the static asset snapshot (last good copy), then the server-rendered
+    // cards (the Liquid ~50 cap). Each step degrades gracefully so the gallery
+    // is never blank even if the Worker is unreachable.
+    var sources = [
+      gridSection.getAttribute('data-gallery-json'),
+      gridSection.getAttribute('data-gallery-json-fallback'),
+    ].filter(Boolean);
+
+    function tryLoad(i) {
+      if (i >= sources.length) {
+        console.warn('[gallery] all snapshots failed - showing server cards only');
+        Fallback.init(gridSection);
+        hideLoader(gridSection);
+        return;
+      }
+      fetch(sources[i], { credentials: 'omit' })
         .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(function (data) {
           var list = (data && data.creations) || [];
           if (!list.length) throw new Error('empty snapshot');
-          console.log('[gallery] loaded snapshot:', list.length, 'creations');
+          console.log('[gallery] loaded snapshot:', list.length, 'creations from', sources[i]);
           JsonGallery.init(gridSection, list);
         })
         .catch(function (err) {
-          console.warn('[gallery] snapshot failed (' + (err && err.message) + ') - showing server cards only', jsonUrl);
-          Fallback.init(gridSection);
+          console.warn('[gallery] source failed (' + (err && err.message) + '):', sources[i]);
+          tryLoad(i + 1);
         });
-    } else {
-      Fallback.init(gridSection);
     }
+
+    if (sources.length) tryLoad(0);
+    else { Fallback.init(gridSection); hideLoader(gridSection); }
   }
 
   /* ---------- JsonGallery (primary) ---------- */
@@ -94,7 +124,19 @@
       this.noResultsEl = section.querySelector('[data-theinmag-gallery-no-results]');
       this.liveEl = section.querySelector('[data-theinmag-gallery-live]');
       this.emptyEl = section.querySelector('.theinmag-gallery-grid__empty');
-      if (!this.columns) { Fallback.init(section); return; }
+      // If the server rendered the empty state (Liquid's ~50-metaobject cap
+      // returned nothing published), there's no columns container. Build one so
+      // the fetched snapshot still renders instead of silently falling back.
+      if (!this.columns) {
+        this.columns = document.createElement('div');
+        this.columns.className = 'theinmag-gallery-grid__columns';
+        this.columns.setAttribute('data-theinmag-gallery-columns', '');
+        if (this.emptyEl && this.emptyEl.parentNode) {
+          this.emptyEl.parentNode.insertBefore(this.columns, this.emptyEl);
+        } else {
+          section.appendChild(this.columns);
+        }
+      }
 
       this.batch = parseInt(section.getAttribute('data-batch-size'), 10) || 24;
       this.all = creations;
@@ -128,6 +170,31 @@
       this.bindControls();
       this.setupInfiniteScroll();
       this.bindResize();
+      this.fillWhileVisible();
+      this.hideLoader();
+    },
+
+    // True while there are more cards to render AND the sentinel sits within the
+    // load zone (current viewport + a margin). Reserved tile aspect-ratios make
+    // this measurement accurate even before images finish loading.
+    sentinelInLoadZone: function () {
+      if (!this.sentinel || this.rendered >= this.filtered.length) return false;
+      return this.sentinel.getBoundingClientRect().top < (window.innerHeight + 800);
+    },
+
+    // Keep rendering batches until the screen (plus margin) is full or all done.
+    // Fixes the stall where short, image-less tiles kept the sentinel in view so
+    // the IntersectionObserver only fired once and loading halted around ~48.
+    fillWhileVisible: function () {
+      var guard = 0;
+      while (this.sentinelInLoadZone() && guard < 500) { this.renderNextBatch(); guard++; }
+    },
+
+    hideLoader: function () {
+      var loader = this.section.querySelector('[data-theinmag-gallery-loader]');
+      if (!loader) return;
+      loader.classList.add('is-done');
+      loader.style.display = 'none';
     },
 
     buildCols: function (n) {
@@ -208,6 +275,7 @@
       this.buildCols(this.colCount);
       this.rendered = 0;
       this.renderNextBatch();
+      this.fillWhileVisible();
 
       var none = this.filtered.length === 0;
       var showNo = none && (this.state.query !== '' || this.state.category !== 'all');
@@ -232,16 +300,24 @@
 
     setupInfiniteScroll: function () {
       var self = this;
-      if (!('IntersectionObserver' in window)) {
-        while (self.rendered < self.filtered.length) self.renderNextBatch();
-        return;
+      // A throttled scroll/resize listener is the reliable primary trigger;
+      // the IntersectionObserver is a backup for layout changes without a scroll
+      // (e.g. images settling). Both funnel into fillWhileVisible.
+      var lastRun = 0;
+      function onScroll() {
+        var now = Date.now();
+        if (now - lastRun < 100) return;
+        lastRun = now;
+        self.fillWhileVisible();
       }
-      this.observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting && self.rendered < self.filtered.length) self.renderNextBatch();
-        });
-      }, { rootMargin: '800px 0px' });
-      this.observer.observe(this.sentinel);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      if ('IntersectionObserver' in window && this.sentinel) {
+        this.observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) { if (e.isIntersecting) self.fillWhileVisible(); });
+        }, { rootMargin: '800px 0px' });
+        this.observer.observe(this.sentinel);
+      }
     },
 
     attribution: function (c) {
@@ -301,6 +377,9 @@
       media.className = 'theinmag-gallery-card__media';
       var img = document.createElement('img');
       img.className = 'theinmag-gallery-card__image';
+      // Reserve the exact box BEFORE the image loads so tiles don't jump/drop
+      // as they paint in - and so the infinite-scroll height math is accurate.
+      if (c.cover_w && c.cover_h) img.style.aspectRatio = c.cover_w + ' / ' + c.cover_h;
       img.src = cover;
       img.alt = c.alt_text || '';
       img.loading = 'lazy';

@@ -55,7 +55,8 @@
 <section
   class="theinmag-gallery-grid{% if bg_url != blank %} theinmag-gallery-grid--has-bg{% endif %}"
   data-theinmag-gallery-grid
-  data-gallery-json="{{ 'gallery-data.json' | asset_url }}"
+  data-gallery-json="https://theinmag-gallery-review.heyhey-53f.workers.dev/gallery-data.json"
+  data-gallery-json-fallback="{{ 'gallery-data.json' | asset_url }}"
   data-initial-batch="{{ initial_batch }}"
   data-batch-size="{{ batch_size }}"
   data-total="{{ total_published }}"
