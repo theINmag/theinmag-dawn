@@ -1,0 +1,61 @@
+{
+  "sections": {
+    "hero": {
+      "type": "theinmag-legal-hero",
+      "settings": {
+        "heading": "Shipping and Refunds",
+        "subhead": "<p>How we get the mag to your letterbox, when to expect it, and what happens if something goes sideways. Written so kids and grown-ups can read it together.</p>",
+        "pill_label": "Last reviewed",
+        "last_reviewed": "22 May 2026",
+        "meta_description": "How we ship theINmag, when to expect it, and what happens if something goes wrong. Written so kids and grown-ups can read it together.",
+        "padding_top": 96,
+        "padding_bottom": 64
+      }
+    },
+    "accordions": {
+      "type": "theinmag-legal-accordions",
+      "settings": {
+        "padding_top": 32,
+        "padding_bottom": 64
+      },
+      "blocks": {
+        "kid-version": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "The kid version (read this first)",
+            "anchor_id": "kid-version",
+            "is_kid_version": true,
+            "content": "<p>A short version, written for kids. The grown-up version is below. Your parent or guardian needs to read that one too.</p><h3>How the mag gets to you</h3><p>When you order theINmag, it gets packed up by the boys at our warehouse and sent through the post in a satchel with your name on it. Between issues, we use AusPost and you get tracking, so a grown-up can see where it is.</p><p>Three times a year - in February, June and October - we send the new issue to every single member at once. That's a lot of mags going out in one go. For those big sendouts we use a service called Print Post, which is cheaper but doesn't have tracking. It saves us a lot of money, which means we can keep theINmag affordable and ad-free.</p><h3>When you'll get it</h3><p>If you're starting a Membership today and the current issue is in stock, your mag goes in the post within 3 days.</p><p>If you're starting with the next issue (or you grabbed a pre-sale), you'll get it on release day - that's the 15th of February, June or October.</p><p>Digital mags arrive in your grown-up's inbox the same day you order. Usually within a few minutes.</p><h3>If something goes wrong</h3><p>If your mag turns up damaged, or it doesn't turn up at all, tell your grown-up. They can email us and we'll work out what's happened.</p>"
+          }
+        },
+        "shipping": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Shipping",
+            "anchor_id": "shipping",
+            "is_kid_version": false,
+            "content": "<p>These are the details for grown-ups. How long things take, how much they cost, and what happens with international orders.</p><h3>Where we ship</h3><p>We ship anywhere in Australia. We don't ship printed mags overseas - the postage cost is genuinely ridiculous, and we'd rather keep the mag affordable than make a few international sales we can't service properly.</p><p>A workaround that families love: if you've got grandkids overseas, order the printed mag to your house and pop it inside a care package you send over yourself. We've heard the loveliest stories from grandparents who do this. A package from Nan in Australia, the mag tucked in alongside other bits and pieces, the kids on the other end opening it up. It lands beautifully.</p><p>Even better - if you grab a Combo Membership (print + digital), you get the printed one to send and the digital one to read along with them over FaceTime. Same story, two countries, one mag.</p><h3>Processing time</h3><p>If the mag you've ordered is in stock, your order goes in the post within 3 business days.</p><p>If you've started a Membership with a future issue, or grabbed a pre-sale, your mag won't ship until that issue drops. Drop dates are locked: <strong>15 February, 15 June, 15 October.</strong> Every year, no exceptions.</p><h3>How long it takes to arrive</h3><p>Once it's in the post, AusPost handles delivery. Times vary depending on where you are:</p><ul><li>Metro Australia: 2-5 business days</li><li>Regional Australia: 3-8 business days</li><li>Remote areas: up to 2 weeks</li></ul><p>We can't speed AusPost up. We wish we could.</p><h3>Release-day Memberships</h3><p>Three times a year (mid-February, mid-June, mid-October) we post the new issue to every member at once. We post them around the 10th so they're in your hands by the 15th.</p><p>For these bulk sendouts we use Print Post - a cheaper bulk service that doesn't include tracking. It saves us around $7 per mag, which adds up to thousands of dollars per drop. That saving is what keeps Memberships affordable and the magazine ad-free.</p><p>If you're a member and your release-day mag hasn't turned up within 10 business days of the 15th, email us. We'll work out what's happened.</p><h3>Tracking</h3><ul><li>Orders between drops (single mags, Build a Bundle, gifts, anything that's not the bulk release): tracked via AusPost. You'll get a tracking link.</li><li>Release-day Membership sendouts: not tracked. See above.</li></ul><h3>Shipping cost</h3><ul><li>Single mag: $9.95</li><li>Free shipping on orders over $40</li><li>Rolling Membership: $4.95 per drop (built into the $28.90 price)</li><li>4-Issue and 8-Issue Memberships: shipping included</li><li>Digital orders: no shipping cost (it's a file)</li></ul><p><strong>A bit of honesty about the $9.95:</strong> it actually costs us closer to <strong>$13.80</strong> to get a single mag to your door - satchel, label, the lot. We wear the difference because we'd rather have the mag in kids' hands than make money on postage.</p><h3>Bundling digital with a print order</h3><p>Quick tip: if you're already paying postage for a printed mag, throwing a digital one in the cart costs you nothing extra to ship. Same parcel, no extra cost, an extra mag to read. Worth knowing if you've got a kid who burns through them.</p><h3>Gift orders</h3><p>Gifting a mag? You can add a 50-word note at checkout. We print it on the front of the parcel, so it's the first thing the recipient sees when they open the letterbox. We've heard it adds a lovely bit of intrigue before they even open the satchel.</p><h3>Digital delivery</h3><p>Digital mags are emailed to you within a few minutes of ordering. Same goes on release day - every digital member gets theirs in the morning. Check your inbox (and your junk folder, just in case). If it hasn't landed within an hour, email us.</p>"
+          }
+        },
+        "refunds": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Refunds and replacements",
+            "anchor_id": "refunds",
+            "is_kid_version": false,
+            "content": "<p>The short version: we're a small business with thin margins on a low-cost product. We try to be fair on both sides.</p><h3>Damaged or lost in the post</h3><p>If your mag arrives damaged, or doesn't arrive at all, email us. We'll work out what's happened - sometimes it's AusPost being AusPost, sometimes the parcel turns up a few days late, sometimes it's genuinely gone. If we can't get to the bottom of it, we'll send a replacement.</p><h3>Wrong address at checkout</h3><p>This is the one we have to be honest about.</p><p>If the address entered at checkout is wrong and the mag comes back to us (or vanishes), we can reship - but you'll need to pay the postage for the second go.</p><p>A single mag costs us close to <strong>$13.80</strong> to get to your door. If we have to post it twice, we've spent more on shipping than you spent on the mag. The maths doesn't work for a small business like ours.</p><p>So please:</p><ul><li>Double-check your address before you check out. Especially the postcode.</li><li>Re-read your order confirmation email when it lands. If anything's off, reply within 24 hours and we'll fix it for free before your mag ships.</li></ul><p>We trust our customers to get this right. One quick check saves us both money.</p><h3>Change of mind on a printed mag</h3><p>We don't accept change-of-mind returns on single printed mags. It's a low-cost item and the postage to return it is more than you paid for the mag in the first place. If you've ordered the wrong issue, email us - we'll see what we can do, but we can't promise anything.</p><h3>Change of mind on a Membership</h3><p>If you've started a Membership and changed your mind, here's how it works:</p><ul><li>Issues already shipped: not refundable. The mag is out the door, the cost is gone.</li><li>Issues not yet shipped: we'll cancel the remainder and refund whatever's left.</li></ul><p>A note on the maths: Memberships aren't priced as a flat per-issue rate. The first mag that goes out costs us a fair bit more than the others (printing setup, postage, the works), so we don't divide the refund evenly across remaining issues. We'll work out a fair number based on what's already gone out and what hasn't, and email you with the figure before processing anything.</p><h3>Cancelling a Rolling Membership</h3><p>Rolling Memberships auto-renew every drop (February, June, October).</p><p>You can cancel anytime through your account, or by emailing us. If you cancel before the next drop is charged, you're done - no further charges.</p><p>If you cancel after the next drop has been charged and posted, we won't refund that one - it's already on its way. Your Membership ends after that issue lands.</p><h3>Digital products</h3><p>Digital mags, Digital Memberships, and Digital Collect the Set: not refundable. The file is delivered the moment you order, so the sale's final.</p><p>One exception we make: if you clicked \"Digital\" when you meant \"Print\" (it happens - the buttons sit next to each other and we all move fast), email us. Buy the print version, and we'll refund the digital purchase.</p><h3>Combo Memberships</h3><p>If you've bought a Combo Membership (print + digital) and want to switch or refund:</p><ul><li>Print issues not yet shipped: refundable.</li><li>Digital issues already delivered: not refundable.</li><li>Want to switch to print-only or digital-only going forward? Cancel the Combo and start a new Membership in the format you want. Email us if you need a hand.</li></ul><h3>How to get in touch</h3><p>Email: <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a></p><p>We read every message and usually reply within 2 business days. If it's a damaged or lost mag, we'll get on it the same day we hear from you.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "kid-version",
+        "shipping",
+        "refunds"
+      ]
+    }
+  },
+  "order": [
+    "hero",
+    "accordions"
+  ]
+}

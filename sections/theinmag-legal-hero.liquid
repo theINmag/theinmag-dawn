@@ -30,7 +30,7 @@
   endif
   assign page_full_url = page_origin | append: page_path
   assign date_modified_iso = last_reviewed | date: '%Y-%m-%d'
-  assign meta_description = 'How we keep kids safe, the rules for sending IN your creation, and what we do with your information. Plain English, written for kids and parents to read together.'
+  assign meta_description = section.settings.meta_description | default: 'How we keep kids safe, the rules for sending IN your creation, and what we do with your information. Plain English, written for kids and parents to read together.'
 -%}
 
 <section
@@ -216,6 +216,13 @@
       "id": "subhead",
       "label": "Subhead",
       "default": "<p>One page covering how we keep kids safe, the rules for sending IN your creation, and what we do with the information you share with us. Written so kids and grown-ups can read it together.</p>"
+    },
+    {
+      "type": "textarea",
+      "id": "meta_description",
+      "label": "Structured-data description",
+      "info": "Feeds the WebPage JSON-LD description for AEO. The page's real SEO meta description is still set on the Page resource in admin.",
+      "default": "How we keep kids safe, the rules for sending IN your creation, and what we do with your information. Plain English, written for kids and parents to read together."
     },
     {
       "type": "header",
