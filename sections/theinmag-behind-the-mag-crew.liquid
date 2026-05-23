@@ -82,7 +82,8 @@
   .theinmag-bm-crew {
     background-color: var(--color-mint, #D6EAD9);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: clamp(48px, 7vw, 96px) clamp(16px, 4vw, 32px);
+    /* Shorter section per Ryan - vertical padding trimmed. */
+    padding: clamp(28px, 4vw, 52px) clamp(16px, 4vw, 32px);
     position: relative;
     overflow: hidden;
   }
@@ -108,10 +109,12 @@
   .theinmag-bm-crew__card {
     position: relative;
     z-index: 1;
-    max-width: 1080px;
+    /* Narrower + rounded per Ryan. Smaller cap pulls the whole tile
+       (and the photos inside it) down in size. */
+    max-width: 780px;
     margin: 0 auto;
     background-color: #FFFFFF;
-    border-radius: 0;
+    border-radius: var(--radius-lg, 20px);
     overflow: hidden;
     box-shadow:
       0 30px 60px rgba(74, 124, 92, 0.18),
@@ -139,12 +142,13 @@
     grid-template-rows: 1fr 1fr;
     gap: 4px;
     background-color: #FFFFFF;
-    min-height: 360px;
+    /* Shorter mosaic shrinks the boys' photos + the overall section. */
+    min-height: 210px;
   }
 
   @media (min-width: 750px) {
     .theinmag-bm-crew__mosaic {
-      min-height: 460px;
+      min-height: 280px;
     }
   }
 
@@ -214,11 +218,11 @@
   /* Copy column. Padded content sits in the right half on desktop,
      stacks under the mosaic on mobile. */
   .theinmag-bm-crew__copy {
-    padding: clamp(24px, 3vw, 36px);
+    padding: clamp(20px, 2.4vw, 30px);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: clamp(10px, 1.4vw, 14px);
+    gap: clamp(8px, 1.1vw, 12px);
   }
 
   .theinmag-bm-crew__heading {

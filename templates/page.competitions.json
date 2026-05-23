@@ -3,7 +3,14 @@
     "main": {
       "type": "theinmag-competitions",
       "settings": {}
+    },
+    "funnel": {
+      "type": "theinmag-funnel-strip",
+      "settings": {
+        "heading": "",
+        "subheading": ""
+      }
     }
   },
-  "order": ["main"]
+  "order": ["main", "funnel"]
 }

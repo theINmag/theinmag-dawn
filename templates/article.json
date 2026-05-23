@@ -4,9 +4,17 @@
       "type": "theinmag-article",
       "settings": {
       }
+    },
+    "funnel": {
+      "type": "theinmag-funnel-strip",
+      "settings": {
+        "heading": "Made for creative kids",
+        "subheading": ""
+      }
     }
   },
   "order": [
-    "main"
+    "main",
+    "funnel"
   ]
 }

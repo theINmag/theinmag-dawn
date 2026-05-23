@@ -1,0 +1,639 @@
+{%- comment -%}
+  theinmag-funnel-strip
+  Compact 3-product conversion strip dropped above the footer on the
+  high-traffic, cold-audience pages (competitions, field-notes index +
+  every field-notes article, freebies). Reuses the /shop bundle-tile
+  (context: 'shop') so visitors get the same one-tap Print / Digital
+  "Add" experience without leaving the page.
+
+  Tiles, in order:
+    1. Membership  - renders the "Join the club" CTA (opens the picker
+       popup) exactly like /shop, since membership has 3 selector axes.
+    2. Snack Pack  - resolved by an explicit handle setting, else by
+       scanning the configured collection for a title match.
+    3. Current issue - resolved from the shop.metafields.theinmag.
+       current_issue_number metafield (e.g. "Mag09" -> handle "mag09"),
+       so it follows each drop with no theme edit.
+
+  Carries its own copy of the bundle-tile CSS (the canonical copy lives
+  in theinmag-shop-grid.liquid, which only loads on /shop) plus the
+  AJAX add-to-cart handler and the membership picker popup. Tiles are
+  rendered "quite a bit smaller" than /shop via a capped container +
+  narrow grid tracks - the cover shrinks with the tile width.
+{%- endcomment -%}
+
+{%- liquid
+  # No `default:` on the heading - an empty string from a template
+  # override is a valid "no heading" signal (e.g. competitions wants
+  # tiles only). The default filter would wrongly re-populate it.
+  assign heading_raw = section.settings.heading
+  assign heading = heading_raw | replace: 'INmag', '<span class="theinmag-in">IN</span>mag'
+  assign subheading = section.settings.subheading
+
+  assign membership_handle = section.settings.membership_handle | default: 'membership'
+  assign membership_product = all_products[membership_handle]
+  assign membership_cover = section.settings.membership_cover | default: 'membershipimage.jpg'
+
+  # Current issue from the shop metafield. Stored like "Mag09" -> handle "mag09".
+  assign ci_raw = shop.metafields.theinmag.current_issue_number.value
+  assign current_product = null
+  if ci_raw != blank
+    assign ci_handle = ci_raw | downcase
+    assign current_product = all_products[ci_handle]
+  endif
+
+  # Snack Pack: explicit handle wins; otherwise scan the configured
+  # collection for the first product whose title matches (mirrors the
+  # /shop grid's title-anchor approach - handles are set inconsistently).
+  assign snack_handle = section.settings.snack_pack_handle | strip
+  assign snack_product = null
+  if snack_handle != blank
+    assign snack_product = all_products[snack_handle]
+  else
+    assign snack_match = section.settings.snack_pack_match | default: 'Snack Pack'
+    assign coll_handle = section.settings.collection_handle | default: 'all'
+    assign coll = collections[coll_handle]
+    for p in coll.products
+      if snack_product == null and p.title contains snack_match
+        assign snack_product = p
+      endif
+    endfor
+  endif
+
+  assign cta_label = section.settings.cta_label
+  assign cta_link = section.settings.cta_link | default: '/pages/shop'
+
+  assign section_style = '--tfs-pt: ' | append: section.settings.padding_top | append: 'px; --tfs-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+
+  # Count how many tiles we'll actually render so we can hide the whole
+  # strip if the store has none of the three products.
+  assign tile_count = 0
+  if membership_product != blank and membership_product.id != blank
+    assign tile_count = tile_count | plus: 1
+  endif
+  if snack_product != blank and snack_product.id != blank
+    assign tile_count = tile_count | plus: 1
+  endif
+  if current_product != blank and current_product.id != blank
+    assign tile_count = tile_count | plus: 1
+  endif
+-%}
+
+{%- if tile_count > 0 -%}
+<section
+  class="theinmag-funnel-strip"
+  data-theinmag-funnel-strip
+  {%- if heading != blank %} aria-labelledby="theinmag-funnel-strip-heading-{{ section.id }}"{%- else %} aria-label="Shop theINmag"{%- endif %}
+  style="{{ section_style }}"
+>
+  <div class="theinmag-funnel-strip__inner">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="theinmag-funnel-strip__head">
+        {%- if heading != blank -%}
+          <h2 id="theinmag-funnel-strip-heading-{{ section.id }}" class="theinmag-funnel-strip__heading">{{ heading }}</h2>
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="theinmag-funnel-strip__subheading">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <ul class="theinmag-funnel-strip__list" data-funnel-list role="list">
+      {%- if membership_product != blank and membership_product.id != blank -%}
+        <li class="theinmag-funnel-strip__item">
+          {% render 'theinmag-bundle-tile', product: membership_product, context: 'shop', cover_filename: membership_cover %}
+        </li>
+      {%- endif -%}
+      {%- if snack_product != blank and snack_product.id != blank -%}
+        <li class="theinmag-funnel-strip__item">
+          {% render 'theinmag-bundle-tile', product: snack_product, context: 'shop' %}
+        </li>
+      {%- endif -%}
+      {%- if current_product != blank and current_product.id != blank -%}
+        <li class="theinmag-funnel-strip__item">
+          {% render 'theinmag-bundle-tile', product: current_product, context: 'shop' %}
+        </li>
+      {%- endif -%}
+    </ul>
+
+    {%- if cta_label != blank -%}
+      <a class="theinmag-funnel-strip__cta" href="{{ cta_link }}">{{ cta_label }} <span aria-hidden="true">&rarr;</span></a>
+    {%- endif -%}
+  </div>
+
+  <div class="theinmag-funnel-strip__feedback" data-shop-feedback role="status" aria-live="polite" hidden></div>
+
+  {%- comment -%} Membership picker popup. Renders once; no-ops if membership is missing. {%- endcomment -%}
+  {% render 'theinmag-membership-popup', membership_product: membership_product %}
+</section>
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-funnel-strip]');
+    if (!root) return;
+    var list = root.querySelector('[data-funnel-list]');
+    var feedback = root.querySelector('[data-shop-feedback]');
+    if (!list) return;
+
+    function flashFeedback(message) {
+      if (!feedback) return;
+      feedback.textContent = message;
+      feedback.removeAttribute('hidden');
+      clearTimeout(feedback._timer);
+      feedback._timer = setTimeout(function () { feedback.setAttribute('hidden', ''); }, 2400);
+    }
+
+    function flipButton(btn, success) {
+      var addLabel = btn.querySelector('[data-add-label]');
+      var addedLabel = btn.querySelector('[data-added-label]');
+      if (!addLabel || !addedLabel) return;
+      if (success) {
+        addLabel.setAttribute('hidden', '');
+        addedLabel.removeAttribute('hidden');
+        clearTimeout(btn._flipTimer);
+        btn._flipTimer = setTimeout(function () {
+          addedLabel.setAttribute('hidden', '');
+          addLabel.removeAttribute('hidden');
+        }, 1800);
+      } else {
+        addLabel.textContent = 'Try again';
+        clearTimeout(btn._flipTimer);
+        btn._flipTimer = setTimeout(function () { addLabel.textContent = 'Add'; }, 2200);
+      }
+    }
+
+    function refreshCartCount(productTitle) {
+      fetch('/cart.js', { headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (cart) {
+          document.querySelectorAll('[data-cart-count]').forEach(function (el) { el.textContent = cart.item_count; });
+          document.body.setAttribute('data-theinmag-cart-count', cart.item_count);
+          document.dispatchEvent(new CustomEvent('cart:updated', { detail: cart }));
+          if (typeof publish === 'function' && typeof PUB_SUB_EVENTS !== 'undefined') {
+            publish(PUB_SUB_EVENTS.cartUpdate, {
+              source: 'theinmag-funnel-strip',
+              cartData: cart,
+              productTitle: productTitle || ''
+            });
+          }
+        })
+        .catch(function () { /* graceful degradation */ });
+    }
+
+    list.addEventListener('click', function (event) {
+      var btn = event.target.closest('[data-shop-add]');
+      if (!btn) return;
+      event.preventDefault();
+      var variantId = btn.getAttribute('data-variant-id');
+      if (!variantId || btn._pending) return;
+      btn._pending = true;
+
+      var cartDrawer = document.querySelector('cart-drawer');
+      var sectionIds = cartDrawer && typeof cartDrawer.getSectionsToRender === 'function'
+        ? cartDrawer.getSectionsToRender().map(function (s) { return s.id; }).join(',')
+        : '';
+
+      var body = new FormData();
+      body.append('id', variantId);
+      body.append('quantity', '1');
+      if (sectionIds) {
+        body.append('sections', sectionIds);
+        body.append('sections_url', window.location.pathname);
+      }
+
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: body
+      })
+        .then(function (r) { if (!r.ok) throw new Error('Add failed'); return r.json(); })
+        .then(function (data) {
+          flipButton(btn, true);
+          var prettyTitle = (data.product_title || 'Item').replace(/^theINmag\s*[-–]\s*/i, '');
+          flashFeedback(prettyTitle + ' added to your cart');
+          refreshCartCount(data.product_title);
+          if (cartDrawer && data.sections && typeof cartDrawer.renderContents === 'function') {
+            cartDrawer.renderContents(data);
+          }
+        })
+        .catch(function () {
+          flipButton(btn, false);
+          flashFeedback('Could not add to cart. Try again.');
+        })
+        .finally(function () {
+          setTimeout(function () { btn._pending = false; }, 600);
+        });
+    });
+  })();
+</script>
+{%- endif -%}
+
+{%- stylesheet -%}
+  .theinmag-funnel-strip {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--tfs-pt, 56px) clamp(20px, 5vw, 40px) var(--tfs-pb, 64px);
+    overflow-x: clip;
+  }
+
+  .theinmag-funnel-strip__inner {
+    /* Tighter cap so the three tiles read smaller / less overwhelming
+       (per Ryan). Each tile lands ~230px on desktop. */
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .theinmag-funnel-strip__head {
+    text-align: center;
+    margin-bottom: clamp(20px, 3vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1vw, 10px);
+    align-items: center;
+  }
+
+  .theinmag-funnel-strip__heading {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(24px, 3.4vw, 34px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-funnel-strip__subheading {
+    margin: 0;
+    max-width: 52ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.55;
+    color: rgba(42, 31, 61, 0.78);
+    text-wrap: pretty;
+  }
+
+  /* Compact grid: single capped, centred tile on mobile; three across
+     from 600px. Narrow tracks keep the covers small per Ryan. */
+  .theinmag-funnel-strip__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 300px);
+    justify-content: center;
+    gap: 18px;
+  }
+
+  @media (min-width: 600px) {
+    .theinmag-funnel-strip__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(16px, 2vw, 22px);
+    }
+  }
+
+  .theinmag-funnel-strip__item {
+    display: flex;
+  }
+  .theinmag-funnel-strip__item > .theinmag-bundle-tile {
+    flex: 1;
+    width: 100%;
+  }
+
+  .theinmag-funnel-strip__cta {
+    display: inline-block;
+    margin: clamp(22px, 3vw, 32px) auto 0;
+    text-align: center;
+    width: 100%;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration: none;
+  }
+  .theinmag-funnel-strip__cta:hover,
+  .theinmag-funnel-strip__cta:focus-visible {
+    text-decoration: underline;
+    outline: none;
+  }
+
+  /* ---------- Bundle tile (canonical copy in theinmag-shop-grid.liquid).
+     Loaded here too because the shop grid section is not present on these
+     pages. Keep in sync with shop-grid if the tile visual changes.
+     ----------------------------------------------------------------- */
+  .theinmag-bundle-tile {
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-soft-pink, #F7A092);
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .theinmag-bundle-tile--shop { background-color: #FFFFFF; }
+
+  .theinmag-bundle-tile__cover {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background-color: var(--color-lavender);
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  .theinmag-bundle-tile__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .theinmag-bundle-tile__cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #E8DEEF 0%, #FCDDB8 100%);
+  }
+  .theinmag-bundle-tile__cover-link {
+    display: block;
+    position: absolute;
+    inset: 0;
+    text-decoration: none;
+    color: inherit;
+  }
+  .theinmag-bundle-tile__cover-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity var(--transition-hover, 0.2s ease);
+  }
+  .theinmag-bundle-tile__cover-img--digital { opacity: 0; }
+
+  .theinmag-bundle-tile__badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: var(--color-peach, #FCDDB8);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill, 9999px);
+    box-shadow: 0 2px 6px rgba(42, 31, 61, 0.18);
+    z-index: 2;
+  }
+  .theinmag-bundle-tile__badge--current { background-color: var(--color-mint, #D6EAD9); }
+
+  .theinmag-bundle-tile__title {
+    margin: 10px 12px 6px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-tile__title-link { text-decoration: none; color: inherit; }
+  .theinmag-bundle-tile__title-link:hover .theinmag-bundle-tile__title,
+  .theinmag-bundle-tile__title-link:focus-visible .theinmag-bundle-tile__title {
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  .theinmag-bundle-tile__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-tile__row.is-sold-out { opacity: 0.4; }
+  .theinmag-bundle-tile__format { font-weight: 500; }
+  .theinmag-bundle-tile__price { font-weight: 500; color: rgba(42, 31, 61, 0.78); text-align: right; }
+
+  .theinmag-bundle-tile__pill {
+    grid-column: 2 / -1;
+    justify-self: end;
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-peach);
+    border-radius: var(--radius-pill, 9999px);
+    color: var(--color-sandy-orange-dark, #D9783A);
+    font-weight: 500;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .theinmag-bundle-tile__add {
+    appearance: none;
+    background: transparent;
+    border: 1.5px solid var(--color-purple-dark, #5D3A7A);
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 36px;
+    min-width: 88px;
+    text-align: center;
+    transition: background-color var(--transition-hover, 0.2s ease), color var(--transition-hover, 0.2s ease);
+  }
+  .theinmag-bundle-tile__add:hover,
+  .theinmag-bundle-tile__add:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    outline: none;
+  }
+
+  .theinmag-bundle-tile__join {
+    appearance: none;
+    background-color: var(--color-yellow);
+    border: none;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    padding: 12px 14px;
+    margin: 8px 12px 12px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 44px;
+    transition: filter 0.2s ease;
+  }
+  .theinmag-bundle-tile__join:hover,
+  .theinmag-bundle-tile__join:focus-visible {
+    filter: brightness(0.94);
+    outline: none;
+  }
+
+  /* Feedback toast - matches the /shop add-to-cart toast. */
+  .theinmag-funnel-strip__feedback {
+    position: fixed;
+    left: 50%;
+    bottom: calc(clamp(16px, 4vw, 32px) + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    background-color: rgba(251, 246, 234, 0.96);
+    color: var(--color-inky-purple-navy);
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: 18px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    padding: 12px 18px;
+    box-shadow: 0 18px 44px rgba(42, 31, 61, 0.22), 0 4px 12px rgba(42, 31, 61, 0.10);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    max-width: min(420px, calc(100vw - 32px));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: max-content;
+  }
+  .theinmag-funnel-strip__feedback:not([hidden]) { opacity: 1; }
+  .theinmag-funnel-strip__feedback::before {
+    content: '\2713';
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background-color: var(--color-sage-dark);
+    color: #fff;
+    font-weight: 700;
+    font-size: 11px;
+    line-height: 1;
+  }
+  .theinmag-funnel-strip__feedback[hidden] { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bundle-tile__add,
+    .theinmag-bundle-tile__join,
+    .theinmag-bundle-tile__cover-img {
+      transition: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Funnel strip",
+  "tag": "section",
+  "class": "shopify-section theinmag-funnel-strip-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Compact 3-product conversion strip (Membership, Snack Pack, current issue) using the /shop tile style. Drop it above the footer on cold-traffic pages (competitions, field notes, freebies). Current issue follows the shop's current_issue_number metafield automatically."
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "New to theINmag?"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Australia's magazine made by kids, for kids. 100% kid-created, ad-free, printed sustainably. Grab a copy or join the club."
+    },
+    {
+      "type": "header",
+      "content": "Products"
+    },
+    {
+      "type": "collection",
+      "id": "collection_handle",
+      "label": "Collection to search for the Snack Pack",
+      "info": "Used only when no Snack Pack handle is set below. Defaults to the 'all' collection."
+    },
+    {
+      "type": "text",
+      "id": "membership_handle",
+      "label": "Membership product handle",
+      "default": "membership"
+    },
+    {
+      "type": "text",
+      "id": "membership_cover",
+      "label": "Membership cover image (filename in /assets/)",
+      "info": "Shown as the membership tile cover. Membership has no print cover, so a lifestyle image is used.",
+      "default": "membershipimage.jpg"
+    },
+    {
+      "type": "text",
+      "id": "snack_pack_handle",
+      "label": "Snack Pack product handle (optional)",
+      "info": "Set this to pin the exact product. Leave blank to auto-find it by title in the collection above."
+    },
+    {
+      "type": "text",
+      "id": "snack_pack_match",
+      "label": "Snack Pack - title contains",
+      "default": "Snack Pack"
+    },
+    {
+      "type": "header",
+      "content": "Footer link"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Link label",
+      "default": "Browse the whole shop"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Link URL",
+      "info": "Defaults to /pages/shop when left blank."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 56,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 64,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Funnel strip" }
+  ]
+}
+{% endschema %}

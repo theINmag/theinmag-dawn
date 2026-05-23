@@ -1295,8 +1295,10 @@
     border-radius: 32px;
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
-    font-size: 14px;
-    letter-spacing: 0.02em;
+    /* Bumped 14px -> 17px: Post Regular reads small at uppercase, the
+       "enter" CTA was hard to read. Applies to every comp tile sitewide. */
+    font-size: 17px;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
     box-shadow: 0 3px 0 #D4A02E;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -1489,8 +1491,9 @@
     color: var(--comps-cream-dark);
     border-radius: 32px;
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-size: 14px;
-    letter-spacing: 0.02em;
+    /* Bumped 14px -> 17px to match the list-tile "enter" CTA legibility fix. */
+    font-size: 17px;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
     box-shadow: 0 3px 0 #D4A02E;
   }

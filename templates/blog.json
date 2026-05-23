@@ -453,11 +453,19 @@
         "suggest_submit_label": "send it through",
         "suggest_success_message": "Thanks - we'll read every word. Promise."
       }
+    },
+    "funnel": {
+      "type": "theinmag-funnel-strip",
+      "settings": {
+        "heading": "Made for creative kids",
+        "subheading": ""
+      }
     }
   },
   "order": [
     "editorial",
     "feature-banner",
-    "archive"
+    "archive",
+    "funnel"
   ]
 }
