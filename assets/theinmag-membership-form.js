@@ -323,5 +323,20 @@
     });
   }
 
+  /* Pre-select Format / Length from URL query params. The /pages/membership
+     chooser deep-links here as ?format=Print&length=8-Issue so the buyer
+     lands on the chosen plan, then still picks current-vs-next issue before
+     adding to cart. Only applies a value if a matching pill exists. */
+  (function preselectFromQuery() {
+    var params = new URLSearchParams(window.location.search);
+    ['format', 'length'].forEach(function (name) {
+      var val = params.get(name);
+      if (!val) return;
+      var safe = window.CSS && CSS.escape ? CSS.escape(val) : val;
+      var tile = form.querySelector('[data-option-name="' + name + '"] [data-value="' + safe + '"]');
+      if (tile) setSelected(name, val);
+    });
+  })();
+
   update();
 })();

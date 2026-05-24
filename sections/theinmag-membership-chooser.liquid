@@ -2,18 +2,28 @@
   theinmag-membership-chooser
   Decision-first landing for /pages/membership (v3.3 Combo split). Routes
   the visitor to the right Membership: Print / Digital / Combo. Each card =
-  image + format name + one-line subhead + "From $XX" + CTA. The Combo card
-  is featured (purple border + "Save 10%" badge) as the value pick.
+  image + format name + one-line subhead + a live price ladder (one row per
+  Length, price pulled from the actual product variants so it never goes
+  stale). Each length row deep-links to that product's PDP with the
+  format + length pre-selected (?format=&length=), so the buyer still lands
+  on the PDP and picks current-vs-next issue (the _starting_mag step) before
+  checkout - we don't add straight to cart and skip that.
 
-  Print + Digital both route to /products/membership (the unified Print +
-  Digital PDP); Combo routes to its own /products/membership-combo bundle
-  product. Cards are blocks so copy/links/images stay admin-editable.
-  Design system: 6.4 (decision-first) framing + 6.6 product-link card
-  language. Tokens only - purple primary, yellow CTA, cream ground.
+  Print + Digital read from the `membership` product (option1 = Format,
+  option2 = Length). Combo reads from `membership-combo` (option1 = Length,
+  no Rolling). Cards are blocks so copy/images stay admin-editable; prices
+  + links are derived, not typed. Design system: 6.4 (decision-first) +
+  6.6 product-link card language. Tokens only - purple primary, yellow
+  accent, cream ground.
+
+  NOTE: a card's price rows only render once its product is ACTIVE +
+  published to the Online Store channel (all_products only returns those).
+  Combo prices appear once the Combo product is live.
 {%- endcomment -%}
 
 {%- liquid
   assign section_style = '--tmc-pt: ' | append: section.settings.padding_top | append: 'px; --tmc-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  assign length_order = '4-Issue,8-Issue,Rolling' | split: ','
 -%}
 
 <section
@@ -40,32 +50,61 @@
           elsif block.settings.fallback_filename != blank
             assign card_img = block.settings.fallback_filename | asset_url
           endif
-          assign is_featured = block.settings.featured
+          assign fmt = block.settings.format
+          assign prod = all_products[block.settings.product_handle]
         -%}
-        <li
-          class="theinmag-membership-chooser__card{% if is_featured %} theinmag-membership-chooser__card--featured{% endif %}"
-          {{ block.shopify_attributes }}
-        >
-          <a class="theinmag-membership-chooser__card-link" href="{{ block.settings.link | default: '#' }}" aria-label="{{ block.settings.label | escape }} Membership - {{ block.settings.cta_label | escape }}">
-            <span class="theinmag-membership-chooser__card-frame">
-              {%- if card_img != blank -%}
-                <img class="theinmag-membership-chooser__card-img" src="{{ card_img }}" alt="{{ block.settings.image_alt | escape }}" loading="lazy" width="800" height="600">
-              {%- endif -%}
-              {%- if block.settings.badge != blank -%}
-                <span class="theinmag-membership-chooser__card-badge">{{ block.settings.badge }}</span>
-              {%- endif -%}
-            </span>
-            <span class="theinmag-membership-chooser__card-body">
-              <span class="theinmag-membership-chooser__card-label">{{ block.settings.label }}</span>
-              {%- if block.settings.subhead != blank -%}
-                <span class="theinmag-membership-chooser__card-sub">{{ block.settings.subhead }}</span>
-              {%- endif -%}
-              {%- if block.settings.price != blank -%}
-                <span class="theinmag-membership-chooser__card-price">{{ block.settings.price }}</span>
-              {%- endif -%}
-              <span class="theinmag-membership-chooser__card-cta">{{ block.settings.cta_label | default: 'Choose this' }}</span>
-            </span>
-          </a>
+        <li class="theinmag-membership-chooser__card" {{ block.shopify_attributes }}>
+          <div class="theinmag-membership-chooser__card-frame">
+            {%- if card_img != blank -%}
+              <img class="theinmag-membership-chooser__card-img" src="{{ card_img }}" alt="{{ block.settings.image_alt | escape }}" loading="lazy" width="800" height="600">
+            {%- endif -%}
+            {%- if block.settings.badge != blank -%}
+              <span class="theinmag-membership-chooser__card-badge">{{ block.settings.badge }}</span>
+            {%- endif -%}
+          </div>
+          <div class="theinmag-membership-chooser__card-body">
+            <span class="theinmag-membership-chooser__card-label">{{ block.settings.label }}</span>
+            {%- if block.settings.subhead != blank -%}
+              <span class="theinmag-membership-chooser__card-sub">{{ block.settings.subhead }}</span>
+            {%- endif -%}
+
+            <ul class="theinmag-membership-chooser__plans" role="list">
+              {%- for len in length_order -%}
+                {%- assign match = false -%}
+                {%- for v in prod.variants -%}
+                  {%- if fmt != blank and v.option1 == fmt and v.option2 == len -%}
+                    {%- assign match = v -%}{%- break -%}
+                  {%- elsif fmt == blank and v.option1 == len -%}
+                    {%- assign match = v -%}{%- break -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                {%- if match -%}
+                  {%- if fmt != blank -%}
+                    {%- capture row_link -%}/products/{{ block.settings.product_handle }}?format={{ fmt | url_encode }}&length={{ len | url_encode }}{%- endcapture -%}
+                  {%- else -%}
+                    {%- capture row_link -%}/products/{{ block.settings.product_handle }}?length={{ len | url_encode }}{%- endcapture -%}
+                  {%- endif -%}
+                  {%- assign is_best = false -%}
+                  {%- if len == '8-Issue' -%}{%- assign is_best = true -%}{%- endif -%}
+                  <li>
+                    <a
+                      class="theinmag-membership-chooser__plan{% if is_best %} theinmag-membership-chooser__plan--best{% endif %}"
+                      href="{{ row_link }}"
+                      aria-label="{{ block.settings.label | escape }} {{ len }} membership - {{ match.price | money }}{% if len == 'Rolling' %} per drop{% endif %}"
+                    >
+                      <span class="theinmag-membership-chooser__plan-name">
+                        {{ len }}
+                        {%- if is_best -%}<span class="theinmag-membership-chooser__plan-tag">Best value</span>{%- endif -%}
+                      </span>
+                      <span class="theinmag-membership-chooser__plan-price">
+                        {{ match.price | money_without_trailing_zeros }}{%- if len == 'Rolling' -%}<span class="theinmag-membership-chooser__plan-per">/drop</span>{%- endif -%}
+                      </span>
+                    </a>
+                  </li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          </div>
         </li>
       {%- endfor -%}
     </ul>
@@ -131,33 +170,12 @@
   .theinmag-membership-chooser__card {
     margin: 0;
     display: flex;
-  }
-
-  .theinmag-membership-chooser__card-link {
-    display: flex;
     flex-direction: column;
-    width: 100%;
     background: #FFFFFF;
     border: 2px solid transparent;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    text-decoration: none;
-    color: inherit;
     box-shadow: 0 6px 20px rgba(42, 31, 61, 0.10);
-    transition: transform var(--transition-standard), box-shadow var(--transition-standard), border-color var(--transition-standard);
-  }
-  .theinmag-membership-chooser__card-link:hover,
-  .theinmag-membership-chooser__card-link:focus-visible {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 36px rgba(42, 31, 61, 0.18);
-    outline: none;
-  }
-
-  /* Featured (Combo) card - purple frame + a touch more lift so it reads
-     as the value pick. */
-  .theinmag-membership-chooser__card--featured .theinmag-membership-chooser__card-link {
-    border-color: var(--color-purple-dark);
-    box-shadow: 0 10px 28px rgba(93, 58, 122, 0.20);
   }
 
   .theinmag-membership-chooser__card-frame {
@@ -213,47 +231,86 @@
     line-height: 1.45;
     color: var(--color-inky-purple-navy);
     opacity: 0.8;
-    margin: 0 0 var(--space-sm);
-  }
-
-  .theinmag-membership-chooser__card-price {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 16px;
-    color: var(--color-inky-purple-navy);
     margin: 0 0 var(--space-md);
   }
 
-  /* Yellow sticker CTA - locked convention. Auto-margin-top pins it to the
-     card foot so cards of unequal copy length keep their CTAs aligned. */
-  .theinmag-membership-chooser__card-cta {
-    margin-top: auto;
-    align-self: center;
-    display: inline-block;
+  /* Live price ladder - one tappable row per Length. Rows are the CTAs;
+     each deep-links to the PDP with the format + length pre-selected. The
+     auto-margin-top pins the ladder to the card foot so cards with longer
+     subheads keep their ladders aligned. */
+  .theinmag-membership-chooser__plans {
+    list-style: none;
+    margin: auto 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .theinmag-membership-chooser__plans li { margin: 0; }
+
+  .theinmag-membership-chooser__plan {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 16px;
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    transition: background var(--transition-standard), border-color var(--transition-standard), transform var(--transition-standard);
+  }
+  .theinmag-membership-chooser__plan:hover,
+  .theinmag-membership-chooser__plan:focus-visible {
+    border-color: var(--color-purple-dark);
+    background: rgba(93, 58, 122, 0.07);
+    outline: none;
+  }
+  /* 8-Issue "Best value" row gets a yellow stamp accent so the value pick
+     reads as the nudge (yellow = CTA/stamp convention). */
+  .theinmag-membership-chooser__plan--best {
+    border-color: var(--color-yellow);
+    box-shadow: var(--shadow-button-yellow);
+  }
+  .theinmag-membership-chooser__plan--best:hover,
+  .theinmag-membership-chooser__plan--best:focus-visible {
+    border-color: var(--color-purple-dark);
+  }
+
+  .theinmag-membership-chooser__plan-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .theinmag-membership-chooser__plan-tag {
     background: var(--color-yellow);
     color: var(--color-inky-purple-navy);
-    font-family: var(--font-heading);
-    font-weight: 400;
-    font-size: 16px;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
-    padding: 10px 22px;
-    border-radius: var(--radius-button);
-    box-shadow: var(--shadow-button-yellow);
-    transition: background var(--transition-standard), color var(--transition-standard), translate var(--transition-standard), box-shadow var(--transition-standard);
+    padding: 2px 7px;
+    border-radius: 9999px;
   }
-  .theinmag-membership-chooser__card-link:hover .theinmag-membership-chooser__card-cta,
-  .theinmag-membership-chooser__card-link:focus-visible .theinmag-membership-chooser__card-cta {
-    background: var(--color-purple-dark);
-    color: #FFFFFF;
-    box-shadow: var(--shadow-button-pressed);
+  .theinmag-membership-chooser__plan-price {
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .theinmag-membership-chooser__plan-per {
+    font-weight: 500;
+    font-size: 11px;
+    opacity: 0.7;
+    margin-left: 1px;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .theinmag-membership-chooser__card-link:hover,
-    .theinmag-membership-chooser__card-link:focus-visible {
-      transform: none;
-    }
+    .theinmag-membership-chooser__plan { transition: none; }
   }
 {% endstylesheet %}
 
@@ -333,32 +390,21 @@
         },
         {
           "type": "text",
-          "id": "price",
-          "label": "Price line",
-          "info": "e.g. From $89"
+          "id": "product_handle",
+          "label": "Product handle (prices read from here)",
+          "info": "e.g. membership or membership-combo"
         },
         {
           "type": "text",
-          "id": "cta_label",
-          "label": "CTA label"
-        },
-        {
-          "type": "text",
-          "id": "link",
-          "label": "Link (path)",
-          "info": "e.g. /products/membership"
+          "id": "format",
+          "label": "Format option value",
+          "info": "Print or Digital for the membership product. Leave blank for single-option products like the Combo."
         },
         {
           "type": "text",
           "id": "badge",
           "label": "Badge (optional)",
           "info": "Small chip on the image, e.g. Save 10%"
-        },
-        {
-          "type": "checkbox",
-          "id": "featured",
-          "label": "Feature this card (purple frame)",
-          "default": false
         }
       ]
     }
@@ -374,9 +420,8 @@
             "image_alt": "A printed theINmag issue in a child's hands.",
             "label": "Print",
             "subhead": "The real mag in their hands, every drop.",
-            "price": "From $89",
-            "cta_label": "Choose Print",
-            "link": "/products/membership"
+            "product_handle": "membership",
+            "format": "Print"
           }
         },
         {
@@ -386,9 +431,8 @@
             "image_alt": "theINmag read on a tablet screen.",
             "label": "Digital",
             "subhead": "Instant, anywhere, on any screen.",
-            "price": "From $37.95",
-            "cta_label": "Choose Digital",
-            "link": "/products/membership"
+            "product_handle": "membership",
+            "format": "Digital"
           }
         },
         {
@@ -398,9 +442,7 @@
             "image_alt": "The printed theINmag plus its digital edition.",
             "label": "Combo",
             "subhead": "Both formats. 10% off the pair.",
-            "price": "From $115",
-            "cta_label": "Choose Combo",
-            "link": "/products/membership-combo",
+            "product_handle": "membership-combo",
             "badge": "Save 10%"
           }
         }

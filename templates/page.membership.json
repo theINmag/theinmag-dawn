@@ -10,9 +10,8 @@
             "image_alt": "A printed theINmag issue in a child's hands.",
             "label": "Print",
             "subhead": "The real mag in their hands, every drop.",
-            "price": "From $89",
-            "cta_label": "Choose Print",
-            "link": "/products/membership"
+            "product_handle": "membership",
+            "format": "Print"
           }
         },
         "digital": {
@@ -22,9 +21,8 @@
             "image_alt": "theINmag read on a tablet screen.",
             "label": "Digital",
             "subhead": "Instant, anywhere, on any screen.",
-            "price": "From $37.95",
-            "cta_label": "Choose Digital",
-            "link": "/products/membership"
+            "product_handle": "membership",
+            "format": "Digital"
           }
         },
         "combo": {
@@ -34,9 +32,7 @@
             "image_alt": "The printed theINmag plus its digital edition.",
             "label": "Combo",
             "subhead": "Both formats. 10% off the pair.",
-            "price": "From $115",
-            "cta_label": "Choose Combo",
-            "link": "/products/membership-combo",
+            "product_handle": "membership-combo",
             "badge": "Save 10%"
           }
         }

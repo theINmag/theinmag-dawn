@@ -237,5 +237,15 @@
     });
   }
 
+  /* Pre-select Length from URL query (the /pages/membership chooser
+     deep-links here as ?length=8-Issue). Only applies if the pill exists. */
+  (function preselectFromQuery() {
+    var val = new URLSearchParams(window.location.search).get('length');
+    if (!val) return;
+    var safe = window.CSS && CSS.escape ? CSS.escape(val) : val;
+    var tile = form.querySelector('[data-option-name="length"] [data-value="' + safe + '"]');
+    if (tile) setSelected('length', val);
+  })();
+
   update();
 })();
