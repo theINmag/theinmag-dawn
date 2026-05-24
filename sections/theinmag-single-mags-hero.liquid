@@ -90,43 +90,95 @@
   assign hero_rating = hero_jm.all_reviews_rating | default: 0
   assign hero_count = hero_jm.all_reviews_count | default: 0
 
-  # Sort issues newest-first by issue_number metafield. Magazines use
-  # 1+; the two curated bundles use negatives (Snack Pack -1, Digital
-  # Stack -2). The picker renders straight from this list, then the JS
-  # sortPicker re-orders the tiles on load (and on every Print/Digital
-  # flip) to: Snack Pack first, magazines in the middle, Digital Stack
-  # last. Rendering straight from sorted_issues guarantees every
-  # collection product appears exactly once - no drops, no dupes.
-  assign sorted_issues = issues | sort: 'metafields.single_mag.issue_number.value' | reverse
+  # Sort issues newest-first by the single_mag.issue_number metafield.
+  # Shopify's `sort` filter can't traverse a deep metafield value path
+  # (`metafields.single_mag.issue_number.value` resolves as nil inside
+  # `sort`, so the filter is a silent no-op and the picker rendered in
+  # raw collection order). Build a fixed-width numeric sort KEY per
+  # product and sort the key strings instead. Key bands keep the server
+  # render in lockstep with the JS picker rank so there's no reflow on
+  # load:
+  #   bundle WITH a Print variant (Snack Pack) -> 3xxx  (first)
+  #   magazine                                  -> 2xxx  (newest-first)
+  #   bundle with NO Print variant (Digital Stack) -> 1xxx (last)
+  # Each band adds issue_number + 100 so keys stay positive 4-digit and
+  # plain string sort == numeric sort. sorted_issues stays unsorted: the
+  # media / description / JSON loops below look issues up by handle, so
+  # only the picker (and initial_issue) need the ordered handle list.
+  assign sorted_issues = issues
+  assign sort_keys = ''
+  for issue in issues
+    assign iss_num = issue.metafields.single_mag.issue_number.value | default: 0
+    assign iss_has_print = false
+    for v in issue.variants
+      if v.option1 == 'Print'
+        assign iss_has_print = true
+        break
+      endif
+    endfor
+    if iss_num <= 0 and iss_has_print
+      assign key_base = 3000
+    elsif iss_num <= 0
+      assign key_base = 1000
+    else
+      assign key_base = 2000
+    endif
+    assign key_num = key_base | plus: iss_num | plus: 100
+    assign sort_keys = sort_keys | append: key_num | append: '~' | append: issue.handle | append: ','
+  endfor
+  assign sort_keys = sort_keys | split: ',' | sort | reverse
+  assign sorted_handles = ''
+  for sk in sort_keys
+    assign sk_parts = sk | split: '~'
+    if sk_parts.size > 1
+      assign sorted_handles = sorted_handles | append: sk_parts[1] | append: ','
+    endif
+  endfor
+  assign sorted_handles = sorted_handles | split: ','
 
   # Active issue on load. If the current product is itself one of the
   # issues (you navigated to /products/mag03 or /products/snack-pack),
   # select that one - the picker should reflect the page you're on.
-  # Otherwise fall back to the newest issue whose Print is available,
-  # else the newest issue overall. JS re-runs the fallback pick on
-  # variant flip so the rule stays consistent client-side.
+  # Otherwise fall back to the newest magazine whose Print is available,
+  # else the newest magazine overall, else the first tile. JS re-runs
+  # the fallback pick on variant flip so the rule stays consistent.
   assign initial_issue = nil
-  for issue in sorted_issues
+  for issue in issues
     if issue.handle == product.handle
       assign initial_issue = issue
       break
     endif
   endfor
   if initial_issue == nil
-    assign initial_issue = sorted_issues.first
-    for issue in sorted_issues
-      assign issue_print_available = false
-      for v in issue.variants
+    assign newest_mag = nil
+    for h in sorted_handles
+      assign cand = issues | where: 'handle', h | first
+      assign cand_num = cand.metafields.single_mag.issue_number.value | default: 0
+      if cand_num <= 0
+        continue
+      endif
+      if newest_mag == nil
+        assign newest_mag = cand
+      endif
+      assign cand_print_available = false
+      for v in cand.variants
         if v.option1 == 'Print' and v.available
-          assign issue_print_available = true
+          assign cand_print_available = true
           break
         endif
       endfor
-      if issue_print_available
-        assign initial_issue = issue
+      if cand_print_available
+        assign initial_issue = cand
         break
       endif
     endfor
+    if initial_issue == nil
+      assign initial_issue = newest_mag
+    endif
+    if initial_issue == nil
+      assign first_handle = sorted_handles.first
+      assign initial_issue = issues | where: 'handle', first_handle | first
+    endif
   endif
 
   # first_variant = initial issue's Print variant if available, else
@@ -202,13 +254,15 @@
       Rendered straight from sorted_issues; JS sortPicker re-orders the
       tiles to Snack Pack first, magazines, Digital Stack last.
     {%- endcomment -%}
-    {%- if show_picker and sorted_issues.size > 0 -%}
+    {%- if show_picker and sorted_handles.size > 0 -%}
       <div class="theinmag-single-mags-hero__picker-wrap">
         {%- if visible_eyebrow != blank -%}
           <p class="theinmag-single-mags-hero__eyebrow">{{ visible_eyebrow }}</p>
         {%- endif -%}
         <ol class="theinmag-single-mags-hero__picker" role="list" data-picker>
-          {%- for issue in sorted_issues -%}
+          {%- for sorted_handle in sorted_handles -%}
+            {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
+            {%- if issue == blank -%}{%- continue -%}{%- endif -%}
             {%- liquid
               assign issue_num = issue.metafields.single_mag.issue_number.value | default: 0
               assign issue_label = issue.title | default: issue.handle
@@ -1020,9 +1074,9 @@
 
     /* Picker sort:
          Snack Pack (rank 0) always first, Digital Stack (rank 2) always
-         last. Magazines (rank 1) in between - Print-format floats
-         in-stock issues to the front, then newest-first by issue_number;
-         Digital-format is strict newest-first.
+         last. Magazines (rank 1) in between - strict newest-first by
+         issue_number in BOTH formats (no in-stock float; sold-out issues
+         keep their numeric slot and get the "Digital only" grey-out).
        Bundles never get the sold-out treatment - their print component
        availability is what determines the bundle's stock, handled per-
        click by updateVariantState (not here). */
@@ -1034,13 +1088,8 @@
         const rankA = pickerRank(a);
         const rankB = pickerRank(b);
         if (rankA !== rankB) return rankA - rankB;
-        // Same rank. Stock + issue-number ordering applies to magazines only.
+        // Same rank. Magazines sort strict newest-first by issue number.
         if (rankA === 1) {
-          if (applyStockSort) {
-            const inStockA = a.dataset.printInStock === 'true';
-            const inStockB = b.dataset.printInStock === 'true';
-            if (inStockA !== inStockB) return inStockA ? -1 : 1;
-          }
           const numA = parseInt(a.dataset.issueNumber, 10) || 0;
           const numB = parseInt(b.dataset.issueNumber, 10) || 0;
           return numB - numA;
@@ -2006,19 +2055,19 @@
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
     min-height: 60px;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
   .theinmag-single-mags-hero__variant-tile:hover {
-    background: rgba(247, 160, 146, 0.14);
+    background: rgba(93, 58, 122, 0.07);
   }
-  /* Active state uses a 0.45 pink tint rather than a solid soft-pink
-     fill so the variant tile reads as part of the same picker family
-     as the Membership PDP pills (Format / Length) and Starting Issue
-     tiles. The 2px solid pink border (set on the base rule) provides
-     the strong edge - tint + border together make the selected state
-     obvious without the punch of a solid coloured button. */
+  /* Active state matches the build-a-bundle modal + Membership PDP: a
+     soft purple tint, solid purple border, purple label. The previous
+     pink fill read cheap on the photo-led PDP; purple holds the premium
+     register and clearly signals selection. */
   .theinmag-single-mags-hero__variant-tile[aria-pressed='true'] {
-    background: rgba(247, 160, 146, 0.45);
+    background: rgba(93, 58, 122, 0.10);
+    border-color: var(--color-purple-dark);
+    color: var(--color-purple-dark);
   }
   .theinmag-single-mags-hero__variant-title {
     font-weight: 700;
@@ -2048,7 +2097,7 @@
      leaving the selected state invisible - the visitor clicks Print on
      a sold-out issue and nothing visible happens. */
   .theinmag-single-mags-hero__variant-tile.is-soldout[aria-pressed='true'] {
-    border-color: var(--color-soft-pink);
+    border-color: var(--color-purple-dark);
     color: var(--color-inky-purple-navy);
   }
   .theinmag-single-mags-hero__variant-tile.is-soldout .theinmag-single-mags-hero__variant-sold {

@@ -103,14 +103,30 @@
     let starting = selected('starting');
 
     const currentTile = form.querySelector('[data-option-name="starting"] [data-value="current"]');
-    const needsPrintStock = format === 'Print' || format === 'Combo';
-    const hideCurrent = needsPrintStock && !printInStock;
+    const startingGroup = form.querySelector('[data-starting-group]');
+    const digitalStartNote = form.querySelector('[data-digital-start-note]');
 
-    if (currentTile) {
-      currentTile.hidden = hideCurrent;
-      if (hideCurrent && starting === 'current') {
-        starting = 'next';
-        setSelected('starting', 'next');
+    if (format === 'Digital') {
+      /* Digital has no print-stock wait and no "next issue" split - it
+         always begins with the current issue. Force current, hide the
+         chooser, and show the explanatory note. (Combo keeps the choice
+         because it ships the print copy.) */
+      starting = 'current';
+      setSelected('starting', 'current');
+      if (currentTile) currentTile.hidden = false;
+      if (startingGroup) startingGroup.hidden = true;
+      if (digitalStartNote) digitalStartNote.hidden = false;
+    } else {
+      if (startingGroup) startingGroup.hidden = false;
+      if (digitalStartNote) digitalStartNote.hidden = true;
+      const needsPrintStock = format === 'Print' || format === 'Combo';
+      const hideCurrent = needsPrintStock && !printInStock;
+      if (currentTile) {
+        currentTile.hidden = hideCurrent;
+        if (hideCurrent && starting === 'current') {
+          starting = 'next';
+          setSelected('starting', 'next');
+        }
       }
     }
 

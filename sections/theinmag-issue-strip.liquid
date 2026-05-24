@@ -26,12 +26,38 @@
 {%- liquid
   assign issues_collection_handle = section.settings.issues_collection | default: 'single-issues'
   assign issues = collections[issues_collection_handle].products
-  assign sorted_issues = issues | sort: 'metafields.single_mag.issue_number.value' | reverse
+  # Shopify's `sort` filter can't traverse the deep metafield path
+  # `metafields.single_mag.issue_number.value` - it resolves as nil so the
+  # sort silently no-ops, leaving raw collection order (the magazines came
+  # out unordered). Build a zero-padded numeric sort key per product and
+  # sort the key strings instead (fixed 3-digit width => string sort ==
+  # numeric). The five passes below filter this ordered handle list; pass 4
+  # (the rest of the magazines) relies on it for newest-first order.
+  assign sort_keys = ''
+  for issue in issues
+    assign iss_num = issue.metafields.single_mag.issue_number.value | default: 0
+    assign shifted = iss_num | plus: 100
+    if shifted < 100
+      assign padded = '0' | append: shifted
+    else
+      assign padded = shifted
+    endif
+    assign sort_keys = sort_keys | append: padded | append: '~' | append: issue.handle | append: ','
+  endfor
+  assign sort_keys = sort_keys | split: ',' | sort | reverse
+  assign sorted_handles = ''
+  for sk in sort_keys
+    assign sk_parts = sk | split: '~'
+    if sk_parts.size > 1
+      assign sorted_handles = sorted_handles | append: sk_parts[1] | append: ','
+    endif
+  endfor
+  assign sorted_handles = sorted_handles | split: ','
   assign membership_product = all_products[section.settings.membership_handle]
   assign section_style = '--tmis-pt: ' | append: section.settings.padding_top | append: 'px; --tmis-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
 
-{%- if sorted_issues.size > 0 -%}
+{%- if sorted_handles.size > 0 -%}
 <section
   class="theinmag-issue-strip"
   style="{{ section_style }}"
@@ -50,7 +76,9 @@
       {%- endif -%}
 
       {%- comment -%} 2. Snack Pack - bundle (not pre-order, no positive issue number) WITH a Print variant {%- endcomment -%}
-      {%- for issue in sorted_issues -%}
+      {%- for sorted_handle in sorted_handles -%}
+        {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
+        {%- if issue == blank -%}{%- continue -%}{%- endif -%}
         {%- liquid
           assign inum = issue.metafields.single_mag.issue_number.value | default: 0
           assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
@@ -67,7 +95,9 @@
       {%- endfor -%}
 
       {%- comment -%} 3. Pre-sale magazine(s) {%- endcomment -%}
-      {%- for issue in sorted_issues -%}
+      {%- for sorted_handle in sorted_handles -%}
+        {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
+        {%- if issue == blank -%}{%- continue -%}{%- endif -%}
         {%- assign is_pre = issue.metafields.theinmag.is_pre_order | default: false -%}
         {%- if is_pre -%}
           {%- render 'theinmag-issue-strip-tile', product: issue, current_handle: product.handle -%}
@@ -75,7 +105,9 @@
       {%- endfor -%}
 
       {%- comment -%} 4. The rest of the magazines, newest-first {%- endcomment -%}
-      {%- for issue in sorted_issues -%}
+      {%- for sorted_handle in sorted_handles -%}
+        {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
+        {%- if issue == blank -%}{%- continue -%}{%- endif -%}
         {%- liquid
           assign inum = issue.metafields.single_mag.issue_number.value | default: 0
           assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
@@ -86,7 +118,9 @@
       {%- endfor -%}
 
       {%- comment -%} 5. Digital Stack - bundle (not pre-order, no positive issue number) with NO Print variant {%- endcomment -%}
-      {%- for issue in sorted_issues -%}
+      {%- for sorted_handle in sorted_handles -%}
+        {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
+        {%- if issue == blank -%}{%- continue -%}{%- endif -%}
         {%- liquid
           assign inum = issue.metafields.single_mag.issue_number.value | default: 0
           assign is_pre = issue.metafields.theinmag.is_pre_order | default: false

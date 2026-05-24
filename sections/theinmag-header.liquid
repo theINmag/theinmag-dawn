@@ -36,6 +36,7 @@
   assign logo_full = section.settings.logo_image_full
 
   assign cta_label = section.settings.cta_label | default: 'Send IN content'
+  assign cta_label_html = cta_label | escape | replace: ' IN ', ' <span class="theinmag-in">IN</span> '
   assign cta_link = section.settings.cta_link | default: '/pages/send-in'
 
   assign instagram_url = section.settings.instagram_url
@@ -208,7 +209,7 @@
     </a>
 
     <a class="theinmag-btn theinmag-btn--primary theinmag-header__cta" href="{{ cta_link }}">
-      {{ cta_label }}
+      <span class="theinmag-cta-label">{{ cta_label_html }}</span>
     </a>
 
     <button
@@ -347,7 +348,7 @@
         <path d="m22 2-7 20-4-9-9-4Z"></path>
         <path d="M22 2 11 13"></path>
       </svg>
-      {{ cta_label }}
+      <span class="theinmag-cta-label">{{ cta_label_html }}</span>
     </a>
 
     {%- comment -%}
@@ -802,9 +803,19 @@
   @media (min-width: 990px) {
     .theinmag-btn.theinmag-header__cta {
       display: inline-flex;
-      padding: 14px 28px;
-      font-size: 18px;
+      /* Padding trimmed to offset the larger Post text so the stamp
+         keeps the same footprint while the label reads a touch bigger. */
+      padding: 12px 24px;
+      font-size: 20px;
     }
+  }
+
+  /* Brand "IN" lift, dialled down for the compact CTA stamp - a slight
+     rise above the surrounding caps, not the 1.4em display lift. */
+  .theinmag-header__cta .theinmag-in,
+  .theinmag-drawer__cta .theinmag-in {
+    font-size: 1.15em;
+    vertical-align: -0.03em;
   }
 
   /* Hamburger - visible below 990px. Less rounded (rectangle with

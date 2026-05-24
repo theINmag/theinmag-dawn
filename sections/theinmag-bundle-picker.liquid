@@ -323,6 +323,9 @@
             <span>Start with {{ next_issue }} (drops {{ next_release_formatted }})</span>
           </label>
         </div>
+        <p class="theinmag-bundle-picker__modal-start-note" data-modal-start-note hidden>
+          Digital always starts with the <strong>current issue ({{ current_issue }})</strong>.
+        </p>
       </fieldset>
 
       <p class="theinmag-bundle-picker__modal-rolling-note" data-modal-rolling-note hidden>
@@ -1069,6 +1072,7 @@
     flex-direction: column;
     gap: 8px;
   }
+  .theinmag-bundle-picker__modal-radios[hidden] { display: none; }
   .theinmag-bundle-picker__modal-radio {
     display: flex;
     align-items: center;
@@ -1083,6 +1087,18 @@
     min-height: 44px;
   }
   .theinmag-bundle-picker__modal-radio input { margin: 0; accent-color: var(--color-purple-dark, #5D3A7A); }
+  .theinmag-bundle-picker__modal-start-note {
+    margin: 0;
+    padding: 12px 14px;
+    background: rgba(93, 58, 122, 0.07);
+    border: 1px solid rgba(93, 58, 122, 0.25);
+    border-radius: 12px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-bundle-picker__modal-start-note[hidden] { display: none; }
   .theinmag-bundle-picker__modal-rolling-note {
     margin: -8px 0 var(--space-lg, 24px);
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
@@ -1686,6 +1702,7 @@
         });
       }
       /* Reset starting radios - default to current if available, else next. */
+      const modalStartNote = root.querySelector('[data-modal-start-note]');
       if (modalStartGroup) {
         const radios = modalStartGroup.querySelectorAll('input[type="radio"]');
         radios.forEach(function (r) {
@@ -1695,16 +1712,27 @@
             r.checked = r.value === 'next';
           }
         });
-        /* Hide "current" option only when format=Print AND print not in
-           stock. Digital format always shows both options. */
         const currentLabel = modalStartGroup.querySelector('[data-modal-start-current]');
-        if (currentLabel) {
-          if (format === 'Print' && !printInStock) {
-            currentLabel.hidden = true;
-            const nextRadio = modalStartGroup.querySelector('input[value="next"]');
-            if (nextRadio) nextRadio.checked = true;
-          } else {
-            currentLabel.hidden = false;
+        if (format === 'Digital') {
+          /* Digital always begins with the current issue - no print-stock
+             wait, no "next issue" split. Force current, hide the chooser,
+             show the note. (No Combo tile exists in the bundle modal.) */
+          radios.forEach(function (r) { r.checked = r.value === 'current'; });
+          if (currentLabel) currentLabel.hidden = false;
+          modalStartGroup.hidden = true;
+          if (modalStartNote) modalStartNote.hidden = false;
+        } else {
+          modalStartGroup.hidden = false;
+          if (modalStartNote) modalStartNote.hidden = true;
+          /* Hide "current" only when format=Print AND print not in stock. */
+          if (currentLabel) {
+            if (!printInStock) {
+              currentLabel.hidden = true;
+              const nextRadio = modalStartGroup.querySelector('input[value="next"]');
+              if (nextRadio) nextRadio.checked = true;
+            } else {
+              currentLabel.hidden = false;
+            }
           }
         }
       }

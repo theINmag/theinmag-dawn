@@ -286,14 +286,14 @@
           <legend class="theinmag-membership-hero__legend">Length</legend>
           <div class="theinmag-membership-hero__pills" role="radiogroup" data-option-name="length">
             <button type="button" class="theinmag-membership-hero__pill" data-value="4-Issue" aria-pressed="true">4-Issue</button>
-            <button type="button" class="theinmag-membership-hero__pill" data-value="8-Issue" aria-pressed="false">8-Issue</button>
+            <button type="button" class="theinmag-membership-hero__pill theinmag-membership-hero__pill--featured" data-value="8-Issue" aria-pressed="false">8-Issue<span class="theinmag-membership-hero__pill-chip">Best value</span></button>
             <button type="button" class="theinmag-membership-hero__pill" data-value="Rolling" aria-pressed="false">Rolling</button>
           </div>
         </fieldset>
 
         <fieldset class="theinmag-membership-hero__fieldset">
           <legend class="theinmag-membership-hero__legend">Starting issue</legend>
-          <div class="theinmag-membership-hero__starting" role="radiogroup" data-option-name="starting">
+          <div class="theinmag-membership-hero__starting" role="radiogroup" data-option-name="starting" data-starting-group>
             <button type="button" class="theinmag-membership-hero__start-tile" data-value="current" data-requires-print-stock="true" aria-pressed="true">
               <span class="theinmag-membership-hero__start-title">Start with the current issue</span>
               <span class="theinmag-membership-hero__start-sub">{{ current_issue }}{% if print_in_stock %} - in stock now{% endif %}</span>
@@ -303,6 +303,15 @@
               <span class="theinmag-membership-hero__start-sub">{{ next_issue }} - drops {{ next_release_formatted }}</span>
             </button>
           </div>
+          {%- comment -%}
+            Digital memberships have no print-stock wait and no "next issue"
+            split - they always begin with the current issue. JS hides the
+            chooser above and shows this note when Format = Digital (Combo
+            keeps the choice because it includes the print copy).
+          {%- endcomment -%}
+          <p class="theinmag-membership-hero__start-note" data-digital-start-note hidden>
+            Digital always starts with the <strong>current issue ({{ current_issue }})</strong>.
+          </p>
         </fieldset>
 
         {%- comment -%}
@@ -845,12 +854,16 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-xs);
+    /* Headroom so the "Best value" chip on the 8-Issue pill clears the
+       legend above (legend margin is only 4px). */
+    margin-top: 7px;
   }
 
   .theinmag-membership-hero__pill {
     /* flex: 1 1 0 (NOT 1 1 auto) so all three pills divide the row
        equally regardless of label width - "4-Issue" is shorter than
        "8-Issue"/"Rolling" so auto sizes give unequal widths. */
+    position: relative;
     flex: 1 1 0;
     min-width: 0;
     min-height: 40px;
@@ -863,18 +876,35 @@
     font-weight: 600;
     font-size: 13px;
     cursor: pointer;
-    transition: background var(--transition-standard), color var(--transition-standard);
+    transition: background var(--transition-standard), color var(--transition-standard), border-color var(--transition-standard);
   }
-  .theinmag-membership-hero__pill:hover { background: rgba(247, 160, 146, 0.14); }
-  /* Active state: pink tint inside, solid pink border outside. Tint sits
-     at 0.45 so the selected pill clearly stands out against the white
-     resting state (grandparents + kids need an obvious cue). Border is
-     already 2px so no layout shift on toggle. */
+  .theinmag-membership-hero__pill:hover { background: rgba(93, 58, 122, 0.07); }
+  /* Active state matches the build-a-bundle modal: soft purple tint,
+     solid purple border, purple label. Reads premium next to the white
+     resting pills and clearly signals selection (grandparents + kids
+     need an obvious cue). Border is already 2px so no layout shift. */
   .theinmag-membership-hero__pill[aria-pressed='true'] {
-    background: rgba(247, 160, 146, 0.45);
-    color: var(--color-inky-purple-navy);
+    background: rgba(93, 58, 122, 0.10);
+    border-color: var(--color-purple-dark);
+    color: var(--color-purple-dark);
   }
   .theinmag-membership-hero__pill[hidden] { display: none; }
+
+  /* "Best value" chip on the 8-Issue length pill (matches the modal). */
+  .theinmag-membership-hero__pill-chip {
+    position: absolute;
+    top: -8px;
+    right: 8px;
+    background: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    pointer-events: none;
+  }
 
   /* Starting issue tiles - stacked vertically per Ryan's preference (side-by-side
      was tried and rejected). Card-shape (not pill) so the two-line content has
@@ -888,6 +918,13 @@
     align-items: stretch;
     gap: 10px;
   }
+  /* Class specificity beats the UA [hidden] rule, so the chooser needs an
+     explicit override to actually disappear when JS hides it (Digital). */
+  .theinmag-membership-hero__starting[hidden] { display: none; }
+  /* Radio-style tiles: a circle selector on the left + the two-line
+     content on the right (mirrors the build-a-bundle modal's circle
+     selector). Grid keeps the circle vertically centred across both
+     text rows without changing the markup. */
   .theinmag-membership-hero__start-tile {
     background: #ffffff;
     border: 1.5px solid rgba(247, 160, 146, 0.55);
@@ -895,27 +932,62 @@
     padding: 12px 16px;
     cursor: pointer;
     text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 12px;
+    row-gap: 2px;
+    align-items: center;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
     transition: background var(--transition-standard), border-color var(--transition-standard);
   }
+  .theinmag-membership-hero__start-tile::before {
+    content: '';
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--color-soft-pink);
+    background: #ffffff;
+    box-sizing: border-box;
+    transition: border-color var(--transition-standard), background var(--transition-standard), box-shadow var(--transition-standard);
+  }
   .theinmag-membership-hero__start-tile:hover,
   .theinmag-membership-hero__start-tile:focus-visible {
-    border-color: var(--color-soft-pink);
+    border-color: var(--color-purple-dark);
     outline: none;
   }
   .theinmag-membership-hero__start-tile[aria-pressed='true'] {
-    background: rgba(247, 160, 146, 0.45);
-    border-color: var(--color-soft-pink);
+    background: rgba(93, 58, 122, 0.10);
+    border-color: var(--color-purple-dark);
     border-width: 2px;
     padding: 11.5px 15.5px;
   }
+  .theinmag-membership-hero__start-tile[aria-pressed='true']::before {
+    border-color: var(--color-purple-dark);
+    background: var(--color-purple-dark);
+    box-shadow: inset 0 0 0 3px #ffffff;
+  }
   .theinmag-membership-hero__start-tile[hidden] { display: none; }
-  .theinmag-membership-hero__start-title { font-weight: 700; font-size: 14px; line-height: 1.3; }
-  .theinmag-membership-hero__start-sub { font-weight: 400; font-size: 12.5px; opacity: 0.78; line-height: 1.35; }
+  .theinmag-membership-hero__start-title { grid-column: 2; font-weight: 700; font-size: 14px; line-height: 1.3; }
+  .theinmag-membership-hero__start-sub { grid-column: 2; font-weight: 400; font-size: 12.5px; opacity: 0.78; line-height: 1.35; }
+
+  /* Digital-only note that replaces the chooser when Format = Digital. */
+  .theinmag-membership-hero__start-note {
+    margin: 0;
+    padding: 12px 16px;
+    background: rgba(93, 58, 122, 0.07);
+    border: 1.5px solid rgba(93, 58, 122, 0.25);
+    border-radius: 16px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__start-note[hidden] { display: none; }
 
   /* CTA row holds the yellow ADD TO CART + outlined BUY NOW side by side.
      Pattern matches the typical product page (theinmag-single-mags-hero). */
