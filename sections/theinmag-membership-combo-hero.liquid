@@ -648,7 +648,10 @@
     line-height: 1.05;
     color: var(--color-inky-purple-navy);
     margin: 0 0 2px;
-    white-space: nowrap;
+    /* Combo title ("theINmag Combo Membership") is longer than the
+       membership hero's - allow wrapping so it never overflows the
+       narrow widget on mobile. */
+    white-space: normal;
     text-align: center;
   }
 
