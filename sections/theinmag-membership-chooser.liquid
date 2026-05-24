@@ -269,15 +269,17 @@
     background: rgba(93, 58, 122, 0.07);
     outline: none;
   }
-  /* 8-Issue "Best value" row gets a yellow stamp accent so the value pick
-     reads as the nudge (yellow = CTA/stamp convention). */
-  .theinmag-membership-chooser__plan--best {
-    border-color: var(--color-yellow);
-    box-shadow: var(--shadow-button-yellow);
-  }
-  .theinmag-membership-chooser__plan--best:hover,
-  .theinmag-membership-chooser__plan--best:focus-visible {
-    border-color: var(--color-purple-dark);
+  /* All rows share one resting style - the "Best value" chip is the only
+     thing that marks the 8-Issue row (no border/shadow accent). */
+
+  /* Cap the row width on desktop so the selectors don't stretch the full
+     card width and read as over-long bars. Full width on mobile. */
+  @media (min-width: 750px) {
+    .theinmag-membership-chooser__plan {
+      max-width: 240px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
 
   .theinmag-membership-chooser__plan-name {
