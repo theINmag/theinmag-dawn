@@ -66,6 +66,15 @@
   assign hero_combo = 'membership-hero-combo.jpg' | asset_url
 
   comment
+    Combo is sold as a separate Shopify Bundle product (membership-combo) so it
+    expands into split Print + Digital line items (the print stays Unfulfilled
+    until shipped). Selecting "Combo" here adds that bundle variant to cart, not
+    a single-product Combo variant. Combo has no Rolling. Needs the combo product
+    ACTIVE + published to the Online Store channel for all_products to return it.
+  endcomment
+  assign combo_product = all_products['membership-combo']
+
+  comment
     Flick-through video filename pattern: mag{NN}-02-flick-through1.mp4
     Bound to the shop-level current_issue_number metafield so the slot
     auto-rolls to the new mag at each release (Stage 14 trigger). If a
@@ -278,6 +287,7 @@
           <div class="theinmag-membership-hero__pills" role="radiogroup" data-option-name="format">
             <button type="button" class="theinmag-membership-hero__pill" data-value="Print" aria-pressed="true">Print</button>
             <button type="button" class="theinmag-membership-hero__pill" data-value="Digital" aria-pressed="false">Digital</button>
+            <button type="button" class="theinmag-membership-hero__pill" data-value="Combo" aria-pressed="false">Combo</button>
           </div>
         </fieldset>
 
@@ -414,6 +424,17 @@
       {%- for v in product.variants -%}
         {"id": {{ v.id }}, "option1": {{ v.option1 | json }}, "option2": {{ v.option2 | json }}, "price": {{ v.price }}, "available": {{ v.available }}}{%- unless forloop.last -%},{%- endunless -%}
       {%- endfor -%}
+    ]
+  </script>
+
+  {%- comment -%} Combo bundle variants (option1 = Length, no Rolling). Selecting Combo above adds these. {%- endcomment -%}
+  <script type="application/json" data-combo-variants>
+    [
+      {%- if combo_product != blank -%}
+        {%- for v in combo_product.variants -%}
+          {"id": {{ v.id }}, "length": {{ v.option1 | json }}, "price": {{ v.price }}, "available": {{ v.available }}}{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      {%- endif -%}
     ]
   </script>
 
@@ -888,6 +909,13 @@
     color: var(--color-purple-dark);
   }
   .theinmag-membership-hero__pill[hidden] { display: none; }
+  /* Greyed length pill - Rolling is disabled while Combo is selected (the
+     Combo bundle has no Rolling option). */
+  .theinmag-membership-hero__pill.is-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 
   /* "Best value" chip on the 8-Issue length pill (matches the modal). */
   .theinmag-membership-hero__pill-chip {

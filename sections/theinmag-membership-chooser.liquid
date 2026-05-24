@@ -52,6 +52,11 @@
           endif
           assign fmt = block.settings.format
           assign prod = all_products[block.settings.product_handle]
+          # Where the row links to can differ from where prices are read: the
+          # Combo card reads prices from the membership-combo product but links
+          # to the unified PDP (/products/membership?format=Combo).
+          assign link_handle = block.settings.link_handle | default: block.settings.product_handle
+          assign link_fmt = block.settings.link_format | default: block.settings.format
         -%}
         <li class="theinmag-membership-chooser__card" {{ block.shopify_attributes }}>
           <div class="theinmag-membership-chooser__card-frame">
@@ -79,10 +84,10 @@
                   {%- endif -%}
                 {%- endfor -%}
                 {%- if match -%}
-                  {%- if fmt != blank -%}
-                    {%- capture row_link -%}/products/{{ block.settings.product_handle }}?format={{ fmt | url_encode }}&length={{ len | url_encode }}{%- endcapture -%}
+                  {%- if link_fmt != blank -%}
+                    {%- capture row_link -%}/products/{{ link_handle }}?format={{ link_fmt | url_encode }}&length={{ len | url_encode }}{%- endcapture -%}
                   {%- else -%}
-                    {%- capture row_link -%}/products/{{ block.settings.product_handle }}?length={{ len | url_encode }}{%- endcapture -%}
+                    {%- capture row_link -%}/products/{{ link_handle }}?length={{ len | url_encode }}{%- endcapture -%}
                   {%- endif -%}
                   {%- assign is_best = false -%}
                   {%- if len == '8-Issue' -%}{%- assign is_best = true -%}{%- endif -%}
@@ -404,6 +409,18 @@
         },
         {
           "type": "text",
+          "id": "link_handle",
+          "label": "Link product handle (optional)",
+          "info": "Where the rows link to, if different from the price product. e.g. Combo reads prices from membership-combo but links to membership."
+        },
+        {
+          "type": "text",
+          "id": "link_format",
+          "label": "Link format value (optional)",
+          "info": "Format param for the link, if different from above. e.g. Combo."
+        },
+        {
+          "type": "text",
           "id": "badge",
           "label": "Badge (optional)",
           "info": "Small chip on the image, e.g. Save 10%"
@@ -445,6 +462,8 @@
             "label": "Combo",
             "subhead": "Both formats. 10% off the pair.",
             "product_handle": "membership-combo",
+            "link_handle": "membership",
+            "link_format": "Combo",
             "badge": "Save 10%"
           }
         }
