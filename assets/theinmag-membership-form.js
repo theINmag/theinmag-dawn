@@ -18,20 +18,6 @@
     return;
   }
 
-  /* Combo bundle variants (separate membership-combo product). Selecting
-     "Combo" adds one of these to cart instead of a membership variant, so
-     the order splits into Print + Digital line items. Empty if the combo
-     product isn't published. */
-  const comboVariantsScript = section.querySelector('[data-combo-variants]');
-  let comboVariants = [];
-  if (comboVariantsScript) {
-    try {
-      comboVariants = JSON.parse(comboVariantsScript.textContent) || [];
-    } catch (e) {
-      comboVariants = [];
-    }
-  }
-
   const variantInput = form.querySelector('[data-variant-id-input]');
   const priceDisplay = section.querySelector('[data-price-display]');
   const propStarting = form.querySelector('[data-prop-starting-mag]');
@@ -104,10 +90,6 @@
       return v.option1 === format && v.option2 === length;
     });
   }
-  function findComboVariant(length) {
-    return comboVariants.find(function (v) { return v.length === length; });
-  }
-  const rollingPill = form.querySelector('[data-option-name="length"] [data-value="Rolling"]');
 
   function heroSrcFor(format) {
     if (format === 'Digital' && heroDigital) return heroDigital;
@@ -117,25 +99,8 @@
 
   function update() {
     const format = selected('format');
-    let length = selected('length');
+    const length = selected('length');
     let starting = selected('starting');
-
-    /* Combo is the bundle product and has no Rolling option - grey the
-       Rolling pill out while Combo is selected and bounce any Rolling
-       selection back to 8-Issue. */
-    if (rollingPill) {
-      if (format === 'Combo') {
-        rollingPill.setAttribute('aria-disabled', 'true');
-        rollingPill.classList.add('is-disabled');
-        if (length === 'Rolling') {
-          length = '8-Issue';
-          setSelected('length', '8-Issue');
-        }
-      } else {
-        rollingPill.removeAttribute('aria-disabled');
-        rollingPill.classList.remove('is-disabled');
-      }
-    }
 
     const currentTile = form.querySelector('[data-option-name="starting"] [data-value="current"]');
     const startingGroup = form.querySelector('[data-starting-group]');
@@ -165,7 +130,7 @@
       }
     }
 
-    const variant = format === 'Combo' ? findComboVariant(length) : findVariant(format, length);
+    const variant = findVariant(format, length);
     if (variant) {
       if (variantInput) variantInput.value = variant.id;
       if (priceDisplay) {
@@ -259,7 +224,6 @@
 
   form.querySelectorAll('[data-option-name] [data-value]').forEach(function (tile) {
     tile.addEventListener('click', function () {
-      if (tile.getAttribute('aria-disabled') === 'true') return;
       const group = tile.closest('[data-option-name]');
       if (!group) return;
       setSelected(group.dataset.optionName, tile.dataset.value);
