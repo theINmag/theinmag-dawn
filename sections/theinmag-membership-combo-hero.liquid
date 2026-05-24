@@ -1,0 +1,1289 @@
+{%- comment -%}
+  theinmag-membership-combo-hero
+  PDP for /products/membership-combo (the Combo Membership bundle product).
+
+  Cloned from theinmag-membership-hero.liquid (v3.3 Combo split). The Combo
+  is its own Shopify Bundle product so it expands into separate Print +
+  Digital line items at fulfilment (the print stays Unfulfilled until
+  shipped). This hero is Combo-only, so vs the parent membership hero:
+    - NO Format selector (always Combo - both formats every drop).
+    - Length = 4-Issue / 8-Issue ONLY. Combo Rolling is blocked (native
+      Shopify Bundles can't carry a subscription selling plan) and is
+      deferred to architecture-Claude - do not add a Rolling pill here.
+    - Variant matching is single-option: option1 = Length.
+    - Slide 0 is the static Combo photo (no Format-driven image swap).
+    - Digital-only start note + Rolling shipping note + Cancel-anytime
+      (Rolling) accordion are all removed.
+
+  Intentionally reuses the parent hero's `theinmag-membership-hero__*` CSS
+  class names + stylesheet verbatim so the Combo PDP reads as the same
+  product-page family. The two sections never appear on the same page, so
+  the shared class names don't collide. Gallery + selector JS lives in
+  theinmag-membership-combo-form.js (single-option matcher).
+{%- endcomment -%}
+
+{%- liquid
+  assign current_issue = shop.metafields.theinmag.current_issue_number.value | default: 'Mag09'
+  assign print_in_stock = shop.metafields.theinmag.current_issue_print_in_stock.value
+  assign next_release_value = shop.metafields.theinmag.next_release_date.value
+  assign next_release_formatted = next_release_value | date: '%-d %B %Y'
+
+  assign current_num_str = current_issue | remove: 'Mag'
+  assign current_num = current_num_str | times: 1
+  assign next_num = current_num | plus: 1
+  if next_num < 10
+    assign next_issue = 'Mag0' | append: next_num
+  else
+    assign next_issue = 'Mag' | append: next_num
+  endif
+
+  assign first_variant = product.selected_or_first_available_variant
+
+  if print_in_stock
+    assign print_stock_attr = 'true'
+  else
+    assign print_stock_attr = 'false'
+  endif
+
+  assign hero_combo = 'membership-hero-combo.jpg' | asset_url
+
+  comment
+    Flick-through video filename pattern: mag{NN}-02-flick-through1.mp4
+    Bound to the shop-level current_issue_number metafield so the slot
+    auto-rolls to the new mag at each release (Stage 14 trigger).
+  endcomment
+  assign flick_through_filename = 'mag' | append: current_num_str | append: '-02-flick-through1.mp4'
+  assign flick_through_src = flick_through_filename | asset_url
+  assign three_times_year_src = 'trust-overlay-three-times-year.jpg' | asset_url
+  assign sustainable_src = 'trust-overlay-sustainable.jpg' | asset_url
+
+  assign tagline = section.settings.tagline | default: 'Both formats, every drop.'
+  assign section_style = '--tmh-pt: ' | append: section.settings.padding_top | append: 'px; --tmh-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-membership-hero"
+  data-theinmag-membership-combo-form
+  data-current-issue="{{ current_issue }}"
+  data-next-issue="{{ next_issue }}"
+  data-print-in-stock="{{ print_stock_attr }}"
+  aria-labelledby="theinmag-membership-combo-hero-heading"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-membership-hero__inner">
+
+    {%- comment -%}
+      LEFT: media gallery - one big main image + a thumb strip below.
+      Slide 0 is the static Combo lifestyle photo (no Format swap here);
+      the rest are fixed lifestyle / trust photos plus the current-issue
+      flick-through video.
+    {%- endcomment -%}
+    {%- assign gallery_overlays = 'trust-overlay-gift-giving.jpg|A gift that keeps on giving.;trust-overlay-nevermissout.jpg|Letterbox excitement.;trust-overlay-ad-free.jpg|100% ad-free.;trust-overlay-aussie-kids.jpg|Made by Aussie kids for Aussie kids.' | split: ';' -%}
+    <div class="theinmag-membership-hero__media-col">
+
+      <div class="theinmag-membership-hero__media-main" data-media-main>
+        {%- comment -%} Slide 0: static Combo photo. {%- endcomment -%}
+        <div class="theinmag-membership-hero__slide is-active" data-slide>
+          <img class="theinmag-membership-hero__slide-img" src="{{ hero_combo }}" alt="theINmag Combo Membership - the printed mag and the digital file, every drop." loading="eager" fetchpriority="high">
+        </div>
+
+        {%- comment -%} Slide 1: "New mags, three times a year." {%- endcomment -%}
+        <div class="theinmag-membership-hero__slide" data-slide>
+          <img class="theinmag-membership-hero__slide-img" src="{{ three_times_year_src }}" alt="New mags, three times a year." loading="lazy">
+        </div>
+
+        {%- comment -%} Trust-overlay slides. {%- endcomment -%}
+        {%- for item in gallery_overlays -%}
+          {%- assign parts = item | split: '|' -%}
+          <div class="theinmag-membership-hero__slide" data-slide>
+            <img class="theinmag-membership-hero__slide-img" src="{{ parts[0] | asset_url }}" alt="{{ parts[1] | escape }}" loading="lazy">
+          </div>
+        {%- endfor -%}
+
+        {%- comment -%}
+          Flick-through video of the current mag. Filename built from the
+          current_issue_number metafield so the slot auto-rolls at each
+          release. Autoplay muted loop playsinline for iOS Safari.
+        {%- endcomment -%}
+        <div class="theinmag-membership-hero__slide theinmag-membership-hero__slide--video" data-slide>
+          <video
+            class="theinmag-membership-hero__slide-video"
+            src="{{ flick_through_src }}"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            aria-label="A quick flick-through of the latest theINmag issue."
+          ></video>
+        </div>
+
+        {%- comment -%} "Sustainably printed in Australia." {%- endcomment -%}
+        <div class="theinmag-membership-hero__slide" data-slide>
+          <img class="theinmag-membership-hero__slide-img" src="{{ sustainable_src }}" alt="Sustainably printed in Australia." loading="lazy">
+        </div>
+
+        <button type="button" class="theinmag-membership-hero__media-arrow theinmag-membership-hero__media-arrow--prev" data-media-prev aria-label="Previous image">‹</button>
+        <button type="button" class="theinmag-membership-hero__media-arrow theinmag-membership-hero__media-arrow--next" data-media-next aria-label="Next image">›</button>
+      </div>
+
+      <ol class="theinmag-membership-hero__thumbs" role="list" data-thumbs>
+        <li>
+          <button type="button" class="theinmag-membership-hero__thumb is-active" data-thumb aria-label="View the Combo Membership photo">
+            <img src="{{ hero_combo }}" alt="" loading="lazy">
+          </button>
+        </li>
+        <li>
+          <button type="button" class="theinmag-membership-hero__thumb" data-thumb aria-label="View: new mags three times a year">
+            <img src="{{ three_times_year_src }}" alt="" loading="lazy">
+          </button>
+        </li>
+        {%- for item in gallery_overlays -%}
+          {%- assign parts = item | split: '|' -%}
+          <li>
+            <button type="button" class="theinmag-membership-hero__thumb" data-thumb aria-label="View: {{ parts[1] | escape }}">
+              <img src="{{ parts[0] | asset_url }}" alt="" loading="lazy">
+            </button>
+          </li>
+        {%- endfor -%}
+        <li>
+          <button type="button" class="theinmag-membership-hero__thumb theinmag-membership-hero__thumb--video" data-thumb aria-label="View the flick-through video">
+            <img src="{{ three_times_year_src }}" alt="" loading="lazy">
+            <span class="theinmag-membership-hero__thumb-play" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="12" fill="#F9C23C"></circle><polygon points="10,8 10,16 16,12" fill="#2A1F3D"></polygon></svg>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="theinmag-membership-hero__thumb" data-thumb aria-label="View: sustainably printed in Australia">
+            <img src="{{ sustainable_src }}" alt="" loading="lazy">
+          </button>
+        </li>
+      </ol>
+
+      {%- assign desc_body = product.metafields.single_mag.description_block -%}
+      {%- if desc_body != blank -%}
+        <div class="theinmag-membership-hero__desc">
+          {{ desc_body | metafield_tag }}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} RIGHT: sticky info widget {%- endcomment -%}
+    <div class="theinmag-membership-hero__widget" data-widget>
+
+      {%- assign title_html = product.title | replace: 'theINmag', 'the<span class="theinmag-in">IN</span>mag' -%}
+      <h1 id="theinmag-membership-combo-hero-heading" class="theinmag-membership-hero__title">{{ title_html }}</h1>
+
+      {%- liquid
+        assign hero_jm = shop.metafields.judgeme
+        assign hero_rating = hero_jm.all_reviews_rating | default: 0
+        assign hero_count = hero_jm.all_reviews_count | default: 0
+        assign tagline_clean = tagline
+        assign last_char = tagline_clean | slice: -1
+        if last_char == '.'
+          assign last_index = tagline_clean | size | minus: 1
+          assign tagline_clean = tagline_clean | slice: 0, last_index
+        endif
+      -%}
+      <div class="theinmag-membership-hero__tagline-row">
+        {%- if tagline_clean != blank -%}
+          <p class="theinmag-membership-hero__tagline">{{ tagline_clean }}</p>
+        {%- endif -%}
+        {%- if hero_count != 0 and hero_count != blank -%}
+          <a href="#theinmag-membership-reviews-heading" class="theinmag-membership-hero__rating-link" data-rating-jump aria-label="Read {{ hero_count }} customer reviews">
+            <span class="theinmag-membership-hero__rating-sep" aria-hidden="true">-</span>
+            <span data-score="{{ hero_rating }}" class="jdgm-all-reviews-rating" aria-label="{{ hero_rating | round: 1 }} stars" role="img"></span>
+            <span class="theinmag-membership-hero__rating-count">({{ hero_count }})</span>
+          </a>
+        {%- endif -%}
+      </div>
+
+      <div class="theinmag-membership-hero__price" data-price-display>{{ first_variant.price | money }}</div>
+      <p class="theinmag-membership-hero__shipping-note" data-shipping-note hidden>Shipping included</p>
+
+      <form
+        action="{{ routes.cart_add_url }}"
+        method="post"
+        enctype="multipart/form-data"
+        class="theinmag-membership-hero__form"
+        data-membership-form
+      >
+        <input type="hidden" name="id" data-variant-id-input value="{{ first_variant.id }}">
+        <input type="hidden" name="quantity" value="1">
+        <input type="hidden" name="properties[_starting_mag]" data-prop-starting-mag value="{{ current_issue }}">
+        <input type="hidden" name="properties[_remaining_after_first]" data-prop-remaining value="3">
+        <input type="hidden" name="properties[_mags_included]" data-prop-mags-included value="">
+
+        {%- comment -%}
+          Combo-only: no Format selector. The product carries a single
+          option (Length), so the matcher keys off option1 = Length.
+          Rolling is intentionally absent (architecture-blocked).
+        {%- endcomment -%}
+        <fieldset class="theinmag-membership-hero__fieldset">
+          <legend class="theinmag-membership-hero__legend">Length</legend>
+          <div class="theinmag-membership-hero__pills" role="radiogroup" data-option-name="length">
+            <button type="button" class="theinmag-membership-hero__pill" data-value="4-Issue" aria-pressed="true">4-Issue</button>
+            <button type="button" class="theinmag-membership-hero__pill theinmag-membership-hero__pill--featured" data-value="8-Issue" aria-pressed="false">8-Issue<span class="theinmag-membership-hero__pill-chip">Best value</span></button>
+          </div>
+        </fieldset>
+
+        <fieldset class="theinmag-membership-hero__fieldset">
+          <legend class="theinmag-membership-hero__legend">Starting issue</legend>
+          <div class="theinmag-membership-hero__starting" role="radiogroup" data-option-name="starting" data-starting-group>
+            <button type="button" class="theinmag-membership-hero__start-tile" data-value="current" data-requires-print-stock="true" aria-pressed="true">
+              <span class="theinmag-membership-hero__start-title">Start with the current issue</span>
+              <span class="theinmag-membership-hero__start-sub">{{ current_issue }}{% if print_in_stock %} - in stock now{% endif %}</span>
+            </button>
+            <button type="button" class="theinmag-membership-hero__start-tile" data-value="next" aria-pressed="false">
+              <span class="theinmag-membership-hero__start-title">Start with the next issue</span>
+              <span class="theinmag-membership-hero__start-sub">{{ next_issue }} - drops {{ next_release_formatted }}</span>
+            </button>
+          </div>
+        </fieldset>
+
+        <div class="theinmag-membership-hero__cta-row">
+          <button type="submit" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--primary" data-primary-cta>Add to cart</button>
+          <button type="submit" name="checkout" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--secondary" data-buy-now-cta>Buy now</button>
+        </div>
+
+        <p class="theinmag-membership-hero__microcopy">
+          Free shipping over $40 - Sustainably printed in Australia - 120+ pages, zero ads
+        </p>
+      </form>
+
+      {%- if hero_jm.featured_carousel != blank -%}
+        <div class="theinmag-membership-hero__mini-reviews" data-mini-reviews>
+          <button type="button" class="theinmag-membership-hero__mini-reviews-arrow theinmag-membership-hero__mini-reviews-arrow--prev" data-mini-reviews-prev aria-label="Previous review">‹</button>
+          <div class="theinmag-membership-hero__mini-reviews-bubble">
+            <div class="theinmag-membership-hero__mini-reviews-inner">
+              {{ hero_jm.featured_carousel }}
+            </div>
+            <a href="#theinmag-membership-reviews-heading" class="theinmag-membership-hero__mini-reviews-readmore" data-rating-jump>Read more reviews →</a>
+          </div>
+          <button type="button" class="theinmag-membership-hero__mini-reviews-arrow theinmag-membership-hero__mini-reviews-arrow--next" data-mini-reviews-next aria-label="Next review">›</button>
+        </div>
+      {%- endif -%}
+
+      <ul class="theinmag-membership-hero__accordions" role="list">
+
+        <li class="theinmag-membership-hero__accordion" data-accordion>
+          <h3 class="theinmag-membership-hero__acc-q">
+            <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
+              <span>What's included</span>
+              <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
+            <p>Both formats - the printed mag AND the digital file - of every issue across your Membership length. First dibs on each and every mag drop. Oh yeah, and endless inspiration.</p>
+          </div>
+        </li>
+
+        <li class="theinmag-membership-hero__accordion" data-accordion>
+          <h3 class="theinmag-membership-hero__acc-q">
+            <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
+              <span>Who is the Combo for?</span>
+              <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
+            <p>Combo earns its keep when you genuinely need both formats. Teachers (digital for the classroom, print for the reading corner), grandparents (print to send to the grandkids, digital to read along over FaceTime), and travelling families (print for home, digital backup on the iPad). If only one format suits you, the regular Print or Digital Membership is the cheaper pick.</p>
+          </div>
+        </li>
+
+        <li class="theinmag-membership-hero__accordion" data-accordion>
+          <h3 class="theinmag-membership-hero__acc-q">
+            <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
+              <span>What ages is this magazine for?</span>
+              <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
+            <p>Designed for kids aged 5-13, though lately we've had submissions from kids up to 16. How exciting. Literally enjoyed by the whole family - the puzzles, jokes, art, and short comics pull in younger siblings, the longer reads and creator interviews keep older kids hooked, and parents usually end up reading along too.</p>
+          </div>
+        </li>
+
+        <li class="theinmag-membership-hero__accordion" data-accordion>
+          <h3 class="theinmag-membership-hero__acc-q">
+            <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
+              <span>Shipping and delivery</span>
+              <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
+            <p>Print mags ship within three business days from order. Free shipping over $40 - not a problem for members. Digital lands in your inbox the day each issue drops. Releases hit mid February, mid June, and mid October.</p>
+          </div>
+        </li>
+
+      </ul>
+
+      <aside class="theinmag-membership-hero__post-add" aria-label="Shipping and digital alternative" data-post-add-tile>
+        <p>Your printed mag is about to start its Aussie road trip to your house 🚐💨 - up to three business days to ship. We'll email you the moment it's on its way. Your digital file is ready the day each issue drops.</p>
+      </aside>
+
+    </div>
+  </div>
+
+  <script type="application/json" data-membership-variants>
+    [
+      {%- for v in product.variants -%}
+        {"id": {{ v.id }}, "option1": {{ v.option1 | json }}, "price": {{ v.price }}, "available": {{ v.available }}}{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    ]
+  </script>
+
+</section>
+
+{%- comment -%}
+  Floating order-summary card - sibling of the hero (escapes the hero's
+  stacking context so its z-index stays above later sections).
+{%- endcomment -%}
+<aside class="theinmag-membership-hero__floating-cart" data-back-to-order data-floating-cart data-show="false" aria-label="Your order summary">
+  <div class="theinmag-membership-hero__floating-cart-card">
+    <button type="button" class="theinmag-membership-hero__floating-cart-tap" data-floating-cart-tap aria-label="Back to the selectors">
+      <span class="theinmag-membership-hero__floating-cart-eyebrow">your order</span>
+      <span class="theinmag-membership-hero__floating-cart-summary" data-floating-cart-summary>4-Issue Combo</span>
+      <span class="theinmag-membership-hero__floating-cart-issue" data-floating-cart-issue>Start with {{ current_issue }}</span>
+    </button>
+    <button type="button" class="theinmag-membership-hero__floating-cart-cta" data-floating-cart-cta aria-label="Add this Combo Membership to cart">
+      <span>Add to cart</span>
+      <span aria-hidden="true">-</span>
+      <span data-floating-cart-cta-price>{{ first_variant.price | money }}</span>
+    </button>
+  </div>
+</aside>
+
+<script src="{{ 'theinmag-membership-combo-form.js' | asset_url }}" defer></script>
+
+<script>
+  (function () {
+    function flattenJdgm(root, host) {
+      var items = root.querySelectorAll('.jdgm-carousel-item');
+      items.forEach(function (item) {
+        if (item.parentNode !== host) {
+          host.appendChild(item);
+        }
+      });
+      var cruft = root.querySelectorAll('.jdgm-carousel, .jdgm-carousel__items, .jdgm-carousel__item-container, .jdgm-carousel-title-and-link, .jdgm-carousel__arrow-left, .jdgm-carousel__arrow-right, .jdgm-carousel__arrows');
+      cruft.forEach(function (c) {
+        if (c.parentNode && c.children.length === 0) {
+          c.parentNode.removeChild(c);
+        } else if (c.parentNode) {
+          c.parentNode.removeChild(c);
+        }
+      });
+    }
+
+    function initMiniReviews(root) {
+      var host = root.querySelector('.theinmag-membership-hero__mini-reviews-inner');
+      if (!host) return;
+      flattenJdgm(root, host);
+
+      var items = Array.prototype.slice.call(host.querySelectorAll(':scope > .jdgm-carousel-item'));
+      if (!items.length) {
+        items = Array.prototype.slice.call(host.querySelectorAll('.jdgm-carousel-item'));
+      }
+      if (!items.length) return;
+      items.slice(10).forEach(function (n) { n.parentNode && n.parentNode.removeChild(n); });
+      items = Array.prototype.slice.call(host.querySelectorAll('.jdgm-carousel-item'));
+      if (!items.length) return;
+
+      var index = 0;
+      items.forEach(function (n, i) { n.classList.toggle('is-active', i === 0); });
+
+      function show(i) {
+        index = (i + items.length) % items.length;
+        items.forEach(function (n, j) { n.classList.toggle('is-active', j === index); });
+      }
+
+      var prev = root.querySelector('[data-mini-reviews-prev]');
+      var next = root.querySelector('[data-mini-reviews-next]');
+      if (prev) prev.addEventListener('click', function () { show(index - 1); stop(); });
+      if (next) next.addEventListener('click', function () { show(index + 1); stop(); });
+
+      var timer = null;
+      function start() {
+        if (timer) return;
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        timer = setInterval(function () { show(index + 1); }, 6000);
+      }
+      function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+      start();
+      root.addEventListener('mouseenter', stop);
+      root.addEventListener('mouseleave', start);
+    }
+
+    function init() {
+      document.querySelectorAll('[data-mini-reviews]').forEach(initMiniReviews);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+    window.addEventListener('load', function () { setTimeout(init, 50); });
+  })();
+</script>
+
+{% stylesheet %}
+  .theinmag-membership-hero {
+    position: relative;
+    isolation: isolate;
+    color: var(--color-inky-purple-navy);
+    background-color: #FFFFFF;
+    padding: var(--tmh-pt, 56px) var(--space-lg) var(--tmh-pb, 56px);
+    overflow: hidden;
+  }
+
+  .theinmag-membership-hero__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__inner {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+  }
+
+  /* ---------- LEFT: media gallery (main image + thumb strip) ---------- */
+  .theinmag-membership-hero__media-col {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .theinmag-membership-hero__media-main {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: rgba(42, 31, 61, 0.04);
+    overflow: hidden;
+  }
+
+  .theinmag-membership-hero__slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+  .theinmag-membership-hero__slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .theinmag-membership-hero__slide-img,
+  .theinmag-membership-hero__slide-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-membership-hero__media-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    border: 0;
+    color: var(--color-inky-purple-navy);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    z-index: 2;
+    transition: background 0.15s ease;
+  }
+  .theinmag-membership-hero__media-arrow:hover { background: #ffffff; }
+  .theinmag-membership-hero__media-arrow--prev { left: var(--space-sm); }
+  .theinmag-membership-hero__media-arrow--next { right: var(--space-sm); }
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__media-arrow { display: grid; place-items: center; }
+  }
+
+  .theinmag-membership-hero__thumbs {
+    list-style: none;
+    margin: var(--space-sm) 0 0;
+    padding: 0;
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .theinmag-membership-hero__thumbs::-webkit-scrollbar { display: none; }
+  .theinmag-membership-hero__thumbs li { margin: 0; flex: 0 0 auto; }
+
+  .theinmag-membership-hero__thumb {
+    appearance: none;
+    background: transparent;
+    border: 2px solid transparent;
+    padding: 0;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.15s ease;
+  }
+  .theinmag-membership-hero__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .theinmag-membership-hero__thumb.is-active {
+    border-color: var(--color-purple-dark);
+  }
+  .theinmag-membership-hero__thumb-play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+
+  .theinmag-membership-hero__desc {
+    margin: var(--space-md) 0 0;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__desc p { margin: 0 0 var(--space-sm); }
+  .theinmag-membership-hero__desc p:last-child { margin-bottom: 0; }
+  .theinmag-membership-hero__desc h2,
+  .theinmag-membership-hero__desc h3 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    color: var(--color-inky-purple-navy);
+    margin: var(--space-md) 0 var(--space-xs);
+  }
+  .theinmag-membership-hero__desc h2 { font-size: clamp(20px, 2.4vw, 24px); }
+  .theinmag-membership-hero__desc h3 { font-size: clamp(16px, 1.8vw, 18px); }
+  .theinmag-membership-hero__desc a {
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .theinmag-membership-hero__desc ul,
+  .theinmag-membership-hero__desc ol {
+    margin: 0 0 var(--space-sm);
+    padding-left: 1.25em;
+  }
+  .theinmag-membership-hero__desc li { margin: 0 0 4px; }
+
+  /* ---------- RIGHT column (sticky widget) ---------- */
+  .theinmag-membership-hero__widget {
+    padding: var(--space-md) 0 0;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__widget {
+      position: sticky;
+      bottom: 0;
+      align-self: start;
+      padding: 0 0 0 var(--space-md);
+    }
+  }
+
+  .theinmag-membership-hero__tagline-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    margin: 0 0 var(--space-sm);
+  }
+  .theinmag-membership-hero__rating-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-inky-purple-navy);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .theinmag-membership-hero__rating-link .jdgm-all-reviews-rating {
+    display: inline-block;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .theinmag-membership-hero__rating-sep {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.5;
+    line-height: 1;
+    margin: 0 2px 0 0;
+  }
+  .theinmag-membership-hero__rating-count {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    line-height: 1;
+  }
+
+  .theinmag-membership-hero__title {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(24px, 3vw, 32px);
+    line-height: 1.05;
+    color: var(--color-inky-purple-navy);
+    margin: 0 0 2px;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .theinmag-membership-hero__tagline {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin: 0;
+    text-align: center;
+  }
+
+  .theinmag-membership-hero__price {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(20px, 2.6vw, 26px);
+    line-height: 1.1;
+    color: var(--color-inky-purple-navy);
+    margin: 0 0 var(--space-xs);
+  }
+
+  .theinmag-membership-hero__shipping-note {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--color-sage-dark);
+    margin: 0 0 var(--space-md);
+  }
+  .theinmag-membership-hero__shipping-note[hidden] { display: none; }
+
+  .theinmag-membership-hero__form { display: block; }
+
+  .theinmag-membership-hero__fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0 0 var(--space-md);
+  }
+
+  .theinmag-membership-hero__legend {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--color-inky-purple-navy);
+    text-transform: uppercase;
+    padding: 0;
+    margin: 0 0 var(--space-xs);
+    opacity: 0.78;
+  }
+
+  .theinmag-membership-hero__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: 7px;
+  }
+
+  .theinmag-membership-hero__pill {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 14px;
+    background: #ffffff;
+    border: 2px solid var(--color-soft-pink);
+    border-radius: var(--radius-pill);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background var(--transition-standard), color var(--transition-standard), border-color var(--transition-standard);
+  }
+  .theinmag-membership-hero__pill:hover { background: rgba(93, 58, 122, 0.07); }
+  .theinmag-membership-hero__pill[aria-pressed='true'] {
+    background: rgba(93, 58, 122, 0.10);
+    border-color: var(--color-purple-dark);
+    color: var(--color-purple-dark);
+  }
+  .theinmag-membership-hero__pill[hidden] { display: none; }
+
+  .theinmag-membership-hero__pill-chip {
+    position: absolute;
+    top: -8px;
+    right: 8px;
+    background: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    pointer-events: none;
+  }
+
+  .theinmag-membership-hero__starting {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .theinmag-membership-hero__starting[hidden] { display: none; }
+  .theinmag-membership-hero__start-tile {
+    background: #ffffff;
+    border: 1.5px solid rgba(247, 160, 146, 0.55);
+    border-radius: 16px;
+    padding: 12px 16px;
+    cursor: pointer;
+    text-align: left;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 12px;
+    row-gap: 2px;
+    align-items: center;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    transition: background var(--transition-standard), border-color var(--transition-standard);
+  }
+  .theinmag-membership-hero__start-tile::before {
+    content: '';
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--color-soft-pink);
+    background: #ffffff;
+    box-sizing: border-box;
+    transition: border-color var(--transition-standard), background var(--transition-standard), box-shadow var(--transition-standard);
+  }
+  .theinmag-membership-hero__start-tile:hover,
+  .theinmag-membership-hero__start-tile:focus-visible {
+    border-color: var(--color-purple-dark);
+    outline: none;
+  }
+  .theinmag-membership-hero__start-tile[aria-pressed='true'] {
+    background: rgba(93, 58, 122, 0.10);
+    border-color: var(--color-purple-dark);
+    border-width: 2px;
+    padding: 11.5px 15.5px;
+  }
+  .theinmag-membership-hero__start-tile[aria-pressed='true']::before {
+    border-color: var(--color-purple-dark);
+    background: var(--color-purple-dark);
+    box-shadow: inset 0 0 0 3px #ffffff;
+  }
+  .theinmag-membership-hero__start-tile[hidden] { display: none; }
+  .theinmag-membership-hero__start-title { grid-column: 2; font-weight: 700; font-size: 14px; line-height: 1.3; }
+  .theinmag-membership-hero__start-sub { grid-column: 2; font-weight: 400; font-size: 12.5px; opacity: 0.78; line-height: 1.35; }
+
+  .theinmag-membership-hero__start-note {
+    margin: 0;
+    padding: 12px 16px;
+    background: rgba(93, 58, 122, 0.07);
+    border: 1.5px solid rgba(93, 58, 122, 0.25);
+    border-radius: 16px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__start-note[hidden] { display: none; }
+
+  .theinmag-membership-hero__cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin: var(--space-sm) 0 0;
+    justify-content: center;
+  }
+
+  .theinmag-membership-hero__cta {
+    appearance: none;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 220px;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-heading);
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    padding: 12px 20px;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+    transition: background var(--transition-standard), color var(--transition-standard), translate var(--transition-standard), box-shadow var(--transition-standard);
+  }
+
+  .theinmag-membership-hero__cta--primary {
+    background: var(--color-yellow);
+    box-shadow: var(--shadow-button-yellow);
+  }
+  .theinmag-membership-hero__cta--primary:hover {
+    background: var(--color-purple-dark);
+    color: #ffffff;
+    translate: 0 2px;
+    box-shadow: var(--shadow-button-pressed);
+  }
+
+  .theinmag-membership-hero__cta--secondary {
+    background: transparent;
+    border: 2px solid var(--color-inky-purple-navy);
+    padding: 10px 18px;
+  }
+  .theinmag-membership-hero__cta--secondary:hover {
+    background: var(--color-inky-purple-navy);
+    color: var(--color-cream);
+    translate: 0 2px;
+  }
+
+  .theinmag-membership-hero__microcopy {
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    margin: var(--space-sm) 0 0;
+    text-align: center;
+  }
+
+  .theinmag-membership-hero__mini-reviews {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    margin: var(--space-md) 0 0;
+  }
+  .theinmag-membership-hero__mini-reviews-bubble {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: #FFFFFF;
+    border: 2px solid var(--color-soft-pink);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
+    text-align: left;
+  }
+  .theinmag-membership-hero__mini-reviews-inner {
+    min-height: 80px;
+  }
+  .theinmag-membership-hero__mini-reviews-arrow {
+    flex: 0 0 auto;
+    width: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-coral-dark);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+  }
+  .theinmag-membership-hero__mini-reviews-arrow:hover,
+  .theinmag-membership-hero__mini-reviews-arrow:focus-visible {
+    background-color: rgba(201, 84, 62, 0.08);
+  }
+  .theinmag-membership-hero__mini-reviews-arrow:active {
+    transform: scale(0.9);
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item {
+    display: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    position: static !important;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item.is-active {
+    display: block !important;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__review-rating .jdgm-star {
+    font-size: 12px;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__review-title {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy);
+    margin: 4px 0 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__review-body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__reviewer-name {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--color-inky-purple-navy);
+    margin: 6px 0 0;
+  }
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__timestamp,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__product-info,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__product-image,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-item__product,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel__arrows,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel__arrow-left,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel__arrow-right,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-number-of-reviews,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-title-and-link,
+  .theinmag-membership-hero__mini-reviews .jdgm-carousel-title {
+    display: none !important;
+  }
+  .theinmag-membership-hero__mini-reviews-readmore {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .theinmag-membership-hero__mini-reviews-readmore:hover,
+  .theinmag-membership-hero__mini-reviews-readmore:focus-visible {
+    color: var(--color-coral-dark);
+  }
+
+  .theinmag-membership-hero__accordions {
+    list-style: none;
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    border-top: 1px solid rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-membership-hero__accordion {
+    border-bottom: 1px solid rgba(42, 31, 61, 0.12);
+  }
+  .theinmag-membership-hero__accordion[hidden] { display: none; }
+  .theinmag-membership-hero__acc-q { margin: 0; }
+  .theinmag-membership-hero__acc-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    background: transparent;
+    border: 0;
+    padding: 10px 0;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+    cursor: pointer;
+    text-align: left;
+  }
+  .theinmag-membership-hero__acc-caret {
+    position: relative;
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+  }
+  .theinmag-membership-hero__acc-caret::before,
+  .theinmag-membership-hero__acc-caret::after {
+    content: '';
+    position: absolute;
+    background: var(--color-inky-purple-navy);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .theinmag-membership-hero__acc-caret::before {
+    top: 50%; left: 0; right: 0; height: 2px;
+    transform: translateY(-50%);
+  }
+  .theinmag-membership-hero__acc-caret::after {
+    left: 50%; top: 0; bottom: 0; width: 2px;
+    transform: translateX(-50%);
+  }
+  .theinmag-membership-hero__acc-trigger[aria-expanded='true'] .theinmag-membership-hero__acc-caret::after {
+    transform: translateX(-50%) scaleY(0);
+    opacity: 0;
+  }
+  .theinmag-membership-hero__acc-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .theinmag-membership-hero__acc-panel[data-open='true'] { max-height: 600px; }
+  .theinmag-membership-hero__acc-panel p {
+    margin: 0;
+    padding: 0 0 var(--space-md);
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+  }
+
+  .theinmag-membership-hero__post-add {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    background-color: rgba(232, 222, 239, 0.7);
+    border-radius: var(--radius-lg);
+  }
+  .theinmag-membership-hero__post-add[hidden] { display: none; }
+  .theinmag-membership-hero__post-add p {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy);
+  }
+
+  /* Floating order-summary card. */
+  .theinmag-membership-hero__floating-cart {
+    position: fixed;
+    z-index: 50;
+    left: var(--space-md);
+    right: var(--space-md);
+    bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
+    opacity: 0;
+    transform: translateY(24px);
+    pointer-events: none;
+    transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+  }
+  .theinmag-membership-hero__floating-cart[data-show="true"] {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__floating-cart {
+      top: clamp(104px, 13vh, 140px);
+      right: var(--space-md);
+      bottom: auto;
+      left: auto;
+      width: clamp(220px, 22vw, 260px);
+      transform: translateY(-28px);
+    }
+    .theinmag-membership-hero__floating-cart[data-show="true"] {
+      transform: translateY(0);
+    }
+  }
+
+  .theinmag-membership-hero__floating-cart-card {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
+    background-color: rgba(251, 246, 234, 0.96);
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: 20px;
+    box-shadow: 0 18px 44px rgba(42, 31, 61, 0.28), 0 4px 12px rgba(42, 31, 61, 0.14);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-membership-hero__floating-cart-card {
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 16px;
+      border-radius: 22px;
+      animation: theinmag-floating-cart-wobble 5.5s ease-in-out infinite;
+      transform-origin: 80% 40%;
+    }
+  }
+
+  @keyframes theinmag-floating-cart-wobble {
+    0%, 100% { transform: rotate(-0.35deg) translateY(0); }
+    50% { transform: rotate(0.35deg) translateY(-1.5px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-hero__floating-cart {
+      transition: none;
+    }
+    .theinmag-membership-hero__floating-cart-card {
+      animation: none;
+    }
+  }
+
+  .theinmag-membership-hero__floating-cart-tap {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: inherit;
+    font-family: inherit;
+    transition: opacity var(--transition-hover);
+  }
+  .theinmag-membership-hero__floating-cart-tap:hover,
+  .theinmag-membership-hero__floating-cart-tap:focus-visible {
+    opacity: 0.85;
+    outline: none;
+  }
+
+  .theinmag-membership-hero__floating-cart-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-soft-pink);
+    line-height: 1;
+  }
+  .theinmag-membership-hero__floating-cart-summary {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__floating-cart-issue {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: rgba(42, 31, 61, 0.7);
+  }
+
+  .theinmag-membership-hero__floating-cart-cta {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    background: var(--color-soft-pink);
+    color: var(--color-inky-purple-navy);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background var(--transition-standard), translate var(--transition-standard);
+  }
+  .theinmag-membership-hero__floating-cart-cta:hover,
+  .theinmag-membership-hero__floating-cart-cta:focus-visible {
+    background: var(--color-yellow);
+    translate: 0 -1px;
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-hero__floating-cart-cta:hover { translate: 0 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-hero__cta:hover {
+      translate: 0 0;
+    }
+    .theinmag-membership-hero__cta--primary:hover {
+      box-shadow: var(--shadow-button-yellow);
+    }
+    .theinmag-membership-hero__acc-panel { transition: none; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Combo membership hero",
+  "tag": "section",
+  "class": "shopify-section theinmag-membership-combo-hero-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Two-column sticky-scroll PDP for the Combo Membership bundle product. Combo-only (no Format selector), Length = 4-Issue / 8-Issue. Slide 0 uses /assets/membership-hero-combo.jpg."
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "tagline",
+      "label": "Tagline (under product title)",
+      "default": "Both formats, every drop."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 56,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 56,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Combo membership hero" }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}
