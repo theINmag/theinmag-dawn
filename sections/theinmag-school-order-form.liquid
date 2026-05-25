@@ -363,6 +363,16 @@
 
       {%- comment -%} ----- Submit ----- {%- endcomment -%}
       <div class="theinmag-school-order-form__submit-row">
+        {%- comment -%} Checkout instructions - busy teachers rush, so spell out the invoice path (esp. the Shop Pay -> Check out as guest step) before they submit. {%- endcomment -%}
+        <div class="theinmag-school-order-form__checkout-help">
+          <p class="theinmag-school-order-form__checkout-help-heading">Paying by invoice? Two quick steps at checkout</p>
+          <ol class="theinmag-school-order-form__checkout-help-steps">
+            <li>If you're shown a <strong>card-only screen</strong>, choose <strong>Check out as guest</strong>.</li>
+            <li>Under <strong>Payment</strong>, pick <strong>Bank transfer - school invoice</strong>, then place your order.</li>
+          </ol>
+          <p class="theinmag-school-order-form__checkout-help-foot">Your mags ship the same day. We email your tax invoice - with our ABN and bank details - so your office can pay within 14 days.</p>
+        </div>
+
         <button
           type="submit"
           class="theinmag-btn theinmag-btn--primary theinmag-school-order-form__submit"
@@ -372,10 +382,6 @@
           <span data-theinmag-submit-label>{{ submit_label | default: 'Place order + email me the invoice' }}</span>
           <span class="theinmag-school-order-form__spinner" data-theinmag-submit-spinner aria-hidden="true"></span>
         </button>
-
-        {%- if trust_line != blank -%}
-          <p class="theinmag-school-order-form__trust">{{ trust_line }}</p>
-        {%- endif -%}
       </div>
     </form>
 
@@ -1227,6 +1233,50 @@
     gap: clamp(10px, 1.4vw, 14px);
     margin-top: clamp(6px, 0.8vw, 10px);
     text-align: center;
+  }
+
+  /* ----- Checkout instructions callout (above the submit button) ----- */
+
+  .theinmag-school-order-form__checkout-help {
+    width: 100%;
+    max-width: 540px;
+    margin: 0 auto;
+    background-color: var(--color-peach, #FCDDB8);
+    border-left: 5px solid var(--color-sandy-orange-dark, #D9783A);
+    border-radius: var(--radius-md, 12px);
+    padding: clamp(14px, 2vw, 18px) clamp(16px, 2.2vw, 20px);
+    text-align: left;
+  }
+
+  .theinmag-school-order-form__checkout-help-heading {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0 0 8px;
+  }
+
+  .theinmag-school-order-form__checkout-help-steps {
+    margin: 0 0 10px;
+    padding-left: 22px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-school-order-form__checkout-help-steps li { margin-bottom: 6px; }
+  .theinmag-school-order-form__checkout-help-steps li:last-child { margin-bottom: 0; }
+  .theinmag-school-order-form__checkout-help-steps strong { font-weight: 700; }
+
+  .theinmag-school-order-form__checkout-help-foot {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.85;
+    margin: 0;
   }
 
   .theinmag-school-order-form .theinmag-school-order-form__submit {
