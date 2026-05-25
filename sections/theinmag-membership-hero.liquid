@@ -303,12 +303,10 @@
           <legend class="theinmag-membership-hero__legend">Starting issue</legend>
           <div class="theinmag-membership-hero__starting" role="radiogroup" data-option-name="starting" data-starting-group>
             <button type="button" class="theinmag-membership-hero__start-tile" data-value="current" data-requires-print-stock="true" aria-pressed="true">
-              <span class="theinmag-membership-hero__start-title">Start with the current issue</span>
-              <span class="theinmag-membership-hero__start-sub">{{ current_issue }}{% if print_in_stock %} - in stock now{% endif %}</span>
+              <span class="theinmag-membership-hero__start-label"><strong>Start with the current issue</strong> - {{ current_issue }}{% if print_in_stock %}, in stock now{% endif %}</span>
             </button>
             <button type="button" class="theinmag-membership-hero__start-tile" data-value="next" aria-pressed="false">
-              <span class="theinmag-membership-hero__start-title">Start with the next issue</span>
-              <span class="theinmag-membership-hero__start-sub">{{ next_issue }} - drops {{ next_release_formatted }}</span>
+              <span class="theinmag-membership-hero__start-label"><strong>Start with the next issue</strong> - {{ next_issue }}, drops {{ next_release_formatted }}</span>
             </button>
           </div>
           {%- comment -%}
@@ -329,7 +327,7 @@
           item properties straight to /checkout.
         {%- endcomment -%}
         <div class="theinmag-membership-hero__cta-row">
-          <button type="submit" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--primary" data-primary-cta>Add to cart <span class="theinmag-membership-hero__cta-price" data-cta-price></span></button>
+          <button type="submit" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--primary" data-primary-cta>Add to cart</button>
           <button type="submit" name="checkout" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--secondary" data-buy-now-cta>Buy now</button>
         </div>
 
@@ -943,39 +941,31 @@
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
-    /* Narrower than the full widget - the two-line tiles read better not
-       running edge to edge (height stays as-is). */
-    max-width: 320px;
   }
   /* Class specificity beats the UA [hidden] rule, so the chooser needs an
      explicit override to actually disappear when JS hides it (Digital). */
   .theinmag-membership-hero__starting[hidden] { display: none; }
-  /* Radio-style tiles: a circle selector on the left + the two-line
-     content on the right (mirrors the build-a-bundle modal's circle
-     selector). Grid keeps the circle vertically centred across both
-     text rows without changing the markup. */
+  /* Slim single-line radio rows (circle + bold lead + normal detail) that
+     run the full widget width - mirrors the build-a-bundle modal's rows. */
   .theinmag-membership-hero__start-tile {
     background: #ffffff;
     border: 1.5px solid rgba(247, 160, 146, 0.55);
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 12px 16px;
     cursor: pointer;
     text-align: left;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto;
-    column-gap: 12px;
-    row-gap: 2px;
+    display: flex;
     align-items: center;
+    gap: 12px;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
+    font-size: 13.5px;
+    line-height: 1.35;
     transition: background var(--transition-standard), border-color var(--transition-standard);
   }
   .theinmag-membership-hero__start-tile::before {
     content: '';
-    grid-column: 1;
-    grid-row: 1 / 3;
-    align-self: center;
+    flex: 0 0 auto;
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -1001,8 +991,8 @@
     box-shadow: inset 0 0 0 3px #ffffff;
   }
   .theinmag-membership-hero__start-tile[hidden] { display: none; }
-  .theinmag-membership-hero__start-title { grid-column: 2; font-weight: 700; font-size: 14px; line-height: 1.3; }
-  .theinmag-membership-hero__start-sub { grid-column: 2; font-weight: 400; font-size: 12.5px; opacity: 0.78; line-height: 1.35; }
+  .theinmag-membership-hero__start-label { font-weight: 400; }
+  .theinmag-membership-hero__start-label strong { font-weight: 700; }
 
   /* Digital-only note that replaces the chooser when Format = Digital. */
   .theinmag-membership-hero__start-note {
@@ -1020,18 +1010,20 @@
 
   /* CTA row holds the yellow ADD TO CART + outlined BUY NOW side by side.
      Pattern matches the typical product page (theinmag-single-mags-hero). */
-  /* Stacked, full-width CTAs (modal language): yellow Add to cart with the
-     price in it, outlined Buy now beneath. */
+  /* Centred CTA row - yellow Add to cart + outlined Buy now side by side. */
   .theinmag-membership-hero__cta-row {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: var(--space-xs);
-    margin: var(--space-md) 0 0;
+    margin: var(--space-sm) 0 0;
+    justify-content: center;
   }
 
   .theinmag-membership-hero__cta {
     appearance: none;
-    width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 220px;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-heading);
     font-size: 18px;
