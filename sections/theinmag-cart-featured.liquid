@@ -1,26 +1,30 @@
 {%- comment -%}
   theinmag-cart-featured.liquid
 
-  Replaces Dawn's stock `featured-collection` block at the bottom of
-  the /cart template. Differences:
+  "More to explore" grid at the bottom of the /cart template. Replaces
+  Dawn's stock `featured-collection` block.
 
   - Smart ordering: Membership first (unless already in cart), then
     Mag10 / 9 / 8 / 7 / 6, then Snack Pack + Digital Stack as backup.
     Picks the first N that aren't in the cart already.
-  - Rectangular tiles matching the magazine cover aspect (3:4
-    portrait), not the square thumbnails Dawn's featured-collection
-    uses.
-  - Smaller tiles than Dawn's featured-collection (2-col on mobile,
-    4-col on desktop, narrower meta padding).
-  - View all CTA points at /pages/shop (Dawn's view_all link points
-    at the source collection URL which is misleading for /cart).
-  - Heading "More from theINmag" sized to feel like a section header,
-    not buried.
+  - Renders the SAME tile as /shop (the theinmag-bundle-tile snippet in
+    'shop' context) so each tile carries Print + Digital "Add" rows with
+    inline prices, exactly like the shop grid. Add fires an AJAX
+    /cart/add.js and (because cart_type = page) reloads /cart so the line
+    items + totals + this grid all refresh - matching the proven
+    behaviour of the "Often paired with" cross-sell on this same page.
+  - Membership can't be a one-tap Print/Digital add (Format / Length /
+    Starting Issue), so like the shop it shows a "Join the club" button
+    that opens the membership picker popup (rendered once below).
+  - View all CTA points at /pages/shop.
 
-  Wired into `templates/cart.json` in place of the previous
-  `featured-collection` section.
+  Wired into `templates/cart.json`. Hardcoded handles list (priority
+  order) below - edit to retune.
 
-  Hardcoded handles list (in priority order) below - edit to retune.
+  Tile CSS lives in assets/theinmag-cart.css (the `.theinmag-bundle-tile`
+  block, kept in sync with the copies in theinmag-shop-grid.liquid /
+  theinmag-bundle-picker.liquid - section/snippet {% stylesheet %} blocks
+  aren't reliably extracted here).
 {%- endcomment -%}
 
 {{ 'theinmag-cart.css' | asset_url | stylesheet_tag }}
@@ -35,14 +39,15 @@
   endfor
 
   assign tile_count = 0
+  assign show_membership_popup = false
 -%}
 
-<section class="theinmag-cart-featured">
+<section class="theinmag-cart-featured" data-theinmag-cart-featured>
   <div class="theinmag-cart-featured__inner">
     <h2 class="theinmag-cart-featured__heading">
       {{- section.settings.heading | default: 'More to explore' -}}
     </h2>
-    <div class="theinmag-cart-featured__grid">
+    <ul class="theinmag-cart-featured__grid" data-cart-featured-list role="list">
       {%- for handle in priority_handles -%}
         {%- if tile_count >= max_tiles -%}{% break %}{%- endif -%}
         {%- assign product = all_products[handle] -%}
@@ -50,38 +55,19 @@
         {%- assign cart_key = product.handle | append: '|' -%}
         {%- if cart_handles contains cart_key -%}{% continue %}{%- endif -%}
 
-        <a
-          href="{{ product.url }}"
-          class="theinmag-cart-featured__tile"
-          aria-label="{{ product.title | replace: 'theINmag - ', '' | escape }}"
-        >
-          <div class="theinmag-cart-featured__cover">
-            {%- if product.featured_image -%}
-              <img
-                src="{{ product.featured_image | image_url: width: 400 }}"
-                alt="{{ product.featured_image.alt | default: product.title | escape }}"
-                loading="lazy"
-                width="400"
-                height="{{ 400 | divided_by: product.featured_image.aspect_ratio | ceil }}"
-              >
-            {%- endif -%}
-          </div>
-          <div class="theinmag-cart-featured__meta">
-            <p class="theinmag-cart-featured__title">
-              {{- product.title | replace: 'theINmag - ', '' | escape -}}
-            </p>
-            <p class="theinmag-cart-featured__price">
-              {%- if product.price_varies -%}
-                From {{ product.price_min | money }}
-              {%- else -%}
-                {{ product.price | money }}
-              {%- endif -%}
-            </p>
-          </div>
-        </a>
+        {%- comment -%} Membership keeps the shop's curated photo cover. {%- endcomment -%}
+        {%- assign tile_cover = '' -%}
+        {%- if product.handle == 'membership' -%}
+          {%- assign tile_cover = 'membershipimage.jpg' -%}
+          {%- assign show_membership_popup = true -%}
+        {%- endif -%}
+
+        <li class="theinmag-cart-featured__item">
+          {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover %}
+        </li>
         {%- assign tile_count = tile_count | plus: 1 -%}
       {%- endfor -%}
-    </div>
+    </ul>
 
     {%- if section.settings.show_view_all -%}
       <div class="theinmag-cart-featured__viewall-wrap">
@@ -91,7 +77,117 @@
       </div>
     {%- endif -%}
   </div>
+
+  {%- comment -%}
+    Membership picker popup. Only rendered when a Membership tile is
+    actually shown above (so its "Join the club" trigger exists). Same
+    render call /shop uses. Silently no-ops if the product isn't found.
+  {%- endcomment -%}
+  {%- if show_membership_popup -%}
+    {% render 'theinmag-membership-popup', membership_product: all_products['membership'] %}
+  {%- endif -%}
 </section>
+
+<script>
+  (function () {
+    if (window.__theinmagCartFeaturedInit) return;
+    window.__theinmagCartFeaturedInit = true;
+
+    function onCartPage() {
+      return window.location.pathname.replace(/\/$/, '') === '/cart';
+    }
+
+    /* Instant feedback the moment the tap registers, so the button never
+       looks dead while the add request + page refresh are in flight. */
+    function flipPending(btn) {
+      var addLabel = btn.querySelector('[data-add-label]');
+      if (addLabel) addLabel.textContent = 'Adding…';
+      btn.setAttribute('aria-busy', 'true');
+      btn.style.opacity = '0.6';
+      btn.style.pointerEvents = 'none';
+    }
+    function flipAdded(btn) {
+      var addLabel = btn.querySelector('[data-add-label]');
+      var addedLabel = btn.querySelector('[data-added-label]');
+      btn.style.opacity = '';
+      if (addLabel && addedLabel) {
+        addLabel.setAttribute('hidden', '');
+        addedLabel.removeAttribute('hidden');
+      }
+    }
+    function flipTryAgain(btn) {
+      var addLabel = btn.querySelector('[data-add-label]');
+      if (addLabel) addLabel.textContent = 'Try again';
+      btn.removeAttribute('aria-busy');
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+      btn._pending = false;
+    }
+
+    function init() {
+      var root = document.querySelector('[data-theinmag-cart-featured]');
+      if (!root) return;
+      var list = root.querySelector('[data-cart-featured-list]');
+      if (!list) return;
+
+      /* Print/Digital "Add" buttons (data-shop-add, emitted by the
+         shop-context bundle-tile). AJAX add, then reload /cart so the
+         line items, totals and this grid all refresh - mirrors the
+         "Often paired with" cross-sell behaviour on this page. */
+      list.addEventListener('click', function (event) {
+        var btn = event.target.closest('[data-shop-add]');
+        if (!btn) return;
+        event.preventDefault();
+        if (btn._pending) return;
+        var variantId = btn.getAttribute('data-variant-id');
+        if (!variantId) return;
+        btn._pending = true;
+        flipPending(btn);
+
+        var body = new FormData();
+        body.append('id', variantId);
+        body.append('quantity', '1');
+
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: body
+        })
+          .then(function (r) {
+            if (!r.ok) throw new Error('add failed');
+            return r.json();
+          })
+          .then(function () {
+            flipAdded(btn);
+            if (onCartPage()) {
+              setTimeout(function () { window.location.reload(); }, 250);
+            } else {
+              setTimeout(function () { window.location.href = '/cart'; }, 250);
+            }
+          })
+          .catch(function () {
+            flipTryAgain(btn);
+          });
+      });
+
+      /* Membership added via the picker popup dispatches a document-level
+         'cart:updated' event (its refreshCartCount). On /cart we reload
+         so the new line item shows - the popup itself doesn't reload
+         (it's the shared /shop component). */
+      document.addEventListener('cart:updated', function () {
+        if (onCartPage()) {
+          setTimeout(function () { window.location.reload(); }, 250);
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
 
 {% schema %}
 {

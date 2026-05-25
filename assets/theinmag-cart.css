@@ -564,62 +564,213 @@ cart-drawer.is-empty .drawer__footer {
   color: var(--color-text);
   margin: 0 0 24px;
 }
+/* Grid hosts the shared shop tile (theinmag-bundle-tile, shop context).
+   Breakpoint ladder matches theinmag-shop-grid: 1 col under 600px so the
+   Print/Digital Add row never cramps on a phone, 2 cols to 749, 3 to
+   1199, 4 at 1200+. */
 .theinmag-cart-featured__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(12px, 2vw, 20px);
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+@media (min-width: 600px) {
+  .theinmag-cart-featured__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
 }
 @media (min-width: 750px) {
   .theinmag-cart-featured__grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
   }
 }
-.theinmag-cart-featured__tile {
-  display: block;
-  text-decoration: none;
-  color: var(--color-text);
-  background: #fff;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+@media (min-width: 1200px) {
+  .theinmag-cart-featured__grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+  }
 }
-.theinmag-cart-featured__tile:hover,
-.theinmag-cart-featured__tile:focus-visible {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-card-hover);
+.theinmag-cart-featured__item {
+  display: flex;
 }
-.theinmag-cart-featured__cover {
+.theinmag-cart-featured__item > .theinmag-bundle-tile {
+  flex: 1;
   width: 100%;
-  aspect-ratio: 3 / 4;
-  background: var(--color-cream);
-  overflow: hidden;
 }
-.theinmag-cart-featured__cover img {
-  display: block;
+
+/* ---------------------------------------------------------------
+   Shared product tile (theinmag-bundle-tile, shop context).
+   COPIED from theinmag-shop-grid.liquid's stylesheet so the tile
+   renders identically on /cart where the shop grid isn't present.
+   Keep in sync with theinmag-shop-grid.liquid / theinmag-bundle-picker.liquid
+   if the tile visual ever changes.
+   --------------------------------------------------------------- */
+.theinmag-bundle-tile {
+  background-color: var(--color-cream);
+  border: 1px solid var(--color-soft-pink, #F7A092);
+  border-radius: var(--radius-lg, 20px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.theinmag-bundle-tile--shop {
+  background-color: #FFFFFF;
+}
+.theinmag-bundle-tile__cover {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  background-color: var(--color-lavender);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.theinmag-bundle-tile__cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
-.theinmag-cart-featured__meta {
-  padding: 10px 12px 14px;
+.theinmag-bundle-tile__cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #E8DEEF 0%, #FCDDB8 100%);
 }
-.theinmag-cart-featured__title {
+.theinmag-bundle-tile__cover-link {
+  display: block;
+  position: absolute;
+  inset: 0;
+  text-decoration: none;
+  color: inherit;
+}
+.theinmag-bundle-tile__cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity var(--transition-hover, 0.2s ease);
+}
+/* No format filter on /cart, so the digital cover stays hidden and the
+   print cover shows. */
+.theinmag-bundle-tile__cover-img--digital {
+  opacity: 0;
+}
+.theinmag-bundle-tile__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: var(--color-peach, #FCDDB8);
+  color: var(--color-inky-purple-navy);
   font-family: var(--font-body);
-  font-size: 14px;
   font-weight: 700;
-  line-height: 1.25;
-  margin: 0 0 4px;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--color-text);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 9999px);
+  box-shadow: 0 2px 6px rgba(42, 31, 61, 0.18);
+  z-index: 2;
 }
-.theinmag-cart-featured__price {
-  font-family: var(--font-body);
+.theinmag-bundle-tile__badge--current {
+  background-color: var(--color-mint, #D6EAD9);
+}
+.theinmag-bundle-tile__title {
+  margin: 10px 12px 6px;
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--color-inky-purple-navy);
+}
+.theinmag-bundle-tile__title-link {
+  text-decoration: none;
+  color: inherit;
+}
+.theinmag-bundle-tile__title-link:hover .theinmag-bundle-tile__title,
+.theinmag-bundle-tile__title-link:focus-visible .theinmag-bundle-tile__title {
+  color: var(--color-purple-dark, #5D3A7A);
+}
+.theinmag-bundle-tile__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
   font-size: 13px;
+  color: var(--color-inky-purple-navy);
+}
+.theinmag-bundle-tile__row.is-sold-out {
+  opacity: 0.4;
+}
+.theinmag-bundle-tile__format { font-weight: 500; }
+.theinmag-bundle-tile__price { font-weight: 500; color: rgba(42, 31, 61, 0.78); text-align: right; }
+.theinmag-bundle-tile__pill {
+  grid-column: 2 / -1;
+  justify-self: end;
+  background-color: var(--color-cream);
+  border: 1px solid var(--color-peach);
+  border-radius: var(--radius-pill, 9999px);
+  color: var(--color-sandy-orange-dark, #D9783A);
   font-weight: 500;
-  color: var(--color-text-muted);
-  margin: 0;
+  font-size: 11px;
+  padding: 4px 10px;
+}
+.theinmag-bundle-tile__add {
+  appearance: none;
+  background: transparent;
+  border: 1.5px solid var(--color-purple-dark, #5D3A7A);
+  color: var(--color-purple-dark, #5D3A7A);
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill, 9999px);
+  cursor: pointer;
+  min-height: 36px;
+  min-width: 88px;
+  text-align: center;
+  transition: background-color var(--transition-hover, 0.2s ease), color var(--transition-hover, 0.2s ease);
+}
+.theinmag-bundle-tile__add:hover,
+.theinmag-bundle-tile__add:focus-visible {
+  background-color: var(--color-purple-dark, #5D3A7A);
+  color: #FFFFFF;
+  outline: none;
+}
+.theinmag-bundle-tile__join {
+  appearance: none;
+  background-color: var(--color-yellow);
+  border: none;
+  color: var(--color-inky-purple-navy);
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  padding: 12px 14px;
+  margin: 8px 12px 12px;
+  border-radius: var(--radius-pill, 9999px);
+  cursor: pointer;
+  min-height: 44px;
+  transition: filter 0.2s ease;
+}
+.theinmag-bundle-tile__join:hover,
+.theinmag-bundle-tile__join:focus-visible {
+  filter: brightness(0.94);
+  outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theinmag-bundle-tile__add,
+  .theinmag-bundle-tile__join,
+  .theinmag-bundle-tile__cover-img {
+    transition: none;
+  }
 }
 .theinmag-cart-featured__viewall {
   display: inline-block;
