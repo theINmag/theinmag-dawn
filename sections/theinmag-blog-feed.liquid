@@ -437,24 +437,28 @@
     margin-bottom: clamp(8px, 1.4vw, 18px);
   }
 
-  /* Mobile: keep the wordmark (left) and see-all pill (right) on one row -
-     scale the logo down so the button always fits beside it rather than
-     wrapping underneath. */
+  /* Mobile: the logo, filter chips and see-all pill can't share one narrow
+     row without the oversized wordmark overflowing onto the chips. So the
+     wordmark takes the top row and the chips + see-all pill drop to their
+     own full-width row beneath it. */
   @media (max-width: 749px) {
     .theinmag-blog-feed__header {
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
     }
     .theinmag-blog-feed__heading {
-      font-size: clamp(52px, 13vw, 72px);
+      font-size: clamp(44px, 12vw, 64px);
     }
     .theinmag-blog-feed__title-stack {
       margin-left: clamp(8px, 3vw, 16px);
-      flex: 0 1 auto;
+      flex: 1 1 auto;
+      min-width: 0;
     }
     .theinmag-blog-feed__nav {
-      margin-right: clamp(8px, 3vw, 16px);
-      flex: 0 0 auto;
-      flex-wrap: nowrap;
+      flex: 1 1 100%;
+      margin: clamp(6px, 1.5vw, 10px) clamp(8px, 3vw, 16px) 0;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: clamp(12px, 3vw, 20px);
     }
   }
 
@@ -565,6 +569,9 @@
   }
 
   .theinmag-blog-feed__chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 500;
     font-size: clamp(20px, 2.4vw, 28px);
