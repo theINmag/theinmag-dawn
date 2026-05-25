@@ -858,12 +858,18 @@
        legend above (legend margin is only 4px). */
     margin-top: 7px;
   }
+  /* The Format row has only 2 pills - cap its width so each doesn't stretch
+     to half the widget. The 3-pill Length row fills the full width as normal. */
+  .theinmag-membership-hero__pills[data-option-name="format"] {
+    max-width: 270px;
+  }
 
   .theinmag-membership-hero__pill {
-    /* Pills hug their labels (content-width) and cluster left, rather than
-       stretching to fill the row - 2 Format pills at 50% each read stretched. */
+    /* Pills fill their row evenly (3-up Length fills the full width). The
+       2-pill Format row is capped narrower above so it doesn't over-stretch. */
     position: relative;
-    flex: 0 0 auto;
+    flex: 1 1 0;
+    min-width: 0;
     min-height: 40px;
     padding: 8px 14px;
     background: #ffffff;
@@ -915,6 +921,9 @@
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
+    /* Narrower than the full widget - the two-line tiles read better not
+       running edge to edge (height stays as-is). */
+    max-width: 320px;
   }
   /* Class specificity beats the UA [hidden] rule, so the chooser needs an
      explicit override to actually disappear when JS hides it (Digital). */
@@ -927,7 +936,7 @@
     background: #ffffff;
     border: 1.5px solid rgba(247, 160, 146, 0.55);
     border-radius: 16px;
-    padding: 10px 14px;
+    padding: 12px 16px;
     cursor: pointer;
     text-align: left;
     display: grid;
@@ -962,7 +971,7 @@
     background: rgba(93, 58, 122, 0.10);
     border-color: var(--color-purple-dark);
     border-width: 2px;
-    padding: 9.5px 13.5px;
+    padding: 11.5px 15.5px;
   }
   .theinmag-membership-hero__start-tile[aria-pressed='true']::before {
     border-color: var(--color-purple-dark);
