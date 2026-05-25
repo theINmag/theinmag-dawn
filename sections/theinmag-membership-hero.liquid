@@ -445,6 +445,9 @@
 
 </section>
 
+{%- comment -%} Product JSON-LD for the membership PDP - mirrors the single-mags hero so /products/membership is eligible for product rich results (price, availability, rating). {%- endcomment -%}
+<script type="application/ld+json">{{ product | structured_data }}</script>
+
 {%- comment -%}
   Floating order-summary card. Rendered as a sibling of the hero
   section (not a child) so it escapes the hero's stacking context
