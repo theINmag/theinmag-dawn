@@ -798,30 +798,43 @@
     opacity: 1;
   }
 
-  /* Pre-order badge - peach pill, top-LEFT corner. Left so it doesn't
-     cover the "made by kids, for kids" slogan that sits top-right on
-     the issue covers. */
+  /* Title row (shop context): title on the left, pre-sale / current-issue
+     pill on the right. Moved off the cover photo (where it sat top-left and
+     read awkwardly against the artwork) down beside the issue title - sits
+     cleanly on the white card surface here, so coloured pills are fine
+     (the "no pills on photos" rule only applies over photography). */
+  .theinmag-bundle-tile__title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 10px 12px 6px;
+  }
+
+  .theinmag-bundle-tile__title-row .theinmag-bundle-tile__title-link {
+    min-width: 0;
+  }
+
+  .theinmag-bundle-tile__title-row .theinmag-bundle-tile__title {
+    margin: 0;
+  }
+
+  /* Pre-sale badge - peach pill. Current-issue badge - mint pill (below).
+     A product is never both, so they never collide. */
   .theinmag-bundle-tile__badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
+    flex: 0 0 auto;
     background-color: var(--color-peach, #FCDDB8);
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
     font-weight: 700;
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding: 4px 10px;
+    padding: 3px 9px;
     border-radius: var(--radius-pill, 9999px);
-    box-shadow: 0 2px 6px rgba(42, 31, 61, 0.18);
-    z-index: 2;
+    white-space: nowrap;
   }
 
-  /* Current-issue badge - same pill, mint instead of peach so it reads
-     distinct from the pre-order badge on the grid. Stays top-LEFT (a
-     product is never both pre-order and current issue, so they never
-     collide; left keeps it clear of the cover slogan). */
   .theinmag-bundle-tile__badge--current {
     background-color: var(--color-mint, #D6EAD9);
   }

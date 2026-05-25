@@ -18,8 +18,10 @@
       present. Parent grid toggles data-active-format on its wrapper; CSS
       swaps which cover is visible. Pattern matches the single-mag PDP
       iPad-mockup swap (theinmag-single-mags-hero.liquid).
-    - Pre-order badge (peach pill, top-right) renders when
-      product.metafields.theinmag.is_pre_order is true.
+    - Pre-sale / Current-issue badge (peach / mint pill) renders in the
+      title row, right-aligned beside the title, driven by
+      product.metafields.theinmag.is_pre_order (pre-sale) or the
+      shop.metafields.theinmag.current_issue_number match (current issue).
     - Add buttons fire data-shop-add (shop-grid's AJAX add-to-cart).
     - Aria-labels carry "...to cart" suffix.
 
@@ -135,11 +137,6 @@
           >
         {%- endif -%}
       </a>
-      {%- if is_pre_order -%}
-        <span class="theinmag-bundle-tile__badge" aria-label="Pre-order open">Pre-order</span>
-      {%- elsif is_current_issue -%}
-        <span class="theinmag-bundle-tile__badge theinmag-bundle-tile__badge--current" aria-label="Current issue">Current issue</span>
-      {%- endif -%}
     {%- else -%}
       {%- if cover_image != blank -%}
         <img
@@ -158,9 +155,16 @@
   </div>
 
   {%- if tile_context == 'shop' -%}
-    <a href="{{ pdp_url }}" class="theinmag-bundle-tile__title-link">
-      <h3 class="theinmag-bundle-tile__title">{{ tile_title }}</h3>
-    </a>
+    <div class="theinmag-bundle-tile__title-row">
+      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__title-link">
+        <h3 class="theinmag-bundle-tile__title">{{ tile_title }}</h3>
+      </a>
+      {%- if is_pre_order -%}
+        <span class="theinmag-bundle-tile__badge" aria-label="On pre-sale">Pre-sale</span>
+      {%- elsif is_current_issue -%}
+        <span class="theinmag-bundle-tile__badge theinmag-bundle-tile__badge--current" aria-label="Current issue">Current issue</span>
+      {%- endif -%}
+    </div>
   {%- else -%}
     <h3 class="theinmag-bundle-tile__title">{{ tile_title }}</h3>
   {%- endif -%}
