@@ -234,7 +234,7 @@
       <p class="theinmag-shop-hero__subhead">{{ subhead }}</p>
 
       {%- if show_rating -%}
-        <a href="#reviews" class="theinmag-shop-hero__rating" data-rating-jump aria-label="Read {{ jm_count }} customer reviews across our printed mags">
+        <a href="#theinmag-reviews-heading" class="theinmag-shop-hero__rating" data-rating-jump aria-label="Read {{ jm_count }} customer reviews across our printed mags">
           <span data-score="{{ jm_rating }}" class="jdgm-all-reviews-rating" aria-label="{{ jm_rating | round: 1 }} stars" role="img"></span>
           <span class="theinmag-shop-hero__rating-meta">{{ jm_rating | round: 1 }} - {{ jm_count }} reviews across our printed mags</span>
         </a>

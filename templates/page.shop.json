@@ -106,7 +106,130 @@
         "padding_top": 48,
         "padding_bottom": 96
       }
+    },
+    "pull_quote": {
+      "type": "theinmag-pull-quote",
+      "settings": {
+        "quote_body": "People like you are making a difference for our kids in this ever-consuming digital world.",
+        "attribution_name": "Lana",
+        "attribution_role": "mother",
+        "background_filename": "HERO_kid-reading-mag.jpg",
+        "scrim_opacity": 55,
+        "heading_font_style": "inter",
+        "size_variant": "default",
+        "attribution_style": "uppercase_inter",
+        "padding_top": 96,
+        "padding_bottom": 96
+      }
+    },
+    "reviews": {
+      "type": "theinmag-reviews",
+      "settings": {
+        "heading": "What families are saying",
+        "subhead": "Real reviews from parents, teachers and grandparents right across Australia.",
+        "use_judgeme_widget": false,
+        "review_count": 0,
+        "use_judgeme_cards": true,
+        "judgeme_card_count": 4,
+        "show_cta": true,
+        "cta_label": "Read all reviews",
+        "cta_link": "/pages/reviews",
+        "padding_top": 72,
+        "padding_bottom": 80
+      }
+    },
+    "cta_closer": {
+      "type": "theinmag-behind-the-mag-cta",
+      "settings": {
+        "heading": "Two ways to keep the creativity coming",
+        "aeo_heading": "How can I get my kid involved with theINmag?"
+      },
+      "blocks": {
+        "membership": {
+          "type": "cta_card",
+          "settings": {
+            "heading": "Join the family",
+            "body": "Three issues a year, straight to your kid's letterbox. Never miss a drop, and save a few dollars per issue.",
+            "button_label": "Get a Membership",
+            "link": "/products/membership",
+            "button_style": "yellow_stamp",
+            "color": "lavender",
+            "fallback_filename": "behind-the-mag-cta-membership.jpg",
+            "image_alt": "A theINmag membership pack landing in an Aussie letterbox."
+          }
+        },
+        "send_in": {
+          "type": "cta_card",
+          "settings": {
+            "heading": "Send IN a creation",
+            "body": "Drawings, stories, photos, jokes, puzzles - anything they're proud of. Real Aussie kids fill every page.",
+            "button_label": "Send IN a creation",
+            "link": "/pages/send-in",
+            "button_style": "yellow_stamp",
+            "color": "cream",
+            "fallback_filename": "behind-the-mag-cta-send-in.jpg",
+            "image_alt": "A pile of kid creations ready to be sent in to theINmag."
+          }
+        }
+      },
+      "block_order": ["membership", "send_in"]
+    },
+    "faq": {
+      "type": "theinmag-faq",
+      "settings": {
+        "heading": "Questions before you <em>buy</em>",
+        "show_cta": true,
+        "cta_label": "More questions? Get in touch",
+        "cta_link": "/pages/contact",
+        "padding_top": 64,
+        "padding_bottom": 88
+      },
+      "blocks": {
+        "shipping": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How much does shipping cost and when will my mag arrive?",
+            "answer": "<p>Shipping is a flat $9.95 anywhere in Australia, and it's free once your cart hits $40.</p><p>We post within a couple of days of your order (we get a lot of them). From there it's standard AusPost - usually a few days to most places, a little longer for the more remote corners.</p>"
+          }
+        },
+        "formats": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What's the difference between a print and a digital mag?",
+            "answer": "<p>Same 120+ pages of kid-made creativity, two ways to enjoy it.</p><p><strong>Print</strong> is the real thing - sustainably printed in Australia and posted to your letterbox.</p><p><strong>Digital</strong> is the full magazine as a PDF, landing in your inbox within minutes. Perfect for travelling, sharing with grandparents, or reading on a screen.</p>"
+          }
+        },
+        "soldout": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I still buy an issue that's sold out?",
+            "answer": "<p>This is where digital saves the day. Print runs are incredibly expensive, so we only print once - when they're gone, they're gone.</p><p>The good news? Every sold-out issue is still available to read digitally.</p>"
+          }
+        },
+        "membership": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Should I buy single issues or a Membership?",
+            "answer": "<p>If you just want to dip in, grab a single issue.</p><p>If your kid's hooked (most are), a Membership is the move - they never miss a drop, they're among the first to get the new mag, and you save a few dollars per issue. Choose 4 issues, 8 issues, or a Rolling Membership that renews before each drop.</p><p><a href=\"/products/membership\">Explore Memberships</a></p>"
+          }
+        },
+        "payment": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How can I pay?",
+            "answer": "<p>Card, PayPal, Apple Pay, Google Pay and Shop Pay - whatever's easiest. Checkout is secure and you don't need an account.</p>"
+          }
+        },
+        "international": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do you ship outside Australia?",
+            "answer": "<p>Our printed mags post within Australia only for now.</p><p>Living overseas? The digital version reads anywhere in the world, so you can still get every issue.</p>"
+          }
+        }
+      },
+      "block_order": ["shipping", "formats", "soldout", "membership", "payment", "international"]
     }
   },
-  "order": ["hero", "categories", "trust_strip", "grid"]
+  "order": ["hero", "categories", "trust_strip", "grid", "pull_quote", "reviews", "cta_closer", "faq"]
 }
