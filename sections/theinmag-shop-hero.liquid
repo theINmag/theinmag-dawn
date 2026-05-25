@@ -1,44 +1,42 @@
 {%- comment -%}
   theinmag-shop-hero
-  Stage 5 /shop page hero. Editorial latest-mag feature with three
-  auto-cycling states driven by shop metafields:
+  Stage 5 /shop page hero. Editorial latest-mag feature with two states,
+  driven by the SAME flag as the shop grid tile badge:
 
-    countdown    - pre-release window. "MagXX drops in N days. Pre-order open."
-                   Eyebrow "Coming soon", peach Pre-order stamp on the photo.
-                   Headline + CTA point at the NEXT issue (current + 1).
-                   Active when diff_days (release - today) > 21.
-    just-dropped - release window. "MagXX is here." Eyebrow "Just dropped".
-                   Points at the CURRENT issue. Active when diff_days is
-                   between -21 and 21 inclusive.
-    available    - "MagXX". Eyebrow "Latest issue". Points at the CURRENT
-                   issue. Active when diff_days < -21.
+    pre-sale - the NEXT issue (current + 1) has a product flagged
+               theinmag.is_pre_order = true. Eyebrow "Pre-sale", headline
+               "MagXX is coming", peach Pre-order stamp on the photo.
+               Primary CTA pre-orders that issue; secondary CTA points at
+               the Membership.
+    on-sale  - no pre-order open. Eyebrow "Stocks limited", headline
+               "MagXX is officially on sale". Points at the CURRENT issue.
+               Primary CTA shops it; secondary CTA "See inside" jumps to the
+               PDP #see-inside section.
 
   Metafields read:
     shop.metafields.theinmag.current_issue_number  -> e.g. "Mag09" (full string)
-    shop.metafields.theinmag.next_release_date     -> date, drives state + countdown
-    shop.metafields.theinmag.current_issue_print_in_stock -> not used here,
-                                                            reserved for sold-out
-                                                            display logic
+    product.metafields.theinmag.is_pre_order        -> on the NEXT issue product,
+                                                       drives the pre-sale state
     shop.metafields.judgeme.{all_reviews_rating,all_reviews_count} -> aggregate
 
-  Stage 14 dependencies (flag for the new-issue release flow):
-    - During the countdown window, the hero CTA links to /products/{{ next_handle }}
-      (e.g. /products/mag10). That product must exist + accept pre-orders before
-      pre-sale opens, or the CTA 404s.
-    - next_release_date metafield must continue pointing at the upcoming release
-      through the 21-day just-dropped window (do not flip to the next-next release
-      immediately on release day, or just-dropped is never visible).
-    - Hero photo asset: section setting hero_image wins; fallback is filename
-      pattern hero-shop-{handle}.jpg in /assets/. Release flow can either upload
-      the new hero photo into /assets/ matching that filename OR set the image
-      picker via theme editor.
+  New-issue release flow (checklist Step 5 is the single switch):
+    - Pre-sale opens: create the next issue's product + set its
+      theinmag.is_pre_order = true. The hero CTA links to /products/{handle},
+      so that product must exist or the CTA 404s.
+    - Drop day: flip the issue's is_pre_order off + update current_issue_number.
+      The hero auto-switches to on-sale and the badge follows - no theme edit.
+    - Hero photo: section setting hero_image wins; fallback is filename
+      pattern hero-shop-{handle}.jpg in /assets/. Swap it per drop via the
+      theme editor image picker or by uploading to /assets/.
+
+  Note: the announcement bar still runs its own next_release_date countdown
+  (independent of this hero's state).
 
   Spec: Stage 5 build brief Part 3.1.
 {%- endcomment -%}
 
 {%- liquid
   assign current_issue = shop.metafields.theinmag.current_issue_number.value | default: 'Mag09'
-  assign next_release_value = shop.metafields.theinmag.next_release_date.value
 
   comment
     Derive handles. current_issue is stored as the full "Mag09" string so
@@ -58,82 +56,66 @@
   endif
 
   comment
-    Determine hero state from diff_days = next_release_date - today, both
-    normalised to midnight so the count is an exact integer. The announcement
-    bar uses the identical midnight-normalised math so the two countdowns
-    always show the same number.
-      diff_days > 21        -> countdown (pre-release)
-      -21 to 21 inclusive   -> just-dropped (release window)
-      diff_days < -21       -> available
-    days_until_release is the positive countdown value (for copy).
+    Two states, driven by the SAME flag as the grid tile badge so the hero
+    and the tiles can never disagree:
+
+      pre-sale  - the NEXT issue's product is flagged for pre-order
+                  (product.metafields.theinmag.is_pre_order = true). The hero
+                  points at that next issue and pushes the pre-order.
+      on-sale   - no pre-order is open, so the hero points at the CURRENT
+                  issue and pushes the sale.
+
+    The new-issue release checklist Step 5 ("flip pre-sale -> on-sale" +
+    update current_issue_number) is the single switch that moves BOTH the
+    badge and this hero - no per-drop theme edit needed.
   endcomment
-  assign hero_state = 'available'
-  assign days_until_release = 0
-  if next_release_value != blank
-    assign release_midnight = next_release_value | date: '%Y-%m-%d' | date: '%s' | times: 1
-    assign now_midnight = 'now' | date: '%Y-%m-%d' | date: '%s' | times: 1
-    assign diff_days = release_midnight | minus: now_midnight | divided_by: 86400
-    if diff_days > 21
-      assign hero_state = 'countdown'
-      assign days_until_release = diff_days
-    elsif diff_days >= -21
-      assign hero_state = 'just-dropped'
-    else
-      assign hero_state = 'available'
-    endif
+  assign next_product = all_products[next_handle]
+  assign next_is_pre_order = false
+  if next_product != blank and next_product.id != blank
+    assign next_is_pre_order = next_product.metafields.theinmag.is_pre_order | default: false
   endif
 
-  comment
-    Hero copy bound to state. In countdown state the headline + CTA target
-    the NEXT issue; in just-dropped/available they target the CURRENT issue.
-  endcomment
-  if hero_state == 'countdown'
+  if next_is_pre_order
+    assign hero_state = 'presale'
     assign hero_mag = next_issue
     assign hero_handle = next_handle
-    assign eyebrow = 'Coming soon'
-    capture headline
-      echo hero_mag
-      echo ' drops in '
-      echo days_until_release
-      if days_until_release == 1
-        echo ' day'
-      else
-        echo ' days'
-      endif
-    endcapture
-    assign subhead = section.settings.subhead_countdown | default: 'Pre-order open. Drops into letterboxes right across Australia, very soon.'
-    assign primary_label = 'Pre-order'
-    assign primary_label = primary_label | append: ' ' | append: hero_mag
-  elsif hero_state == 'just-dropped'
-    assign hero_mag = current_issue
-    assign hero_handle = current_handle
-    assign eyebrow = 'Just dropped'
-    capture headline
-      echo hero_mag
-      echo ' is here'
-    endcapture
-    assign subhead = section.settings.subhead_just_dropped | default: '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
-    assign primary_label = 'Shop ' | append: hero_mag
+    assign eyebrow = 'Pre-sale'
+    assign headline = hero_mag | append: ' is coming'
+    assign primary_label = 'Pre-order ' | append: hero_mag
+    assign secondary_label = 'Grab a membership'
+    assign secondary_url = '/products/membership'
   else
+    assign hero_state = 'onsale'
     assign hero_mag = current_issue
     assign hero_handle = current_handle
-    assign eyebrow = 'Latest issue'
-    assign headline = hero_mag
-    assign subhead = section.settings.subhead_available | default: '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
+    assign eyebrow = 'Stocks limited'
+    assign headline = hero_mag | append: ' is officially on sale'
     assign primary_label = 'Shop ' | append: hero_mag
+    assign secondary_label = 'See inside'
+    assign secondary_url = '/products/' | append: hero_handle | append: '#see-inside'
   endif
 
+  assign subhead = section.settings.subhead | default: '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
+
   assign primary_url = '/products/' | append: hero_handle
-  assign secondary_label = 'See inside'
-  assign secondary_url = primary_url | append: '#flick-through'
+  assign target_product = all_products[hero_handle]
 
   comment
     Photo source, resolved in priority order:
-      1. hero_image      - theme editor image picker (responsive srcset)
-      2. hero_image_filename - manual filename of an asset in /assets/
-      3. hero-shop-{handle}.jpg - filename convention fallback
+      1. single_mag.media_images (first image) on the target issue product -
+         the data-driven cover, auto-updates each drop. PRIMARY source.
+      2. hero_image          - theme editor image picker (manual override)
+      3. hero_image_filename  - manual filename of an asset in /assets/
+      4. hero-shop-{handle}.jpg - filename convention fallback
     If none resolve the photo pane falls back to the cream background.
   endcomment
+  assign metafield_cover = null
+  if target_product != blank and target_product.id != blank
+    assign media_images = target_product.metafields.single_mag.media_images.value
+    if media_images != blank
+      assign metafield_cover = media_images | first
+    endif
+  endif
   assign hero_image = section.settings.hero_image
   assign hero_image_manual = section.settings.hero_image_filename | strip
   assign hero_image_alt = section.settings.hero_image_alt | default: 'theINmag latest issue cover photo.'
@@ -151,14 +133,15 @@
     storefront context. Falls back to brand-standard pricing line when the
     product isn't yet created (countdown state for an unreleased mag).
   endcomment
-  assign target_product = all_products[hero_handle]
   assign print_price = ''
   assign digital_price = ''
+  assign print_available = false
   if target_product != blank and target_product.id != blank
     for v in target_product.variants
       assign vt = v.title | downcase
       if print_price == '' and vt contains 'print'
         assign print_price = v.price | money
+        assign print_available = v.available
       elsif digital_price == '' and vt contains 'digital'
         assign digital_price = v.price | money
       endif
@@ -197,7 +180,19 @@
 
     {%- comment -%} LEFT pane (desktop) / TOP (mobile): hero photo {%- endcomment -%}
     <div class="theinmag-shop-hero__photo">
-      {%- if hero_image != blank -%}
+      {%- if metafield_cover != blank -%}
+        <img
+          class="theinmag-shop-hero__image"
+          src="{{ metafield_cover | image_url: width: 1400 }}"
+          srcset="{{ metafield_cover | image_url: width: 720 }} 720w, {{ metafield_cover | image_url: width: 1080 }} 1080w, {{ metafield_cover | image_url: width: 1400 }} 1400w, {{ metafield_cover | image_url: width: 1800 }} 1800w"
+          sizes="(min-width: 990px) 50vw, 100vw"
+          alt="{{ metafield_cover.alt | default: hero_image_alt | escape }}"
+          width="1400"
+          height="1400"
+          loading="eager"
+          fetchpriority="high"
+        >
+      {%- elsif hero_image != blank -%}
         <img
           class="theinmag-shop-hero__image"
           src="{{ hero_image | image_url: width: 1400 }}"
@@ -222,7 +217,7 @@
         >
       {%- endif -%}
 
-      {%- if hero_state == 'countdown' -%}
+      {%- if hero_state == 'presale' -%}
         <span class="theinmag-shop-hero__preorder-stamp" aria-label="Pre-order open">Pre-order</span>
       {%- endif -%}
     </div>
@@ -243,12 +238,32 @@
       <p class="theinmag-shop-hero__price">{{ print_price }} print - {{ digital_price }} digital</p>
 
       <div class="theinmag-shop-hero__ctas">
-        <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--primary" href="{{ primary_url }}">{{ primary_label }}</a>
+        {%- comment -%}
+          data-format-intent makes the PDP open on Print (the customer can
+          still toggle to Digital). The single-mag PDP remembers the last
+          Print/Digital pick in sessionStorage; the script below sets that to
+          Print on click so this CTA always lands on the printed edition.
+          Only set when Print is actually buyable - if it's sold out we let
+          the PDP fall back to its own default (Digital).
+        {%- endcomment -%}
+        <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--primary" href="{{ primary_url }}"{% if print_available %} data-format-intent="Print"{% endif %}>{{ primary_label }}</a>
         <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--secondary" href="{{ secondary_url }}">{{ secondary_label }}</a>
       </div>
     </div>
   </div>
 </section>
+
+<script>
+  (function () {
+    var cta = document.querySelector('[data-theinmag-shop-hero] [data-format-intent]');
+    if (!cta) return;
+    cta.addEventListener('click', function () {
+      try {
+        sessionStorage.setItem('theinmag.activeFormat', cta.getAttribute('data-format-intent'));
+      } catch (e) {}
+    });
+  })();
+</script>
 
 {%- comment -%}
   Page-level JSON-LD for /shop. Three nodes:
@@ -332,8 +347,8 @@
   }
 
   /* Pre-order stamp - peach pill, top-right corner of photo. Soft shadow
-     so it lifts off the photo without competing. Only visible in countdown
-     state via the data-hero-state CSS hook on the section root. */
+     so it lifts off the photo without competing. Only rendered in the
+     pre-sale state (see the Liquid above). */
   .theinmag-shop-hero__preorder-stamp {
     position: absolute;
     top: var(--space-md);
@@ -491,7 +506,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Editorial latest-mag feature. Auto-cycles three states (countdown / just-dropped / available) from shop metafields theinmag.current_issue_number + theinmag.next_release_date. Photo source: section setting wins; fallback is filename pattern hero-shop-{handle}.jpg in /assets/."
+      "content": "Editorial latest-mag feature. Two states: pre-sale (when the NEXT issue's product has theinmag.is_pre_order = true) points at that issue and pushes the pre-order; on-sale points at the current issue (theinmag.current_issue_number). Same flag drives the shop grid badge. Photo source: section setting wins; fallback is hero-shop-{handle}.jpg in /assets/."
     },
     {
       "type": "header",
@@ -517,31 +532,16 @@
     },
     {
       "type": "header",
-      "content": "Subhead copy (per state)"
+      "content": "Subhead copy"
     },
     {
       "type": "paragraph",
-      "content": "The eyebrow + headline auto-generate from the issue metafields. These three subheads are editable - the hero shows whichever one matches the current state."
+      "content": "The eyebrow + headline auto-generate from the issue number and the pre-order flag. This subhead is shared across both states (pre-sale and on-sale)."
     },
     {
       "type": "text",
-      "id": "subhead_countdown",
-      "label": "Subhead - countdown state",
-      "info": "Shown when the next issue is more than 21 days from release.",
-      "default": "Pre-order open. Drops into letterboxes right across Australia, very soon."
-    },
-    {
-      "type": "text",
-      "id": "subhead_just_dropped",
-      "label": "Subhead - just dropped state",
-      "info": "Shown for the first 21 days after a release.",
-      "default": "120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia."
-    },
-    {
-      "type": "text",
-      "id": "subhead_available",
-      "label": "Subhead - available state",
-      "info": "Shown once an issue is more than 21 days past release.",
+      "id": "subhead",
+      "label": "Subhead",
       "default": "120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia."
     },
     {
