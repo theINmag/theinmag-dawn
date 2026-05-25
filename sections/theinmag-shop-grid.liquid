@@ -392,8 +392,10 @@
         })
         .then(function (data) {
           flipButton(btn, true);
-          var prettyTitle = (data.product_title || 'Item').replace(/^theINmag\s*[-–]\s*/i, '');
-          flashFeedback(prettyTitle + ' added to your cart');
+          /* Toast is owned by the sitewide floating cart (it subscribes to the
+             cartUpdate published in refreshCartCount and pops a single toast
+             above the pill). Don't flash a second one here - that was the
+             duplicate bubble. flashFeedback stays for the error path only. */
           refreshCartCount(data.product_title);
 
           /* Drawer pop. Per Ryan's Stage 6 brief: ADD TO CART ->
@@ -798,11 +800,10 @@
     opacity: 1;
   }
 
-  /* Title row (shop context): title on the left, pre-sale / current-issue
-     pill on the right. Moved off the cover photo (where it sat top-left and
-     read awkwardly against the artwork) down beside the issue title - sits
-     cleanly on the white card surface here, so coloured pills are fine
-     (the "no pills on photos" rule only applies over photography). */
+  /* Title row (shop context): just the issue title now. The pre-sale /
+     current-issue label lives on a dark-scrim ribbon over the cover
+     (.theinmag-bundle-tile__ribbon below) - white-on-scrim, so it stays
+     brand-safe over the artwork (no coloured pills on photos). */
   .theinmag-bundle-tile__title-row {
     display: flex;
     align-items: center;
@@ -819,24 +820,27 @@
     margin: 0;
   }
 
-  /* Pre-sale badge - peach pill. Current-issue badge - mint pill (below).
-     A product is never both, so they never collide. */
-  .theinmag-bundle-tile__badge {
-    flex: 0 0 auto;
-    background-color: var(--color-peach, #FCDDB8);
-    color: var(--color-inky-purple-navy);
+  /* Pre-sale / current-issue ribbon - overlays the cover, bottom-right.
+     White text on a dark scrim (NOT a coloured pill) - the brand-safe way
+     to label over cover artwork (no-pills-on-photos rule). Same data-driven
+     logic as before (product is never both, so they never collide). */
+  .theinmag-bundle-tile__ribbon {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+    pointer-events: none;
+    background-color: rgba(42, 31, 61, 0.9);
+    color: #FFFFFF;
     font-family: var(--font-body);
     font-weight: 700;
     font-size: 10px;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 3px 9px;
-    border-radius: var(--radius-pill, 9999px);
+    padding: 4px 10px;
+    border-radius: 5px;
     white-space: nowrap;
-  }
-
-  .theinmag-bundle-tile__badge--current {
-    background-color: var(--color-mint, #D6EAD9);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
   }
 
   .theinmag-bundle-tile__title {

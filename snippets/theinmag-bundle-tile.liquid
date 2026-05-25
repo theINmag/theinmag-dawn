@@ -137,6 +137,11 @@
           >
         {%- endif -%}
       </a>
+      {%- if is_pre_order -%}
+        <span class="theinmag-bundle-tile__ribbon" aria-label="On pre-sale">Pre-sale</span>
+      {%- elsif is_current_issue -%}
+        <span class="theinmag-bundle-tile__ribbon theinmag-bundle-tile__ribbon--current" aria-label="Current issue">Current issue</span>
+      {%- endif -%}
     {%- else -%}
       {%- if cover_image != blank -%}
         <img
@@ -159,11 +164,6 @@
       <a href="{{ pdp_url }}" class="theinmag-bundle-tile__title-link">
         <h3 class="theinmag-bundle-tile__title">{{ tile_title }}</h3>
       </a>
-      {%- if is_pre_order -%}
-        <span class="theinmag-bundle-tile__badge" aria-label="On pre-sale">Pre-sale</span>
-      {%- elsif is_current_issue -%}
-        <span class="theinmag-bundle-tile__badge theinmag-bundle-tile__badge--current" aria-label="Current issue">Current issue</span>
-      {%- endif -%}
     </div>
   {%- else -%}
     <h3 class="theinmag-bundle-tile__title">{{ tile_title }}</h3>
