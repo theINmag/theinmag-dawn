@@ -8,11 +8,12 @@
 
     field_notes.quick_answer            (multi-line text, REQUIRED for AEO)
     field_notes.primary_topic           (single line text, e.g. "Creativity")
-    field_notes.author_type             (single line text: ryan | tam | kid)
+    field_notes.author_type             (single line text: ryan | tam)
     field_notes.author_role_override    (single line text, optional)
-    field_notes.kid_first_name          (single line text, if author_type=kid)
-    field_notes.kid_age                 (integer, if author_type=kid)
-    field_notes.kid_region              (single line text, e.g. "Fremantle WA")
+    field_notes.kid_first_name          (single line text - PRESENCE triggers kid mode)
+    field_notes.kid_age                 (single line text / integer)
+    field_notes.kid_region              (single line text, e.g. "Echuca VIC. Yorta Yorta Country.")
+    field_notes.text_type               (single line text: Persuasive | Informative | Entertaining)
     field_notes.recommendation_1_handle (single line text, post handle no slash)
     field_notes.recommendation_2_handle (single line text, post handle no slash)
     field_notes.recommendation_3_handle (single line text, post handle no slash)
@@ -32,6 +33,18 @@
   overlay byline reads "Meet [guest_name]." in Post Regular, the
   about-the-author card is suppressed (cover image carries the photo),
   and `author_role_override` carries the role/location/age line.
+
+  Kid-contributor mode (Real Kids Voices) is triggered by the PRESENCE
+  of `kid_first_name` and WINS over both guest mode and author_type.
+  The hero shows a series chip (series_name) + a role line. The role
+  line auto-composes as "[text_type] piece by [name], age [age].
+  [region]", UNLESS `author_role_override` is set, in which case that
+  hand-written value wins. There is NO "Meet"/"By" heading. No avatar
+  is rendered anywhere and the
+  about-the-author card is omitted entirely - the author is the kid,
+  who has no author page, bio, or photo (locked privacy rule). The
+  Article JSON-LD author becomes a Person named by first name only,
+  with no url or sameAs.
 {%- endcomment -%}
 
 {%- liquid
@@ -75,6 +88,30 @@
   endif
 
   comment
+    Kid-contributor mode: triggered by the presence of
+    field_notes.kid_first_name, and it WINS over both guest mode and
+    author_type. A kid post shows the kid as author - no founder name,
+    no founder bio card, no avatar (locked privacy rule). Forcing
+    is_guest false here means every downstream `if is_guest` branch
+    yields to kid mode without needing a kid clause of its own.
+  endcomment
+  assign is_kid = false
+  if article.metafields.field_notes.kid_first_name != blank
+    assign is_kid = true
+    assign is_guest = false
+  endif
+
+  comment
+    Guest portrait (small circular avatar beside the Quick read card)
+    is suppressed in kid mode - kids never get a face/avatar, even if a
+    stale guest_avatar lingers from an interim workaround.
+  endcomment
+  assign show_guest_portrait = false
+  if guest_avatar != blank and is_kid == false
+    assign show_guest_portrait = true
+  endif
+
+  comment
     Audience-aware read time. The default Shopify ~225/250 wpm assumes
     adult skim speed and badly under-counts kid-facing posts (a 950-word
     Real Jobs post should read ~7 min, not ~2). read_audience is an
@@ -93,7 +130,67 @@
   assign read_minutes = words | times: 1.0 | divided_by: read_wpm | ceil | at_least: 1
   assign read_time_label = read_minutes | append: ' min read'
 
-  if author_type == 'tam'
+  if is_kid
+    assign kid_first_name = article.metafields.field_notes.kid_first_name
+    assign kid_age = article.metafields.field_notes.kid_age
+    assign kid_region = article.metafields.field_notes.kid_region
+    assign text_type = article.metafields.field_notes.text_type | strip
+
+    comment
+      Role line: "<text_type> piece by <name>, age <age>. <region>".
+      e.g. "Persuasive piece by Zanda, age 11. Echuca VIC. Yorta Yorta Country."
+      When text_type is blank we fall back to a neutral "Piece by ..."
+      (no genre word) so the line never renders a leading blank. The age
+      and region segments are each guarded so missing values don't leave
+      stray punctuation.
+    endcomment
+    capture kid_role_line
+      if text_type != blank
+        echo text_type
+        echo ' piece by '
+      else
+        echo 'Piece by '
+      endif
+      echo kid_first_name
+      if kid_age != blank
+        echo ', age '
+        echo kid_age
+      endif
+      echo '.'
+      if kid_region != blank
+        echo ' '
+        echo kid_region
+      endif
+    endcapture
+
+    comment
+      Series chip shown in the hero overlay (e.g. "REAL KIDS VOICES",
+      uppercased by CSS). Driven by series_name; falls back to
+      primary_topic so the chip slot is never empty on a kid post.
+    endcomment
+    assign kid_series_chip = series_name
+    if kid_series_chip == blank
+      assign kid_series_chip = primary_topic
+    endif
+
+    comment
+      Blank every founder identity field so no Ryan/Tam data can leak
+      into a kid post - the byline, schema, and avatar logic all read
+      these. author_name is set to the kid's first name for any
+      alt/aria fallbacks (no visible "By" byline is rendered).
+    endcomment
+    assign author_name = kid_first_name
+    assign author_legal_name = blank
+    assign author_person_id = blank
+    assign author_role = blank
+    assign author_bio = blank
+    assign author_archive_url = blank
+    assign author_avatar = blank
+    assign author_avatar_filename = blank
+    assign author_ig = blank
+    assign author_fb = blank
+    assign author_yt = blank
+  elsif author_type == 'tam'
     assign author_name = section.settings.tam_name | default: 'Tam'
     assign author_legal_name = section.settings.tam_legal_name | default: 'Tam Gow'
     assign author_person_id = section.settings.tam_person_id | default: '/our-story#tam'
@@ -105,27 +202,6 @@
     assign author_ig = section.settings.tam_instagram_url
     assign author_fb = section.settings.tam_facebook_url
     assign author_yt = section.settings.tam_youtube_url
-  elsif author_type == 'kid'
-    assign kid_first_name = article.metafields.field_notes.kid_first_name
-    assign kid_age = article.metafields.field_notes.kid_age
-    assign kid_region = article.metafields.field_notes.kid_region
-    capture author_name
-      echo 'By '
-      echo kid_first_name
-      if kid_age != blank
-        echo ', age '
-        echo kid_age
-      endif
-      if kid_region != blank
-        echo ' - '
-        echo kid_region
-      endif
-    endcapture
-    assign author_legal_name = blank
-    assign author_person_id = blank
-    assign author_role = blank
-    assign author_bio = blank
-    assign author_archive_url = blank
   else
     assign author_name = section.settings.ryan_name | default: 'Ryan'
     assign author_legal_name = section.settings.ryan_legal_name | default: 'Ryan Gow'
@@ -143,9 +219,25 @@
   assign author_role_override = article.metafields.field_notes.author_role_override
   if author_role_override != blank
     assign author_role = author_role_override
+    comment
+      In kid mode the override also wins the hero role line, letting an
+      editor hand-write the exact line (e.g. when text_type isn't set)
+      instead of the text_type auto-compose. The text_type-composed
+      kid_role_line remains the default whenever the override is blank.
+    endcomment
+    if is_kid
+      assign kid_role_line = author_role_override
+    endif
   endif
 
-  if is_guest
+  if is_kid
+    comment
+      Kid mode has no "Meet [Name]." or "By [Name]." heading - a kid post
+      is about the creation, not learning about a person. The hero shows
+      the series chip + the role line only (set above as kid_role_line).
+    endcomment
+    assign byline_overlay = blank
+  elsif is_guest
     comment
       Guest mode overrides the standard byline overlay. Strip a single
       trailing period from guest_name before appending one so values
@@ -159,8 +251,6 @@
       assign trimmed_guest = guest_name | slice: 0, guest_trim_to
     endif
     assign byline_overlay = 'Meet ' | append: trimmed_guest | append: '.'
-  elsif author_type == 'kid'
-    assign byline_overlay = author_name
   else
     assign byline_overlay = 'By ' | append: author_name
   endif
@@ -223,31 +313,12 @@
 
   assign hero_darken = section.settings.hero_darken | default: 30
   assign hero_darken_decimal = hero_darken | times: 1.0 | divided_by: 100.0
-
-  # Kid contributor avatar: pulls from the sitewide character pool
-  # (/assets/character-1.png .. character-N.png - same files the
-  # homepage uses). Schema lets the count + prefix be tuned per
-  # article; defaults match the sitewide pool size.
-  assign kid_character_count = section.settings.kid_character_count | default: 53
-  assign kid_character_prefix = section.settings.kid_character_prefix | default: 'character-'
-  assign kid_character_ext = section.settings.kid_character_ext | default: '.png'
-  capture kid_character_attrs
-    for i in (1..kid_character_count)
-      assign char_filename = kid_character_prefix | append: i | append: kid_character_ext
-      assign char_url = char_filename | asset_url
-      echo ' data-character-'
-      echo i
-      echo '="'
-      echo char_url
-      echo '"'
-    endfor
-  endcapture
 -%}
 
 <article
-  class="theinmag-article{% if author_type == 'kid' %} theinmag-article--kid{% endif %}"
+  class="theinmag-article{% if is_kid %} theinmag-article--kid{% endif %}"
   data-theinmag-article
-  data-author-type="{{ author_type }}"
+  data-author-type="{% if is_kid %}kid{% else %}{{ author_type }}{% endif %}"
   style="--hero-darken: {{ hero_darken_decimal }};"
 >
   {%- comment -%}
@@ -281,14 +352,23 @@
 
         <div class="theinmag-article__overlay" data-hero-overlay aria-hidden="false">
           <h1 class="theinmag-article__overlay-title">{{ display_title }}</h1>
-          {%- if primary_topic != blank -%}
-            <span class="theinmag-article__overlay-topic">{{ primary_topic }}</span>
-          {%- endif -%}
-          {%- if byline_overlay != blank -%}
-            <p class="theinmag-article__overlay-byline{% if is_guest %} theinmag-article__overlay-byline--guest{% endif %}">{{ byline_overlay }}</p>
-          {%- endif -%}
-          {%- if author_type != 'kid' and author_role != blank -%}
-            <p class="theinmag-article__overlay-role">{{ author_role }}</p>
+          {%- if is_kid -%}
+            {%- if kid_series_chip != blank -%}
+              <span class="theinmag-article__overlay-topic">{{ kid_series_chip }}</span>
+            {%- endif -%}
+            {%- if kid_role_line != blank -%}
+              <p class="theinmag-article__overlay-role theinmag-article__overlay-role--kid">{{ kid_role_line }}</p>
+            {%- endif -%}
+          {%- else -%}
+            {%- if primary_topic != blank -%}
+              <span class="theinmag-article__overlay-topic">{{ primary_topic }}</span>
+            {%- endif -%}
+            {%- if byline_overlay != blank -%}
+              <p class="theinmag-article__overlay-byline{% if is_guest %} theinmag-article__overlay-byline--guest{% endif %}">{{ byline_overlay }}</p>
+            {%- endif -%}
+            {%- if author_role != blank -%}
+              <p class="theinmag-article__overlay-role">{{ author_role }}</p>
+            {%- endif -%}
           {%- endif -%}
         </div>
       </div>
@@ -315,7 +395,7 @@
           as siblings. Default flow stacks them column-wise (mobile);
           desktop flips to row so the portrait sits beside the card.
         {%- endcomment -%}
-        {%- if quick_answer != blank or guest_avatar != blank -%}
+        {%- if quick_answer != blank or show_guest_portrait -%}
           <div class="theinmag-article__quick-row">
             {%- if quick_answer != blank -%}
               <aside class="theinmag-article__quick-read" aria-label="Quick read">
@@ -324,7 +404,7 @@
               </aside>
             {%- endif -%}
 
-            {%- if guest_avatar != blank -%}
+            {%- if show_guest_portrait -%}
               <figure class="theinmag-article__guest-portrait">
                 <img
                   class="theinmag-article__guest-portrait-img"
@@ -413,13 +493,20 @@
           </aside>
         {%- endif -%}
 
-        {%- if is_guest -%}
+        {%- if is_kid -%}
+          {%- comment -%}
+            Kid contributor mode: no author bio card at all. The author
+            is the kid, and kids have no author page, bio, or avatar on
+            the site (locked privacy rule). Attribution lives entirely in
+            the hero series chip + role line.
+          {%- endcomment -%}
+        {%- elsif is_guest -%}
           {%- comment -%}
             Guest mode: skip the about-the-author card. The hero
             overlay byline + role line + cover photo carry attribution.
             A second avatar would feel redundant against the photo.
           {%- endcomment -%}
-        {%- elsif author_type != 'kid' -%}
+        {%- else -%}
           <aside class="theinmag-article__about" aria-label="About the author">
             <div class="theinmag-article__about-header">
               <div class="theinmag-article__about-avatar">
@@ -473,32 +560,6 @@
                 </div>
               {%- endif -%}
             </div>
-          </aside>
-        {%- else -%}
-          {%- comment -%}
-            Kid attribution: name + age + region only. No "more from"
-            link. Per Ryan's locked brand-safety rule, we don't surface
-            kid history or build per-kid archive pages.
-          {%- endcomment -%}
-          <aside class="theinmag-article__about theinmag-article__about--kid" aria-label="About the contributor">
-            <div class="theinmag-article__about-header">
-              <div class="theinmag-article__about-avatar">
-                <span
-                  class="theinmag-article__kid-character theinmag-article__kid-character--lg"
-                  data-theinmag-kid-character
-                  data-character-count="{{ kid_character_count }}"
-                  {{ kid_character_attrs }}
-                  aria-hidden="true"
-                ></span>
-              </div>
-              <div class="theinmag-article__about-identity">
-                <h2 class="theinmag-article__about-name">{{ kid_first_name }}{% if kid_age != blank %}, age {{ kid_age }}{% endif %}</h2>
-                {%- if kid_region != blank -%}
-                  <p class="theinmag-article__about-role">{{ kid_region }}</p>
-                {%- endif -%}
-              </div>
-            </div>
-            <p class="theinmag-article__about-bio">A creation from a kid published in theINmag. We feature contributors by first name, age, and region only.</p>
           </aside>
         {%- endif -%}
 
@@ -643,8 +704,9 @@
 
 {%- comment -%} Article + BreadcrumbList JSON-LD. We do NOT use Shopify's
   default `article | structured_data` because we want Person schema with
-  sameAs socials for Ryan/Tam, name string only for kid contributors,
-  and Quick answer wired into the description field. {%- endcomment -%}
+  sameAs socials for Ryan/Tam, a minimal Person (first name only, no url
+  or sameAs) for kid contributors, and Quick answer wired into the
+  description field. {%- endcomment -%}
 
 {%- liquid
   assign schema_description = quick_answer | strip_html | strip_newlines | escape
@@ -683,8 +745,16 @@
   "datePublished": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
   "dateModified": {{ article.updated_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
   "author":
-  {%- if author_type == 'kid' -%}
-    {{ kid_first_name | json }}
+  {%- if is_kid -%}
+    {%- comment -%}
+      Kid contributor: a Person entity named by first name only. No @id,
+      no url, no sameAs - kids have no public author page or social
+      profiles. This is the schema author for the Article.
+    {%- endcomment -%}
+    {
+      "@type": "Person",
+      "name": {{ kid_first_name | json }}
+    }
   {%- else -%}
     {
       "@type": "Person",
@@ -940,6 +1010,16 @@
     max-width: 32ch;
   }
 
+  /* Kid-contributor role line is the sole attribution on the post (no
+     "Meet"/"By" heading sits above it), so it reads a touch larger and
+     less dim than the founder role line, and gets room to breathe. */
+  .theinmag-article__overlay-role--kid {
+    margin-top: clamp(8px, 1vw, 12px);
+    font-size: clamp(13px, 1.25vw, 15px);
+    opacity: 0.95;
+    max-width: 46ch;
+  }
+
   /* ================================================================
      Body column - article content + bylines + Quick answer + about
      ================================================================ */
@@ -960,8 +1040,7 @@
     border-bottom: 1px solid var(--color-rule);
   }
 
-  /* Avatar (in About-the-author card) and kid-character avatar
-     fallback styles are kept here for the bottom about card. */
+  /* Avatar styles for the bottom About-the-author card (founders only). */
   .theinmag-article__avatar-img {
     width: 100%;
     height: 100%;
@@ -1163,12 +1242,6 @@
     justify-content: center;
   }
 
-  .theinmag-article__about--kid .theinmag-article__about-avatar {
-    background-color: transparent;
-    border-radius: 0;
-    overflow: visible;
-  }
-
   .theinmag-article__about-avatar img {
     width: 100%;
     height: 100%;
@@ -1268,21 +1341,6 @@
     background-color: var(--color-purple-dark);
     color: #FFFFFF;
     border-color: var(--color-purple-dark);
-  }
-
-  /* ----- Kid character (replaces avatar for kid contributions) ----- */
-  .theinmag-article__kid-character {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background-position: center bottom;
-    background-repeat: no-repeat;
-    background-size: contain;
-  }
-
-  .theinmag-article__kid-character--lg {
-    width: clamp(96px, 11vw, 140px);
-    height: clamp(96px, 11vw, 140px);
   }
 
   /* ================================================================
@@ -1829,36 +1887,6 @@
       update();
     }
 
-    /* Random kid character. Pulls from the sitewide character pool
-       (/assets/character-1.png .. character-N.png) via data-character-N
-       attributes emitted by Liquid. JS shuffles, walks the list, and
-       probes each URL until one loads - so gaps in the sequence
-       (file 7 missing while 1-6 + 8-26 exist) self-heal. No scroll-pop
-       here - just static. */
-    var characters = article.querySelectorAll('[data-theinmag-kid-character]');
-    characters.forEach(function (el) {
-      var count = parseInt(el.getAttribute('data-character-count') || '0', 10);
-      if (!count) return;
-      var pool = [];
-      for (var i = 1; i <= count; i++) {
-        var url = el.getAttribute('data-character-' + i);
-        if (url) pool.push(url);
-      }
-      if (!pool.length) return;
-      for (var k = pool.length - 1; k > 0; k--) {
-        var j = Math.floor(Math.random() * (k + 1));
-        var tmp = pool[k]; pool[k] = pool[j]; pool[j] = tmp;
-      }
-      function tryPick(idx) {
-        if (idx >= pool.length) return;
-        var probe = new Image();
-        probe.onload = function () { el.style.backgroundImage = "url('" + pool[idx] + "')"; };
-        probe.onerror = function () { tryPick(idx + 1); };
-        probe.src = pool[idx];
-      }
-      tryPick(0);
-    });
-
     /* FAQ accordion. Each trigger toggles its own answer panel via
        aria-expanded + data-open. Multiple panels can be open at once. */
     var faqTriggers = article.querySelectorAll('[data-theinmag-article-faq-trigger]');
@@ -2055,35 +2083,6 @@
       "type": "text",
       "id": "tam_youtube_url",
       "label": "YouTube URL"
-    },
-    {
-      "type": "header",
-      "content": "Kid contributors"
-    },
-    {
-      "type": "paragraph",
-      "content": "Kid posts use a kid-character illustration instead of a photo (locked brand-safety rule). Pulls from the sitewide pool in /assets/ as character-1.png .. character-N.png. One is picked at random per page load; JS retries on 404 so missing indices self-heal. Set this to your maximum expected file count - drop new PNGs in /assets/, then bump this when you cross the value below."
-    },
-    {
-      "type": "range",
-      "id": "kid_character_count",
-      "label": "Character count cap",
-      "min": 3,
-      "max": 100,
-      "step": 1,
-      "default": 53
-    },
-    {
-      "type": "text",
-      "id": "kid_character_prefix",
-      "label": "Filename prefix",
-      "default": "character-"
-    },
-    {
-      "type": "text",
-      "id": "kid_character_ext",
-      "label": "Filename extension",
-      "default": ".png"
     },
     {
       "type": "header",
