@@ -208,7 +208,7 @@
 .theinmag-gallery-filter-bar__heading {
   font-family: var(--font-heading, 'Post Regular', Georgia, serif);
   font-weight: 400;
-  font-size: clamp(28px, 3.6vw, 44px);
+  font-size: clamp(32px, 3.6vw, 44px);
   line-height: 1.05;
   letter-spacing: 0;
   margin: 0;
@@ -335,6 +335,15 @@
   .theinmag-gallery-filter-bar__disclaimer {
     text-align: left;
     margin-top: 10px;
+  }
+  /* Slightly more compact search + dropdown on the stacked mobile layout. */
+  .theinmag-gallery-filter-bar__search-input {
+    font-size: 13px;
+    padding: 8px 14px 8px 34px;
+  }
+  .theinmag-gallery-filter-bar__sort-select {
+    font-size: 12px;
+    padding: 8px 24px 8px 12px;
   }
 }
 
