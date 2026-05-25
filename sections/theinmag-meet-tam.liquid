@@ -79,8 +79,10 @@
   capture brand_html
     echo '<span class="theinmag-brand">the<span class="theinmag-brand__in">IN</span>mag</span>'
   endcapture
+  # The enlarged-IN emphasis is reserved for Post-font moments only.
+  # The role line is Post Regular, so it gets the brand span; the intro
+  # paragraph is Inter body copy, so theINmag renders plain there.
   assign role_html = role | replace: 'theINmag', brand_html
-  assign intro_html = intro | replace: 'theINmag', brand_html
 -%}
 
 <section
@@ -225,7 +227,7 @@
         {%- endif -%}
         {%- comment -%} Inter variant: intro sits in the top card, between role and CTA. {%- endcomment -%}
         {%- if heading_font_style == 'inter' and intro != blank -%}
-          <p class="theinmag-meet-tam__intro">{{ intro_html }}</p>
+          <p class="theinmag-meet-tam__intro">{{ intro }}</p>
         {%- endif -%}
         {%- if heading_font_style == 'inter' and cta_label != blank -%}
           <a class="theinmag-meet-tam__cta" href="{{ cta_link }}">{{ cta_label }}</a>
@@ -235,7 +237,7 @@
       <div class="theinmag-meet-tam__copy theinmag-meet-tam__copy--bottom">
         {%- comment -%} Non-inter (homepage) variant keeps the intro below the video. {%- endcomment -%}
         {%- if heading_font_style != 'inter' and intro != blank -%}
-          <p class="theinmag-meet-tam__intro">{{ intro_html }}</p>
+          <p class="theinmag-meet-tam__intro">{{ intro }}</p>
         {%- endif -%}
         {%- if heading_font_style != 'inter' and cta_label != blank -%}
           <a class="theinmag-meet-tam__cta" href="{{ cta_link }}">{{ cta_label }}</a>
@@ -825,11 +827,10 @@
 
   /* ================================================================
      theINmag brand emphasis - the "IN" pun
-     When "theINmag" appears in body copy or headings rendered in Post
-     Regular, the IN is bumped up to 1.2em so the brand pun reads as
-     intentional. The role line and intro paragraph in this section
-     pass through a Liquid `replace` filter that wraps theINmag with
-     this markup automatically.
+     The enlarged IN is reserved for Post-font moments. Only the role
+     line (Post Regular) passes through the Liquid `replace` that wraps
+     theINmag with this markup. The intro paragraph is Inter body copy,
+     so it renders theINmag plain - no oversized IN in running text.
      ================================================================ */
   .theinmag-brand {
     font-family: inherit;

@@ -277,13 +277,16 @@
      rule and paint the buttons before JS removes the hidden attr. */
   .theinmag-bm-story__arrow {
     appearance: none;
-    background-color: #FFFFFF;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    border: 0;
-    width: 48px;
-    height: 48px;
+    /* Filled purple by default (was white-on-white, which vanished over
+       the white card bodies the arrows overlap). Solid fill + ring +
+       deeper shadow give a clear affordance on both cream and white. */
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #FFFFFF;
+    border: 2px solid #FFFFFF;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    box-shadow: 0 4px 14px rgba(123, 79, 158, 0.18);
+    box-shadow: 0 6px 18px rgba(42, 31, 61, 0.32);
     cursor: pointer;
     position: absolute;
     top: 50%;
@@ -298,17 +301,18 @@
     display: none;
   }
   .theinmag-bm-story__arrow svg {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
   }
   .theinmag-bm-story__arrow--prev { left: clamp(8px, 2vw, 24px); }
   .theinmag-bm-story__arrow--next { right: clamp(8px, 2vw, 24px); }
   .theinmag-bm-story__arrow:hover {
-    background-color: var(--color-purple-dark, #5D3A7A);
+    background-color: var(--color-inky-purple-navy, #2A1F3D);
     color: #FFFFFF;
+    transform: translateY(-50%) scale(1.06);
   }
   .theinmag-bm-story__arrow:focus-visible {
-    background-color: var(--color-purple-dark, #5D3A7A);
+    background-color: var(--color-inky-purple-navy, #2A1F3D);
     color: #FFFFFF;
     outline: 3px solid var(--color-yellow, #F9C23C);
     outline-offset: 2px;
