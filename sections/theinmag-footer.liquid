@@ -275,19 +275,39 @@
 
   </div>
 
+  {%- comment -%}
+    Single authoritative Organization entity for the whole site. The stable @id lets
+    other JSON-LD (Article publisher, AboutPage parentOrganization) reference it later.
+    sameAs is built from the social URLs set in this section's settings, so it stays in
+    sync with the visible footer buttons. YouTube is intentionally blank for now (channel
+    not built out yet) - fill the Footer "YouTube URL" field to surface it in BOTH the
+    footer button and this schema in one step.
+  {%- endcomment -%}
+  {%- assign org_same_as = '' -%}
+  {%- if instagram_url != blank -%}{%- assign org_same_as = org_same_as | append: instagram_url | append: '||' -%}{%- endif -%}
+  {%- if facebook_url != blank -%}{%- assign org_same_as = org_same_as | append: facebook_url | append: '||' -%}{%- endif -%}
+  {%- if youtube_url != blank -%}{%- assign org_same_as = org_same_as | append: youtube_url | append: '||' -%}{%- endif -%}
+  {%- assign org_same_as = org_same_as | split: '||' -%}
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Organization",
+      "@id": "{{ shop.url }}/#organization",
       "name": "theINmag",
       "alternateName": "theINmag - made by Aussie kids, for Aussie kids",
       "url": "{{ shop.url }}",
-      "logo": "{{ 'header_logo.svg' | asset_url }}",
-      "sameAs": [
-        {%- if instagram_url != blank -%}"{{ instagram_url }}"{%- if facebook_url != blank or youtube_url != blank -%},{%- endif -%}{%- endif -%}
-        {%- if facebook_url != blank -%}"{{ facebook_url }}"{%- if youtube_url != blank -%},{%- endif -%}{%- endif -%}
-        {%- if youtube_url != blank -%}"{{ youtube_url }}"{%- endif -%}
-      ]
+      "logo": "{{ 'theINmag_logo.png' | asset_url | prepend: 'https:' }}",
+      "slogan": "The magazine for creative kids",
+      "description": "theINmag is Australia's magazine made by kids, for kids - 100% kid-created, ad-free, and sustainably printed. Every issue publishes real drawings, stories, and creations sent in by Aussie kids.",
+      "areaServed": {
+        "@type": "Country",
+        "name": "Australia"
+      },
+      "founder": [
+        { "@type": "Person", "name": "Ryan", "jobTitle": "Co-founder, theINmag" },
+        { "@type": "Person", "name": "Tam", "jobTitle": "Co-founder, theINmag" }
+      ],
+      "sameAs": {{ org_same_as | json }}
     }
   </script>
 </footer>
@@ -1158,8 +1178,8 @@
     {
       "type": "text",
       "id": "youtube_url",
-      "label": "YouTube URL",
-      "default": "https://www.youtube.com/@theINmag/videos"
+      "label": "YouTube URL (blank = hidden; channel not built out yet)",
+      "default": "https://www.youtube.com/@theINmag"
     }
   ],
   "blocks": [

@@ -1,0 +1,50 @@
+# theINmag robots.txt
+# This template reproduces Shopify's default robots groups (do not remove the loop -
+# it carries the standard Googlebot disallows), then explicitly welcomes the
+# answer-engine / AI search crawlers so theINmag can be cited in AI answers (AEO).
+# NOTE: verify the rendered output at /robots.txt once the storefront password is
+# OFF at launch - a password-gated store serves a different robots.txt and this
+# cannot be confirmed before then.
+
+{% for group in robots.default_groups %}
+  {{- group.user_agent }}
+
+  {%- for rule in group.rules -%}
+    {{ rule }}
+  {%- endfor -%}
+
+  {%- if group.sitemap != blank -%}
+    {{ group.sitemap }}
+  {%- endif -%}
+{% endfor %}
+
+# Answer-engine + AI search crawlers - explicitly allowed (Claude, ChatGPT,
+# Perplexity, Gemini). Listed as their own groups per Shopify's documented pattern
+# for allowing specific crawlers. Includes both the indexing/training bots and the
+# live-fetch user agents that retrieve a page when answering a user's question.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
