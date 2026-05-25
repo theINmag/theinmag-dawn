@@ -328,9 +328,13 @@
   text-align: right;
 }
 
-@media (max-width: 600px) {
+/* Stacked layout (mobile + small tablet): keep the note visible - it now carries
+   the copyright/privacy reasons a submission might not appear - and left-align it
+   under the full-width search box (right-align only suits the desktop row). */
+@media (max-width: 767px) {
   .theinmag-gallery-filter-bar__disclaimer {
-    display: none;
+    text-align: left;
+    margin-top: 10px;
   }
 }
 
