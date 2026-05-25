@@ -218,22 +218,45 @@ cart-drawer.is-empty .drawer__footer {
   }
 }
 
-/* Mobile-only reorder: gift note above the cross-sell cards.
-   Desktop's .cart__footer is a flex row (Dawn's component-cart.css
-   line 134, gated by @media min-width 750px), so this override only
-   touches the phone layout where items stack vertically. */
+/* Desktop: lay the cart footer out as an EVEN grid so the centre gift
+   card sits dead-centre on screen with equal gaps on both sides. Dawn
+   ships a flex row with fixed 35rem children + space-between, which
+   shrinks unevenly and visually pulls the middle column toward the
+   cross-sell - this override replaces that. Two columns when there's no
+   gift card (digital-only carts: cross-sell + order summary), three
+   when the gift card is present (cross-sell | gift | order summary). */
+@media (min-width: 750px) {
+  #main-cart-footer:not(.is-empty) .cart__footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+  #main-cart-footer:not(.is-empty) .cart__footer.theinmag-cart-footer--gift {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  #main-cart-footer:not(.is-empty) .cart__footer > * {
+    width: auto;
+    margin-left: 0;
+    margin-top: 0;
+  }
+}
+
+/* Mobile: stack in reading order - cross-sell, gift card, order summary
+   (totals + Check out). Explicit order keeps the gift card from jumping
+   to the top (its default order:0 would otherwise sit it above the
+   cross-sell). */
 @media (max-width: 749px) {
   .cart__footer {
     display: flex;
     flex-direction: column;
   }
-  .cart__footer cart-note,
-  .cart__footer .theinmag-cart-note {
-    order: 1;
-    margin-bottom: 16px;
-  }
   .cart__footer .theinmag-main-cart__between-wrap {
+    order: 1;
+  }
+  .cart__footer .theinmag-gift-note {
     order: 2;
+    margin-bottom: 16px;
   }
   .cart__footer .cart__blocks {
     order: 3;
@@ -471,42 +494,55 @@ cart-drawer.is-empty .drawer__footer {
 }
 
 /* ---------------------------------------------------------------
-   Gift-address callout (sits directly above the Check out button).
+   Combined gift section (address reminder + optional post-label note).
+   Lives in the cart-note column; physical carts only.
    --------------------------------------------------------------- */
-.theinmag-gift-callout {
-  margin: 0 0 12px;
-  padding: 14px 16px;
+.theinmag-gift-note {
+  display: block;
+  margin: 0;
+  padding: 18px 20px;
   background: #FFFFFF;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   font-family: var(--font-body);
 }
-.theinmag-gift-callout__heading {
+.theinmag-gift-note__heading {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 0 0 6px;
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--color-inky-purple-navy);
 }
-.theinmag-gift-callout__icon {
+.theinmag-gift-note__icon {
   font-size: 18px;
   line-height: 1;
 }
-.theinmag-gift-callout__body {
-  margin: 0;
+.theinmag-gift-note__intro {
+  margin: 0 0 16px;
   font-family: var(--font-body);
   font-size: 13.5px;
   font-weight: 500;
   line-height: 1.5;
   color: var(--color-inky-purple-navy);
 }
-.theinmag-gift-callout__body strong {
+.theinmag-gift-note__intro strong {
   font-weight: 700;
-  color: var(--color-inky-purple-navy);
+}
+.theinmag-gift-note__label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+.theinmag-gift-note__optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
 }
 
 /* ---------------------------------------------------------------

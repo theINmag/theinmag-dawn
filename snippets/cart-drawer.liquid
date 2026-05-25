@@ -507,24 +507,40 @@
         {% render 'theinmag-cart-crosssell' %}
       </div>
       <div class="drawer__footer">
-        {%- if settings.show_cart_note -%}
-          <details id="Details-CartDrawer" class="theinmag-cart-note-details">
+        {%- comment -%}
+          Gift section, drawer surface. Mirrors the combined section on
+          the cart page (sections/main-cart-footer.liquid): physical
+          carts only (cart.requires_shipping), so it stays hidden on
+          digital-only carts. The note textarea is gated by
+          settings.show_cart_note; the address reminder shows regardless.
+        {%- endcomment -%}
+        {%- if cart.requires_shipping -%}
+          <details id="Details-CartDrawer" class="theinmag-cart-note-details" open>
             <summary>
-              <span class="theinmag-cart-note__label">Sending this as a gift? Add a note for the kid.</span>
+              <span class="theinmag-cart-note__label">Is this a gift?</span>
             </summary>
-            <cart-note class="theinmag-cart-note__body">
-              <span class="theinmag-cart-note__hint">Up to 50 characters - fits on the post label.</span>
-              <label class="visually-hidden" for="CartDrawer-Note">Gift note for the kid</label>
-              <textarea
-                id="CartDrawer-Note"
-                class="theinmag-cart-note__field"
-                name="note"
-                maxlength="50"
-                placeholder="e.g. Happy 9th birthday Mia!"
-                data-theinmag-note-counter
-              >{{ cart.note }}</textarea>
-              <span class="theinmag-cart-note__counter" data-theinmag-note-counter-display>0 / 50</span>
-            </cart-note>
+            <div class="theinmag-cart-note__body">
+              <p class="theinmag-gift-note__intro">
+                On the next page, enter the <strong>recipient's name and address</strong> (the kid getting the mag) - not yours. Otherwise the mag lands in your letterbox, not theirs.
+              </p>
+              {%- if settings.show_cart_note -%}
+                <cart-note>
+                  <label for="CartDrawer-Note" class="theinmag-gift-note__label">
+                    Add a note <span class="theinmag-gift-note__optional">(optional)</span>
+                  </label>
+                  <span class="theinmag-cart-note__hint">We'll print it on the post label - up to 50 characters.</span>
+                  <textarea
+                    id="CartDrawer-Note"
+                    class="theinmag-cart-note__field"
+                    name="note"
+                    maxlength="50"
+                    placeholder="e.g. Happy 9th birthday Mia!"
+                    data-theinmag-note-counter
+                  >{{ cart.note }}</textarea>
+                  <span class="theinmag-cart-note__counter" data-theinmag-note-counter-display>0 / 50</span>
+                </cart-note>
+              {%- endif -%}
+            </div>
           </details>
         {%- endif -%}
 

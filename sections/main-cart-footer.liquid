@@ -24,27 +24,54 @@
   data-id="{{ section.id }}"
 >
   <div class="page-width">
-    <div class="cart__footer isolate section-{{ section.id }}-padding">
+    <div class="cart__footer isolate section-{{ section.id }}-padding{% if cart.requires_shipping %} theinmag-cart-footer--gift{% endif %}">
       <div class="theinmag-main-cart__between-wrap">
         {% render 'theinmag-cart-crosssell' %}
       </div>
 
-      {%- if settings.show_cart_note -%}
-        <cart-note class="theinmag-cart-note theinmag-cart-note--page">
-          <label for="Cart-note" class="theinmag-cart-note__label">
-            Sending this as a gift? Add a note for the kid.
-          </label>
-          <span class="theinmag-cart-note__hint">Up to 50 characters - fits on the post label.</span>
-          <textarea
-            class="theinmag-cart-note__field"
-            name="note"
-            form="cart"
-            id="Cart-note"
-            maxlength="50"
-            placeholder="e.g. Happy 9th birthday Mia!"
-            data-theinmag-note-counter
-          >{{ cart.note }}</textarea>
-          <span class="theinmag-cart-note__counter" data-theinmag-note-counter-display>0 / 50</span>
+      {%- comment -%}
+        Combined gift section: the recipient-address reminder + the
+        optional post-label note, merged into one card. Sits as the
+        CENTRE column of the cart footer (cross-sell left, order summary
+        right) - an even 3-column grid keeps it dead-centre on screen.
+
+        Renders ONLY when the cart has a physical item
+        (cart.requires_shipping) - covers print-only AND mixed
+        digital+print carts, hidden on digital-only (no shipping fields
+        to fill, and the note prints on a post label that won't ship).
+
+        Address copy kept deliberately blunt: Ryan was getting ~2
+        emails/day from gift buyers who used their own address by
+        mistake. "Recipient's" wording is the workaround for the locked
+        checkout, whose name field can't be relabelled on Basic. Note
+        textarea gated by settings.show_cart_note so the reminder still
+        shows even if the note feature is off.
+      {%- endcomment -%}
+      {%- if cart.requires_shipping -%}
+        <cart-note class="theinmag-cart-note theinmag-gift-note">
+          <p class="theinmag-gift-note__heading">
+            <span class="theinmag-gift-note__icon" aria-hidden="true">🎁</span>
+            Is this a gift?
+          </p>
+          <p class="theinmag-gift-note__intro">
+            On the next page, enter the <strong>recipient's name and address</strong> (the kid getting the mag) - not yours. Otherwise the mag lands in your letterbox, not theirs.
+          </p>
+          {%- if settings.show_cart_note -%}
+            <label for="Cart-note" class="theinmag-gift-note__label">
+              Add a note <span class="theinmag-gift-note__optional">(optional)</span>
+            </label>
+            <span class="theinmag-cart-note__hint">We'll print it on the post label - up to 50 characters.</span>
+            <textarea
+              class="theinmag-cart-note__field"
+              name="note"
+              form="cart"
+              id="Cart-note"
+              maxlength="50"
+              placeholder="e.g. Happy 9th birthday Mia!"
+              data-theinmag-note-counter
+            >{{ cart.note }}</textarea>
+            <span class="theinmag-cart-note__counter" data-theinmag-note-counter-display>0 / 50</span>
+          {%- endif -%}
         </cart-note>
       {%- endif -%}
 
@@ -116,28 +143,9 @@
               </div>
             {%- else -%}
               {%- comment -%}
-                Gift-address callout. Sits flush above the Check out
-                button so it lands eyes-first right before they click
-                through to the (un-editable on Basic plan) Shopify
-                checkout. Wording deliberately blunt: Ryan was getting
-                ~2 emails/day from gift buyers who used their own
-                address by mistake.
-
-                Hidden on digital-only carts (cart.requires_shipping
-                is false) - no shipping fields to fill out at checkout
-                so the warning would just confuse the customer.
+                Gift section lives in the centre column (see top of file),
+                not here above the button.
               {%- endcomment -%}
-              {%- if cart.requires_shipping -%}
-                <aside class="theinmag-gift-callout" role="note" aria-label="Gift shipping reminder">
-                  <p class="theinmag-gift-callout__heading">
-                    <span class="theinmag-gift-callout__icon" aria-hidden="true">🎁</span>
-                    Sending this as a gift?
-                  </p>
-                  <p class="theinmag-gift-callout__body">
-                    On the next page, enter the <strong>kid's name and address</strong> in the shipping fields - not yours. Otherwise the mag lands in your letterbox, not theirs.
-                  </p>
-                </aside>
-              {%- endif -%}
               <div class="cart__ctas" {{ block.shopify_attributes }}>
                 <button
                   type="submit"
