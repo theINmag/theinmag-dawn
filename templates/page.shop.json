@@ -113,8 +113,7 @@
         "quote_body": "People like you are making a difference for our kids in this ever-consuming digital world.",
         "attribution_name": "Lana",
         "attribution_role": "mother",
-        "background_filename": "HERO_kid-reading-mag.jpg",
-        "scrim_opacity": 55,
+        "background_filename": "theinside-homepage-background.jpg",
         "heading_font_style": "inter",
         "size_variant": "default",
         "attribution_style": "uppercase_inter",
@@ -126,7 +125,7 @@
       "type": "theinmag-reviews",
       "settings": {
         "heading": "What families are saying",
-        "subhead": "Real reviews from parents, teachers and grandparents right across Australia.",
+        "subhead": "Real reviews from parents, teachers and grandparents.",
         "use_judgeme_widget": false,
         "review_count": 0,
         "use_judgeme_cards": true,
@@ -141,14 +140,12 @@
     "cta_closer": {
       "type": "theinmag-behind-the-mag-cta",
       "settings": {
-        "heading": "Two ways to keep the creativity coming",
         "aeo_heading": "How can I get my kid involved with theINmag?"
       },
       "blocks": {
         "membership": {
           "type": "cta_card",
           "settings": {
-            "heading": "Join the family",
             "body": "Three issues a year, straight to your kid's letterbox. Never miss a drop, and save a few dollars per issue.",
             "button_label": "Get a Membership",
             "link": "/products/membership",
@@ -161,7 +158,6 @@
         "send_in": {
           "type": "cta_card",
           "settings": {
-            "heading": "Send IN a creation",
             "body": "Drawings, stories, photos, jokes, puzzles - anything they're proud of. Real Aussie kids fill every page.",
             "button_label": "Send IN a creation",
             "link": "/pages/send-in",
