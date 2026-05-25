@@ -339,6 +339,16 @@
           <button type="submit" name="checkout" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--secondary" data-buy-now-cta>Buy now</button>
         </div>
 
+        {%- comment -%}
+          Rolling-only billing-timing note. data-rolling-only is toggled by the
+          form JS (shown only when Length = Rolling). Clarifies that the charge
+          lands on the 1st of each drop month while the issue itself arrives
+          mid-month, so there's no surprise about the ~2-week gap.
+        {%- endcomment -%}
+        <p class="theinmag-membership-hero__rolling-note" data-rolling-only hidden>
+          Billed on the 1st of Feb, Jun &amp; Oct. Each issue arrives mid-month, around the 15th.
+        </p>
+
         <p class="theinmag-membership-hero__microcopy">
           Free shipping over $40 - Sustainably printed in Australia - 120+ pages, zero ads
         </p>
@@ -1079,6 +1089,20 @@
     margin: var(--space-sm) 0 0;
     text-align: center;
   }
+
+  /* Rolling-only billing-timing note (charge on the 1st, issue mid-month).
+     Toggled via [data-rolling-only] by the form JS. */
+  .theinmag-membership-hero__rolling-note {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.9;
+    margin: var(--space-sm) 0 0;
+    text-align: center;
+  }
+  .theinmag-membership-hero__rolling-note[hidden] { display: none; }
 
   /* Mini reviews widget — sits between trust microcopy and the FAQ
      accordions. Bubble visual matches the starting-issue tile style
