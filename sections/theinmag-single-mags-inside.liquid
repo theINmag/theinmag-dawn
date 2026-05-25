@@ -93,6 +93,7 @@
 -%}
 
 <section
+  id="see-inside"
   class="theinmag-single-mags-inside"
   data-theinmag-single-mags-inside
   aria-labelledby="theinmag-single-mags-inside-heading"
@@ -222,12 +223,22 @@
       let resumeTimer = null;
 
       function loopBack() {
-        const halfWidth = track.scrollWidth / 2;
-        if (halfWidth <= 0) return;
-        if (rail.scrollLeft >= halfWidth) {
-          rail.scrollLeft -= halfWidth;
-        } else if (rail.scrollLeft < 0) {
-          rail.scrollLeft += halfWidth;
+        const half = track.scrollWidth / 2;
+        const viewport = rail.clientWidth;
+        // No horizontal overflow -> nothing to loop.
+        if (half <= 0 || half <= viewport) return;
+        // The track holds the strip TWICE, so jumping by exactly `half`
+        // lands on the identical frame - invisible. Keep a buffer of slack
+        // on BOTH sides of the start so a swipe LEFT has somewhere to go
+        // instead of slamming into the scrollLeft=0 wall. (The old code
+        // only reset on scrollLeft < 0, which the browser clamps away, so
+        // leftward swiping hit a hard stop at the first item.) Symmetric
+        // buffer keeps both reset points inside the scrollable range.
+        const buffer = (half - viewport) / 2;
+        if (rail.scrollLeft >= half + buffer) {
+          rail.scrollLeft -= half;
+        } else if (rail.scrollLeft < buffer) {
+          rail.scrollLeft += half;
         }
       }
 
@@ -295,7 +306,22 @@
         scheduleResume();
       });
 
-      if (!reduceMotion) {
+      if (reduceMotion) {
+        // Auto-scroll is off, so the rail rests where it loads (0). Shift
+        // one strip-width in so a left-swipe has a copy to scroll back
+        // into. scrollLeft = half shows the same first item as 0 (two
+        // identical copies), so the first paint is unchanged. Re-run on
+        // window load once lazy images give the rail its real width.
+        var positionStart = function () {
+          var half = track.scrollWidth / 2;
+          if (half > rail.clientWidth) rail.scrollLeft = half;
+        };
+        positionStart();
+        window.addEventListener('load', positionStart);
+      } else {
+        // Auto-scroll path: loopBack() runs every frame and self-positions
+        // from 0 into the buffered band on the first frame (seamless -
+        // identical copies), so no explicit start offset is needed here.
         window.requestAnimationFrame(step);
       }
     });

@@ -1769,7 +1769,12 @@
        This way desc nestles tight to the thumb strip no matter how
        tall the widget grows from accordions / cross-sell / etc. */
     .theinmag-single-mags-hero__row {
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      /* Cap the media column so the 1:1 preview square stays compact -
+         the full cover + the start of the description land on one desktop
+         screen (Ryan's call). Widget (1fr) absorbs the freed width so
+         there's no gap beside a smaller image. The square + contain are
+         unchanged on __media-main, so the whole cover still shows. */
+      grid-template-columns: minmax(0, clamp(320px, 46%, 540px)) minmax(0, 1fr);
       grid-template-rows: auto auto;
       grid-template-areas:
         "media widget"
