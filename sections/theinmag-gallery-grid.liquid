@@ -124,6 +124,29 @@
   <p class="theinmag-gallery-grid__no-results visually-hidden" data-theinmag-gallery-no-results>
     Nothing matches that search yet. Try a different word.
   </p>
+
+  {%- comment -%} Community takedown path - keeps us safe + lets families flag anything. {%- endcomment -%}
+  <p class="theinmag-gallery-grid__takedown">
+    Spot a creation that shouldn't be here? Email <a href="mailto:heyhey@theinmag.com.au?subject=Gallery%20takedown%20request">heyhey@theinmag.com.au</a> and we'll take it down.
+  </p>
+
+  <style>
+    .theinmag-gallery-grid__takedown {
+      margin: 36px auto 4px;
+      max-width: 620px;
+      text-align: center;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.62);
+    }
+    .theinmag-gallery-grid__takedown a {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .theinmag-gallery-grid__takedown a:hover,
+    .theinmag-gallery-grid__takedown a:focus-visible { color: rgba(255, 255, 255, 0.95); }
+  </style>
 </section>
 
 {% schema %}
