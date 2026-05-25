@@ -304,10 +304,15 @@
             <span class="theinmag-bundle-picker__modal-pill-price" data-modal-pill-price-8>$159</span>
             <span class="theinmag-bundle-picker__modal-pill-chip">Best value</span>
           </button>
-          <button type="button" class="theinmag-bundle-picker__modal-pill" data-modal-length="Rolling" role="radio" aria-checked="false">
-            <span class="theinmag-bundle-picker__modal-pill-title">Rolling</span>
-            <span class="theinmag-bundle-picker__modal-pill-price" data-modal-pill-price-rolling>$28.90/drop</span>
-          </button>
+          {%- comment -%}
+            Rolling is intentionally NOT offered in Build a Bundle. It's a
+            recurring subscription (Appstle selling plan), and the bundle's
+            add-to-cart doesn't attach a selling plan - so a Rolling line here
+            would create a one-time charge with no subscription. Rolling lives
+            only on the /products/membership PDP, where the selling plan is
+            wired in. (The JS Rolling branches below are now dead but harmless;
+            activeLength can only be 4-Issue or 8-Issue here.)
+          {%- endcomment -%}
         </div>
       </fieldset>
 
@@ -327,10 +332,6 @@
           Digital always starts with the <strong>current issue ({{ current_issue }})</strong>.
         </p>
       </fieldset>
-
-      <p class="theinmag-bundle-picker__modal-rolling-note" data-modal-rolling-note hidden>
-        Bundle discount applies to your first drop only. Future drops charge at the usual rate.
-      </p>
 
       <button type="button" class="theinmag-bundle-picker__modal-cta" data-modal-submit>
         Add to bundle - <span data-modal-cta-price>$89</span>
