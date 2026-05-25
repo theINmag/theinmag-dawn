@@ -257,7 +257,6 @@
         {%- endif -%}
       </div>
 
-      <div class="theinmag-membership-hero__price" data-price-display>{{ first_variant.price | money }}</div>
       <p class="theinmag-membership-hero__shipping-note" data-shipping-note hidden>Shipping included</p>
 
       <form
@@ -276,17 +275,27 @@
         <fieldset class="theinmag-membership-hero__fieldset">
           <legend class="theinmag-membership-hero__legend">Format</legend>
           <div class="theinmag-membership-hero__pills" role="radiogroup" data-option-name="format">
-            <button type="button" class="theinmag-membership-hero__pill" data-value="Print" aria-pressed="true">Print</button>
-            <button type="button" class="theinmag-membership-hero__pill" data-value="Digital" aria-pressed="false">Digital</button>
+            <button type="button" class="theinmag-membership-hero__pill" data-value="Print" aria-pressed="true"><span class="theinmag-membership-hero__pill-title">Print</span></button>
+            <button type="button" class="theinmag-membership-hero__pill" data-value="Digital" aria-pressed="false"><span class="theinmag-membership-hero__pill-title">Digital</span></button>
           </div>
         </fieldset>
 
         <fieldset class="theinmag-membership-hero__fieldset">
           <legend class="theinmag-membership-hero__legend">Length</legend>
           <div class="theinmag-membership-hero__pills" role="radiogroup" data-option-name="length">
-            <button type="button" class="theinmag-membership-hero__pill" data-value="4-Issue" aria-pressed="true">4-Issue</button>
-            <button type="button" class="theinmag-membership-hero__pill theinmag-membership-hero__pill--featured" data-value="8-Issue" aria-pressed="false">8-Issue<span class="theinmag-membership-hero__pill-chip">Best value</span></button>
-            <button type="button" class="theinmag-membership-hero__pill" data-value="Rolling" aria-pressed="false">Rolling</button>
+            <button type="button" class="theinmag-membership-hero__pill" data-value="4-Issue" aria-pressed="true">
+              <span class="theinmag-membership-hero__pill-title">4-Issue</span>
+              <span class="theinmag-membership-hero__pill-price" data-pill-price></span>
+            </button>
+            <button type="button" class="theinmag-membership-hero__pill theinmag-membership-hero__pill--featured" data-value="8-Issue" aria-pressed="false">
+              <span class="theinmag-membership-hero__pill-title">8-Issue</span>
+              <span class="theinmag-membership-hero__pill-price" data-pill-price></span>
+              <span class="theinmag-membership-hero__pill-chip">Best value</span>
+            </button>
+            <button type="button" class="theinmag-membership-hero__pill" data-value="Rolling" aria-pressed="false">
+              <span class="theinmag-membership-hero__pill-title">Rolling</span>
+              <span class="theinmag-membership-hero__pill-price" data-pill-price></span>
+            </button>
           </div>
         </fieldset>
 
@@ -320,7 +329,7 @@
           item properties straight to /checkout.
         {%- endcomment -%}
         <div class="theinmag-membership-hero__cta-row">
-          <button type="submit" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--primary" data-primary-cta>Add to cart</button>
+          <button type="submit" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--primary" data-primary-cta>Add to cart <span class="theinmag-membership-hero__cta-price" data-cta-price></span></button>
           <button type="submit" name="checkout" class="theinmag-membership-hero__cta theinmag-membership-hero__cta--secondary" data-buy-now-cta>Buy now</button>
         </div>
 
@@ -850,38 +859,51 @@
      selection. The pink (--color-soft-pink, sampled from the header wordmark
      backdrop) reads warmer and less aggressive than the dark coral. Selected
      state keeps inky-navy text so we hold WCAG AA contrast on the pink fill. */
+  /* Pills are an even grid (Format 2-up, Length 3-up) that fills the row,
+     each a stacked title + price like the build-a-bundle modal. */
   .theinmag-membership-hero__pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-xs);
+    display: grid;
+    gap: 8px;
     /* Headroom so the "Best value" chip on the 8-Issue pill clears the
-       legend above (legend margin is only 4px). */
+       legend above. */
     margin-top: 7px;
   }
-  /* The Format row has only 2 pills - cap its width so each doesn't stretch
-     to half the widget. The 3-pill Length row fills the full width as normal. */
   .theinmag-membership-hero__pills[data-option-name="format"] {
-    max-width: 270px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .theinmag-membership-hero__pills[data-option-name="length"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .theinmag-membership-hero__pill {
-    /* Pills fill their row evenly (3-up Length fills the full width). The
-       2-pill Format row is capped narrower above so it doesn't over-stretch. */
     position: relative;
-    flex: 1 1 0;
-    min-width: 0;
-    min-height: 40px;
-    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 52px;
+    padding: 8px 10px;
     background: #ffffff;
     border: 2px solid var(--color-soft-pink);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-lg);
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 13px;
     cursor: pointer;
     transition: background var(--transition-standard), color var(--transition-standard), border-color var(--transition-standard);
   }
+  .theinmag-membership-hero__pill-title {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.2;
+  }
+  .theinmag-membership-hero__pill-price {
+    font-weight: 500;
+    font-size: 12.5px;
+    line-height: 1.2;
+    opacity: 0.82;
+  }
+  .theinmag-membership-hero__pill-price:empty { display: none; }
   .theinmag-membership-hero__pill:hover { background: rgba(93, 58, 122, 0.07); }
   /* Active state matches the build-a-bundle modal: soft purple tint,
      solid purple border, purple label. Reads premium next to the white
@@ -998,19 +1020,18 @@
 
   /* CTA row holds the yellow ADD TO CART + outlined BUY NOW side by side.
      Pattern matches the typical product page (theinmag-single-mags-hero). */
+  /* Stacked, full-width CTAs (modal language): yellow Add to cart with the
+     price in it, outlined Buy now beneath. */
   .theinmag-membership-hero__cta-row {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: var(--space-xs);
-    margin: var(--space-sm) 0 0;
-    justify-content: center;
+    margin: var(--space-md) 0 0;
   }
 
   .theinmag-membership-hero__cta {
     appearance: none;
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: 220px;
+    width: 100%;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-heading);
     font-size: 18px;

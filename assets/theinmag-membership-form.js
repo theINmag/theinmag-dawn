@@ -97,6 +97,15 @@
     return heroPrint;
   }
 
+  /* Price shown on each Length pill + inside the Add to cart button. */
+  const ctaPrice = section.querySelector('[data-cta-price]');
+  const lengthPriceEls = Array.prototype.slice.call(
+    form.querySelectorAll('[data-option-name="length"] [data-pill-price]')
+  );
+  function priceLabel(cents, length) {
+    return formatMoney(cents) + (length === 'Rolling' ? '/drop' : '');
+  }
+
   function update() {
     const format = selected('format');
     const length = selected('length');
@@ -147,6 +156,16 @@
         floatingCtaPrice.textContent = ctaPriceStr;
       }
     }
+
+    /* Repaint each Length pill's price for the chosen format, and the price
+       inside the Add to cart button. */
+    lengthPriceEls.forEach(function (el) {
+      const tile = el.closest('[data-value]');
+      const len = tile ? tile.dataset.value : null;
+      const v = len ? findVariant(format, len) : null;
+      el.textContent = v ? priceLabel(v.price, len) : '';
+    });
+    if (ctaPrice) ctaPrice.textContent = variant ? priceLabel(variant.price, length) : '';
 
     /* Floating cart summary: e.g. "4-Issue Print" + "Start with Mag09".
        Length-then-format reads more naturally per Ryan's call - "4-Issue
