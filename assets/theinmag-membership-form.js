@@ -97,6 +97,10 @@
     return heroPrint;
   }
 
+  /* Subscription selling-plan input - enabled (and set) only when the chosen
+     variant carries a selling plan (Rolling), so Shopify creates a subscription. */
+  const sellingPlanInput = form.querySelector('[data-selling-plan-input]');
+
   /* Price shown on each Length pill + inside the Add to cart button. */
   const ctaPrice = section.querySelector('[data-cta-price]');
   const lengthPriceEls = Array.prototype.slice.call(
@@ -166,6 +170,19 @@
       el.textContent = v ? priceLabel(v.price, len) : '';
     });
     if (ctaPrice) ctaPrice.textContent = variant ? priceLabel(variant.price, length) : '';
+
+    /* Subscription: attach the selling plan only when the chosen variant has
+       one (Rolling). A disabled input isn't submitted, so Print/Digital 4 & 8
+       stay one-time purchases. */
+    if (sellingPlanInput) {
+      if (variant && variant.selling_plan_id) {
+        sellingPlanInput.value = variant.selling_plan_id;
+        sellingPlanInput.disabled = false;
+      } else {
+        sellingPlanInput.value = '';
+        sellingPlanInput.disabled = true;
+      }
+    }
 
     /* Floating cart summary: e.g. "4-Issue Print" + "Start with Mag09".
        Length-then-format reads more naturally per Ryan's call - "4-Issue

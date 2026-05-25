@@ -271,6 +271,14 @@
         <input type="hidden" name="properties[_starting_mag]" data-prop-starting-mag value="{{ current_issue }}">
         <input type="hidden" name="properties[_remaining_after_first]" data-prop-remaining value="3">
         <input type="hidden" name="properties[_mags_included]" data-prop-mags-included value="">
+        {%- comment -%}
+          Subscription selling plan. Disabled by default so it isn't submitted
+          (one-time purchase). JS enables it + sets the plan id only when the
+          selected variant carries an Appstle selling plan (i.e. Rolling), which
+          is what makes Shopify create a subscription. Data-driven: reads the
+          plan straight off the variant, no hardcoded ids.
+        {%- endcomment -%}
+        <input type="hidden" name="selling_plan" data-selling-plan-input disabled>
 
         <fieldset class="theinmag-membership-hero__fieldset">
           <legend class="theinmag-membership-hero__legend">Format</legend>
@@ -419,7 +427,8 @@
   <script type="application/json" data-membership-variants>
     [
       {%- for v in product.variants -%}
-        {"id": {{ v.id }}, "option1": {{ v.option1 | json }}, "option2": {{ v.option2 | json }}, "price": {{ v.price }}, "available": {{ v.available }}}{%- unless forloop.last -%},{%- endunless -%}
+        {%- assign sp_id = v.selling_plan_allocations.first.selling_plan.id -%}
+        {"id": {{ v.id }}, "option1": {{ v.option1 | json }}, "option2": {{ v.option2 | json }}, "price": {{ v.price }}, "available": {{ v.available }}, "selling_plan_id": {% if sp_id %}{{ sp_id }}{% else %}null{% endif %}}{%- unless forloop.last -%},{%- endunless -%}
       {%- endfor -%}
     ]
   </script>
