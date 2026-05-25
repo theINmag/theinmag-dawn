@@ -741,7 +741,7 @@
   .theinmag-membership-hero__tagline-row {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: 8px 10px;
     margin: 0 0 var(--space-sm);
@@ -780,12 +780,12 @@
   .theinmag-membership-hero__title {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(24px, 3vw, 32px);
+    font-size: clamp(26px, 3.2vw, 34px);
     line-height: 1.05;
     color: var(--color-inky-purple-navy);
     margin: 0 0 2px;
-    white-space: nowrap;
-    text-align: center;
+    white-space: normal;
+    text-align: left;
   }
 
   /* Editorial benefit line under title. Inky-navy italic - sandy-orange
@@ -800,16 +800,17 @@
     color: var(--color-inky-purple-navy);
     opacity: 0.78;
     margin: 0;
-    text-align: center;
+    text-align: left;
   }
 
   .theinmag-membership-hero__price {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(20px, 2.6vw, 26px);
+    font-size: clamp(24px, 3vw, 30px);
     line-height: 1.1;
     color: var(--color-inky-purple-navy);
     margin: 0 0 var(--space-xs);
+    text-align: left;
   }
 
   /* Shipping-included note appears under the price for Rolling Print + Rolling
@@ -859,12 +860,10 @@
   }
 
   .theinmag-membership-hero__pill {
-    /* flex: 1 1 0 (NOT 1 1 auto) so all three pills divide the row
-       equally regardless of label width - "4-Issue" is shorter than
-       "8-Issue"/"Rolling" so auto sizes give unequal widths. */
+    /* Pills hug their labels (content-width) and cluster left, rather than
+       stretching to fill the row - 2 Format pills at 50% each read stretched. */
     position: relative;
-    flex: 1 1 0;
-    min-width: 0;
+    flex: 0 0 auto;
     min-height: 40px;
     padding: 8px 14px;
     background: #ffffff;
@@ -928,7 +927,7 @@
     background: #ffffff;
     border: 1.5px solid rgba(247, 160, 146, 0.55);
     border-radius: 16px;
-    padding: 12px 16px;
+    padding: 10px 14px;
     cursor: pointer;
     text-align: left;
     display: grid;
@@ -963,7 +962,7 @@
     background: rgba(93, 58, 122, 0.10);
     border-color: var(--color-purple-dark);
     border-width: 2px;
-    padding: 11.5px 15.5px;
+    padding: 9.5px 13.5px;
   }
   .theinmag-membership-hero__start-tile[aria-pressed='true']::before {
     border-color: var(--color-purple-dark);
