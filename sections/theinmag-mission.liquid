@@ -83,6 +83,13 @@
           # curated asset having to be uploaded first.
           assign linked_product = nil
           assign block_link = block.settings.link | default: ''
+          # /products/latest-mag is a sentinel - swap to whatever
+          # shop.metafields.theinmag.promoted_issue_handle currently
+          # points at. One metafield update on drop day flips every
+          # "Latest issue" tile site-wide.
+          if block_link == '/products/latest-mag'
+            assign block_link = shop.metafields.theinmag.promoted_issue_handle | default: 'mag10' | prepend: '/products/'
+          endif
           if block_link contains '/products/'
             assign linked_handle = block_link | split: '/products/' | last | split: '?' | first | split: '#' | first
             assign linked_product = all_products[linked_handle]
@@ -103,7 +110,7 @@
           endif
         -%}
         <li class="theinmag-mission__product-item" {{ block.shopify_attributes }}>
-          <a class="theinmag-mission__product" href="{{ block.settings.link | default: '#' }}">
+          <a class="theinmag-mission__product" href="{{ block_link | default: '#' }}">
             <span class="theinmag-mission__product-frame">
               {%- if default_src != blank -%}
                 <img
@@ -875,7 +882,8 @@
         {
           "type": "url",
           "id": "link",
-          "label": "Link"
+          "label": "Link",
+          "info": "Use /products/latest-mag to auto-route to whatever issue is currently being promoted (driven by shop.theinmag.promoted_issue_handle metafield)."
         },
         {
           "type": "image_picker",
@@ -956,7 +964,7 @@
             "label": "Single issue",
             "tagline": "120+ pages of kid-made creativity.",
             "price": "$23.95",
-            "link": "/products/mag10",
+            "link": "/products/latest-mag",
             "fallback_filename": "product-mag.jpg",
             "fallback_hover_filename": "product-mag-hover.jpg",
             "image_alt": "Cover of the latest theINmag issue."

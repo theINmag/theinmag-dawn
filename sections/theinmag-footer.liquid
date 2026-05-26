@@ -140,8 +140,40 @@
       </section>
 
       {%- comment -%} ----- Nav columns (blocks) ----- {%- endcomment -%}
+      {%- assign latest_mag_url = shop.metafields.theinmag.promoted_issue_handle | default: 'mag10' | prepend: '/products/' -%}
       {%- for block in section.blocks -%}
         {%- if block.type == 'nav_column' -%}
+          {%- liquid
+            # Per-block sentinel swap. Any link_N_url set to
+            # /products/latest-mag resolves to whatever issue is
+            # currently being promoted via shop.metafields.theinmag
+            # .promoted_issue_handle. One metafield flip on drop day
+            # rotates every "Latest issue" link site-wide.
+            assign link_1_url = block.settings.link_1_url
+            if link_1_url == '/products/latest-mag'
+              assign link_1_url = latest_mag_url
+            endif
+            assign link_2_url = block.settings.link_2_url
+            if link_2_url == '/products/latest-mag'
+              assign link_2_url = latest_mag_url
+            endif
+            assign link_3_url = block.settings.link_3_url
+            if link_3_url == '/products/latest-mag'
+              assign link_3_url = latest_mag_url
+            endif
+            assign link_4_url = block.settings.link_4_url
+            if link_4_url == '/products/latest-mag'
+              assign link_4_url = latest_mag_url
+            endif
+            assign link_5_url = block.settings.link_5_url
+            if link_5_url == '/products/latest-mag'
+              assign link_5_url = latest_mag_url
+            endif
+            assign link_6_url = block.settings.link_6_url
+            if link_6_url == '/products/latest-mag'
+              assign link_6_url = latest_mag_url
+            endif
+          -%}
           <details class="theinmag-footer__column" open {{ block.shopify_attributes }}>
             <summary class="theinmag-footer__column-heading">
               {{ block.settings.heading }}
@@ -151,22 +183,22 @@
             </summary>
             <ul class="theinmag-footer__column-list" role="list">
               {%- if block.settings.link_1_label != blank -%}
-                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_1_url | default: '#' }}">{{ block.settings.link_1_label }}</a></li>
+                <li><a class="theinmag-footer__column-link" href="{{ link_1_url | default: '#' }}">{{ block.settings.link_1_label }}</a></li>
               {%- endif -%}
               {%- if block.settings.link_2_label != blank -%}
-                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_2_url | default: '#' }}">{{ block.settings.link_2_label }}</a></li>
+                <li><a class="theinmag-footer__column-link" href="{{ link_2_url | default: '#' }}">{{ block.settings.link_2_label }}</a></li>
               {%- endif -%}
               {%- if block.settings.link_3_label != blank -%}
-                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_3_url | default: '#' }}">{{ block.settings.link_3_label }}</a></li>
+                <li><a class="theinmag-footer__column-link" href="{{ link_3_url | default: '#' }}">{{ block.settings.link_3_label }}</a></li>
               {%- endif -%}
               {%- if block.settings.link_4_label != blank -%}
-                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_4_url | default: '#' }}">{{ block.settings.link_4_label }}</a></li>
+                <li><a class="theinmag-footer__column-link" href="{{ link_4_url | default: '#' }}">{{ block.settings.link_4_label }}</a></li>
               {%- endif -%}
               {%- if block.settings.link_5_label != blank -%}
-                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_5_url | default: '#' }}">{{ block.settings.link_5_label }}</a></li>
+                <li><a class="theinmag-footer__column-link" href="{{ link_5_url | default: '#' }}">{{ block.settings.link_5_label }}</a></li>
               {%- endif -%}
               {%- if block.settings.link_6_label != blank -%}
-                <li><a class="theinmag-footer__column-link" href="{{ block.settings.link_6_url | default: '#' }}">{{ block.settings.link_6_label }}</a></li>
+                <li><a class="theinmag-footer__column-link" href="{{ link_6_url | default: '#' }}">{{ block.settings.link_6_label }}</a></li>
               {%- endif -%}
             </ul>
           </details>
@@ -1221,13 +1253,13 @@
           "link_1_label": "Shop all",
           "link_1_url": "/pages/shop",
           "link_2_label": "Memberships",
-          "link_2_url": "/collections/memberships",
+          "link_2_url": "/products/membership",
           "link_3_label": "Latest issue",
-          "link_3_url": "/collections/latest",
+          "link_3_url": "/products/latest-mag",
           "link_4_label": "Build a Bundle",
           "link_4_url": "/pages/build-a-bundle",
-          "link_5_label": "Snack Packs",
-          "link_5_url": "/collections/snack-packs"
+          "link_5_label": "Snack Pack",
+          "link_5_url": "/products/snack-pack"
         }
       },
       {
@@ -1236,12 +1268,12 @@
           "heading": "About",
           "link_1_label": "Behind the mag",
           "link_1_url": "/pages/behind-the-mag",
-          "link_2_label": "Where we'll be next",
-          "link_2_url": "/pages/where-we-will-be-next",
+          "link_2_label": "",
+          "link_2_url": "",
           "link_3_label": "Stockists",
           "link_3_url": "/pages/stockists",
-          "link_4_label": "School orders",
-          "link_4_url": "/pages/school-order",
+          "link_4_label": "Schools",
+          "link_4_url": "/pages/for-teachers",
           "link_5_label": "Contact",
           "link_5_url": "/pages/contact"
         }
@@ -1254,8 +1286,8 @@
           "link_1_url": "/pages/send-in",
           "link_2_label": "Gallery",
           "link_2_url": "/pages/gallery",
-          "link_3_label": "Blog",
-          "link_3_url": "/blogs/news",
+          "link_3_label": "Field notes",
+          "link_3_url": "/blogs/field-notes",
           "link_4_label": "Freebies",
           "link_4_url": "/pages/freebies",
           "link_5_label": "Competitions",

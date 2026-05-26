@@ -56,6 +56,11 @@
   assign intro = section.settings.intro
   assign cta_label = section.settings.cta_label
   assign cta_link = section.settings.cta_link
+  # /products/latest-mag is a sentinel - swap to the currently-promoted
+  # mag from shop.metafields.theinmag.promoted_issue_handle.
+  if cta_link == '/products/latest-mag'
+    assign cta_link = shop.metafields.theinmag.promoted_issue_handle | default: 'mag10' | prepend: '/products/'
+  endif
   assign poster_alt = section.settings.poster_alt | default: 'Tam holding the latest theINmag issue, mid sentence with a smile.'
 
   assign heading_font_style = section.settings.heading_font_style | default: 'post'
@@ -1108,7 +1113,8 @@
     {
       "type": "url",
       "id": "cta_link",
-      "label": "Button link"
+      "label": "Button link",
+      "info": "Use /products/latest-mag to auto-route to whatever issue is currently being promoted (driven by shop.theinmag.promoted_issue_handle metafield)."
     },
     { "type": "header", "content": "Per-instance style overrides" },
     {
@@ -1166,7 +1172,7 @@
         "role": "Co-founder of theINmag",
         "intro": "Take a peek inside the latest issue with Tam - favourite spreads, brilliant kid creations, and what to expect.",
         "cta_label": "Grab the latest issue",
-        "cta_link": "/products/mag10"
+        "cta_link": "/products/latest-mag"
       }
     }
   ]
