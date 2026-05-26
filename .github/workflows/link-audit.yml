@@ -20,6 +20,10 @@ on:
   # {"event_type":"link-audit"}).
   repository_dispatch:
     types: [link-audit]
+  # Temporary diagnostic: trigger on any push that touches this file
+  push:
+    paths:
+      - '.github/workflows/link-audit.yml'
 
 permissions:
   issues: write
