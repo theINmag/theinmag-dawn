@@ -61,6 +61,7 @@ const KNOWN_PAGE_HANDLES = new Set([
   'gallery',
   'legal',
   'membership',
+  'newsletter', // in-flight build, parallel session
   'partnerships',
   'reviews',
   'school-order',
