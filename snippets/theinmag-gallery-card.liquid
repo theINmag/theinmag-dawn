@@ -23,6 +23,18 @@
   assign category = submission.category | default: 'art' | downcase | strip
   assign write_up = submission.write_up
   assign alt_text = submission.alt_text | default: ''
+  if alt_text == blank
+    capture alt_text
+      echo first_name
+      if age != blank
+        echo ', age '
+        echo age
+      endif
+      echo ' - '
+      echo category
+      echo ' published in theINmag, the Australian magazine for creative kids.'
+    endcapture
+  endif
   assign submitted_at = submission.submitted_at
 
   comment

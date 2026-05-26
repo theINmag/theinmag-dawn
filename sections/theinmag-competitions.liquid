@@ -270,7 +270,7 @@
               <span class="theinmag-comps__tile-cover" aria-hidden="true">
                 {%- assign comp_logo = comp_logos[idx] -%}
                 {%- if comp_logo != blank -%}
-                  <img class="theinmag-comps__tile-logo" src="{{ comp_logo | asset_url }}" alt="" loading="lazy" width="120" height="120">
+                  <img class="theinmag-comps__tile-logo" src="{{ comp_logo | asset_url }}" alt="{{ comp_name | escape }} logo" loading="lazy" width="120" height="120">
                 {%- else -%}
                   <span class="theinmag-comps__tile-letter">{{ comp_letter }}</span>
                 {%- endif -%}
@@ -324,7 +324,7 @@
               <span class="theinmag-comps__tile-cover" aria-hidden="true">
                 {%- assign closed_logo = comp_logos[idx] -%}
                 {%- if closed_logo != blank -%}
-                  <img class="theinmag-comps__tile-logo" src="{{ closed_logo | asset_url }}" alt="" loading="lazy" width="120" height="120">
+                  <img class="theinmag-comps__tile-logo" src="{{ closed_logo | asset_url }}" alt="{{ comp_names[idx] | escape }} logo" loading="lazy" width="120" height="120">
                 {%- else -%}
                   <span class="theinmag-comps__tile-letter">{{ comp_letters[idx] }}</span>
                 {%- endif -%}
@@ -376,7 +376,7 @@
                     <span class="theinmag-comps__featured-badge">top picks</span>
                     {%- assign spot_logo = comp_logos[spot_idx] -%}
                     {%- if spot_logo != blank -%}
-                      <img class="theinmag-comps__featured-logo" src="{{ spot_logo | asset_url }}" alt="" loading="lazy" width="240" height="240">
+                      <img class="theinmag-comps__featured-logo" src="{{ spot_logo | asset_url }}" alt="{{ comp_names[spot_idx] | escape }} logo" loading="lazy" width="240" height="240">
                     {%- else -%}
                       <span class="theinmag-comps__featured-letter">{{ comp_letters[spot_idx] }}</span>
                     {%- endif -%}
