@@ -1,0 +1,137 @@
+name: Link audit
+
+# Scans the theme for broken/suspicious internal links and opens or
+# updates a GitHub Issue with the findings. See
+# .github/audit/internal-links.js for the methodology.
+
+on:
+  schedule:
+    # 09:00 UTC = 19:00/20:00 AEST/AEDT - well after the daily stockist
+    # sync (06:00 AEST) and before Ryan's morning. Runs on the 1st of
+    # every month.
+    - cron: '0 9 1 * *'
+  workflow_dispatch: {}
+
+jobs:
+  audit:
+    name: Internal links
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run audit
+        id: audit
+        continue-on-error: true
+        env:
+          SHOPIFY_STORE_URL: theinmag.myshopify.com
+          SHOPIFY_API_VERSION: '2026-04'
+          SHOPIFY_CLIENT_ID: ${{ secrets.AUDIT_SHOPIFY_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET: ${{ secrets.AUDIT_SHOPIFY_CLIENT_SECRET }}
+        run: node .github/audit/internal-links.js > /tmp/report.md
+
+      - name: Load summary
+        id: summary
+        run: |
+          if [ -f /tmp/link-audit-summary.json ]; then
+            BROKEN=$(jq -r .brokenCount /tmp/link-audit-summary.json)
+            SUSPICIOUS=$(jq -r .suspiciousCount /tmp/link-audit-summary.json)
+          else
+            BROKEN=-1
+            SUSPICIOUS=-1
+          fi
+          echo "broken=$BROKEN" >> "$GITHUB_OUTPUT"
+          echo "suspicious=$SUSPICIOUS" >> "$GITHUB_OUTPUT"
+          echo "Findings: $BROKEN broken, $SUSPICIOUS suspicious"
+
+      - name: Open or update issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/report.md', 'utf8');
+            const broken = parseInt('${{ steps.summary.outputs.broken }}', 10);
+            const suspicious = parseInt('${{ steps.summary.outputs.suspicious }}', 10);
+
+            // If the audit script crashed (broken=-1), open a separate
+            // "audit failed" issue so we know to look at the run logs.
+            if (broken < 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Link audit FAILED — ${new Date().toISOString().slice(0,10)}`,
+                body: 'The audit script exited without producing /tmp/link-audit-summary.json. Check the workflow run logs:\n' +
+                      `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                labels: ['link-audit', 'audit-failure'],
+              });
+              return;
+            }
+
+            // Find an existing open audit issue (label: link-audit).
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'link-audit',
+              state: 'open',
+              per_page: 10,
+            });
+            // Ignore audit-failure ones - they're a separate concern.
+            const open = existing.data.filter(i =>
+              !i.labels.some(l => (l.name || l) === 'audit-failure')
+            );
+
+            const hasFindings = broken + suspicious > 0;
+
+            if (hasFindings && open.length === 0) {
+              // No existing issue; create one.
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Link audit: ${broken} broken, ${suspicious} suspicious`,
+                body,
+                labels: ['link-audit'],
+              });
+              console.log('Created new issue.');
+            } else if (hasFindings && open.length > 0) {
+              // Update the existing issue.
+              const issue = open[0];
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                title: `Link audit: ${broken} broken, ${suspicious} suspicious`,
+                body,
+              });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `🔄 Re-audit on ${new Date().toISOString().slice(0,10)} — still **${broken}** broken / **${suspicious}** suspicious. Body updated above.`,
+              });
+              console.log(`Updated existing issue #${issue.number}.`);
+            } else if (!hasFindings && open.length > 0) {
+              // All clear - close the open audit issues.
+              for (const issue of open) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: `✅ Re-audit on ${new Date().toISOString().slice(0,10)} found **zero broken or suspicious internal links**. Closing.`,
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed',
+                });
+              }
+              console.log('All clear; closed existing audit issues.');
+            } else {
+              console.log('All clear and no open issue. Nothing to do.');
+            }
