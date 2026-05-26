@@ -6,24 +6,14 @@ name: Link audit
 
 on:
   schedule:
-    # 09:00 UTC = 19:00/20:00 AEST/AEDT - well after the daily stockist
-    # sync (06:00 AEST) and before Ryan's morning. Runs on the 1st of
-    # every month.
+    # 09:00 UTC = 19:00/20:00 AEST/AEDT, on the 1st of every month.
+    # Scheduled triggers work fine on this repo; manual triggers
+    # (workflow_dispatch + repository_dispatch) are bugged GitHub-side
+    # and return either HTTP 500 or accept-but-silently-drop. For
+    # on-demand audits, run the script locally via
+    # `npm run audit-now` in the stockists-sync repo.
     - cron: '0 9 1 * *'
-  # workflow_dispatch is the "Run workflow" UI button. It's currently
-  # bugged on this repo (returns HTTP 500 from GitHub's dispatcher;
-  # other repos work fine). Kept here in case GitHub fixes it.
   workflow_dispatch:
-  # repository_dispatch is the working manual trigger. Run it from the
-  # stockists-sync repo with `npm run audit-now` (or curl directly:
-  # POST /repos/theINmag/theinmag-dawn/dispatches with body
-  # {"event_type":"link-audit"}).
-  repository_dispatch:
-    types: [link-audit]
-  # Temporary diagnostic: trigger on any push that touches this file
-  push:
-    paths:
-      - '.github/workflows/link-audit.yml'
 
 permissions:
   issues: write
