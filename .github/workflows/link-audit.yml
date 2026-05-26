@@ -10,7 +10,7 @@ on:
     # sync (06:00 AEST) and before Ryan's morning. Runs on the 1st of
     # every month.
     - cron: '0 9 1 * *'
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
   audit:
