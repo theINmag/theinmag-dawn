@@ -382,6 +382,18 @@
           <span data-theinmag-submit-label>{{ submit_label | default: 'Place order + email me the invoice' }}</span>
           <span class="theinmag-school-order-form__spinner" data-theinmag-submit-spinner aria-hidden="true"></span>
         </button>
+
+        {%- comment -%}
+          Last-look reassurance directly under the submit button.
+          Reiterates what the checkout-help block above already says:
+          this isn't a quote request, hitting the button books a real
+          order. Teachers often confuse the two on first-look school
+          forms, so we say it once at the top of the page and once
+          right before they commit.
+        {%- endcomment -%}
+        <p class="theinmag-school-order-form__post-submit-note">
+          <strong>This is an invoice, not a quote.</strong> Placing this order books your mags.
+        </p>
       </div>
     </form>
 
@@ -1294,6 +1306,26 @@
   .theinmag-school-order-form__submit[disabled] {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  /* Last-look reassurance under the submit button. Calm, centered,
+     slightly muted - this is a "by the way" line, not a CTA, so it
+     keeps the page rhythm calm rather than yelling alongside the
+     yellow button. */
+  .theinmag-school-order-form__post-submit-note {
+    margin: 0;
+    max-width: 460px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.82;
+    text-align: center;
+  }
+
+  .theinmag-school-order-form__post-submit-note strong {
+    font-weight: 700;
+    opacity: 1;
   }
 
   .theinmag-school-order-form__spinner {

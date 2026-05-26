@@ -36,8 +36,11 @@
   endif
 
   assign tall_image = section.settings.mobile_tall_image
+  assign xtall_image = section.settings.mobile_image_xtall
   assign section_modifier = ''
-  if tall_image
+  if xtall_image
+    assign section_modifier = ' theinmag-curriculum-accordion--xtall-image'
+  elsif tall_image
     assign section_modifier = ' theinmag-curriculum-accordion--tall-image'
   endif
 
@@ -250,6 +253,13 @@
       "id": "mobile_tall_image",
       "label": "Tall image on mobile",
       "info": "Makes the left image near full-height on phones (portrait 3:4) instead of the default 4:3.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "mobile_image_xtall",
+      "label": "Extra-tall image on mobile (75vh)",
+      "info": "Locks the left image to 3/4 of the viewport height on phones. Overrides 'Tall image on mobile' when both are on.",
       "default": false
     },
     {

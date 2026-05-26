@@ -397,15 +397,17 @@
   /* Card-link only renders on non-video cards (Instagram). Covers
      the entire card so clicks anywhere on the image OR body navigate
      to the destination URL. z-index 5 puts it above the media and
-     platform icon (z-index 3) so the click target stays uniform. */
-  .theinmag-bm-see-more__card-link {
+     platform icon (z-index 3) so the click target stays uniform.
+     Two-class selector beats Dawn's `a:empty { display: none }` in
+     base.css - the anchor has no inner text by design. */
+  .theinmag-bm-see-more__card .theinmag-bm-see-more__card-link {
     position: absolute;
     inset: 0;
     z-index: 5;
     cursor: pointer;
     display: block;
   }
-  .theinmag-bm-see-more__card-link:focus-visible {
+  .theinmag-bm-see-more__card .theinmag-bm-see-more__card-link:focus-visible {
     outline: 3px solid var(--color-purple-dark, #5D3A7A);
     outline-offset: -3px;
     border-radius: 16px;

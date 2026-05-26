@@ -54,6 +54,13 @@
     .theinmag-curriculum-accordion--tall-image .theinmag-curriculum-accordion__image-col {
         aspect-ratio: 3 / 4;
     }
+
+    /* Extra-tall variant: pin to 75vh so the image fills three-quarters
+       of the phone viewport regardless of phone aspect ratio. */
+    .theinmag-curriculum-accordion--xtall-image .theinmag-curriculum-accordion__image-col {
+        aspect-ratio: auto;
+        height: 75vh;
+    }
 }
 
 @media (min-width: 768px) {

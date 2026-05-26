@@ -380,6 +380,16 @@
         var slug = self.currentCard.getAttribute('data-category') || 'all';
         self.userClose();
         self.app.setCategory(slug);
+        // Override setCategory's grid scroll AND Safari's history-back scroll
+        // restoration with an explicit page-top scroll, deferred two RAFs so
+        // it lands after both have settled. Filtered sets are often short, so
+        // anchoring at the page top stops users being stranded in the footer
+        // when the modal was opened from deep in the grid.
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+          });
+        });
       });
 
       window.addEventListener('popstate', function () {

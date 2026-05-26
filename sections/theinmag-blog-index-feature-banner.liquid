@@ -18,6 +18,52 @@
 {%- liquid
   assign min_height = section.settings.min_height_desktop | default: 80
   assign min_height_mobile = section.settings.min_height_mobile | default: 70
+
+  comment
+    Auto-pull (added 2026-05-26): when a banner block has no Article
+    picked, fall back to the freshest matching article from the blog
+    based on the block's audience setting. Lets banner-kids and
+    banner-adults auto-populate without manual curation; banner-all
+    can still curate by setting an Article in admin.
+
+    Priority per audience:
+      kids   : first kids article → first mixed/blank → first adults
+      adults : first adults article → first mixed/blank → first kids
+      all    : freshest blog article regardless of audience
+  endcomment
+  comment
+    Skip the FIRST kids and FIRST adults article: the editorial
+    section above already auto-pulls those as its per-audience feature
+    cards, and we want the banner to surface a different article
+    rather than duplicating the page hero. The 2nd-in-bucket article
+    is what each audience banner shows. Falls through to mixed/newest
+    when fewer than two matching articles exist.
+  endcomment
+  assign kids_handle_auto = ''
+  assign adults_handle_auto = ''
+  assign mixed_handle_auto = ''
+  assign newest_handle_auto = ''
+  assign kids_seen = 0
+  assign adults_seen = 0
+  for a in blog.articles limit: 50
+    if newest_handle_auto == ''
+      assign newest_handle_auto = a.handle
+    endif
+    assign ra = a.metafields.field_notes.read_audience | downcase
+    if ra == 'kids'
+      assign kids_seen = kids_seen | plus: 1
+      if kids_seen > 1 and kids_handle_auto == ''
+        assign kids_handle_auto = a.handle
+      endif
+    elsif ra == 'parents' or ra == 'adults'
+      assign adults_seen = adults_seen | plus: 1
+      if adults_seen > 1 and adults_handle_auto == ''
+        assign adults_handle_auto = a.handle
+      endif
+    elsif mixed_handle_auto == ''
+      assign mixed_handle_auto = a.handle
+    endif
+  endfor
 -%}
 
 <section
@@ -30,10 +76,45 @@
       assign article = block.settings.article
 
       comment
-        Priority flip 2026-05-18: when Article picker is set, article
-        data wins. Overrides only apply when no Article is picked
-        (legacy placeholder pattern). Matches the editorial card
-        snippet behaviour for consistency.
+        Auto-pull fallback: when no Article is picked, resolve a recent
+        matching article from blog.articles by the block's audience
+        setting so the banner stays content-fresh without admin curation.
+      endcomment
+      if article == blank
+        assign block_aud = block.settings.audience | default: 'all'
+        assign auto_handle = ''
+        if block_aud == 'kids'
+          assign auto_handle = kids_handle_auto
+          if auto_handle == ''
+            assign auto_handle = mixed_handle_auto
+          endif
+          if auto_handle == ''
+            assign auto_handle = newest_handle_auto
+          endif
+        elsif block_aud == 'adults'
+          assign auto_handle = adults_handle_auto
+          if auto_handle == ''
+            assign auto_handle = mixed_handle_auto
+          endif
+          if auto_handle == ''
+            assign auto_handle = newest_handle_auto
+          endif
+        else
+          assign auto_handle = newest_handle_auto
+        endif
+        if auto_handle != ''
+          assign auto_resolved = articles[auto_handle]
+          if auto_resolved != blank
+            assign article = auto_resolved
+          endif
+        endif
+      endif
+
+      comment
+        Priority flip 2026-05-18: when Article (picked or auto-pulled) is
+        set, article data wins. Overrides only apply when no Article is
+        available at all (true placeholder fallback before any post
+        exists). Matches the editorial card snippet behaviour.
       endcomment
       if article != blank
         assign title = article.title
@@ -57,12 +138,15 @@
 
         assign image_alt = article.image.alt | default: article.title
 
-        assign read_aud = article.metafields.field_notes.read_audience | downcase
-        if read_aud == 'kids'
-          assign audience = 'kids'
-        else
-          assign audience = 'all'
-        endif
+        comment
+          Routing audience comes from the block setting, not the
+          article's metafield. The block setting is intent (this
+          banner is for kids/adults/all); the article metafield is
+          content classification. A mixed article rendered in the
+          adults banner block is fine - it shows when the visitor
+          flips to adults because the BLOCK is tagged adults.
+        endcomment
+        assign audience = block.settings.audience | default: 'all'
 
         assign cta_label = block.settings.cta_label
       else
@@ -323,6 +407,36 @@
       });
     }
 
+    /* ---------- Hero/banner collision guard ----------------------
+       The banner picks its article either from admin curation or
+       from the auto-pull skip-first logic (Liquid above). Both
+       defenses can fail in edge cases - someone curates the same
+       article in both spots, or the blog runs short on audience-
+       matched articles so the editorial fallback and the banner
+       fallback land on the same handle. This runtime check looks at
+       the visible editorial pool's feature card href and, if the
+       active banner panel matches, hides the banner so the same
+       article never displays twice on the same page.
+       --------------------------------------------------------- */
+    function visibleEditorialFeatureHref() {
+      var pool = document.querySelector('.theinmag-editorial [data-audience-pool]:not([hidden])');
+      if (!pool) return '';
+      var feat = pool.querySelector('.theinmag-editorial__card--feature');
+      return feat ? (feat.getAttribute('href') || '') : '';
+    }
+
+    function applyCollisionGuard() {
+      var editorialHref = visibleEditorialFeatureHref();
+      if (!editorialHref) return;
+      panels.forEach(function (p) {
+        if (p.hidden) return; // only consider the panel currently meant to be visible
+        var panelHref = p.getAttribute('href');
+        if (panelHref && panelHref === editorialHref) {
+          p.hidden = true;
+        }
+      });
+    }
+
     function applyAudience(audience, animate) {
       var target = pickPanel(audience);
       if (!target) return;
@@ -331,12 +445,14 @@
         section.classList.add('is-leaving');
         setTimeout(function () {
           showOnly(target);
+          applyCollisionGuard();
           window.requestAnimationFrame(function () {
             section.classList.remove('is-leaving');
           });
         }, TRANSITION_MS);
       } else {
         showOnly(target);
+        applyCollisionGuard();
       }
     }
 

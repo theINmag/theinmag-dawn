@@ -34,6 +34,11 @@
   assign last_reviewed = section.settings.last_reviewed | default: '9 May 2026'
   assign last_reviewed_label = section.settings.last_reviewed_label | default: 'Last reviewed'
 
+  assign show_columns = section.settings.show_columns
+  if section.settings.show_columns == nil
+    assign show_columns = true
+  endif
+
   assign section_style = '--legal-support-pt: ' | append: section.settings.padding_top | append: 'px; --legal-support-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
 
@@ -45,42 +50,44 @@
 >
   <div class="theinmag-legal-footer-support__inner">
 
-    <ul class="theinmag-legal-footer-support__columns" role="list">
+    {%- if show_columns -%}
+      <ul class="theinmag-legal-footer-support__columns" role="list">
 
-      <li class="theinmag-legal-footer-support__column">
-        <h2 class="theinmag-legal-footer-support__heading">{{ col1_heading }}</h2>
-        {%- if col1_body != blank -%}
-          <div class="theinmag-legal-footer-support__body">{{ col1_body }}</div>
-        {%- endif -%}
-        {%- if col1_email != blank -%}
-          <a class="theinmag-legal-footer-support__email" href="mailto:{{ col1_email }}">{{ col1_email }}</a>
-        {%- endif -%}
-      </li>
+        <li class="theinmag-legal-footer-support__column">
+          <h2 class="theinmag-legal-footer-support__heading">{{ col1_heading }}</h2>
+          {%- if col1_body != blank -%}
+            <div class="theinmag-legal-footer-support__body">{{ col1_body }}</div>
+          {%- endif -%}
+          {%- if col1_email != blank -%}
+            <a class="theinmag-legal-footer-support__email" href="mailto:{{ col1_email }}">{{ col1_email }}</a>
+          {%- endif -%}
+        </li>
 
-      <li class="theinmag-legal-footer-support__column">
-        <h2 class="theinmag-legal-footer-support__heading">{{ col2_heading }}</h2>
-        {%- if col2_body != blank -%}
-          <div class="theinmag-legal-footer-support__body">{{ col2_body }}</div>
-        {%- endif -%}
-        {%- if col2_email != blank -%}
-          <a class="theinmag-legal-footer-support__email" href="mailto:{{ col2_email }}">{{ col2_email }}</a>
-        {%- endif -%}
-      </li>
+        <li class="theinmag-legal-footer-support__column">
+          <h2 class="theinmag-legal-footer-support__heading">{{ col2_heading }}</h2>
+          {%- if col2_body != blank -%}
+            <div class="theinmag-legal-footer-support__body">{{ col2_body }}</div>
+          {%- endif -%}
+          {%- if col2_email != blank -%}
+            <a class="theinmag-legal-footer-support__email" href="mailto:{{ col2_email }}">{{ col2_email }}</a>
+          {%- endif -%}
+        </li>
 
-      <li class="theinmag-legal-footer-support__column">
-        <h2 class="theinmag-legal-footer-support__heading">{{ col3_heading }}</h2>
-        {%- if col3_body != blank -%}
-          <div class="theinmag-legal-footer-support__body">{{ col3_body }}</div>
-        {%- endif -%}
-        {%- if col3_email != blank -%}
-          <a class="theinmag-legal-footer-support__email" href="mailto:{{ col3_email }}">{{ col3_email }}</a>
-        {%- endif -%}
-      </li>
+        <li class="theinmag-legal-footer-support__column">
+          <h2 class="theinmag-legal-footer-support__heading">{{ col3_heading }}</h2>
+          {%- if col3_body != blank -%}
+            <div class="theinmag-legal-footer-support__body">{{ col3_body }}</div>
+          {%- endif -%}
+          {%- if col3_email != blank -%}
+            <a class="theinmag-legal-footer-support__email" href="mailto:{{ col3_email }}">{{ col3_email }}</a>
+          {%- endif -%}
+        </li>
 
-    </ul>
+      </ul>
+    {%- endif -%}
 
     {%- if last_reviewed != blank -%}
-      <p class="theinmag-legal-footer-support__date">
+      <p class="theinmag-legal-footer-support__date{% unless show_columns %} theinmag-legal-footer-support__date--standalone{% endunless %}">
         <em>{{ last_reviewed_label }}: <time datetime="{{ last_reviewed | date: '%Y-%m-%d' }}">{{ last_reviewed }}</time></em>
       </p>
     {%- endif -%}
@@ -218,6 +225,15 @@
   .theinmag-legal-footer-support__date em {
     font-style: italic;
   }
+
+  /* Standalone mode: when the three columns are hidden, the date line
+     becomes the only content, so drop the separator border + extra
+     top margin and let it sit centred in the lavender wash. */
+  .theinmag-legal-footer-support__date--standalone {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
 {%- endstylesheet -%}
 
 {% schema %}
@@ -226,6 +242,13 @@
   "tag": "section",
   "class": "theinmag-legal-footer-support-section",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_columns",
+      "label": "Show the three support columns",
+      "info": "Turn off to show only the Last reviewed line.",
+      "default": true
+    },
     {
       "type": "header",
       "content": "Column 1 - questions"
