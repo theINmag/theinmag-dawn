@@ -10,7 +10,16 @@ on:
     # sync (06:00 AEST) and before Ryan's morning. Runs on the 1st of
     # every month.
     - cron: '0 9 1 * *'
+  # workflow_dispatch is the "Run workflow" UI button. It's currently
+  # bugged on this repo (returns HTTP 500 from GitHub's dispatcher;
+  # other repos work fine). Kept here in case GitHub fixes it.
   workflow_dispatch:
+  # repository_dispatch is the working manual trigger. Run it from the
+  # stockists-sync repo with `npm run audit-now` (or curl directly:
+  # POST /repos/theINmag/theinmag-dawn/dispatches with body
+  # {"event_type":"link-audit"}).
+  repository_dispatch:
+    types: [link-audit]
 
 permissions:
   issues: write
