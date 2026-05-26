@@ -1,0 +1,99 @@
+{%- comment -%}
+  theinmag-cart-bundle-ladder.liquid
+
+  Slim one-line bundle-discount hint above the items table on /cart.
+  Quiet, text-only - the line items + totals carry the visual weight.
+
+  Tiers mirror theinmag-bundle-tier-strip:
+    3+ items -> 5% off
+    5+ items -> 10% off
+    8+ items -> 15% off
+
+  Subscribes to PUB_SUB_EVENTS.cartUpdate for live repaint on quantity
+  change. Hides on empty cart.
+{%- endcomment -%}
+
+{%- if cart != empty -%}
+  {%- liquid
+    assign count = cart.item_count
+    assign current_rate = 0
+    if count >= 8
+      assign current_rate = 15
+      assign next_label = 'Top tier - 15% off.'
+    elsif count >= 5
+      assign current_rate = 10
+      assign to_next = 8 | minus: count
+      assign next_label = 'Add ' | append: to_next | append: ' more for 15% off.'
+    elsif count >= 3
+      assign current_rate = 5
+      assign to_next = 5 | minus: count
+      assign next_label = 'Add ' | append: to_next | append: ' more for 10% off.'
+    else
+      assign to_next = 3 | minus: count
+      assign next_label = 'Add ' | append: to_next | append: ' more for 5% off.'
+    endif
+  -%}
+  <aside class="theinmag-cart-ladder" data-theinmag-cart-ladder data-cart-ladder-rate="{{ current_rate }}" aria-label="Bundle discount tiers">
+    <span class="theinmag-cart-ladder__intro">Bundle to save:</span>
+    <ol class="theinmag-cart-ladder__tiers" role="list">
+      <li class="theinmag-cart-ladder__tier{% if current_rate >= 5 %} is-active{% endif %}" data-cart-ladder-tier="5">3+ items = 5% off</li>
+      <li class="theinmag-cart-ladder__tier{% if current_rate >= 10 %} is-active{% endif %}" data-cart-ladder-tier="10">5+ items = 10% off</li>
+      <li class="theinmag-cart-ladder__tier{% if current_rate >= 15 %} is-active{% endif %}" data-cart-ladder-tier="15">8+ items = 15% off</li>
+    </ol>
+    <span class="theinmag-cart-ladder__next" data-cart-ladder-next>{{ next_label }}</span>
+  </aside>
+
+  <script>
+    (function () {
+      if (window.__theinmagCartLadderInit) return;
+      window.__theinmagCartLadderInit = true;
+
+      function nextLabel(count) {
+        if (count >= 8) return 'Top tier - 15% off.';
+        if (count >= 5) return 'Add ' + (8 - count) + ' more for 15% off.';
+        if (count >= 3) return 'Add ' + (5 - count) + ' more for 10% off.';
+        return 'Add ' + (3 - count) + ' more for 5% off.';
+      }
+
+      function currentRate(count) {
+        if (count >= 8) return 15;
+        if (count >= 5) return 10;
+        if (count >= 3) return 5;
+        return 0;
+      }
+
+      function render(cartData) {
+        var ladders = document.querySelectorAll('[data-theinmag-cart-ladder]');
+        if (!ladders.length) return;
+        var count = (cartData && typeof cartData.item_count === 'number') ? cartData.item_count : 0;
+        var rate = currentRate(count);
+        Array.prototype.forEach.call(ladders, function (el) {
+          el.dataset.cartLadderRate = String(rate);
+          var nextEl = el.querySelector('[data-cart-ladder-next]');
+          if (nextEl) nextEl.textContent = nextLabel(count);
+          var tiers = el.querySelectorAll('[data-cart-ladder-tier]');
+          Array.prototype.forEach.call(tiers, function (t) {
+            var threshold = parseInt(t.dataset.cartLadderTier, 10) || 0;
+            t.classList.toggle('is-active', rate >= threshold);
+          });
+        });
+      }
+
+      function init() {
+        if (typeof subscribe !== 'function' || typeof PUB_SUB_EVENTS === 'undefined') return;
+        subscribe(PUB_SUB_EVENTS.cartUpdate, function (event) {
+          if (!event || !event.cartData) return;
+          render(event.cartData);
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+{%- endif -%}
+
+{%- comment -%} CSS lives in assets/theinmag-cart.css. {%- endcomment -%}

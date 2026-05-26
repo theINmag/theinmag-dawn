@@ -43,6 +43,8 @@
       </a>
     </div>
 
+    {% render 'theinmag-cart-bundle-ladder' %}
+
     <div class="cart__warnings">
       <div class="theinmag-empty-cart theinmag-empty-cart--page">
         <span
@@ -93,6 +95,48 @@
 
               <tbody>
                 {%- for item in cart.items -%}
+                  {%- liquid
+                    # Image swap: if the variant is Digital and the
+                    # product carries a digital cover in metafields,
+                    # render that instead of the variant/product image
+                    # (which is usually the print cover). Per-mag digital
+                    # cover lives in product.metafields.single_mag.digital_media_images
+                    # as a list.file_reference. Pattern (forloop.first)
+                    # mirrors theinmag-issue-strip-tile / bundle-tile so
+                    # we hit the same code path that's known to render.
+                    assign is_digital_variant = false
+                    for opt in item.options_with_values
+                      if opt.name == 'Format' and opt.value == 'Digital'
+                        assign is_digital_variant = true
+                      endif
+                    endfor
+
+                    assign display_image = item.image
+                    assign display_alt = item.image.alt
+
+                    if is_digital_variant
+                      assign digital_imgs = item.product.metafields.single_mag.digital_media_images.value
+                      if digital_imgs != blank
+                        for img in digital_imgs
+                          if forloop.first and img != blank
+                            assign display_image = img
+                            assign display_alt = item.product.title | append: ' (Digital edition)'
+                          endif
+                        endfor
+                      endif
+                    endif
+
+                    # file_reference objects don't always expose
+                    # .aspect_ratio directly - fall back through
+                    # preview_image, then default to portrait 3:4.
+                    assign display_aspect = display_image.aspect_ratio
+                    if display_aspect == blank or display_aspect == 0
+                      assign display_aspect = display_image.preview_image.aspect_ratio
+                    endif
+                    if display_aspect == blank or display_aspect == 0
+                      assign display_aspect = 0.75
+                    endif
+                  -%}
                   <tr
                     class="cart-item {% if item.parent_relationship.parent != null %}cart-item__nested-line{% endif %}"
                     id="CartItem-{{ item.index | plus: 1 }}"
@@ -101,17 +145,17 @@
                     {% endif %}
                   >
                     <td class="cart-item__media">
-                      {% if item.image %}
+                      {% if display_image %}
                         {% comment %} Leave empty space due to a:empty CSS display: none rule {% endcomment %}
                         <a href="{{ item.url }}" class="cart-item__link" aria-hidden="true" tabindex="-1"> </a>
                         <div class="cart-item__image-container gradient {% if item.parent_relationship.parent == null %}global-media-settings{% endif %}">
                           <img
-                            src="{{ item.image | image_url: width: 300 }}"
+                            src="{{ display_image | image_url: width: 300 }}"
                             class="cart-item__image {% if item.parent_relationship.parent != null %}global-media-settings{% endif %}"
-                            alt="{{ item.image.alt | escape }}"
+                            alt="{{ display_alt | escape }}"
                             loading="lazy"
                             width="150"
-                            height="{{ 150 | divided_by: item.image.aspect_ratio | ceil }}"
+                            height="{{ 150 | divided_by: display_aspect | ceil }}"
                           >
                         </div>
                       {% endif %}
@@ -123,6 +167,8 @@
                       {%- endif -%}
 
                       <a href="{{ item.url }}" class="cart-item__name h4 break">{{ item.product.title | replace: 'theINmag - ', '' | escape }}</a>
+
+                      {% render 'theinmag-cart-presale-badge', item: item %}
 
                       {%- if item.original_price != item.final_price -%}
                         <div class="cart-item__discounted-prices">
@@ -152,9 +198,15 @@
                         <dl>
                           {%- if item.product.has_only_default_variant == false -%}
                             {%- for option in item.options_with_values -%}
-                              <div class="product-option">
+                              <div class="product-option product-option--{{ option.name | handleize }}">
                                 <dt>{{ option.name }}:</dt>
-                                <dd>{{ option.value }}</dd>
+                                <dd>
+                                  {%- if option.name == 'Format' -%}
+                                    <strong>{{ option.value }}</strong>
+                                  {%- else -%}
+                                    {{ option.value }}
+                                  {%- endif -%}
+                                </dd>
                               </div>
                             {%- endfor -%}
                           {%- endif -%}

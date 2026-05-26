@@ -174,9 +174,13 @@ cart-drawer.is-empty .drawer__footer {
 }
 .theinmag-cart-trust__icon {
   flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  color: var(--color-sage-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  font-size: 18px;
+  line-height: 1;
+  /* Emoji glyphs are intrinsically coloured - no stroke override. */
 }
 
 /* /cart surface: full-width banner across the top, 5 columns on
@@ -226,14 +230,25 @@ cart-drawer.is-empty .drawer__footer {
    gift card (digital-only carts: cross-sell + order summary), three
    when the gift card is present (cross-sell | gift | order summary). */
 @media (min-width: 750px) {
+  /* Always 3-col grid - anchoring each child to a specific column
+     keeps the right-side order summary in place even when the centre
+     gift cell is empty (digital-only carts). The old 2-col fallback
+     visually "moved" the checkout button on digital orders, which
+     Ryan flagged as disorienting. */
   #main-cart-footer:not(.is-empty) .cart__footer {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 4rem;
     align-items: start;
   }
-  #main-cart-footer:not(.is-empty) .cart__footer.theinmag-cart-footer--gift {
-    grid-template-columns: 1fr 1fr 1fr;
+  #main-cart-footer:not(.is-empty) .cart__footer .theinmag-main-cart__between-wrap {
+    grid-column: 1;
+  }
+  #main-cart-footer:not(.is-empty) .cart__footer .theinmag-gift-note {
+    grid-column: 2;
+  }
+  #main-cart-footer:not(.is-empty) .cart__footer .cart__blocks {
+    grid-column: 3;
   }
   #main-cart-footer:not(.is-empty) .cart__footer > * {
     width: auto;
@@ -908,4 +923,157 @@ cart-drawer.is-empty .drawer__footer {
   .theinmag-school-cta { transition: none; }
   .theinmag-school-cta:hover,
   .theinmag-school-cta:focus-visible { transform: none; }
+}
+
+/* ---------------------------------------------------------------
+   Bundle-discount ladder (slim variant)
+   Single-line hint above the items table on /cart. Quiet by design -
+   the items + totals carry the visual weight, this is just an
+   ambient nudge. Wraps gracefully on narrow viewports.
+   --------------------------------------------------------------- */
+.theinmag-cart-ladder {
+  margin: 0 0 18px;
+  padding: 6px 0 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: rgba(45, 31, 61, 0.7);
+  border-bottom: 1px solid rgba(45, 31, 61, 0.08);
+}
+.theinmag-cart-ladder__intro {
+  font-weight: 600;
+  color: var(--color-inky-purple-navy);
+}
+.theinmag-cart-ladder__tiers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+}
+.theinmag-cart-ladder__tier {
+  padding: 0;
+  font-size: 12.5px;
+  color: rgba(45, 31, 61, 0.65);
+}
+.theinmag-cart-ladder__tier:not(:last-child)::after {
+  content: '·';
+  margin-left: 8px;
+  opacity: 0.4;
+}
+.theinmag-cart-ladder__tier.is-active {
+  color: var(--color-sandy-orange-dark, #D9783A);
+  font-weight: 700;
+}
+.theinmag-cart-ladder__next {
+  margin-left: auto;
+  font-weight: 500;
+  color: var(--color-sandy-orange-dark, #D9783A);
+  font-size: 12.5px;
+}
+@media (max-width: 749px) {
+  /* Drop the "Bundle to save:" intro on mobile so the tiers + next
+     hint fit in two short lines instead of four. The tier list
+     itself communicates the framing. */
+  .theinmag-cart-ladder {
+    padding: 6px 0 8px;
+    font-size: 11.5px;
+    gap: 2px 8px;
+    column-gap: 8px;
+  }
+  .theinmag-cart-ladder__intro {
+    display: none;
+  }
+  .theinmag-cart-ladder__tiers {
+    gap: 0 6px;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .theinmag-cart-ladder__tier {
+    font-size: 11.5px;
+  }
+  .theinmag-cart-ladder__tier:not(:last-child)::after {
+    margin-left: 6px;
+  }
+  .theinmag-cart-ladder__next {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 2px;
+    font-size: 12px;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Pre-sale badge (inline under line-item title)
+   --------------------------------------------------------------- */
+.theinmag-cart-presale {
+  margin: 6px 0 4px;
+  padding: 6px 10px;
+  background: rgba(217, 120, 58, 0.10);
+  border-left: 3px solid var(--color-sandy-orange-dark, #D9783A);
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--color-inky-purple-navy);
+}
+.theinmag-cart-presale__icon {
+  flex: 0 0 auto;
+  font-size: 14px;
+  line-height: 1;
+  padding-top: 1px;
+}
+.theinmag-cart-presale__copy {
+  flex: 1 1 auto;
+}
+.theinmag-cart-presale strong {
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------
+   Bolded Format value (line item)
+   Target only the Format option so other option values stay regular.
+   --------------------------------------------------------------- */
+.product-option--format dd,
+.product-option--format dd strong {
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------
+   "You've saved" line (footer totals)
+   --------------------------------------------------------------- */
+.theinmag-cart-saved {
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  background: rgba(99, 145, 102, 0.10);
+  border-radius: var(--radius-sm, 8px);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--color-sage-dark, #4a7a4f);
+}
+.theinmag-cart-saved__icon {
+  font-size: 14px;
+  line-height: 1;
+}
+.theinmag-cart-saved__label {
+  flex: 1 1 auto;
+  font-weight: 500;
+}
+.theinmag-cart-saved__amount {
+  font-weight: 700;
+  font-size: 14px;
 }

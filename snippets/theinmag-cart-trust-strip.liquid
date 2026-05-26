@@ -2,16 +2,20 @@
   theinmag-cart-trust-strip.liquid
 
   Five locked brand truths in slim text-only form. Rendered between
-  line items and totals on both cart surfaces (drawer + /cart). No
-  images - the existing trust-overlay JPGs are sized for product hero
-  swaps, not slim cart bars.
+  line items and totals on both cart surfaces (drawer + /cart).
+
+  Icons are emojis (not SVGs) so each truth carries its own visual
+  cue rather than five identical ticks - cleaner on a cart page
+  that's already busy with line items. Picks chosen for unambiguous
+  cross-platform rendering and brand-fit:
+    🚫 ad-free      🎨 made by kids
+    🌱 sustainable  📖 pages of creativity   🗺️ real towns
 
   Copy is hardcoded so a single Liquid edit changes both surfaces;
   no schema settings (the 5 truths are brand-locked per spec 2.18).
 {%- endcomment -%}
 
 {%- liquid
-  assign tick = '<svg class="theinmag-cart-trust__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 10.5l3 3 7-7"/></svg>'
   assign surface_modifier = ''
   if surface == 'page'
     assign surface_modifier = ' theinmag-cart-trust--page'
@@ -20,23 +24,23 @@
 
 <ul class="theinmag-cart-trust{{ surface_modifier }}" role="list">
   <li class="theinmag-cart-trust__item">
-    {{ tick }}
+    <span class="theinmag-cart-trust__icon" aria-hidden="true">🚫</span>
     <span>100% ad-free</span>
   </li>
   <li class="theinmag-cart-trust__item">
-    {{ tick }}
+    <span class="theinmag-cart-trust__icon" aria-hidden="true">🎨</span>
     <span>Made by Aussie kids, for Aussie kids</span>
   </li>
   <li class="theinmag-cart-trust__item">
-    {{ tick }}
+    <span class="theinmag-cart-trust__icon" aria-hidden="true">🌱</span>
     <span>Sustainably printed in Australia</span>
   </li>
   <li class="theinmag-cart-trust__item">
-    {{ tick }}
+    <span class="theinmag-cart-trust__icon" aria-hidden="true">📖</span>
     <span>120+ pages of pure creativity</span>
   </li>
   <li class="theinmag-cart-trust__item">
-    {{ tick }}
+    <span class="theinmag-cart-trust__icon" aria-hidden="true">🗺️</span>
     <span>Real kids. Real names. Real towns.</span>
   </li>
 </ul>

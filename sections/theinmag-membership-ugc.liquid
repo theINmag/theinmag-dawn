@@ -25,6 +25,23 @@
   <ol class="theinmag-ugc-strip" role="list" data-theinmag-ugc-strip aria-label="UGC gallery"></ol>
 
   {%- comment -%}
+    Desktop-only prev/next nav buttons. Tam was hunting for these on
+    desktop, where there's no swipe gesture. Hidden on mobile (<990px)
+    so the swipe gesture stays primary on touch. Wired to scrollBy
+    one tile-width via the inline script below.
+  {%- endcomment -%}
+  <button type="button" class="theinmag-ugc-nav theinmag-ugc-nav--prev" data-ugc-nav="prev" aria-label="Previous UGC image">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+  </button>
+  <button type="button" class="theinmag-ugc-nav theinmag-ugc-nav--next" data-ugc-nav="next" aria-label="Next UGC image">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9 18l6-6-6-6"/>
+    </svg>
+  </button>
+
+  {%- comment -%}
     Instagram pill floats bottom-left of the strip, links to the canonical
     Instagram handle (per reference_socials memory). Cream pill matching
     the hero widget's visual register.
@@ -149,10 +166,85 @@
     opacity: 0.7;
   }
 
+  /* Prev/next nav buttons - desktop only. The carousel swipes on
+     touch; on mouse + keyboard users need a visible affordance. */
+  .theinmag-ugc-nav {
+    display: none;
+  }
+  @media (min-width: 990px) {
+    .theinmag-ugc-nav {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 50%;
+      background: rgba(251, 246, 234, 0.95);
+      border: 1.5px solid var(--color-inky-purple-navy);
+      color: var(--color-inky-purple-navy);
+      box-shadow: 0 6px 20px rgba(42, 31, 61, 0.18);
+      cursor: pointer;
+      z-index: 6;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    .theinmag-ugc-nav:hover,
+    .theinmag-ugc-nav:focus-visible {
+      background: #ffffff;
+      transform: translateY(-50%) scale(1.06);
+    }
+    .theinmag-ugc-nav--prev { left: 20px; }
+    .theinmag-ugc-nav--next { right: 20px; }
+    .theinmag-ugc-nav svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .theinmag-ugc-cta:hover { translate: 0 0; }
+    .theinmag-ugc-nav { transition: none; }
+    .theinmag-ugc-nav:hover,
+    .theinmag-ugc-nav:focus-visible { transform: translateY(-50%); }
   }
 {% endstylesheet %}
+
+<script>
+  (function () {
+    if (window.__theinmagUgcNavInit) return;
+    window.__theinmagUgcNavInit = true;
+
+    function init() {
+      var sections = document.querySelectorAll('[data-theinmag-ugc]');
+      Array.prototype.forEach.call(sections, function (section) {
+        var strip = section.querySelector('[data-theinmag-ugc-strip]');
+        var prev = section.querySelector('[data-ugc-nav="prev"]');
+        var next = section.querySelector('[data-ugc-nav="next"]');
+        if (!strip) return;
+
+        function step(dir) {
+          var firstItem = strip.querySelector('.theinmag-ugc-strip__item');
+          /* gap is 12px per the stylesheet; add it to the tile width
+             so each click advances one full tile + the cream gutter. */
+          var w = firstItem ? firstItem.offsetWidth + 12 : 320;
+          strip.scrollBy({ left: dir * w, behavior: 'smooth' });
+        }
+
+        if (prev) prev.addEventListener('click', function () { step(-1); });
+        if (next) next.addEventListener('click', function () { step(1); });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
 
 {% schema %}
 {

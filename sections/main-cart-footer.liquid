@@ -18,13 +18,43 @@
   }
 {%- endstyle -%}
 
+{%- comment -%}
+  has_physical_item is the load-bearing flag for the gift section
+  + the "--gift" footer modifier. It can't lean on cart.requires_shipping
+  alone because mixed Print/Digital products in Shopify auto-tick
+  "This is a physical product" on every variant (the digital-variant-
+  marked-physical regression Ryan keeps un-ticking in admin), so a
+  digital-only cart can falsely report requires_shipping = true.
+
+  Belt-and-braces: trust the variant flag first, then fall back to
+  the Format option value (Print -> physical). Either signal wins.
+{%- endcomment -%}
+{%- liquid
+  assign has_physical_item = false
+  for it in cart.items
+    if it.requires_shipping
+      assign has_physical_item = true
+      break
+    endif
+    for opt in it.options_with_values
+      if opt.name == 'Format' and opt.value == 'Print'
+        assign has_physical_item = true
+        break
+      endif
+    endfor
+    if has_physical_item
+      break
+    endif
+  endfor
+-%}
+
 <div
   class="gradient color-{{ section.settings.color_scheme }}{% if cart == empty %} is-empty{% endif %}"
   id="main-cart-footer"
   data-id="{{ section.id }}"
 >
   <div class="page-width">
-    <div class="cart__footer isolate section-{{ section.id }}-padding{% if cart.requires_shipping %} theinmag-cart-footer--gift{% endif %}">
+    <div class="cart__footer isolate section-{{ section.id }}-padding{% if has_physical_item %} theinmag-cart-footer--gift{% endif %}">
       <div class="theinmag-main-cart__between-wrap">
         {% render 'theinmag-cart-crosssell' %}
       </div>
@@ -47,7 +77,7 @@
         textarea gated by settings.show_cart_note so the reminder still
         shows even if the note feature is off.
       {%- endcomment -%}
-      {%- if cart.requires_shipping -%}
+      {%- if has_physical_item -%}
         <cart-note class="theinmag-cart-note theinmag-gift-note">
           <p class="theinmag-gift-note__heading">
             <span class="theinmag-gift-note__icon" aria-hidden="true">🎁</span>
@@ -95,6 +125,21 @@
                     </ul>
                   {%- endif -%}
                 </div>
+
+                {%- liquid
+                  # Aggregate savings: sum of line-level + cart-level
+                  # discount allocations, expressed as original minus
+                  # final. Covers both bundle line-discounts and any
+                  # cart-level promo codes.
+                  assign saved_cents = cart.original_total_price | minus: cart.total_price
+                -%}
+                {%- if saved_cents > 0 -%}
+                  <p class="theinmag-cart-saved" data-theinmag-cart-saved>
+                    <span class="theinmag-cart-saved__icon" aria-hidden="true">🎉</span>
+                    <span class="theinmag-cart-saved__label">You've saved</span>
+                    <strong class="theinmag-cart-saved__amount">{{ saved_cents | money }}</strong>
+                  </p>
+                {%- endif -%}
 
                 <div class="totals">
                   <h2 class="totals__total">{{ 'sections.cart.estimated_total' | t }}</h2>

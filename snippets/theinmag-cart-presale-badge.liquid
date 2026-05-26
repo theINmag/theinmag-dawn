@@ -1,0 +1,67 @@
+{%- comment -%}
+  theinmag-cart-presale-badge.liquid
+
+  Inline "Pre-sale - ships on release day" note under the line-item
+  title for any magazine product whose issue number is ahead of
+  shop.metafields.theinmag.current_issue_number.
+
+  Detection rule:
+    - Product handle matches the "mag" + digits pattern (mag01 - mag99)
+    - Trailing-digit value > the digits in current_issue_number ("Mag09")
+    - Anything ahead is pre-sale
+
+  Release-day date prefers shop.metafields.theinmag.next_release_date
+  (YYYY-MM-DD), falls back to "release day".
+
+  Required render arg:
+    item: a cart.items entry
+
+  Skips silently for non-mag products (membership, snack pack, digital
+  stack, etc.) and for current-issue mags that ship now.
+{%- endcomment -%}
+
+{%- liquid
+  assign handle = item.product.handle | downcase
+
+  # Only consider products with handle pattern: mag + 1-3 digits
+  assign is_mag = false
+  assign digit_str = ''
+  if handle contains 'mag'
+    assign rest = handle | remove: 'mag' | strip
+    assign rest_size = rest | size
+    if rest_size > 0 and rest_size < 4
+      assign digit_str = rest
+      assign is_mag = true
+    endif
+  endif
+
+  assign is_presale = false
+  assign next_release_formatted = ''
+  if is_mag
+    assign item_num = digit_str | times: 1
+    assign ci_raw = shop.metafields.theinmag.current_issue_number.value | default: 'Mag00'
+    assign ci_num = ci_raw | remove: 'Mag' | remove: 'mag' | times: 1
+    if item_num > ci_num
+      assign is_presale = true
+    endif
+
+    assign next_release = shop.metafields.theinmag.next_release_date.value
+    if next_release != blank
+      assign next_release_formatted = next_release | date: '%-d %B'
+    endif
+  endif
+-%}
+
+{%- if is_presale -%}
+  <p class="theinmag-cart-presale" role="note">
+    <span class="theinmag-cart-presale__icon" aria-hidden="true">📅</span>
+    <span class="theinmag-cart-presale__copy">
+      <strong>Pre-sale.</strong>
+      {%- if next_release_formatted != blank -%}
+        Ships on <strong>{{ next_release_formatted }}</strong>, not with your other items.
+      {%- else -%}
+        Ships on release day, not with your other items.
+      {%- endif -%}
+    </span>
+  </p>
+{%- endif -%}

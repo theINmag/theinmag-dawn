@@ -115,6 +115,25 @@
       Inside <span data-issue-label>{{ product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', '' }}</span>
     </span>
 
+    {%- comment -%}
+      Desktop-only prev/next arrows. Marquee auto-scrolls, so the
+      buttons pause the loop (via the inline-script `pause()` hook
+      stashed on the active rail element), scrollBy ~60% of the
+      viewport, then scheduleResume so the marquee picks up again
+      after a beat. Single pair targets the currently-visible
+      gallery's rail; hidden galleries are unreachable from these.
+    {%- endcomment -%}
+    <button type="button" class="theinmag-single-mags-inside__nav theinmag-single-mags-inside__nav--prev" data-inside-nav="prev" aria-label="Previous inside page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <button type="button" class="theinmag-single-mags-inside__nav theinmag-single-mags-inside__nav--next" data-inside-nav="next" aria-label="Next inside page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+
     <div class="theinmag-single-mags-inside__galleries" data-galleries>
       {%- for issue in sorted_issues -%}
         {%- liquid
@@ -266,6 +285,12 @@
         }, resumeDelay);
       }
 
+      // Expose pause/resume on the rail element so the global
+      // prev/next nav buttons (rendered once per rail-wrap, not
+      // per gallery) can drive the marquee on the active rail.
+      rail.theinmagPause = pause;
+      rail.theinmagResume = scheduleResume;
+
       // Pause on cursor over the rail. Resume when the cursor leaves.
       rail.addEventListener('mouseenter', pause);
       rail.addEventListener('mouseleave', scheduleResume);
@@ -325,6 +350,31 @@
         window.requestAnimationFrame(step);
       }
     });
+
+    /* Desktop prev/next nav buttons. One pair lives in the rail-wrap;
+       on click we find the visible gallery's rail, drive scrollBy a
+       fraction of the viewport, and use the rail's own pause/resume
+       hooks so the marquee yields gracefully. Buttons are CSS-hidden
+       on mobile - touch users get the swipe gesture. */
+    const prevBtn = root.querySelector('[data-inside-nav="prev"]');
+    const nextBtn = root.querySelector('[data-inside-nav="next"]');
+
+    function activeRail() {
+      const visibleGallery = root.querySelector('[data-gallery]:not([hidden])');
+      return visibleGallery ? visibleGallery.querySelector('[data-rail]') : null;
+    }
+
+    function navStep(dir) {
+      const rail = activeRail();
+      if (!rail) return;
+      const stepPx = Math.max(280, rail.clientWidth * 0.6);
+      if (typeof rail.theinmagPause === 'function') rail.theinmagPause();
+      rail.scrollBy({ left: dir * stepPx, behavior: 'smooth' });
+      if (typeof rail.theinmagResume === 'function') rail.theinmagResume();
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function () { navStep(-1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { navStep(1); });
   })();
 </script>
 
@@ -439,6 +489,53 @@
   @media (max-width: 749px) {
     .theinmag-single-mags-inside__pill {
       padding: 8px 14px;
+    }
+  }
+
+  /* Prev/next nav buttons - desktop only. The marquee auto-scrolls
+     and accepts touch swipe + drag on its own; the buttons are an
+     extra affordance for mouse + keyboard users. Pinned to the
+     rail-wrap edges, vertically centred over the gallery height. */
+  .theinmag-single-mags-inside__nav {
+    display: none;
+  }
+  @media (min-width: 990px) {
+    .theinmag-single-mags-inside__nav {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 50%;
+      background: rgba(251, 246, 234, 0.95);
+      border: 1.5px solid var(--color-inky-purple-navy);
+      color: var(--color-inky-purple-navy);
+      box-shadow: 0 6px 20px rgba(42, 31, 61, 0.18);
+      cursor: pointer;
+      z-index: 6;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    .theinmag-single-mags-inside__nav:hover,
+    .theinmag-single-mags-inside__nav:focus-visible {
+      background: #ffffff;
+      transform: translateY(-50%) scale(1.06);
+    }
+    .theinmag-single-mags-inside__nav--prev { left: 20px; }
+    .theinmag-single-mags-inside__nav--next { right: 20px; }
+    .theinmag-single-mags-inside__nav svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-single-mags-inside__nav { transition: none; }
+    .theinmag-single-mags-inside__nav:hover,
+    .theinmag-single-mags-inside__nav:focus-visible {
+      transform: translateY(-50%);
     }
   }
 {% endstylesheet %}
