@@ -216,7 +216,7 @@
     flex-wrap: wrap;
     gap: 8px;
     /* Headroom for the "Best value" chip on the 8-Issue pill. */
-    margin-top: 6px;
+    margin-top: 14px;
   }
   .theinmag-membership-popup__pill {
     position: relative;
@@ -245,8 +245,10 @@
   }
   .theinmag-membership-popup__pill-chip {
     position: absolute;
-    top: -8px;
-    right: 8px;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
     background: var(--color-yellow);
     color: var(--color-inky-purple-navy);
     font-weight: 700;
@@ -255,6 +257,7 @@
     text-transform: uppercase;
     padding: 2px 7px;
     border-radius: 9999px;
+    white-space: nowrap;
     pointer-events: none;
   }
   .theinmag-membership-popup__starting {
