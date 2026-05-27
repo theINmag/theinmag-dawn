@@ -13,8 +13,7 @@
 (function () {
   'use strict';
 
-  // KEEP TRUE UNTIL LAUNCH DAY. Flipping enables real Klaviyo writes.
-  const TEST_MODE = true;
+  const TEST_MODE = false;
 
   const KLAVIYO_ENDPOINT = 'https://a.klaviyo.com/client/subscriptions';
   const KLAVIYO_REVISION = '2026-04-15';

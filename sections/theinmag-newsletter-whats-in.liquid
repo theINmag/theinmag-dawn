@@ -1,0 +1,277 @@
+{%- comment -%}
+  theinmag-newsletter-whats-in
+  Second section of /pages/newsletter. Cream pair, type-led "What lands
+  IN your inbox?" trio. Three numbered cards (Post Regular stamp +
+  label + body) on a cream surface. AEO heading in question form,
+  FAQPage-friendly answer body. Kid character peeks from the bottom
+  gutter as a closer accent.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign intro = section.settings.intro
+
+  capture in_span
+    echo '<span class="theinmag-in">IN</span>'
+  endcapture
+  assign heading_html = heading | replace: 'IN', in_span
+
+  assign section_style = '--nlw-pt: ' | append: section.settings.padding_top | append: 'px; --nlw-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+<section
+  class="theinmag-newsletter-whats-in"
+  aria-labelledby="theinmag-newsletter-whats-in-heading"
+  style="{{ section_style }}"
+>
+  {% render 'theinmag-section-bg', opacity: 0.35 %}
+
+  <div class="theinmag-newsletter-whats-in__inner">
+    <header class="theinmag-newsletter-whats-in__header">
+      {%- if heading != blank -%}
+        <h2 id="theinmag-newsletter-whats-in-heading" class="theinmag-newsletter-whats-in__heading">
+          {{ heading_html }}
+        </h2>
+      {%- endif -%}
+
+      {%- if intro != blank -%}
+        <p class="theinmag-newsletter-whats-in__intro">{{ intro }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- if section.blocks.size > 0 -%}
+      <ol class="theinmag-newsletter-whats-in__grid">
+        {%- for block in section.blocks -%}
+          {%- assign idx = forloop.index -%}
+          {%- assign idx_padded = idx | prepend: '0' | slice: -2, 2 -%}
+          <li class="theinmag-newsletter-whats-in__card" {{ block.shopify_attributes }}>
+            <span class="theinmag-newsletter-whats-in__number" aria-hidden="true">{{ idx_padded }}</span>
+            {%- if block.settings.label != blank -%}
+              <h3 class="theinmag-newsletter-whats-in__label">{{ block.settings.label }}</h3>
+            {%- endif -%}
+            {%- if block.settings.body != blank -%}
+              <p class="theinmag-newsletter-whats-in__body">{{ block.settings.body }}</p>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ol>
+    {%- endif -%}
+
+    <div class="theinmag-newsletter-whats-in__closer">
+      <span
+        class="theinmag-newsletter-whats-in__character"
+        data-theinmag-pool-character
+        aria-hidden="true"
+      ></span>
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-newsletter-whats-in
+     Cream surface. Question-form H2 (AEO). Three type-led numbered
+     cards. Kid character pool slot at the bottom-right as a closer.
+     ================================================================ */
+
+  .theinmag-newsletter-whats-in {
+    background-color: var(--color-cream, #FBF5EC);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: var(--nlw-pt, 72px) clamp(20px, 4vw, 32px) var(--nlw-pb, 96px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theinmag-newsletter-whats-in__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .theinmag-newsletter-whats-in__header {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto clamp(36px, 4.4vw, 56px);
+  }
+
+  .theinmag-newsletter-whats-in__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(30px, 4.6vw, 44px);
+    line-height: 1.1;
+    margin: 0 0 clamp(10px, 1.4vw, 16px);
+    color: var(--color-purple-dark, #5D3A7A);
+    text-wrap: balance;
+  }
+
+  .theinmag-newsletter-whats-in__intro {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.5;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.85;
+  }
+
+  .theinmag-newsletter-whats-in__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 2vw, 24px);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-newsletter-whats-in__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .theinmag-newsletter-whats-in__card {
+    background: #FFFFFF;
+    border-radius: var(--radius-lg, 20px);
+    padding: clamp(22px, 2.6vw, 32px);
+    box-shadow:
+      0 8px 24px rgba(42, 31, 61, 0.07),
+      0 2px 6px rgba(42, 31, 61, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+  }
+
+  .theinmag-newsletter-whats-in__number {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(38px, 4.6vw, 52px);
+    line-height: 0.9;
+    color: var(--color-purple-dark, #5D3A7A);
+    margin-bottom: 4px;
+    display: inline-block;
+  }
+
+  .theinmag-newsletter-whats-in__label {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1.15;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-newsletter-whats-in__body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.85;
+  }
+
+  .theinmag-newsletter-whats-in__closer {
+    position: relative;
+    height: 0;
+  }
+
+  .theinmag-newsletter-whats-in__character {
+    position: absolute;
+    right: clamp(-8px, 1vw, 16px);
+    top: clamp(-8px, -0.5vw, 8px);
+    width: clamp(110px, 14vw, 160px);
+    display: block;
+  }
+
+  @media (max-width: 749px) {
+    .theinmag-newsletter-whats-in__character {
+      right: 0;
+      top: 8px;
+      width: 100px;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Newsletter what's IN it",
+  "tag": "section",
+  "class": "theinmag-newsletter-whats-in-section",
+  "max_blocks": 4,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading (question form for AEO)",
+      "default": "What lands IN your inbox?"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "Short, useful, never spammy. Here's exactly what to expect once you're on the list."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 72
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Card",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Free e-mag, instantly"
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Body",
+          "default": "Grab a sample issue the moment you join. Beautiful on a tablet, printable at home."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Newsletter what's IN it",
+      "blocks": [
+        { "type": "card", "settings": { "label": "Free e-mag, instantly", "body": "Grab a sample issue the moment you join. Beautiful on a tablet, printable at home." } },
+        { "type": "card", "settings": { "label": "One short note a month", "body": "New issue news, free creative ideas, behind-the-scenes peeks. That's it." } },
+        { "type": "card", "settings": { "label": "Real kid creations", "body": "See stories, drawings, jokes and photography sent IN by kids around Australia." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

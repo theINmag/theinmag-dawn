@@ -1,0 +1,36 @@
+{
+  "sections": {
+    "hero": {
+      "type": "theinmag-newsletter-page",
+      "settings": {
+        "heading": "Get the FREE e-mag",
+        "subhead": "Plus a monthly hit of kid creativity,\nstraight to your INbox.",
+        "button_text": "Send IN my e-mag",
+        "trust_microcopy": "Unsubscribe anytime",
+        "success_heading": "You're IN!",
+        "success_body": "Your e-mag is on its way. Get cosy and have a flick through.",
+        "padding_top": 72,
+        "padding_bottom": 96
+      }
+    },
+    "press": {
+      "type": "theinmag-press-band",
+      "blocks": {
+        "press-1": { "type": "press_logo", "settings": { "fallback_filename": "press-1.png", "alt": "Press mention" } },
+        "press-2": { "type": "press_logo", "settings": { "fallback_filename": "press-2.png", "alt": "Press mention" } },
+        "press-3": { "type": "press_logo", "settings": { "fallback_filename": "press-3.png", "alt": "Press mention" } },
+        "press-4": { "type": "press_logo", "settings": { "fallback_filename": "press-4.png", "alt": "Press mention" } },
+        "press-5": { "type": "press_logo", "settings": { "fallback_filename": "press-5.png", "alt": "Press mention", "size": "large" } },
+        "press-6": { "type": "press_logo", "settings": { "fallback_filename": "press-6.png", "alt": "Press mention" } }
+      },
+      "block_order": ["press-1", "press-2", "press-3", "press-4", "press-5", "press-6"],
+      "settings": {
+        "heading": "Seen IN"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "press"
+  ]
+}
