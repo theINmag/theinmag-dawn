@@ -24,8 +24,43 @@
       {%- endif -%}
     </span>
     <span class="theinmag-you-may-also-like__title">{{ card_label }}</span>
+    {%- liquid
+      # Bucket variants by format (Print / Digital) and track the cheapest of each,
+      # so the card shows honest, labelled prices instead of a misleading min-max range.
+      assign print_has = false
+      assign digital_has = false
+      assign print_count = 0
+      assign digital_count = 0
+      for v in product.variants
+        assign fmt = v.option1 | downcase
+        if fmt contains 'print'
+          assign print_count = print_count | plus: 1
+          if print_has == false
+            assign print_min = v.price
+            assign print_has = true
+          elsif v.price < print_min
+            assign print_min = v.price
+          endif
+        elsif fmt contains 'digital'
+          assign digital_count = digital_count | plus: 1
+          if digital_has == false
+            assign digital_min = v.price
+            assign digital_has = true
+          elsif v.price < digital_min
+            assign digital_min = v.price
+          endif
+        endif
+      endfor
+    -%}
     <span class="theinmag-you-may-also-like__price">
-      {%- if product.price_varies -%}{{ product.price_min | money }} - {{ product.price_max | money }}{%- else -%}{{ product.price | money }}{%- endif -%}
+      {%- if print_has and digital_has -%}
+        <span class="theinmag-you-may-also-like__price-line"><span class="theinmag-you-may-also-like__price-label">Print{% if print_count > 1 %} from{% endif %}</span> {{ print_min | money }}</span>
+        <span class="theinmag-you-may-also-like__price-line"><span class="theinmag-you-may-also-like__price-label">Digital{% if digital_count > 1 %} from{% endif %}</span> {{ digital_min | money }}</span>
+      {%- elsif product.price_varies -%}
+        <span class="theinmag-you-may-also-like__price-line">From {{ product.price_min | money }}</span>
+      {%- else -%}
+        <span class="theinmag-you-may-also-like__price-line">{{ product.price | money }}</span>
+      {%- endif -%}
     </span>
   </a>
 </li>

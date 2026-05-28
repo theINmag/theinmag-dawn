@@ -172,11 +172,23 @@
 
   .theinmag-you-may-also-like__price {
     font-family: var(--font-body);
-    font-weight: 500;
     font-size: 14px;
     color: rgba(42, 31, 61, 0.78);
     padding: 4px 16px 16px;
     margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .theinmag-you-may-also-like__price-line {
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .theinmag-you-may-also-like__price-label {
+    font-weight: 500;
+    color: rgba(42, 31, 61, 0.55);
   }
 {% endstylesheet %}
 
