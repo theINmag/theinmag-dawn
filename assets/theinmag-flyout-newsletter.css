@@ -408,6 +408,17 @@
     justify-content: flex-start;
   }
 
+  /* When the sitewide floating cart pill is visible (cart has items
+     AND the user hasn't dismissed it), lift the flyout above it so the
+     tab + expanded card don't sit on top of the cart total / View cart
+     button. Cart pill is ~44px tall + 16px bottom inset; 64px of lift
+     puts the tab clear above it. body.theinmag-fc-dismissed flips on
+     when the user taps the X on the cart pill - in that case the pill
+     is hidden, and the flyout returns to its original 16px bottom. */
+  body[data-theinmag-cart-count]:not([data-theinmag-cart-count="0"]):not(.theinmag-fc-dismissed) .theinmag-flyout {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
   .theinmag-flyout__card {
     width: 100%;
     max-width: 340px;

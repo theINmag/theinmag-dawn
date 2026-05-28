@@ -118,6 +118,15 @@
       return w >= 1200 ? 4 : w >= 768 ? 3 : w >= 480 ? 2 : 1;
     },
 
+    // Cover image width requested from Shopify CDN, sized to the column the
+    // card actually renders into. Single-column phones get 500 (≈1.4× retina
+    // at 360px display) instead of 800; saves ~40% of bytes on the slowest
+    // connections without visible softness on kid-art photography.
+    coverWidth: function () {
+      var n = this.colCount || this.computeColCount();
+      return n === 1 ? 500 : n === 4 ? 800 : 600;
+    },
+
     init: function (section, creations) {
       this.section = section;
       this.columns = section.querySelector('[data-theinmag-gallery-columns]');
@@ -332,7 +341,7 @@
 
     buildCard: function (c, index) {
       var fulls = (c.images || []).map(function (u) { return sized(u, 1400); });
-      var cover = (c.images && c.images.length) ? sized(c.images[0], 800) : '';
+      var cover = (c.images && c.images.length) ? sized(c.images[0], this.coverWidth()) : '';
       var attribution = this.attribution(c);
 
       var article = document.createElement('article');

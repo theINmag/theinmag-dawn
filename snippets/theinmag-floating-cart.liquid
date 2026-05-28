@@ -49,6 +49,17 @@
     </span>
     <span class="theinmag-floating-cart__view">View cart →</span>
   </a>
+  <button
+    type="button"
+    class="theinmag-floating-cart__close"
+    data-fc-close
+    aria-label="Hide cart bar - you can still open the cart from the header"
+  >
+    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12" aria-hidden="true">
+      <line x1="3" y1="3" x2="11" y2="11"></line>
+      <line x1="11" y1="3" x2="3" y2="11"></line>
+    </svg>
+  </button>
   <div class="theinmag-floating-cart__toast" data-fc-toast hidden role="status">
     <span class="theinmag-floating-cart__toast-check" aria-hidden="true">✓</span>
     <span data-fc-toast-text>Added to your cart</span>
@@ -67,7 +78,8 @@
     transition: opacity 0.25s ease, transform 0.3s ease;
     max-width: calc(100vw - 24px);
   }
-  .theinmag-floating-cart.is-empty {
+  .theinmag-floating-cart.is-empty,
+  .theinmag-floating-cart.is-dismissed {
     opacity: 0;
     pointer-events: none;
     transform: translateX(-50%) translateY(8px);
@@ -129,6 +141,45 @@
   .theinmag-floating-cart__pill:focus-visible .theinmag-floating-cart__view {
     background: var(--color-purple-dark);
     color: #fff;
+  }
+
+  /* Small dismiss button at the top-right corner of the pill. Ryan asked
+     for this so the bar can be hidden if it eats too much screen real
+     estate - the header cart icon stays available regardless. Dismissal
+     persists for the session (sessionStorage) and clears automatically
+     when a new item is added or the cart empties. */
+  .theinmag-floating-cart__close {
+    position: absolute;
+    top: -10px;
+    right: -8px;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: var(--color-inky-purple-navy);
+    color: #fff;
+    border: 2px solid rgba(251, 246, 234, 0.96);
+    border-radius: 999px;
+    cursor: pointer;
+    line-height: 1;
+    box-shadow: 0 4px 12px rgba(42, 31, 61, 0.25);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    z-index: 1;
+  }
+  .theinmag-floating-cart__close:hover,
+  .theinmag-floating-cart__close:focus-visible {
+    background: var(--color-purple-dark);
+    transform: scale(1.06);
+    outline: none;
+  }
+  .theinmag-floating-cart__close:focus-visible {
+    box-shadow: 0 0 0 3px rgba(123, 79, 158, 0.5), 0 4px 12px rgba(42, 31, 61, 0.25);
+  }
+  .theinmag-floating-cart.is-empty .theinmag-floating-cart__close,
+  .theinmag-floating-cart.is-dismissed .theinmag-floating-cart__close {
+    pointer-events: none;
   }
 
   /* Toast bubble sits ABOVE the pill on add. */
@@ -218,7 +269,22 @@
       var totalEl = pill.querySelector('[data-fc-total]');
       var toastEl = pill.querySelector('[data-fc-toast]');
       var toastText = pill.querySelector('[data-fc-toast-text]');
+      var closeBtn = pill.querySelector('[data-fc-close]');
       var toastTimer;
+      var DISMISS_KEY = 'tim-fc-dismissed';
+
+      function isDismissed() {
+        try { return sessionStorage.getItem(DISMISS_KEY) === '1'; }
+        catch (e) { return false; }
+      }
+      function setDismissed(flag) {
+        try {
+          if (flag) sessionStorage.setItem(DISMISS_KEY, '1');
+          else sessionStorage.removeItem(DISMISS_KEY);
+        } catch (e) {}
+        pill.classList.toggle('is-dismissed', !!flag);
+        document.body.classList.toggle('theinmag-fc-dismissed', !!flag);
+      }
 
       function formatMoney(cents) {
         if (typeof cents !== 'number') cents = parseInt(cents, 10) || 0;
@@ -226,8 +292,9 @@
         return '$' + dollars.toFixed(dollars % 1 === 0 ? 0 : 2);
       }
 
-      function refresh(cart) {
+      function refresh(cart, opts) {
         if (!cart) return;
+        opts = opts || {};
         var count = cart.item_count || 0;
         var total = cart.total_price || 0;
         if (countEl) countEl.textContent = count;
@@ -243,6 +310,12 @@
         for (var i = 0; i < badges.length; i++) {
           badges[i].textContent = count;
         }
+        // Resurface the pill on a fresh add (productTitle present) or
+        // when the cart goes empty - either way the previous dismissal
+        // is stale.
+        if (opts.newAdd || count === 0) {
+          setDismissed(false);
+        }
       }
 
       function flashToast(message) {
@@ -255,13 +328,29 @@
         }, 2200);
       }
 
+      // Wire the dismiss button + restore the dismissed state from the
+      // session. Body class mirrors the pill state so the flyout
+      // newsletter and any other surface can react via CSS.
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function () {
+          setDismissed(true);
+        });
+      }
+      // Initial-load: if the cart has items AND the user already
+      // dismissed in this session, hide the pill silently.
+      var initialCount = parseInt(pill.getAttribute('data-item-count'), 10) || 0;
+      document.body.setAttribute('data-theinmag-cart-count', initialCount);
+      if (initialCount > 0 && isDismissed()) {
+        setDismissed(true);
+      }
+
       // Subscribe to cart updates from anywhere in the app.
       if (typeof subscribe === 'function' && typeof PUB_SUB_EVENTS !== 'undefined') {
         subscribe(PUB_SUB_EVENTS.cartUpdate, function (event) {
           if (!event) return;
           var cart = event.cartData;
-          if (cart) refresh(cart);
           var title = event.productTitle || (cart && cart.product_title) || '';
+          if (cart) refresh(cart, { newAdd: !!title });
           if (title) {
             var pretty = title.replace(/^theINmag\s*[-–]\s*/i, '');
             flashToast(pretty + ' added to your cart');
@@ -314,7 +403,7 @@
                     productTitle: addResponse.product_title
                   });
                 } else {
-                  refresh(cart);
+                  refresh(cart, { newAdd: true });
                   flashToast((addResponse.product_title || 'Item').replace(/^theINmag\s*[-–]\s*/i, '') + ' added to your cart');
                 }
                 if (btn) {

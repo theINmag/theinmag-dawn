@@ -38,8 +38,13 @@
     as the PRINT cover instead of product.featured_image. Lets the shop grid
     show a curated cover for a product (e.g. Membership) without touching the
     product's featured image in admin. Ignored outside the shop context.
+
+    digital_cover_filename does the same for the DIGITAL cover - used when a
+    product has no single_mag.digital_media_images metafield (e.g. Membership)
+    so the grid still has something to swap to under the Digital filter.
   endcomment
   assign cover_override = cover_filename | default: ''
+  assign digital_cover_override = digital_cover_filename | default: ''
 
   assign print_variant = null
   assign digital_variant = null
@@ -123,7 +128,17 @@
         {%- else -%}
           <div class="theinmag-bundle-tile__cover-placeholder" aria-hidden="true"></div>
         {%- endif -%}
-        {%- if digital_cover_image != blank -%}
+        {%- if digital_cover_override != blank -%}
+          <img
+            class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--digital"
+            src="{{ digital_cover_override | asset_url }}"
+            alt="{{ product.title | escape }} digital edition"
+            width="480"
+            height="640"
+            loading="lazy"
+            aria-hidden="true"
+          >
+        {%- elsif digital_cover_image != blank -%}
           <img
             class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--digital"
             src="{{ digital_cover_image | image_url: width: 480 }}"

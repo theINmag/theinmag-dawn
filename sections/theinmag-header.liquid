@@ -92,10 +92,20 @@
           loading="eager"
         >
       {%- else -%}
+        {%- comment -%}
+          PNG, not SVG. The original madebykids_logo.svg is actually a
+          wrapped base64 PNG with feColorMatrix luminance masks - that
+          pattern renders unreliably on iOS Safari (smudge at the cream
+          edge / solid black background on PDPs). The PNG is rasterised
+          from the same source with a real alpha channel so it composites
+          cleanly on any background.
+        {%- endcomment -%}
         <img
           class="theinmag-header__sticker"
-          src="{{ 'madebykids_logo.svg' | asset_url }}"
+          src="{{ 'madebykids_logo.png' | asset_url }}"
           alt="Made by kids, for kids"
+          width="600"
+          height="218"
           loading="eager"
         >
       {%- endif -%}
@@ -181,10 +191,21 @@
           fetchpriority="high"
         >
       {%- else -%}
+        {%- comment -%}
+          PNG, not SVG. Same iOS Safari mask-filter bug as the sticker -
+          the original .svg is a wrapped base64 PNG with feColorMatrix
+          luminance masks and renders blurry on iOS. The PNG is rasterised
+          from the same source with a real alpha channel, cropped to the
+          wordmark portion only (the original SVG viewport already cut off
+          the "MADE BY KIDS, FOR KIDS!" subtitle that the underlying art
+          contains).
+        {%- endcomment -%}
         <img
           class="theinmag-header__logo"
-          src="{{ 'header_logo.svg' | asset_url }}"
+          src="{{ 'header_logo.png' | asset_url }}"
           alt="theINmag"
+          width="800"
+          height="264"
           loading="eager"
           fetchpriority="high"
         >
@@ -449,6 +470,11 @@
     padding: 6px var(--space-md);
     max-width: 1440px;
     margin: 0 auto;
+    /* Anchor for the absolutely-centred wordmark on mobile. Below
+       990px the wordmark sits centred over the row regardless of the
+       sticker (left) and cart + hamburger (right) widths. Reverts to
+       in-flow positioning at desktop where the nav reappears. */
+    position: relative;
   }
 
   @media (min-width: 750px) {
@@ -530,12 +556,21 @@
     align-items: center;
     line-height: 0;
     flex-shrink: 0;
-    margin-right: auto;
+    /* Mobile + tablet: take the wordmark out of flow and centre it
+       over the row. Sticker on the left and cart + hamburger on the
+       right are then balanced visually by the row's auto margins
+       rather than fighting for the wordmark's position. */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
   }
 
   @media (min-width: 990px) {
     .theinmag-header__logo-link {
-      margin-right: 0;
+      position: static;
+      transform: none;
     }
   }
 
@@ -750,6 +785,19 @@
     border-radius: var(--radius-pill);
     transition: color var(--transition-standard),
                 background-color var(--transition-standard);
+    /* Mobile + tablet: the wordmark is absolutely positioned (out of
+       flow), so the remaining flex items - sticker, cart, hamburger -
+       would bunch at the left. margin-left: auto here pushes the
+       cart and everything after it (the hamburger) hard to the right
+       edge of the row, restoring the visual balance around the
+       centred wordmark. */
+    margin-left: auto;
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-header__cart {
+      margin-left: 0;
+    }
   }
 
   .theinmag-header__cart:hover,

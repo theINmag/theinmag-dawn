@@ -285,25 +285,17 @@
      padding pushed "Tri-annual" onto a second line - and the user's
      "slogans on one line on desktop" rule wins ties. */
 
-  /* Mobile-first: horizontal scroll-snap so users can swipe through the
-     four slogans rather than reading them stacked. The peek of the next
-     slogan at the right edge is the "swipe for more" affordance, same
-     pattern as the audience tiles. Scrollbar hidden, snap-x mandatory. */
+  /* Mobile: the slogan row is HIDDEN — Ryan flagged the horizontal
+     scroll-snap as "doesn't look quite right" on mobile (read as a
+     half-visible carousel that crowded the hero). Only the mission
+     statement remains on phones; the four-slogan row is desktop-only.
+     The styles below still configure the row for the desktop+ override
+     to undo, even though it never renders on mobile. */
   .theinmag-mission__features {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-wrap: nowrap;
-    gap: var(--space-md);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    /* Bleed the scroll container to the section edges so the first
-       slogan sits at the visual margin, not pinned in the centre. */
-    margin: 0 calc(-1 * var(--space-md));
-    padding: 0 var(--space-md) var(--space-sm);
+    display: none;
   }
 
   .theinmag-mission__features::-webkit-scrollbar {
@@ -344,6 +336,7 @@
       overflow: visible;
       margin: 0;
       padding: 0;
+      scroll-snap-type: none;
     }
 
     .theinmag-mission__feature {
@@ -394,7 +387,10 @@
      ================================================================ */
 
   .theinmag-mission__statement {
-    margin: var(--space-lg) auto 0;
+    /* Mobile: no slogan row above, so the statement sits flush to the
+       panel top. Desktop adds the space-lg gap below to separate it
+       from the slogan row. */
+    margin: 0 auto;
     /* Mobile: tight max-width so the line wraps cleanly. Desktop: drop
        the cap so each message lays out on a single line at common widths
        (the longest message is ~75 chars). The panel's max-width still
@@ -408,6 +404,12 @@
     color: var(--mission-accent);
     transition: opacity 0.18s ease;
     min-height: 3em;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-mission__statement {
+      margin-top: var(--space-lg);
+    }
   }
 
   @media (min-width: 990px) {

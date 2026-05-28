@@ -56,6 +56,18 @@
   # carry a curated cover without changing the product image in admin.
   assign cover_overrides = section.settings.cover_overrides | default: '' | split: ','
 
+  # Same pattern for the DIGITAL cover. Used when a product has no
+  # single_mag.digital_media_images metafield (e.g. Membership) so the
+  # tile still has an image to swap to under the Digital filter.
+  assign digital_cover_overrides = section.settings.digital_cover_overrides | default: '' | split: ','
+
+  # Handles to promote in the PRINT order. Comma-separated. When the
+  # format filter switches to Print, these products jump up the grid
+  # to a slot just below the most recent issues (so back-catalogue mags
+  # we still have print stock for don't get stranded at the bottom).
+  # Cover-only print filter; the tile list itself is unchanged.
+  assign print_promote_handles = section.settings.print_promote_handles | default: '' | split: ','
+
   # Anchor matches for the custom grid order, matched against product.title.
   # Title is more stable than handle here - the store has handles set
   # inconsistently (digital-stack / mag10 / membership have no prefix, but
@@ -74,7 +86,13 @@
   #   MagNN         3000 + NN   (Mag10 = 3010, Mag01 = 3001)
   #   other         2000
   #   Digital Stack 1000
+  #
+  # A parallel print_sort_keys list is also built. It uses 5-digit
+  # weights (default x10) so promoted handles can slot between mags
+  # without colliding. Promoted weight 30085 = between Mag09 (30090)
+  # and Mag08 (30080), i.e. just under the current + pre-sale issues.
   assign sort_keys = ''
+  assign print_sort_keys = ''
   for product in target_collection.products
     assign is_excluded = false
     for h in exclude_handles
@@ -98,10 +116,26 @@
           assign weight = 3000 | plus: mag_num | append: ''
         endif
       endif
+
+      assign is_print_promoted = false
+      for h in print_promote_handles
+        assign h_trim = h | strip
+        if h_trim != blank and h_trim == product.handle
+          assign is_print_promoted = true
+        endif
+      endfor
+      if is_print_promoted
+        assign print_weight = '30085'
+      else
+        assign print_weight = weight | times: 10 | append: ''
+      endif
+
       assign sort_keys = sort_keys | append: weight | append: ':' | append: product.handle | append: ','
+      assign print_sort_keys = print_sort_keys | append: print_weight | append: ':' | append: product.handle | append: ','
     endunless
   endfor
   assign sorted_keys = sort_keys | split: ',' | sort | reverse
+  assign sorted_print_keys = print_sort_keys | split: ',' | sort | reverse
   assign render_count = sorted_keys.size
 
   assign section_style = '--tsg-pt: ' | append: section.settings.padding_top | append: 'px; --tsg-pb: ' | append: section.settings.padding_bottom | append: 'px;'
@@ -155,7 +189,7 @@
           {%- assign product = all_products[key_handle] -%}
           {%- if product == blank or product.id == blank -%}{%- continue -%}{%- endif -%}
           {%- assign visible_index = visible_index | plus: 1 -%}
-          {%- comment -%} Resolve a per-product cover override, if one is set. {%- endcomment -%}
+          {%- comment -%} Resolve per-product cover overrides (print + digital), if set. {%- endcomment -%}
           {%- assign tile_cover = '' -%}
           {%- for pair in cover_overrides -%}
             {%- assign pair_handle = pair | split: ':' | first | strip -%}
@@ -163,14 +197,31 @@
               {%- assign tile_cover = pair | split: ':' | last | strip -%}
             {%- endif -%}
           {%- endfor -%}
+          {%- assign tile_digital_cover = '' -%}
+          {%- for pair in digital_cover_overrides -%}
+            {%- assign pair_handle = pair | split: ':' | first | strip -%}
+            {%- if pair_handle != blank and pair_handle == product.handle -%}
+              {%- assign tile_digital_cover = pair | split: ':' | last | strip -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- comment -%} Resolve this product's position in the print-mode order. {%- endcomment -%}
+          {%- assign tile_print_index = 0 -%}
+          {%- for pkey in sorted_print_keys -%}
+            {%- assign pkey_handle = pkey | split: ':' | last -%}
+            {%- if pkey_handle == key_handle -%}
+              {%- assign tile_print_index = forloop.index0 -%}
+              {%- break -%}
+            {%- endif -%}
+          {%- endfor -%}
           <li
             class="theinmag-shop-grid__item"
             data-tile-index="{{ visible_index | minus: 1 }}"
+            data-tile-print-index="{{ tile_print_index }}"
             data-product-price="{{ product.price }}"
             data-product-created="{{ product.created_at | date: '%s' }}"
             {%- if visible_index > products_per_page %} hidden data-overflow{%- endif %}
           >
-            {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover %}
+            {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover, digital_cover_filename: tile_digital_cover %}
           </li>
         {%- endfor -%}
       </ul>
@@ -243,7 +294,45 @@
     const visibleCount = root.querySelector('[data-visible-count]');
     const feedback = root.querySelector('[data-shop-feedback]');
 
-    /* ----- Format filter: toggle data-active-format on the list ----- */
+    /* ----- Shared reorder: applies current sort + filter to the tile list.
+       Featured order is the default tile-index, except under the Print
+       filter where featured uses tile-print-index (promoted handles slot
+       up so still-in-stock back-catalogue mags don't get stranded at the
+       bottom). After reorder, the hidden attribute is re-applied to the
+       last N items so Show-more's visible-count stays consistent even if
+       a previously-hidden tile would now sort into the visible range. */
+    function applyOrder() {
+      const fmt = list.getAttribute('data-active-format') || 'all';
+      const sort = sortSelect ? sortSelect.value : 'featured';
+      const items = Array.prototype.slice.call(list.querySelectorAll('.theinmag-shop-grid__item'));
+      const visibleCountVal = items.filter(function (it) { return !it.hasAttribute('hidden'); }).length;
+
+      items.sort(function (a, b) {
+        if (sort === 'price-asc') {
+          return parseInt(a.dataset.productPrice, 10) - parseInt(b.dataset.productPrice, 10);
+        }
+        if (sort === 'price-desc') {
+          return parseInt(b.dataset.productPrice, 10) - parseInt(a.dataset.productPrice, 10);
+        }
+        if (sort === 'newest') {
+          return parseInt(b.dataset.productCreated, 10) - parseInt(a.dataset.productCreated, 10);
+        }
+        /* featured: tile-print-index under Print filter, tile-index otherwise */
+        const indexAttr = fmt === 'print' ? 'tilePrintIndex' : 'tileIndex';
+        return parseInt(a.dataset[indexAttr], 10) - parseInt(b.dataset[indexAttr], 10);
+      });
+
+      items.forEach(function (item, idx) {
+        list.appendChild(item);
+        if (idx < visibleCountVal) {
+          item.removeAttribute('hidden');
+        } else {
+          item.setAttribute('hidden', '');
+        }
+      });
+    }
+
+    /* ----- Format filter: toggle data-active-format + reorder ----- */
     filterPills.forEach(function (pill) {
       pill.addEventListener('click', function () {
         const fmt = pill.getAttribute('data-format-filter');
@@ -252,31 +341,13 @@
         filterPills.forEach(function (p) {
           p.setAttribute('aria-pressed', p === pill ? 'true' : 'false');
         });
+        applyOrder();
       });
     });
 
     /* ----- Sort: re-order <li> children by data attributes ----- */
     if (sortSelect) {
-      sortSelect.addEventListener('change', function () {
-        const sort = sortSelect.value;
-        const items = Array.prototype.slice.call(list.querySelectorAll('.theinmag-shop-grid__item'));
-
-        items.sort(function (a, b) {
-          if (sort === 'price-asc') {
-            return parseInt(a.dataset.productPrice, 10) - parseInt(b.dataset.productPrice, 10);
-          }
-          if (sort === 'price-desc') {
-            return parseInt(b.dataset.productPrice, 10) - parseInt(a.dataset.productPrice, 10);
-          }
-          if (sort === 'newest') {
-            return parseInt(b.dataset.productCreated, 10) - parseInt(a.dataset.productCreated, 10);
-          }
-          /* featured: restore original order via data-tile-index */
-          return parseInt(a.dataset.tileIndex, 10) - parseInt(b.dataset.tileIndex, 10);
-        });
-
-        items.forEach(function (item) { list.appendChild(item); });
-      });
+      sortSelect.addEventListener('change', applyOrder);
     }
 
     /* ----- Show more: reveal the next N hidden items ----- */
@@ -993,6 +1064,20 @@
       "label": "Cover overrides",
       "info": "Comma-separated handle:filename pairs. The grid tile for that handle shows the named /assets/ image as its cover instead of the product's featured image.",
       "default": "membership:membershipimage.jpg"
+    },
+    {
+      "type": "text",
+      "id": "digital_cover_overrides",
+      "label": "Digital cover overrides",
+      "info": "Comma-separated handle:filename pairs. Used when a product has no single_mag.digital_media_images metafield - shows the named /assets/ image under the Digital filter.",
+      "default": "membership:membership-hero-digital.jpg"
+    },
+    {
+      "type": "text",
+      "id": "print_promote_handles",
+      "label": "Print-promoted handles",
+      "info": "Comma-separated product handles. Under the Print filter, these tiles jump up the grid to a slot just below the most recent issues (so back-catalogue mags we still have print stock for don't get stranded at the bottom). Cover-only filter; the tile list itself is unchanged.",
+      "default": "mag01"
     },
     {
       "type": "header",
