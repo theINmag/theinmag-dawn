@@ -2,65 +2,125 @@
   theinmag-yml-card
   One product card in the "You may also like" upsell row.
 
+  Mirrors the /shop tile behaviour: cover + title link to the PDP, and the
+  buy area lets the visitor add to cart right from the tile.
+    - Print / Digital products: one labelled row per format with an Add
+      button (data-shop-add -> handled by assets/theinmag-tile-add.js).
+    - Membership: labelled "from" prices + a "Join the club" button that
+      opens the shared picker popup (data-membership-popup-trigger, owned
+      by snippets/theinmag-membership-popup.liquid - rendered once by the
+      parent section).
+    - Single-format products (e.g. Digital Stack): one price + Add row.
+
   Params:
     product - the product to render as a card
 {%- endcomment -%}
 {%- liquid
   assign card_label = product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
   assign card_cover = product.featured_image
+
+  assign is_membership = false
+  if product.handle == 'membership'
+    assign is_membership = true
+  endif
+
+  # First Print + first Digital variant (direct add on simple products) and
+  # the cheapest of each (Membership "from" prices).
+  assign print_variant = null
+  assign digital_variant = null
+  assign print_has = false
+  assign digital_has = false
+  for v in product.variants
+    assign vt = v.title | downcase
+    if vt contains 'print'
+      if print_variant == null
+        assign print_variant = v
+      endif
+      if print_has == false
+        assign print_min = v.price
+        assign print_has = true
+      elsif v.price < print_min
+        assign print_min = v.price
+      endif
+    elsif vt contains 'digital'
+      if digital_variant == null
+        assign digital_variant = v
+      endif
+      if digital_has == false
+        assign digital_min = v.price
+        assign digital_has = true
+      elsif v.price < digital_min
+        assign digital_min = v.price
+      endif
+    endif
+  endfor
 -%}
 <li class="theinmag-you-may-also-like__item">
-  <a class="theinmag-you-may-also-like__card" href="{{ product.url }}">
-    <span class="theinmag-you-may-also-like__cover">
-      {%- if card_cover != blank -%}
-        <img
-          class="theinmag-you-may-also-like__cover-img"
-          src="{{ card_cover | image_url: width: 600 }}"
-          alt="{{ card_label | escape }}"
-          loading="lazy"
-          width="600"
-          height="600"
-        >
-      {%- endif -%}
-    </span>
-    <span class="theinmag-you-may-also-like__title">{{ card_label }}</span>
-    {%- liquid
-      # Bucket variants by format (Print / Digital) and track the cheapest of each,
-      # so the card shows honest, labelled prices instead of a misleading min-max range.
-      assign print_has = false
-      assign digital_has = false
-      assign print_count = 0
-      assign digital_count = 0
-      for v in product.variants
-        assign fmt = v.option1 | downcase
-        if fmt contains 'print'
-          assign print_count = print_count | plus: 1
-          if print_has == false
-            assign print_min = v.price
-            assign print_has = true
-          elsif v.price < print_min
-            assign print_min = v.price
-          endif
-        elsif fmt contains 'digital'
-          assign digital_count = digital_count | plus: 1
-          if digital_has == false
-            assign digital_min = v.price
-            assign digital_has = true
-          elsif v.price < digital_min
-            assign digital_min = v.price
-          endif
-        endif
-      endfor
-    -%}
-    <span class="theinmag-you-may-also-like__price">
-      {%- if print_has and digital_has -%}
-        <span class="theinmag-you-may-also-like__price-line"><span class="theinmag-you-may-also-like__price-label">Print{% if print_count > 1 %} from{% endif %}</span> {{ print_min | money }}</span>
-        <span class="theinmag-you-may-also-like__price-line"><span class="theinmag-you-may-also-like__price-label">Digital{% if digital_count > 1 %} from{% endif %}</span> {{ digital_min | money }}</span>
-      {%- elsif product.price_varies -%}
-        <span class="theinmag-you-may-also-like__price-line">From {{ product.price_min | money }}</span>
+  <article class="theinmag-you-may-also-like__card" data-product-handle="{{ product.handle }}">
+    <a class="theinmag-you-may-also-like__cover-link" href="{{ product.url }}" aria-label="View {{ card_label | escape }}">
+      <span class="theinmag-you-may-also-like__cover">
+        {%- if card_cover != blank -%}
+          <img
+            class="theinmag-you-may-also-like__cover-img"
+            src="{{ card_cover | image_url: width: 600 }}"
+            alt="{{ card_label | escape }}"
+            loading="lazy"
+            width="600"
+            height="600"
+          >
+        {%- endif -%}
+      </span>
+    </a>
+    <a class="theinmag-you-may-also-like__title-link" href="{{ product.url }}">
+      <span class="theinmag-you-may-also-like__title">{{ card_label }}</span>
+    </a>
+
+    <div class="theinmag-you-may-also-like__buy">
+      {%- if is_membership -%}
+        {%- if print_has and digital_has -%}
+          <span class="theinmag-you-may-also-like__price">
+            <span class="theinmag-you-may-also-like__price-line"><span class="theinmag-you-may-also-like__price-label">Print from</span> {{ print_min | money }}</span>
+            <span class="theinmag-you-may-also-like__price-line"><span class="theinmag-you-may-also-like__price-label">Digital from</span> {{ digital_min | money }}</span>
+          </span>
+        {%- endif -%}
+        <button
+          type="button"
+          class="theinmag-you-may-also-like__join"
+          data-membership-popup-trigger
+          aria-haspopup="dialog"
+          aria-label="Choose options and join the club"
+        >Join the club</button>
+
+      {%- elsif print_variant or digital_variant -%}
+        {%- if print_variant -%}
+          <div class="theinmag-you-may-also-like__row{% unless print_variant.available %} is-sold-out{% endunless %}">
+            <span class="theinmag-you-may-also-like__format">Print</span>
+            {%- if print_variant.available -%}
+              <span class="theinmag-you-may-also-like__row-price">{{ print_variant.price | money }}</span>
+              <button type="button" class="theinmag-you-may-also-like__add" data-shop-add data-variant-id="{{ print_variant.id }}" aria-label="Add {{ card_label | escape }} Print to cart"><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+            {%- else -%}
+              <span class="theinmag-you-may-also-like__soldout" aria-label="Print sold out">Sold out</span>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+        {%- if digital_variant -%}
+          <div class="theinmag-you-may-also-like__row{% if print_variant == null %} theinmag-you-may-also-like__row--solo{% endif %}">
+            {%- if print_variant -%}<span class="theinmag-you-may-also-like__format">Digital</span>{%- endif -%}
+            <span class="theinmag-you-may-also-like__row-price">{{ digital_variant.price | money }}</span>
+            <button type="button" class="theinmag-you-may-also-like__add" data-shop-add data-variant-id="{{ digital_variant.id }}" aria-label="Add {{ card_label | escape }} Digital to cart"><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+          </div>
+        {%- endif -%}
+
       {%- else -%}
-        <span class="theinmag-you-may-also-like__price-line">{{ product.price | money }}</span>
+        {%- comment -%} No Print/Digital split. Single price + Add to the default variant. {%- endcomment -%}
+        {%- assign fallback_variant = product.selected_or_first_available_variant -%}
+        <div class="theinmag-you-may-also-like__row theinmag-you-may-also-like__row--solo">
+          <span class="theinmag-you-may-also-like__row-price">{% if product.price_varies %}From {% endif %}{{ product.price | money }}</span>
+          {%- if fallback_variant and fallback_variant.available -%}
+            <button type="button" class="theinmag-you-may-also-like__add" data-shop-add data-variant-id="{{ fallback_variant.id }}" aria-label="Add {{ card_label | escape }} to cart"><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+          {%- endif -%}
+        </div>
       {%- endif -%}
-    </span>
-  </a>
+    </div>
+  </article>
 </li>

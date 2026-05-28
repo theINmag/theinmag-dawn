@@ -90,7 +90,19 @@
       {%- if slot_4 != blank -%}{%- render 'theinmag-yml-card', product: slot_4 -%}{%- endif -%}
     </ul>
   </div>
+
+  {%- comment -%}
+    Membership picker popup + shared tile-add handler. Rendered once per
+    page here (the YML row is product-template only, so this never collides
+    with the inline add-handlers still living in shop-grid / cart-featured /
+    funnel-strip). The popup mounts its own [data-membership-popup-trigger]
+    listener; the Membership tile's "Join the club" button just sets that
+    attribute. Popup silently no-ops if the membership product is missing.
+  {%- endcomment -%}
+  {% render 'theinmag-membership-popup', membership_product: membership_product %}
 </section>
+
+<script src="{{ 'theinmag-tile-add.js' | asset_url }}" defer></script>
 
 {% stylesheet %}
   .theinmag-you-may-also-like {
@@ -161,6 +173,20 @@
     display: block;
   }
 
+  .theinmag-you-may-also-like__cover-link {
+    display: block;
+  }
+
+  .theinmag-you-may-also-like__title-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .theinmag-you-may-also-like__title-link:hover .theinmag-you-may-also-like__title,
+  .theinmag-you-may-also-like__title-link:focus-visible .theinmag-you-may-also-like__title {
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
   .theinmag-you-may-also-like__title {
     font-family: var(--font-body);
     font-weight: 700;
@@ -170,25 +196,115 @@
     padding: 14px 16px 0;
   }
 
+  /* Buy area, pinned to the bottom of the card. */
+  .theinmag-you-may-also-like__buy {
+    margin-top: auto;
+    padding: 8px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* Membership "from" prices (labelled, two lines). */
   .theinmag-you-may-also-like__price {
     font-family: var(--font-body);
     font-size: 14px;
     color: rgba(42, 31, 61, 0.78);
-    padding: 4px 16px 16px;
-    margin-top: auto;
     display: flex;
     flex-direction: column;
     gap: 2px;
   }
-
   .theinmag-you-may-also-like__price-line {
     font-weight: 600;
     line-height: 1.35;
   }
-
   .theinmag-you-may-also-like__price-label {
     font-weight: 500;
     color: rgba(42, 31, 61, 0.55);
+  }
+
+  /* Add-to-cart rows (Print / Digital). Mirrors the /shop tile row. */
+  .theinmag-you-may-also-like__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-you-may-also-like__row--solo {
+    grid-template-columns: 1fr auto;
+  }
+  .theinmag-you-may-also-like__row.is-sold-out {
+    opacity: 0.5;
+  }
+
+  .theinmag-you-may-also-like__format {
+    font-weight: 500;
+  }
+  .theinmag-you-may-also-like__row-price {
+    font-weight: 600;
+    color: rgba(42, 31, 61, 0.82);
+  }
+  .theinmag-you-may-also-like__soldout {
+    justify-self: end;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--color-sandy-orange-dark, #D9783A);
+  }
+
+  .theinmag-you-may-also-like__add {
+    appearance: none;
+    background: transparent;
+    border: 1.5px solid var(--color-purple-dark, #5D3A7A);
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 36px;
+    /* Sized to fit "Added ✓" so the row doesn't reflow on the label flip. */
+    min-width: 84px;
+    text-align: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .theinmag-you-may-also-like__add:hover,
+  .theinmag-you-may-also-like__add:focus-visible {
+    background-color: var(--color-purple-dark, #5D3A7A);
+    color: #ffffff;
+    outline: none;
+  }
+
+  /* Membership CTA - yellow stamp colour (CTA-only per brand rules). */
+  .theinmag-you-may-also-like__join {
+    appearance: none;
+    background-color: var(--color-yellow);
+    border: none;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 11px 14px;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    min-height: 42px;
+    margin-top: 2px;
+    transition: filter 0.2s ease;
+  }
+  .theinmag-you-may-also-like__join:hover,
+  .theinmag-you-may-also-like__join:focus-visible {
+    filter: brightness(0.94);
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-you-may-also-like__add,
+    .theinmag-you-may-also-like__join {
+      transition: none;
+    }
   }
 {% endstylesheet %}
 
