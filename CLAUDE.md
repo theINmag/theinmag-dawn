@@ -55,7 +55,7 @@ Don't read the deprecated three unless explicitly asked. Their values may drift 
 - "Creation" not "work" everywhere - a girl in a school said "art is not work" and that's brand-defining.
 - No em dashes anywhere. Hyphens only. Em dashes are an AI tell.
 - Smart brevity. Short sentences. Guy Raz / Axios newsletter energy. Professional friend tone.
-- Sentence case headings. Brand name "theINmag" keeps its specific casing - the IN stays capitalised.
+- Sentence case headings sitewide. Brand name "theINmag" keeps its specific casing - the IN stays capitalised. EXCEPTION (2026-05-28): Field notes blog post TITLES use Title Case (capitalised), changed after teachers flagged that lowercase titles model poor punctuation for kids. Trailing period kept. Do not "fix" these back to lowercase. Body H2s, heroes and section headings stay sentence case.
 - Never collect contactable details from kids. Adults only on every form.
 - Never use "subscription" in product names. The recurring product is "theINmag Membership."
 - Real kid creations are the design system. Named attribution always: "Maya, age 9 - Fremantle WA."
