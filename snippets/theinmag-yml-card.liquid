@@ -25,7 +25,7 @@
     </span>
     <span class="theinmag-you-may-also-like__title">{{ card_label }}</span>
     <span class="theinmag-you-may-also-like__price">
-      {%- if product.price_varies -%}From {% endif -%}{{ product.price | money }}
+      {%- if product.price_varies -%}{{ product.price_min | money }} - {{ product.price_max | money }}{%- else -%}{{ product.price | money }}{%- endif -%}
     </span>
   </a>
 </li>
