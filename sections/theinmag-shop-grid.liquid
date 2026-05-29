@@ -914,6 +914,24 @@
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
   }
 
+  /* Pre-sale variant stacks the label over the drop date so buyers see
+     up front that the issue ships on release day, not immediately. */
+  .theinmag-bundle-tile__ribbon--presale {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: right;
+  }
+
+  .theinmag-bundle-tile__ribbon-sub {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
   .theinmag-bundle-tile__title {
     margin: 10px 12px 6px;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);

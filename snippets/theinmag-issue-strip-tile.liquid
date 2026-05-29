@@ -16,6 +16,16 @@
   assign tile_label = product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', '' | split: ' (' | first | strip
   assign tile_cover = product.featured_image
   assign tile_is_pre = product.metafields.theinmag.is_pre_order | default: false
+  # Pre-sale drop date - same shop metafield (theinmag.next_release_date)
+  # the shop tile + cart badge read, so every pre-sale label shows one
+  # consistent date that auto-updates each drop. Blank = bare "Pre-order".
+  assign presale_date = ''
+  if tile_is_pre
+    assign next_release_date = shop.metafields.theinmag.next_release_date.value
+    if next_release_date != blank
+      assign presale_date = next_release_date | date: '%-d %B'
+    endif
+  endif
   assign is_current = false
   if product.handle == current_handle
     assign is_current = true
@@ -102,7 +112,12 @@
       <span class="theinmag-issue-strip__digital-only" aria-hidden="true">Digital only</span>
     {%- endif -%}
     {%- if tile_is_pre -%}
-      <span class="theinmag-issue-strip__presale">Pre-order</span>
+      <span class="theinmag-issue-strip__presale">
+        Pre-order
+        {%- if presale_date != blank -%}
+          <span class="theinmag-issue-strip__presale-date">Drops {{ presale_date }}</span>
+        {%- endif -%}
+      </span>
     {%- endif -%}
   </a>
 </li>

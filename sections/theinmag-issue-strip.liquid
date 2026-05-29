@@ -259,8 +259,13 @@
     font-weight: 700;
   }
 
-  /* Pre-order sub-label - sits under the pre-sale issue's tile. */
+  /* Pre-order sub-label - sits under the pre-sale issue's tile. Stacks the
+     "Pre-order" tag over the drop date so the timing is clear from the strip. */
   .theinmag-issue-strip__presale {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
     font-family: var(--font-body);
     font-size: 9px;
     font-weight: 700;
@@ -268,6 +273,12 @@
     text-transform: uppercase;
     color: var(--color-purple-dark);
     line-height: 1;
+  }
+  .theinmag-issue-strip__presale-date {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    opacity: 0.75;
   }
 
   /* Print-sold-out single magazines + digital-only products: dimmed cover +

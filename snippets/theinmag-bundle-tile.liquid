@@ -86,6 +86,18 @@
         assign is_current_issue = true
       endif
     endif
+    # Pre-sale drop date - single source of truth is the shop metafield
+    # theinmag.next_release_date (YYYY-MM-DD), the same one the cart badge
+    # reads. Formats to "15 June". Update that one metafield each drop and
+    # every pre-sale badge sitewide moves with it - no theme edit needed.
+    # Blank metafield falls back to a bare "Pre-sale" (no date).
+    assign presale_date = ''
+    if is_pre_order
+      assign next_release_date = shop.metafields.theinmag.next_release_date.value
+      if next_release_date != blank
+        assign presale_date = next_release_date | date: '%-d %B'
+      endif
+    endif
     assign pdp_url = '/products/' | append: product.handle
     assign add_suffix = ' to cart'
     assign add_attr = 'data-shop-add'
@@ -153,7 +165,12 @@
         {%- endif -%}
       </a>
       {%- if is_pre_order -%}
-        <span class="theinmag-bundle-tile__ribbon" aria-label="On pre-sale">Pre-sale</span>
+        <span class="theinmag-bundle-tile__ribbon theinmag-bundle-tile__ribbon--presale" aria-label="On pre-sale{% if presale_date != blank %}, drops {{ presale_date }}{% endif %}">
+          <span class="theinmag-bundle-tile__ribbon-top">Pre-sale</span>
+          {%- if presale_date != blank -%}
+            <span class="theinmag-bundle-tile__ribbon-sub">Drops {{ presale_date }}</span>
+          {%- endif -%}
+        </span>
       {%- elsif is_current_issue -%}
         <span class="theinmag-bundle-tile__ribbon theinmag-bundle-tile__ribbon--current" aria-label="Current issue">Current issue</span>
       {%- endif -%}

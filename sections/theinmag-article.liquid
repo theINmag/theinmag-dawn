@@ -725,6 +725,9 @@
   elsif section.settings.org_logo_filename != blank
     assign org_logo_url = section.settings.org_logo_filename | asset_url
   endif
+  if org_logo_url == blank
+    assign org_logo_url = 'theINmag_logo.png' | asset_url | prepend: 'https:'
+  endif
 -%}
 
 <script type="application/ld+json">
