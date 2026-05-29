@@ -75,6 +75,10 @@
       <span class="theinmag-you-may-also-like__title">{{ card_label }}</span>
     </a>
 
+    {%- if product.handle == 'digital-stack' and blurb != blank -%}
+      <p class="theinmag-you-may-also-like__blurb">{{ blurb }}</p>
+    {%- endif -%}
+
     <div class="theinmag-you-may-also-like__buy">
       {%- if is_membership -%}
         {%- if print_has and digital_has -%}

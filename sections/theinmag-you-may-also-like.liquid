@@ -1,10 +1,12 @@
 {%- comment -%}
   theinmag-you-may-also-like
   Curated upsell row for the bottom of the product page. Four slots, in
-  order: Snack Pack, Membership, Digital Stack, and the latest issue.
+  order: Snack Pack, Membership, Digital Stack, and the current issue
+  (driven by the shop.metafields.theinmag.current_issue_number metafield,
+  so it auto-updates each drop).
 
   If the visitor is currently ON one of those four products, that slot
-  swaps to the previous issue (the one before the latest) so the row
+  swaps to the previous issue (the one numbered below current) so the row
   never just points back at the page you're already on.
 
   Replaces the old generic "cross-sells" mission block on the PDP.
@@ -12,22 +14,31 @@
 
 {%- liquid
   assign issues_collection_handle = section.settings.issues_collection | default: 'single-issues'
-  assign all_issues = collections[issues_collection_handle].products | sort: 'metafields.single_mag.issue_number.value' | reverse
+  assign all_issues = collections[issues_collection_handle].products
 
-  # Latest + previous magazine. The descending sort means the first two
-  # positive-numbered issues are the newest and second-newest.
-  assign latest_issue = nil
-  assign previous_issue = nil
-  for issue in all_issues
-    assign inum = issue.metafields.single_mag.issue_number.value | default: 0
-    if inum > 0
-      if latest_issue == nil
-        assign latest_issue = issue
-      elsif previous_issue == nil
-        assign previous_issue = issue
-      endif
-    endif
-  endfor
+  # Slot 4 = the CURRENT issue, driven by the shop.metafields.theinmag.current_issue_number
+  # metafield (stored like "Mag09") that the rest of the site already uses for the current-
+  # issue badge. Update that one metafield each drop and this slot moves itself - no theme
+  # edit, no per-issue sort.
+  #
+  # NOTE: the old approach sorted the collection by 'metafields.single_mag.issue_number.value'
+  # and took the top item. Liquid's `sort` filter silently ignores deep metafield paths
+  # (see feedback_liquid_sort_deep_metafield_path), so that sort was a no-op and the slot
+  # was really just showing the last product in the collection's manual order. Fixed here.
+  #
+  # previous_issue (the issue numbered one below current) is the fallback used when the
+  # visitor is already on the current-issue page, so the row never points back at itself.
+  assign current_issue_code = shop.metafields.theinmag.current_issue_number.value | default: 'Mag09'
+  assign current_issue_handle = current_issue_code | downcase
+  assign latest_issue = all_products[current_issue_handle]
+  assign current_issue_num = current_issue_code | remove: 'Mag' | remove: 'mag' | times: 1
+  assign previous_issue_num = current_issue_num | minus: 1
+  if previous_issue_num < 10
+    assign previous_issue_handle = 'mag0' | append: previous_issue_num
+  else
+    assign previous_issue_handle = 'mag' | append: previous_issue_num
+  endif
+  assign previous_issue = all_products[previous_issue_handle]
 
   # The two curated bundles. Snack Pack carries a Print variant; the
   # Digital Stack does not - that is how we tell them apart.
@@ -84,10 +95,10 @@
       {{ section.settings.heading | default: 'You may also like' }}
     </h2>
     <ul class="theinmag-you-may-also-like__grid" role="list">
-      {%- if slot_1 != blank -%}{%- render 'theinmag-yml-card', product: slot_1 -%}{%- endif -%}
-      {%- if slot_2 != blank -%}{%- render 'theinmag-yml-card', product: slot_2 -%}{%- endif -%}
-      {%- if slot_3 != blank -%}{%- render 'theinmag-yml-card', product: slot_3 -%}{%- endif -%}
-      {%- if slot_4 != blank -%}{%- render 'theinmag-yml-card', product: slot_4 -%}{%- endif -%}
+      {%- if slot_1 != blank -%}{%- render 'theinmag-yml-card', product: slot_1, blurb: section.settings.digital_stack_blurb -%}{%- endif -%}
+      {%- if slot_2 != blank -%}{%- render 'theinmag-yml-card', product: slot_2, blurb: section.settings.digital_stack_blurb -%}{%- endif -%}
+      {%- if slot_3 != blank -%}{%- render 'theinmag-yml-card', product: slot_3, blurb: section.settings.digital_stack_blurb -%}{%- endif -%}
+      {%- if slot_4 != blank -%}{%- render 'theinmag-yml-card', product: slot_4, blurb: section.settings.digital_stack_blurb -%}{%- endif -%}
     </ul>
   </div>
 
@@ -194,6 +205,16 @@
     line-height: 1.2;
     color: var(--color-inky-purple-navy);
     padding: 14px 16px 0;
+  }
+
+  /* Optional one-line descriptor (e.g. the Digital Stack tile, which has a
+     single price and benefits from a "what is this" line). */
+  .theinmag-you-may-also-like__blurb {
+    margin: 6px 16px 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: rgba(42, 31, 61, 0.62);
   }
 
   /* Buy area, pinned to the bottom of the card. */
@@ -316,7 +337,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Curated upsell row: Snack Pack, Membership, Digital Stack, and the latest issue. If the visitor is on one of those, that slot swaps to the previous issue automatically."
+      "content": "Curated upsell row: Snack Pack, Membership, Digital Stack, and the current issue (read from the current_issue_number metafield, so it auto-updates each drop). If the visitor is on one of those, that slot swaps to the previous issue."
     },
     {
       "type": "text",
@@ -334,6 +355,13 @@
       "id": "membership_handle",
       "label": "Membership product handle",
       "default": "membership"
+    },
+    {
+      "type": "text",
+      "id": "digital_stack_blurb",
+      "label": "Digital Stack blurb",
+      "info": "One-line descriptor shown on the Digital Stack tile (single price, so it has room for a what-is-this line). Leave blank to hide.",
+      "default": "Every issue we've made, digital, straight to your inbox."
     },
     {
       "type": "range",
