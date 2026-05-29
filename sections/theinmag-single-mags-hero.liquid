@@ -719,6 +719,18 @@
           {%- endif -%}
         </div>
 
+        {%- comment -%}
+          Pre-order drop date - the single shop metafield
+          (theinmag.next_release_date) the shop tile + cart badge read,
+          formatted "15 June". initial_is_pre_order sets the buy widget's
+          starting state so the pre-order note + CTA label render correct on
+          load (no flash); the JS then toggles them as issues are switched.
+        {%- endcomment -%}
+        {%- assign hero_drop_date = '' -%}
+        {%- assign hero_nrd = shop.metafields.theinmag.next_release_date.value -%}
+        {%- if hero_nrd != blank -%}{%- assign hero_drop_date = hero_nrd | date: '%-d %B' -%}{%- endif -%}
+        {%- assign initial_is_pre_order = initial_issue.metafields.theinmag.is_pre_order | default: false -%}
+
         <div class="theinmag-single-mags-hero__price" data-price-display>{{ first_variant.price | money }}</div>
 
         <form
@@ -762,9 +774,14 @@
             </div>
           </fieldset>
 
+          <p class="theinmag-single-mags-hero__preorder" data-preorder-note{% unless initial_is_pre_order %} hidden{% endunless %} role="note">
+            <span class="theinmag-single-mags-hero__preorder-icon" aria-hidden="true">&#128197;</span>
+            <span><strong>Pre-order.</strong> {% if hero_drop_date != blank %}Ships on {{ hero_drop_date }}, our next release day.{% else %}Ships on release day.{% endif %} It is not in stock yet.</span>
+          </p>
+
           <div class="theinmag-single-mags-hero__cta-row">
             <button type="submit" class="theinmag-single-mags-hero__cta theinmag-single-mags-hero__cta--primary" data-primary-cta>
-              <span data-cta-label>Add to cart</span>
+              <span data-cta-label>{% if initial_is_pre_order %}Pre-order{% else %}Add to cart{% endif %}</span>
             </button>
             {%- if show_buy_now -%}
               {%- comment -%}
@@ -940,7 +957,8 @@
           {%- endfor -%}
           {{ issue.handle | json }}: {
             "Print": {%- if issue_print -%}{"id": {{ issue_print.id }}, "price": {{ issue_print.price }}, "available": {{ issue_print.available }}}{%- else -%}null{%- endif -%},
-            "Digital": {%- if issue_digital -%}{"id": {{ issue_digital.id }}, "price": {{ issue_digital.price }}, "available": {{ issue_digital.available }}}{%- else -%}null{%- endif -%}
+            "Digital": {%- if issue_digital -%}{"id": {{ issue_digital.id }}, "price": {{ issue_digital.price }}, "available": {{ issue_digital.available }}}{%- else -%}null{%- endif -%},
+            "pre_order": {{ issue.metafields.theinmag.is_pre_order | default: false }}
           }{%- unless forloop.last -%},{%- endunless -%}
         {%- endfor -%}
       }
@@ -1007,6 +1025,7 @@
     const variantSoldEl = root.querySelector('[data-variant-sold]');
     const primaryCta = root.querySelector('[data-primary-cta]');
     const buyNowCta = root.querySelector('[data-buy-now-cta]');
+    const preorderNote = root.querySelector('[data-preorder-note]');
 
     /* Stage 3.3 - snack-pack mode retired. Every picker tile is now a
        per-issue/per-bundle product; the variant lookup keys on the active
@@ -1207,10 +1226,15 @@
 
       const variant = findVariant(activeFormat, activeIssueHandle);
       const variantAvailable = !!(variant && variant.available);
+      const isPreOrder = !!issueVariants.pre_order;
       if (variant) {
         if (variantInput) variantInput.value = variant.id;
         if (priceDisplay) priceDisplay.textContent = formatMoney(variant.price);
       }
+
+      // Pre-order note: shown when the selected issue is on pre-sale, so the
+      // buyer sees the drop date before adding to cart (not in stock yet).
+      if (preorderNote) preorderNote.hidden = !isPreOrder;
 
       // CTA state. A sold-out selection (only reachable by an explicit
       // Print click on a sold-out issue) disables the buy buttons and
@@ -1221,6 +1245,8 @@
           ctaLabel.textContent = 'Sold out';
         } else if (printForcedDigital && printExists) {
           ctaLabel.textContent = 'Get it digital - ' + formatMoney(variant.price);
+        } else if (isPreOrder) {
+          ctaLabel.textContent = 'Pre-order';
         } else {
           ctaLabel.textContent = 'Add to cart';
         }
@@ -2014,6 +2040,25 @@
     margin: 0 0 var(--space-sm);
     text-align: left;
   }
+
+  /* Pre-order note - sits above the buy buttons when the selected issue is
+     on pre-sale. Peach surface + inky text (brand pair) so it reads as a
+     calm factual heads-up, not an error. Toggled by the widget JS. */
+  .theinmag-single-mags-hero__preorder {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 var(--space-md);
+    padding: 10px 12px;
+    background-color: var(--color-peach, #FCDDB8);
+    border-radius: var(--radius-md, 10px);
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-single-mags-hero__preorder[hidden] { display: none; }
+  .theinmag-single-mags-hero__preorder-icon { flex: 0 0 auto; }
 
   .theinmag-single-mags-hero__form { display: block; }
 

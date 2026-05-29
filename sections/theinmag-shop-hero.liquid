@@ -95,6 +95,18 @@
     assign secondary_url = '/products/' | append: hero_handle | append: '#see-inside'
   endif
 
+  comment
+    Pre-sale drop date - the single shop metafield (theinmag.next_release_date,
+    YYYY-MM-DD) the shop tile + cart badge read, formatted "15 June". Drives the
+    presale-only "Drops ..." line below the headline so the hero states the date
+    up front. Update that one metafield each drop and this moves with it.
+  endcomment
+  assign drop_date = ''
+  assign next_release_date = shop.metafields.theinmag.next_release_date.value
+  if next_release_date != blank
+    assign drop_date = next_release_date | date: '%-d %B'
+  endif
+
   assign subhead = section.settings.subhead | default: '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
 
   assign primary_url = '/products/' | append: hero_handle
@@ -226,6 +238,9 @@
     <div class="theinmag-shop-hero__copy">
       <p class="theinmag-shop-hero__eyebrow">{{ eyebrow }}</p>
       <h1 id="theinmag-shop-hero-heading" class="theinmag-shop-hero__headline">{{ headline }}</h1>
+      {%- if hero_state == 'presale' and drop_date != blank -%}
+        <p class="theinmag-shop-hero__drops">Drops {{ drop_date }}. Pre-order now, ships on release day.</p>
+      {%- endif -%}
       <p class="theinmag-shop-hero__subhead">{{ subhead }}</p>
 
       {%- if show_rating -%}
@@ -383,6 +398,18 @@
     font-size: 13px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    color: var(--color-coral-dark, #C9543E);
+  }
+
+  /* Pre-sale drop-date line - sits under the headline so the release date is
+     stated up front (transparency: buyers know it ships on release day, not
+     now). Coral-dark bold to read as a clear factual note, not a CTA. */
+  .theinmag-shop-hero__drops {
+    margin: 6px 0 0;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.4;
     color: var(--color-coral-dark, #C9543E);
   }
 

@@ -25,6 +25,16 @@
   assign default_message = section.settings.default_message | default: 'Our mission is to empower kids and support parents and teachers.'
   assign feature_blocks = section.blocks | where: 'type', 'feature'
   assign product_blocks = section.blocks | where: 'type', 'product_link'
+  # Pre-sale drop date - the single shop metafield (theinmag.next_release_date,
+  # YYYY-MM-DD) the shop tile + cart badge read, formatted "15 June". Any
+  # product_link tagline containing the token [drop_date] gets the live date
+  # swapped in, so the pre-order block never needs the date hand-edited each
+  # drop. Falls back to "soon" if the metafield is unset.
+  assign drop_date_label = 'soon'
+  assign next_release_date = shop.metafields.theinmag.next_release_date.value
+  if next_release_date != blank
+    assign drop_date_label = next_release_date | date: '%-d %B'
+  endif
 -%}
 
 {%- comment -%}
@@ -137,7 +147,8 @@
             </span>
             <div class="theinmag-mission__product-meta">
               {%- if block.settings.tagline != blank -%}
-                <span class="theinmag-mission__product-tagline">{{ block.settings.tagline }}</span>
+                {%- assign tagline_out = block.settings.tagline | replace: '[drop_date]', drop_date_label -%}
+                <span class="theinmag-mission__product-tagline">{{ tagline_out }}</span>
               {%- endif -%}
               {%- if block.settings.price != blank -%}
                 <span class="theinmag-mission__product-price">{{ block.settings.price }}</span>
@@ -873,7 +884,8 @@
         {
           "type": "text",
           "id": "tagline",
-          "label": "Tagline (optional)"
+          "label": "Tagline (optional)",
+          "info": "Use the token [drop_date] for a pre-sale issue - it is replaced with the live drop date (e.g. \"15 June\") from the theinmag.next_release_date metafield, so the date never needs hand-editing each drop."
         },
         {
           "type": "text",
