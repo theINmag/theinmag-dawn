@@ -16,7 +16,11 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign pool_max = 60
+  # pool_max = highest ugc-N.jpg currently uploaded to /assets/. The JS probes
+  # ugc-1..ugc-{pool_max}; any index past the real count 404s. Keep this EXACTLY
+  # at the number of uploaded images (9 as of 2026-05-29) so there are zero
+  # wasted 404 probes. Bump it by hand each time you add more ugc-N.jpg assets.
+  assign pool_max = 9
   assign first_url = 'ugc-1.jpg' | asset_url
 -%}
 
