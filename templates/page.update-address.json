@@ -1,0 +1,20 @@
+{
+  "sections": {
+    "main": {
+      "type": "theinmag-addr-landing",
+      "settings": {
+        "mode": "form",
+        "issue_handle": "mag10",
+        "cover_alt": "The cover of the latest issue of theINmag",
+        "eyebrow": "Update your address",
+        "heading": "Let's get it to the right spot",
+        "body": "Moved house, or sending your mag to a different address? Pop your correct postal details in below and we'll make sure your next issue lands in the right letterbox. Takes about 30 seconds.",
+        "submit_label": "Save my new address",
+        "success_eyebrow": "Address updated",
+        "success_heading": "Got it, that's sorted.",
+        "success_body": "We've got your new address and we'll make sure your next issue ships to the right spot. Nothing else to do."
+      }
+    }
+  },
+  "order": ["main"]
+}

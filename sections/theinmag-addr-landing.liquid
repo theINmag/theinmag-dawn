@@ -1,0 +1,722 @@
+{%- comment -%}
+  theinmag-address-confirmed
+  Branded landing for the Mag address-check emails. Two states share this
+  one section via the `mode` setting:
+    - mode "confirmed"  -> YES button destination (/pages/address-confirmed)
+    - mode "updated"    -> post-JotForm-submit screen (/pages/address-updated)
+  Layout: the issue cover fills the left half edge to edge; a short message
+  card sits in the right half with a randomised kid character from the
+  sitewide pool peeking over the card and the "Switch mINion" button beside
+  it. Swap mechanism reused from the 404 page.
+
+  Brand voice:
+    - No em dashes anywhere per CLAUDE.md - hyphens only.
+    - "mINion" keeps the IN casing to match the theINmag brand inflection.
+    - Sentence case headings.
+{%- endcomment -%}
+
+{% render 'theinmag-character-pool' %}
+
+{%- liquid
+  assign mode = section.settings.mode
+
+  # Cover image, resolved in priority order:
+  #   1. cover_image picker (manual override in the customiser)
+  #   2. the issue product's single_mag.media_images first image - same
+  #      data-driven source the shop hero uses, so it matches automatically.
+  #   3. the issue product's featured image
+  #   4. e-mag_cover.jpg asset fallback
+  # Bump issue_handle each drop (mag10 -> mag11) or just pick an image.
+  assign cover = section.settings.cover_image
+  assign issue_handle = section.settings.issue_handle | default: 'mag10'
+  assign metafield_cover = null
+  assign issue_product = all_products[issue_handle]
+  if issue_product != blank and issue_product.id != blank
+    assign media_images = issue_product.metafields.single_mag.media_images.value
+    if media_images != blank
+      assign metafield_cover = media_images | first
+    endif
+    if metafield_cover == blank and issue_product.featured_image != blank
+      assign metafield_cover = issue_product.featured_image
+    endif
+  endif
+-%}
+
+<section
+  class="theinmag-addr theinmag-addr--{{ mode }}"
+  data-theinmag-addr
+  aria-labelledby="theinmag-addr-heading"
+>
+  <div class="theinmag-addr__inner">
+
+    <div class="theinmag-addr__cover-col">
+      {%- if cover != blank -%}
+        <img
+          src="{{ cover | image_url: width: 1200 }}"
+          alt="{{ section.settings.cover_alt | escape }}"
+          class="theinmag-addr__cover"
+          loading="eager"
+        >
+      {%- elsif metafield_cover != blank -%}
+        <img
+          src="{{ metafield_cover | image_url: width: 1200 }}"
+          alt="{{ section.settings.cover_alt | escape }}"
+          class="theinmag-addr__cover"
+          loading="eager"
+        >
+      {%- else -%}
+        <img
+          src="{{ 'e-mag_cover.jpg' | asset_url }}"
+          alt="{{ section.settings.cover_alt | escape }}"
+          class="theinmag-addr__cover"
+          loading="eager"
+        >
+      {%- endif -%}
+    </div>
+
+    <div class="theinmag-addr__copy-col">
+      <div class="theinmag-addr__panel">
+
+        <div class="theinmag-addr__toprow">
+          <div class="theinmag-addr__character-stage" data-theinmag-addr-stage>
+            <span class="theinmag-addr__character" data-theinmag-pool-character data-theinmag-addr-character></span>
+          </div>
+          <button
+            type="button"
+            class="theinmag-addr__switch"
+            data-theinmag-addr-switch
+            aria-label="Switch to a different character"
+          >
+            <svg class="theinmag-addr__switch-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 12a9 9 0 0 1 15.5-6.3M21 6v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 12a9 9 0 0 1-15.5 6.3M3 18v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Switch mINion</span>
+          </button>
+        </div>
+
+        <div class="theinmag-addr__card">
+          {%- if mode == 'form' -%}
+            {%- form 'contact', class: 'theinmag-addr__form' -%}
+              {%- if form.posted_successfully? -%}
+                <span data-addr-success hidden></span>
+                <p class="theinmag-addr__eyebrow">{{ section.settings.success_eyebrow | escape }}</p>
+                <h1 id="theinmag-addr-heading" class="theinmag-addr__heading">
+                  {{ section.settings.success_heading | escape }}
+                </h1>
+                <p class="theinmag-addr__sub">{{ section.settings.success_body | escape }}</p>
+              {%- else -%}
+                <p class="theinmag-addr__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+                <h1 id="theinmag-addr-heading" class="theinmag-addr__heading">
+                  {{ section.settings.heading | escape }}
+                </h1>
+                {%- if section.settings.body != blank -%}
+                  <p class="theinmag-addr__sub">{{ section.settings.body | escape }}</p>
+                {%- endif -%}
+                {%- if form.errors -%}
+                  <p class="theinmag-addr__form-error">{{ form.errors | default_errors }}</p>
+                {%- endif -%}
+
+                <input type="hidden" name="contact[--- CHANGE OF ADDRESS ---]" value="A subscriber updated their postal address. Update the master register and Shopify to match.">
+                <input type="hidden" name="contact[Reference code]" data-addr-ref value="">
+                <input type="email" name="contact[email]" class="theinmag-addr__input" required placeholder="Email your subscription is under" autocomplete="email">
+                <input type="text" name="contact[Magazine addressed to]" class="theinmag-addr__input" required placeholder="Who is the magazine addressed to?">
+                <input type="text" name="contact[Address line 1]" class="theinmag-addr__input" required placeholder="Address line 1 (street number and name)">
+                <input type="text" name="contact[Address line 2]" class="theinmag-addr__input" placeholder="Address line 2 (optional)">
+                <div class="theinmag-addr__input-row">
+                  <input type="text" name="contact[Suburb]" class="theinmag-addr__input" required placeholder="Suburb">
+                  <select name="contact[State]" class="theinmag-addr__input theinmag-addr__select" required aria-label="State">
+                    <option value="" disabled selected>State</option>
+                    <option>ACT</option>
+                    <option>NSW</option>
+                    <option>NT</option>
+                    <option>QLD</option>
+                    <option>SA</option>
+                    <option>TAS</option>
+                    <option>VIC</option>
+                    <option>WA</option>
+                  </select>
+                  <input type="text" name="contact[Postcode]" class="theinmag-addr__input" required placeholder="Postcode" inputmode="numeric">
+                </div>
+
+                <button type="submit" class="theinmag-addr__cta button">
+                  {{ section.settings.submit_label | default: 'Save my new address' | escape }}
+                </button>
+              {%- endif -%}
+            {%- endform -%}
+          {%- else -%}
+            <p class="theinmag-addr__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+            <h1 id="theinmag-addr-heading" class="theinmag-addr__heading">
+              {{ section.settings.heading | escape }}
+            </h1>
+            <p class="theinmag-addr__sub">{{ section.settings.body | escape }}</p>
+
+            {%- if section.settings.cta_label != blank -%}
+              <a href="{{ section.settings.cta_link }}" class="theinmag-addr__cta button">
+                {{ section.settings.cta_label | escape }}
+              </a>
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-addr {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: 0;
+  }
+
+  .theinmag-addr__inner {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-addr__inner {
+      grid-template-columns: 1fr 1fr;
+      min-height: 82vh;
+      align-items: stretch;
+    }
+  }
+
+  /* ---- Cover column: full bleed, edge to edge ---- */
+  .theinmag-addr__cover-col {
+    position: relative;
+    overflow: hidden;
+    min-height: 46vh;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-addr__cover-col {
+      min-height: 0;
+    }
+  }
+
+  .theinmag-addr__cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ---- Copy column ---- */
+  .theinmag-addr__copy-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(40px, 5vw, 72px) clamp(20px, 4vw, 64px);
+  }
+
+  .theinmag-addr__panel {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  /* On the form (NO) page, hide the character while the form is showing,
+     then reveal it as a little reward on the success confirmation. */
+  .theinmag-addr--form .theinmag-addr__toprow {
+    display: none;
+  }
+  .theinmag-addr--form.is-success .theinmag-addr__toprow {
+    display: flex;
+  }
+
+  /* Character peeks over the card; switch button sits to its right,
+     just above the card's top edge. */
+  .theinmag-addr__toprow {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(10px, 1.5vw, 16px);
+    margin-left: clamp(8px, 2vw, 24px);
+  }
+
+  .theinmag-addr__character-stage {
+    width: clamp(116px, 16vw, 150px);
+    aspect-ratio: 1 / 1;
+    margin-bottom: -30px;
+    transform-origin: center bottom;
+    transition: transform 0.32s cubic-bezier(0.55, 0, 0.7, 0.2);
+    pointer-events: none;
+    flex: 0 0 auto;
+  }
+
+  .theinmag-addr__character-stage.is-switching-out {
+    transform: scale(0) rotate(-18deg);
+  }
+
+  .theinmag-addr__character-stage.is-switching-in {
+    animation: theinmag-addr-pop-in 0.5s cubic-bezier(0.34, 1.7, 0.64, 1) both;
+  }
+
+  @keyframes theinmag-addr-pop-in {
+    0% { transform: scale(0) rotate(12deg); }
+    60% { transform: scale(1.08) rotate(-4deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+
+  .theinmag-addr__character {
+    display: block;
+    width: 100%;
+    opacity: 1;
+    transform: none;
+  }
+
+  .theinmag-addr__character-stage.is-switching-out .theinmag-pool-character__img,
+  .theinmag-addr__character-stage.is-switching-in .theinmag-pool-character__img {
+    animation: none;
+  }
+
+  .theinmag-addr__card {
+    position: relative;
+    z-index: 1;
+    background-color: #FFFFFF;
+    border-radius: 18px;
+    padding: clamp(26px, 3vw, 40px);
+    box-shadow: 0 10px 30px rgba(42, 31, 61, 0.10);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(12px, 1.6vw, 16px);
+    text-align: left;
+  }
+
+  .theinmag-addr__eyebrow {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-sandy-orange-dark, #D9783A);
+  }
+
+  .theinmag-addr__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', serif);
+    font-weight: 400;
+    font-size: clamp(26px, 3vw, 36px);
+    line-height: 1.15;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-addr__sub {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.7vw, 18px);
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.85;
+    max-width: 46ch;
+  }
+
+  /* Switch button - soft peach pill, same family as the 404. */
+  .theinmag-addr__switch {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    background-color: var(--color-peach, #FCDDB8);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+  }
+
+  .theinmag-addr__switch:hover,
+  .theinmag-addr__switch:focus-visible {
+    background-color: #F8C99E;
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  .theinmag-addr__switch:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-sandy-orange-dark, #D9783A);
+  }
+
+  .theinmag-addr__switch:active { transform: translateY(0); }
+  .theinmag-addr__switch:disabled { opacity: 0.6; cursor: wait; }
+
+  .theinmag-addr__switch-icon {
+    width: 15px;
+    height: 15px;
+    transition: transform 0.4s ease;
+  }
+
+  .theinmag-addr__switch:hover .theinmag-addr__switch-icon,
+  .theinmag-addr__switch:focus-visible .theinmag-addr__switch-icon {
+    transform: rotate(180deg);
+  }
+
+  .theinmag-addr__cta {
+    margin-top: clamp(8px, 1.4vw, 14px);
+  }
+
+  /* ---- Native contact form ---- */
+  .theinmag-addr__form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(10px, 1.4vw, 14px);
+  }
+
+  .theinmag-addr__form .theinmag-addr__eyebrow,
+  .theinmag-addr__form .theinmag-addr__heading,
+  .theinmag-addr__form .theinmag-addr__sub {
+    align-self: flex-start;
+  }
+
+  .theinmag-addr__sub + .theinmag-addr__input,
+  .theinmag-addr__heading + .theinmag-addr__input {
+    margin-top: clamp(4px, 1vw, 10px);
+  }
+
+  .theinmag-addr__input {
+    width: 100%;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 16px;
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    background-color: var(--color-cream, #FBF6EA);
+    border: 1.5px solid #E7E0CF;
+    border-radius: 10px;
+    padding: 12px 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .theinmag-addr__input::placeholder {
+    color: #9A9384;
+  }
+
+  .theinmag-addr__input:focus {
+    outline: none;
+    border-color: var(--color-sandy-orange-dark, #D9783A);
+    box-shadow: 0 0 0 3px rgba(217, 120, 58, 0.16);
+  }
+
+  .theinmag-addr__select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%232A1F3D' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  .theinmag-addr__input-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: clamp(8px, 1.2vw, 12px);
+  }
+
+  .theinmag-addr__form-error {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: #B3261E;
+  }
+
+  .theinmag-addr__form .theinmag-addr__cta {
+    margin-top: clamp(6px, 1.2vw, 12px);
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-addr__character-stage,
+    .theinmag-addr__switch,
+    .theinmag-addr__switch-icon {
+      transition: none;
+      animation: none;
+    }
+    .theinmag-addr__character-stage.is-switching-out,
+    .theinmag-addr__character-stage.is-switching-in {
+      transform: none;
+      animation: none;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-addr]');
+    if (!root) return;
+
+    var stage = root.querySelector('[data-theinmag-addr-stage]');
+    var slot = root.querySelector('[data-theinmag-addr-character]');
+    var btn = root.querySelector('[data-theinmag-addr-switch]');
+    if (!stage || !slot || !btn) return;
+
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var cacheKey = 'theinmagCharacterPool';
+    var validIndices = [];
+    var isSwapping = false;
+
+    btn.disabled = true;
+    waitForReady(function () {
+      validIndices = readCache() || [];
+      if (validIndices.length < 2) return;
+      btn.disabled = false;
+    });
+
+    btn.addEventListener('click', function () {
+      if (isSwapping || btn.disabled) return;
+      switchCharacter();
+    });
+
+    function switchCharacter() {
+      var img = slot.querySelector('img');
+      if (!img) return;
+      var currentIdx = parseIndex(img.src);
+      var nextIdx = pickDifferent(currentIdx);
+      if (nextIdx == null) return;
+
+      isSwapping = true;
+      btn.disabled = true;
+
+      if (reduced) { replaceImg(nextIdx); finish(); return; }
+
+      stage.classList.add('is-switching-out');
+      onceTransitionEnd(stage, 'transform', function () {
+        replaceImg(nextIdx);
+        stage.classList.remove('is-switching-out');
+        void stage.offsetWidth;
+        stage.classList.add('is-switching-in');
+        onceAnimationEnd(stage, function () {
+          stage.classList.remove('is-switching-in');
+          finish();
+        });
+      });
+    }
+
+    function finish() { isSwapping = false; btn.disabled = false; }
+
+    function replaceImg(n) {
+      var img = slot.querySelector('img');
+      if (!img) return;
+      img.src = img.src.replace(/character-\d+\.png/, 'character-' + n + '.png');
+    }
+
+    function pickDifferent(currentIdx) {
+      if (!validIndices.length) return null;
+      if (validIndices.length === 1) {
+        return validIndices[0] === currentIdx ? null : validIndices[0];
+      }
+      var next, attempts = 0;
+      do {
+        next = validIndices[Math.floor(Math.random() * validIndices.length)];
+        attempts++;
+      } while (next === currentIdx && attempts < 20);
+      return next === currentIdx ? null : next;
+    }
+
+    function parseIndex(src) {
+      var m = src.match(/character-(\d+)\.png/);
+      return m ? parseInt(m[1], 10) : null;
+    }
+
+    function readCache() {
+      try {
+        var raw = sessionStorage.getItem(cacheKey);
+        if (!raw) return null;
+        var parsed = JSON.parse(raw);
+        if (!parsed || !parsed.indices) return null;
+        return parsed.indices.slice();
+      } catch (e) { return null; }
+    }
+
+    function waitForReady(cb) {
+      var attempts = 0, maxAttempts = 100;
+      (function tick() {
+        if (slot.querySelector('img') && readCache()) { cb(); return; }
+        if (++attempts >= maxAttempts) return;
+        setTimeout(tick, 100);
+      })();
+    }
+
+    function onceTransitionEnd(el, prop, cb) {
+      var handler = function (e) {
+        if (e.propertyName && e.propertyName !== prop) return;
+        el.removeEventListener('transitionend', handler);
+        clearTimeout(fallback);
+        cb();
+      };
+      el.addEventListener('transitionend', handler);
+      var fallback = setTimeout(function () {
+        el.removeEventListener('transitionend', handler);
+        cb();
+      }, 600);
+    }
+
+    function onceAnimationEnd(el, cb) {
+      var handler = function () {
+        el.removeEventListener('animationend', handler);
+        clearTimeout(fallback);
+        cb();
+      };
+      el.addEventListener('animationend', handler);
+      var fallback = setTimeout(function () {
+        el.removeEventListener('animationend', handler);
+        cb();
+      }, 800);
+    }
+  })();
+</script>
+
+<script>
+  /* Prefill the hidden Reference code (member id) from the URL so the
+     emailed NO button carries it in silently. Footer visitors have no
+     id; the email field identifies them instead. */
+  (function () {
+    var ref = document.querySelector('[data-addr-ref]');
+    if (ref) {
+      try {
+        var p = new URLSearchParams(window.location.search);
+        var id = p.get('id') || p.get('member_id') || p.get('mid');
+        if (id) ref.value = id;
+      } catch (e) {}
+    }
+
+    /* On the form page, reveal the character only once the address has
+       been submitted (success state), as a small reward. */
+    var root = document.querySelector('[data-theinmag-addr].theinmag-addr--form');
+    if (root) {
+      var submitted = root.querySelector('[data-addr-success]')
+        || /[?&]contact_posted=true/.test(window.location.search);
+      if (submitted) {
+        root.classList.add('is-success');
+        /* Shopify's success URL carries ?contact_posted=true#contact_form,
+           which both jumps the viewport down AND keeps showing the success
+           note on refresh. Strip the whole query + hash so a reload returns
+           a fresh, empty form. The success message stays visible on this
+           render because it is already in the DOM. */
+        try {
+          history.replaceState(null, '', window.location.pathname);
+        } catch (e) {}
+        var toTop = function () { window.scrollTo(0, 0); };
+        toTop();
+        window.addEventListener('load', toTop);
+      }
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Address confirmation",
+  "tag": "section",
+  "class": "theinmag-address-confirmed-section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "mode",
+      "label": "Mode",
+      "options": [
+        { "value": "confirmed", "label": "Address confirmed (YES)" },
+        { "value": "form", "label": "Update address form (NO)" },
+        { "value": "updated", "label": "Address updated (after form)" }
+      ],
+      "default": "confirmed"
+    },
+    {
+      "type": "text",
+      "id": "issue_handle",
+      "label": "Issue product handle (auto cover)",
+      "info": "Pulls that product's cover, same as the shop hero. Bump per drop, e.g. mag10 then mag11.",
+      "default": "mag10"
+    },
+    {
+      "type": "image_picker",
+      "id": "cover_image",
+      "label": "Issue cover image (manual override)"
+    },
+    {
+      "type": "text",
+      "id": "cover_alt",
+      "label": "Cover alt text",
+      "default": "The latest issue of theINmag"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Address confirmed"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Beauty, you're all locked in."
+    },
+    {
+      "type": "textarea",
+      "id": "body",
+      "label": "Body",
+      "default": "Thanks for confirming. Mag10 ships on the 10th of June and it's heading to the address we've got for you. Keep an eye on the letterbox."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label (optional)",
+      "default": "Back to theINmag"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Form mode only"
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Form submit button",
+      "default": "Save my new address"
+    },
+    {
+      "type": "text",
+      "id": "success_eyebrow",
+      "label": "Success eyebrow",
+      "default": "Address updated"
+    },
+    {
+      "type": "text",
+      "id": "success_heading",
+      "label": "Success heading",
+      "default": "Got it, that's sorted."
+    },
+    {
+      "type": "textarea",
+      "id": "success_body",
+      "label": "Success body",
+      "default": "We've got your new address and we'll make sure Mag10 ships to the right spot on the 10th of June. Nothing else to do."
+    }
+  ],
+  "presets": [
+    { "name": "Address confirmation" }
+  ]
+}
+{% endschema %}
