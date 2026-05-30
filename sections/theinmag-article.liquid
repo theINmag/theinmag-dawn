@@ -728,6 +728,26 @@
   if org_logo_url == blank
     assign org_logo_url = 'theINmag_logo.png' | asset_url | prepend: 'https:'
   endif
+
+  comment
+    Absolute https avatar URL for the founder author's Person.image
+    (E-E-A-T). Mirrors the og_image_url protocol handling. Kids never
+    reach this - is_kid authors carry no avatar by the locked privacy rule.
+  endcomment
+  assign author_image_url = ''
+  if author_avatar != blank
+    assign author_image_url = author_avatar | image_url: width: 600
+  elsif author_avatar_filename != blank
+    assign author_image_url = author_avatar_filename | asset_url
+  endif
+  if author_image_url != blank
+    unless author_image_url contains 'http'
+      assign author_image_url = author_image_url | prepend: 'https:'
+    endunless
+    if author_image_url contains 'https:https:'
+      assign author_image_url = author_image_url | replace: 'https:https:', 'https:'
+    endif
+  endif
 -%}
 
 <script type="application/ld+json">
@@ -769,6 +789,9 @@
       {%- endcomment -%}
       "@id": {{ author_person_id | prepend: root_url | json }},
       "name": {{ author_legal_name | json }}
+      {%- if author_image_url != blank -%}
+        ,"image": {{ author_image_url | json }}
+      {%- endif -%}
       {%- if author_role != blank -%}
         ,"jobTitle": {{ author_role | json }}
       {%- endif -%}
@@ -1985,7 +2008,8 @@
       "type": "text",
       "id": "ryan_avatar_filename",
       "label": "Avatar fallback filename",
-      "info": "Used when the picker is empty. Filename of an image in /assets/."
+      "info": "Used when the picker is empty. Filename of an image in /assets/.",
+      "default": "ryan_headshot.jpg"
     },
     {
       "type": "text",
@@ -2053,7 +2077,8 @@
     {
       "type": "text",
       "id": "tam_avatar_filename",
-      "label": "Avatar fallback filename"
+      "label": "Avatar fallback filename",
+      "default": "tam_headshot.jpg"
     },
     {
       "type": "text",
