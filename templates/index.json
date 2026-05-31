@@ -14,7 +14,9 @@
         "trust_1": "Printed sustainably in Australia",
         "trust_2": "100% kid-created",
         "trust_3": "Always ad-free",
-        "trust_4": "Tri-annual"
+        "trust_4": "Tri-annual",
+        "image_left": "shopify://shop_images/HERO_kid-reading-mag.jpg",
+        "image_right": "shopify://shop_images/HERO_kid-creation-art.jpg"
       }
     },
     "theinmag_mission": {
@@ -108,14 +110,58 @@
     "theinmag_press_band": {
       "type": "theinmag-press-band",
       "blocks": {
-        "press-1": { "type": "press_logo", "settings": { "fallback_filename": "press-1.png", "alt": "Press mention" } },
-        "press-2": { "type": "press_logo", "settings": { "fallback_filename": "press-2.png", "alt": "Press mention" } },
-        "press-3": { "type": "press_logo", "settings": { "fallback_filename": "press-3.png", "alt": "Press mention" } },
-        "press-4": { "type": "press_logo", "settings": { "fallback_filename": "press-4.png", "alt": "Press mention" } },
-        "press-5": { "type": "press_logo", "settings": { "fallback_filename": "press-5.png", "alt": "Press mention", "size": "large" } },
-        "press-6": { "type": "press_logo", "settings": { "fallback_filename": "press-6.png", "alt": "Press mention" } }
+        "press-1": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-1.png",
+            "alt": "Press mention"
+          }
+        },
+        "press-2": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-2.png",
+            "alt": "Press mention"
+          }
+        },
+        "press-3": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-3.png",
+            "alt": "Press mention"
+          }
+        },
+        "press-4": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-4.png",
+            "alt": "Press mention"
+          }
+        },
+        "press-5": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-5.png",
+            "alt": "Press mention",
+            "size": "large"
+          }
+        },
+        "press-6": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-6.png",
+            "alt": "Press mention"
+          }
+        }
       },
-      "block_order": ["press-1", "press-2", "press-3", "press-4", "press-5", "press-6"],
+      "block_order": [
+        "press-1",
+        "press-2",
+        "press-3",
+        "press-4",
+        "press-5",
+        "press-6"
+      ],
       "settings": {
         "heading": "Seen IN"
       }
@@ -273,7 +319,11 @@
           }
         }
       },
-      "block_order": ["review-1", "review-2", "review-3"],
+      "block_order": [
+        "review-1",
+        "review-2",
+        "review-3"
+      ],
       "settings": {
         "heading": "",
         "use_judgeme_widget": false,
@@ -370,7 +420,12 @@
           }
         }
       },
-      "block_order": ["post-1", "post-2", "post-3", "post-4"]
+      "block_order": [
+        "post-1",
+        "post-2",
+        "post-3",
+        "post-4"
+      ]
     },
     "theinmag_faq": {
       "type": "theinmag-faq",
@@ -411,7 +466,13 @@
           }
         }
       },
-      "block_order": ["faq-1", "faq-2", "faq-3", "faq-4", "faq-5"],
+      "block_order": [
+        "faq-1",
+        "faq-2",
+        "faq-3",
+        "faq-4",
+        "faq-5"
+      ],
       "settings": {
         "heading": "Questions we get <em>asked</em> the <em>most</em>",
         "show_cta": true,
