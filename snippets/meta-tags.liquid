@@ -13,6 +13,16 @@
   endif
 %}
 
+{%- comment -%}
+  theINmag - keep the address-check utility pages out of search. They are
+  evergreen YES/NO landings reached only via a private Klaviyo link, not
+  meant to be discoverable. noindex,follow so any links still pass through.
+{%- endcomment -%}
+{%- assign noindex_handles = 'address-confirmed,update-address' | split: ',' -%}
+{%- if request.page_type == 'page' and noindex_handles contains page.handle -%}
+  <meta name="robots" content="noindex,follow">
+{%- endif -%}
+
 <meta property="og:site_name" content="{{ shop.name }}">
 <meta property="og:url" content="{{ og_url }}">
 <meta property="og:title" content="{{ og_title | escape }}">
