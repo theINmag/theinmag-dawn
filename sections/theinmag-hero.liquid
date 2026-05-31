@@ -87,7 +87,6 @@
           height="{{ image_left.height }}"
           alt="{{ image_left_alt | escape }}"
           loading="eager"
-          fetchpriority="high"
         >
       {%- else -%}
         <img
@@ -95,7 +94,6 @@
           src="{{ image_left_filename | asset_url }}"
           alt="{{ image_left_alt | escape }}"
           loading="eager"
-          fetchpriority="high"
         >
       {%- endif -%}
 
@@ -103,9 +101,12 @@
     </div>
 
     {%- comment -%}
-      RIGHT pane - kid creation artwork. Visible at every viewport.
-      Carries its own scrim that activates on mobile when the artwork
-      is the sole image and content overlays it.
+      RIGHT pane - kid creation artwork. Visible at every viewport, so it
+      is the LCP element on mobile (where the left pane is hidden). It
+      carries fetchpriority="high" instead of the left image so the
+      browser doesn't spend the high-priority slot on a hidden image.
+      It also carries its own scrim that activates on mobile when the
+      artwork is the sole image and content overlays it.
     {%- endcomment -%}
     <div class="theinmag-hero__pane theinmag-hero__pane--right">
       {%- if image_right != blank -%}
@@ -124,6 +125,7 @@
           height="{{ image_right.height }}"
           alt="{{ image_right_alt | escape }}"
           loading="eager"
+          fetchpriority="high"
         >
       {%- else -%}
         <img
@@ -131,6 +133,7 @@
           src="{{ image_right_filename | asset_url }}"
           alt="{{ image_right_alt | escape }}"
           loading="eager"
+          fetchpriority="high"
         >
       {%- endif -%}
 
