@@ -84,6 +84,18 @@
     event.preventDefault();
     var variantId = btn.getAttribute('data-variant-id');
     if (!variantId) return;
+
+    /* Safety net: a membership must always be bought through its own form /
+       popup, which stamps properties[_starting_mag] (the starting issue).
+       If a membership variant ever reaches this generic quick-add path the
+       starting issue would be lost (see order #51018), so bounce to the
+       membership PDP to choose instead of a blank, property-less add. */
+    var ownerCard = btn.closest('[data-product-handle]');
+    if (ownerCard && ownerCard.getAttribute('data-product-handle') === 'membership') {
+      window.location.href = '/products/membership';
+      return;
+    }
+
     if (btn._pending) return;
     btn._pending = true;
 

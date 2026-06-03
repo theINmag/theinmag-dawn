@@ -205,10 +205,13 @@
     Membership tile has 3 selector axes (Format / Length / Starting Issue)
     that don't fit a two-row add-to-cart pattern, so on /shop it gets a
     single CTA that opens the membership picker popup
-    (snippets/theinmag-membership-popup.liquid). Only triggered in shop
-    context - the BaB picker never includes the membership product.
+    (snippets/theinmag-membership-popup.liquid). Routed for the membership
+    product in EVERY context (not just shop) so it can never fall through to
+    a generic Add button that would omit properties[_starting_mag] - the
+    starting issue lives in the popup/form. The BaB picker never includes the
+    membership product anyway.
   {%- endcomment -%}
-  {%- if tile_context == 'shop' and product.handle == 'membership' -%}
+  {%- if product.handle == 'membership' -%}
     <button
       type="button"
       class="theinmag-bundle-tile__join"
