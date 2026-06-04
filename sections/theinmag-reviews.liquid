@@ -61,10 +61,6 @@
   assign invite_heading = section.settings.invite_heading
   assign invite_text = section.settings.invite_text
   assign invite_cta = section.settings.invite_cta
-  assign rmodal_title = section.settings.rmodal_title
-  assign rmodal_body = section.settings.rmodal_body
-  assign rmodal_cta = section.settings.rmodal_cta
-  assign rmodal_note = section.settings.rmodal_note
 
   assign bg_src = ''
   if section.settings.background_image != blank
@@ -170,11 +166,11 @@
 
     {%- if show_review_invite and store_review_link != blank -%}
       <div class="theinmag-reviews__invite">
-        <button
-          type="button"
+        <a
           class="theinmag-reviews__invite-card"
-          data-theinmag-rmodal-open
-          aria-haspopup="dialog"
+          href="{{ store_review_link }}"
+          target="_blank"
+          rel="noopener"
         >
           <span class="theinmag-reviews__invite-stars" aria-hidden="true">
             {%- for i in (1..5) -%}<span class="theinmag-reviews__star" style="--fill: 100%"></span>{%- endfor -%}
@@ -184,7 +180,7 @@
             {%- if invite_text != blank -%}<span class="theinmag-reviews__invite-text">{{ invite_text }}</span>{%- endif -%}
           </span>
           <span class="theinmag-reviews__invite-cta">{{ invite_cta | default: 'Write a review' }}</span>
-        </button>
+        </a>
       </div>
     {%- endif -%}
 
@@ -344,66 +340,6 @@
       </div>
     {%- endif -%}
   </div>
-
-  {%- if show_review_invite and store_review_link != blank -%}
-    <div
-      class="theinmag-reviews__rmodal"
-      data-theinmag-rmodal
-      data-store-review-link="{{ store_review_link | escape }}"
-      hidden
-      aria-hidden="true"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="theinmag-rmodal-title"
-    >
-      <div class="theinmag-reviews__rmodal-backdrop" data-theinmag-rmodal-close></div>
-
-      <div class="theinmag-reviews__rmodal-panel" role="document">
-        <button
-          class="theinmag-reviews__rmodal-x"
-          type="button"
-          aria-label="Close"
-          data-theinmag-rmodal-close
-        >
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <line x1="4" y1="4" x2="16" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <line x1="16" y1="4" x2="4" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </button>
-
-        <h2 id="theinmag-rmodal-title" class="theinmag-reviews__rmodal-title">{{ rmodal_title | default: 'Did theINmag spark something?' }}</h2>
-        {%- if rmodal_body != blank -%}
-          <p class="theinmag-reviews__rmodal-body">{{ rmodal_body }}</p>
-        {%- endif -%}
-
-        <div class="theinmag-reviews__rmodal-stars" role="group" aria-label="Choose a star rating to start your review">
-          {%- for i in (1..5) -%}
-            <button
-              type="button"
-              class="theinmag-reviews__rmodal-star"
-              data-theinmag-rmodal-star
-              data-rating="{{ i }}"
-              aria-label="{{ i }} star{% if i > 1 %}s{% endif %}"
-            >
-              <span class="theinmag-reviews__star"></span>
-            </button>
-          {%- endfor -%}
-        </div>
-
-        <a
-          class="theinmag-reviews__rmodal-go"
-          data-theinmag-rmodal-go
-          href="{{ store_review_link }}"
-          target="_blank"
-          rel="noopener"
-        >{{ rmodal_cta | default: 'Write my review' }}</a>
-
-        {%- if rmodal_note != blank -%}
-          <p class="theinmag-reviews__rmodal-note">{{ rmodal_note }}</p>
-        {%- endif -%}
-      </div>
-    </div>
-  {%- endif -%}
 </section>
 
 <script>
@@ -438,96 +374,6 @@
       init();
     }
     window.addEventListener('load', function () { setTimeout(init, 50); });
-  })();
-</script>
-
-<script>
-  /* Review-invite bridge modal. The hosted Judge.me store-review form
-     can't be iframed (x-frame-options: SAMEORIGIN), so this branded
-     modal opens it in a new tab with the tapped rating pre-filled via a
-     &rating=N param appended to the locked store-review link. */
-  (function () {
-    var modal = document.querySelector('[data-theinmag-rmodal]');
-    if (!modal) return;
-
-    var openers = document.querySelectorAll('[data-theinmag-rmodal-open]');
-    var closers = modal.querySelectorAll('[data-theinmag-rmodal-close]');
-    var stars = Array.prototype.slice.call(modal.querySelectorAll('[data-theinmag-rmodal-star]'));
-    var goLink = modal.querySelector('[data-theinmag-rmodal-go]');
-    var panel = modal.querySelector('.theinmag-reviews__rmodal-panel');
-    var baseLink = modal.getAttribute('data-store-review-link') || (goLink && goLink.getAttribute('href')) || '';
-    var lastOpener = null;
-
-    function linkFor(rating) {
-      if (!rating) return baseLink;
-      var sep = baseLink.indexOf('?') === -1 ? '?' : '&';
-      return baseLink + sep + 'rating=' + rating;
-    }
-
-    function paint(n) {
-      stars.forEach(function (s, idx) { s.classList.toggle('is-on', idx < n); });
-    }
-
-    function openModal(opener) {
-      lastOpener = opener || null;
-      modal.hidden = false;
-      modal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-      // Reflow before adding the class so the CSS transition runs.
-      void modal.offsetWidth;
-      modal.classList.add('is-open');
-      paint(0);
-      if (stars[0]) stars[0].focus();
-    }
-
-    function closeModal() {
-      modal.classList.remove('is-open');
-      modal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
-      window.setTimeout(function () { modal.hidden = true; }, 200);
-      if (lastOpener && typeof lastOpener.focus === 'function') lastOpener.focus();
-    }
-
-    Array.prototype.forEach.call(openers, function (btn) {
-      btn.addEventListener('click', function () { openModal(btn); });
-    });
-    Array.prototype.forEach.call(closers, function (btn) {
-      btn.addEventListener('click', closeModal);
-    });
-
-    stars.forEach(function (star) {
-      var rating = parseInt(star.getAttribute('data-rating'), 10) || 0;
-      star.addEventListener('mouseenter', function () { paint(rating); });
-      star.addEventListener('focus', function () { paint(rating); });
-      star.addEventListener('click', function () {
-        window.open(linkFor(rating), '_blank', 'noopener');
-        closeModal();
-      });
-    });
-
-    var starWrap = modal.querySelector('.theinmag-reviews__rmodal-stars');
-    if (starWrap) starWrap.addEventListener('mouseleave', function () { paint(0); });
-
-    // The plain "Write my review" button uses the base link (no rating).
-    if (goLink) {
-      goLink.addEventListener('click', function () {
-        window.setTimeout(closeModal, 10);
-      });
-    }
-
-    document.addEventListener('keydown', function (e) {
-      if (modal.hidden) return;
-      if (e.key === 'Escape') { closeModal(); return; }
-      // Simple focus trap inside the panel.
-      if (e.key === 'Tab' && panel) {
-        var focusable = panel.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])');
-        if (!focusable.length) return;
-        var first = focusable[0];
-        var last = focusable[focusable.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
-    });
   })();
 </script>
 
@@ -1225,175 +1071,9 @@
     font-weight: 600;
   }
 
-  /* ================================================================
-     Review-invite modal (bridge to the Judge.me store-review form).
-     ================================================================ */
-
-  .theinmag-reviews__rmodal {
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: clamp(16px, 4vw, 32px);
-  }
-
-  .theinmag-reviews__rmodal[hidden] {
-    display: none;
-  }
-
-  .theinmag-reviews__rmodal-backdrop {
-    position: absolute;
-    inset: 0;
-    background-color: rgba(42, 31, 61, 0.55);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  .theinmag-reviews__rmodal.is-open .theinmag-reviews__rmodal-backdrop {
-    opacity: 1;
-  }
-
-  .theinmag-reviews__rmodal-panel {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 460px;
-    background-color: var(--color-cream, #FBF6EA);
-    border-radius: 14px;
-    box-shadow: 0 20px 60px rgba(42, 31, 61, 0.4);
-    padding: clamp(28px, 4vw, 40px) clamp(22px, 3vw, 36px) clamp(24px, 3vw, 32px);
-    text-align: center;
-    transform: translateY(12px) scale(0.98);
-    opacity: 0;
-    transition: transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.2s ease;
-  }
-
-  .theinmag-reviews__rmodal.is-open .theinmag-reviews__rmodal-panel {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-
-  .theinmag-reviews__rmodal-x {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    appearance: none;
-    background: none;
-    border: 0;
-    padding: 8px;
-    cursor: pointer;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-    line-height: 0;
-  }
-
-  .theinmag-reviews__rmodal-x:hover,
-  .theinmag-reviews__rmodal-x:focus-visible {
-    opacity: 1;
-    outline: none;
-  }
-
-  .theinmag-reviews__rmodal-title {
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-weight: 400;
-    font-size: clamp(22px, 3.2vw, 30px);
-    line-height: 1.15;
-    margin: 0 0 10px;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-  }
-
-  .theinmag-reviews__rmodal-body {
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 400;
-    font-size: clamp(13.5px, 1.4vw, 15px);
-    line-height: 1.55;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.8;
-    margin: 0 auto clamp(18px, 2.4vw, 24px);
-    max-width: 34ch;
-  }
-
-  .theinmag-reviews__rmodal-stars {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(6px, 1.2vw, 10px);
-    margin-bottom: clamp(18px, 2.4vw, 24px);
-  }
-
-  .theinmag-reviews__rmodal-star {
-    appearance: none;
-    background: none;
-    border: 0;
-    padding: 4px;
-    cursor: pointer;
-    line-height: 0;
-    transition: transform 0.15s ease;
-  }
-
-  .theinmag-reviews__rmodal-star:hover,
-  .theinmag-reviews__rmodal-star:focus-visible {
-    transform: scale(1.12);
-    outline: none;
-  }
-
-  .theinmag-reviews__rmodal-star .theinmag-reviews__star {
-    width: 34px;
-    height: 34px;
-    flex: 0 0 34px;
-    --fill: 0%;
-  }
-
-  .theinmag-reviews__rmodal-star.is-on .theinmag-reviews__star {
-    --fill: 100%;
-  }
-
-  .theinmag-reviews__rmodal-go {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-yellow, #F9C23C);
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    border-radius: 32px;
-    padding: 11px 28px;
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: 14px;
-    line-height: 1;
-    letter-spacing: 0.01em;
-    text-decoration: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .theinmag-reviews__rmodal-go:hover,
-  .theinmag-reviews__rmodal-go:focus-visible {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(249, 194, 60, 0.5);
-    outline: none;
-  }
-
-  .theinmag-reviews__rmodal-note {
-    margin: clamp(12px, 1.6vw, 16px) 0 0;
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-size: 11.5px;
-    line-height: 1.4;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.6;
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .theinmag-reviews__invite-card,
-    .theinmag-reviews__rmodal-backdrop,
-    .theinmag-reviews__rmodal-panel,
-    .theinmag-reviews__rmodal-star,
-    .theinmag-reviews__rmodal-go {
+    .theinmag-reviews__invite-card {
       transition: none;
-    }
-    .theinmag-reviews__rmodal-panel {
-      transform: none;
     }
   }
 {%- endstylesheet -%}
@@ -1562,30 +1242,6 @@
       "id": "invite_cta",
       "label": "Invite button label",
       "default": "Write a review"
-    },
-    {
-      "type": "text",
-      "id": "rmodal_title",
-      "label": "Popup title",
-      "default": "What do you enjoy about theINmag?"
-    },
-    {
-      "type": "textarea",
-      "id": "rmodal_body",
-      "label": "Popup text",
-      "default": "Tap a star to start. Go on, make our day!"
-    },
-    {
-      "type": "text",
-      "id": "rmodal_cta",
-      "label": "Popup button label",
-      "default": "Write my review"
-    },
-    {
-      "type": "text",
-      "id": "rmodal_note",
-      "label": "Popup small print",
-      "default": "Opens our review form in a new tab."
     },
     {
       "type": "header",

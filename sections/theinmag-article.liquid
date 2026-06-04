@@ -959,6 +959,14 @@
     will-change: filter, transform;
   }
 
+  /* Real Kids Voices covers are the kid's artwork - anchor the crop to
+     the top so the top of the piece (often the subject, e.g. the
+     giraffe's head in Mr. Bongo) stays in frame instead of being cropped
+     out by the cover fill. */
+  .theinmag-article--kid .theinmag-article__cover-image {
+    object-position: top center;
+  }
+
   .theinmag-article__cover-placeholder {
     position: absolute;
     inset: 0;
