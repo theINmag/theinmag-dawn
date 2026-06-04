@@ -384,24 +384,59 @@
 
       var media = document.createElement('div');
       media.className = 'theinmag-gallery-card__media';
-      var img = document.createElement('img');
-      img.className = 'theinmag-gallery-card__image';
-      // Reserve the exact box BEFORE the image loads so tiles don't jump/drop
-      // as they paint in - and so the infinite-scroll height math is accurate.
-      if (c.cover_w && c.cover_h) img.style.aspectRatio = c.cover_w + ' / ' + c.cover_h;
-      img.src = cover;
-      img.alt = c.alt_text || '';
-      img.loading = 'lazy';
-      img.decoding = 'async';
-      img.setAttribute('draggable', 'false');
-      img.setAttribute('oncontextmenu', 'return false;');
-      media.appendChild(img);
+
       if (c.images.length > 1) {
+        // Multi-page submission. On mobile the media is a native horizontal
+        // swipe carousel through every page (nobody opens the lightbox on a
+        // phone). On desktop it shows only the first page (others display:none
+        // so they aren't downloaded) and a tap still opens the lightbox.
+        media.className += ' theinmag-gallery-card__media--multi';
+        if (c.cover_w && c.cover_h) media.style.setProperty('--gallery-card-ar', c.cover_w + ' / ' + c.cover_h);
+        var cw = this.coverWidth();
+        var track = document.createElement('div');
+        track.className = 'theinmag-gallery-card__track';
+        for (var k = 0; k < c.images.length; k++) {
+          var slide = document.createElement('img');
+          slide.className = 'theinmag-gallery-card__image theinmag-gallery-card__slide';
+          if (k === 0 && c.cover_w && c.cover_h) slide.style.aspectRatio = c.cover_w + ' / ' + c.cover_h;
+          slide.src = (k === 0) ? cover : sized(c.images[k], cw);
+          slide.alt = c.alt_text || '';
+          slide.loading = 'lazy';
+          slide.decoding = 'async';
+          slide.setAttribute('draggable', 'false');
+          slide.setAttribute('oncontextmenu', 'return false;');
+          track.appendChild(slide);
+        }
+        media.appendChild(track);
+
         var badge = document.createElement('span');
         badge.className = 'theinmag-gallery-card__badge';
         badge.setAttribute('aria-label', c.images.length + ' pages');
         badge.innerHTML = '<span class="theinmag-gallery-card__badge-current">1</span>/<span class="theinmag-gallery-card__badge-total">' + c.images.length + '</span>';
         media.appendChild(badge);
+
+        // Keep the badge's current-page number in sync as the carousel is swiped.
+        (function (trk, bdg, total) {
+          trk.addEventListener('scroll', function () {
+            var w = trk.clientWidth || 1;
+            var idx = Math.min(total, Math.max(1, Math.round(trk.scrollLeft / w) + 1));
+            var cur = bdg.querySelector('.theinmag-gallery-card__badge-current');
+            if (cur) cur.textContent = idx;
+          }, { passive: true });
+        })(track, badge, c.images.length);
+      } else {
+        var img = document.createElement('img');
+        img.className = 'theinmag-gallery-card__image';
+        // Reserve the exact box BEFORE the image loads so tiles don't jump/drop
+        // as they paint in - and so the infinite-scroll height math is accurate.
+        if (c.cover_w && c.cover_h) img.style.aspectRatio = c.cover_w + ' / ' + c.cover_h;
+        img.src = cover;
+        img.alt = c.alt_text || '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.setAttribute('draggable', 'false');
+        img.setAttribute('oncontextmenu', 'return false;');
+        media.appendChild(img);
       }
       article.appendChild(media);
 

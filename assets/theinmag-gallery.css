@@ -567,6 +567,45 @@
   pointer-events: none;
 }
 
+/* Multi-page cards: desktop shows the cover only (tap opens the lightbox);
+   mobile turns the media into a native horizontal swipe carousel of every
+   page. Non-first pages are display:none on desktop so they aren't fetched. */
+.theinmag-gallery-card__track {
+  display: block;
+  line-height: 0;
+}
+
+.theinmag-gallery-card__media--multi .theinmag-gallery-card__slide:not(:first-child) {
+  display: none;
+}
+
+@media (max-width: 749px) {
+  .theinmag-gallery-card__media--multi .theinmag-gallery-card__track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    aspect-ratio: var(--gallery-card-ar, 4 / 3);
+  }
+
+  .theinmag-gallery-card__media--multi .theinmag-gallery-card__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Selector carries .track so it ties the desktop `:not(:first-child)` hide
+     rule on specificity and wins on source order - otherwise the extra pages
+     stay display:none on mobile and the track can't scroll. */
+  .theinmag-gallery-card__media--multi .theinmag-gallery-card__track .theinmag-gallery-card__slide {
+    display: block;
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    scroll-snap-align: center;
+  }
+}
+
 .theinmag-gallery-card__badge {
   position: absolute;
   bottom: 8px;
@@ -640,6 +679,14 @@
   inset: 0;
   background-color: rgba(20, 15, 30, 0.95);
   cursor: pointer;
+}
+
+/* The backdrop is an empty div, and Dawn's base.css `div:empty { display:none }`
+   (specificity 0,1,1) was collapsing it - so the dark scrim never painted and
+   the gallery behind the preview stayed bright. Re-assert display with the
+   parent class (0,2,0) so it wins. Clicking it still closes the lightbox. */
+.theinmag-gallery-lightbox .theinmag-gallery-lightbox__backdrop {
+  display: block;
 }
 
 .theinmag-gallery-lightbox__panel {
