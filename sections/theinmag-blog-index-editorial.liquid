@@ -795,6 +795,12 @@
     transition: transform 0.5s ease;
   }
 
+  /* Kid-art covers (Real Kids Voices) anchor to the top so the subject's
+     head stays in frame rather than being cropped by the cover fill. */
+  .theinmag-editorial__card-image--top {
+    object-position: top center;
+  }
+
   .theinmag-editorial__card:hover .theinmag-editorial__card-image,
   .theinmag-editorial__card:focus-visible .theinmag-editorial__card-image {
     transform: scale(1.04);

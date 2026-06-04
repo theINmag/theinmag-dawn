@@ -109,6 +109,18 @@
     endif
   endif
 
+  comment
+    Real Kids Voices covers are the kid's own artwork (e.g. Mr. Bongo's
+    giraffe). Anchor those covers to the top so the top of the piece -
+    often the subject's head - stays in frame instead of being cropped
+    by object-fit: cover. Keyed on the kid_first_name metafield, the same
+    signal the article template uses for kid mode.
+  endcomment
+  assign is_kid_art = false
+  if article != blank and article.metafields.field_notes.kid_first_name != blank
+    assign is_kid_art = true
+  endif
+
   assign card_class = 'theinmag-editorial__card theinmag-editorial__card--' | append: variant
   if extra_class != blank
     assign card_class = card_class | append: ' ' | append: extra_class
@@ -124,7 +136,7 @@
   <span class="theinmag-editorial__card-cover">
     {%- if image_src != blank -%}
       <img
-        class="theinmag-editorial__card-image"
+        class="theinmag-editorial__card-image{% if is_kid_art %} theinmag-editorial__card-image--top{% endif %}"
         src="{{ image_src }}"
         alt="{{ image_alt | escape }}"
         loading="lazy"

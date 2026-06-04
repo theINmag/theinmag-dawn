@@ -143,6 +143,15 @@
                 endif
                 assign card_alt = article.image.alt | default: card_title
 
+                comment
+                  Real Kids Voices covers (the kid's artwork) anchor to the
+                  top so the subject's head isn't cropped by the cover fill.
+                endcomment
+                assign is_kid_art = false
+                if article.metafields.field_notes.kid_first_name != blank
+                  assign is_kid_art = true
+                endif
+
                 assign full_body = article.content | strip_html
 
                 capture search_hay
@@ -167,7 +176,7 @@
                 <span class="theinmag-archive__cover">
                   {%- if card_image != blank -%}
                     <img
-                      class="theinmag-archive__image"
+                      class="theinmag-archive__image{% if is_kid_art %} theinmag-archive__image--top{% endif %}"
                       src="{{ card_image }}"
                       alt="{{ card_alt | escape }}"
                       loading="lazy"
@@ -591,6 +600,12 @@
     height: 100%;
     object-fit: cover;
     transition: transform 0.4s ease;
+  }
+
+  /* Kid-art covers (Real Kids Voices) anchor to the top so the subject's
+     head stays in frame rather than being cropped by the cover fill. */
+  .theinmag-archive__image--top {
+    object-position: top center;
   }
 
   .theinmag-archive__card:hover .theinmag-archive__image,
