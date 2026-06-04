@@ -43,6 +43,19 @@
   assign founder_two_role = section.settings.founder_two_role | default: 'Co-founder'
   assign org_name = section.settings.org_name | default: 'theINmag'
   assign org_url = section.settings.org_url | default: 'https://theinmag.com.au'
+
+  comment
+    Handwritten founders annotation overlaid on the photo. Decorative
+    (aria-hidden) - the founders are already named in the photo alt text
+    and the Person JSON-LD below, so this is a brand flourish, not
+    content a screen reader needs repeated. Caveat (the site emphasis
+    font) gives the hand-lettered feel; white + text-shadow per the
+    on-photography text rule (no coloured pills over photos).
+  endcomment
+  assign show_founder_labels = section.settings.show_founder_labels
+  assign label_intro = section.settings.label_intro | default: 'co-founders & creators'
+  assign label_left = section.settings.label_left | default: 'Tam'
+  assign label_right = section.settings.label_right | default: 'Ryan'
 -%}
 
 <section
@@ -94,6 +107,34 @@
             width="1200"
             height="1500"
           >
+
+          {%- if show_founder_labels -%}
+            <div class="theinmag-philosophy__labels" aria-hidden="true">
+              {%- if label_intro != blank -%}
+                <span class="theinmag-philosophy__label theinmag-philosophy__label--intro">{{ label_intro }}</span>
+              {%- endif -%}
+
+              {%- if label_left != blank -%}
+                <span class="theinmag-philosophy__label theinmag-philosophy__label--left">
+                  <span class="theinmag-philosophy__label-text">{{ label_left }}</span>
+                  <svg class="theinmag-philosophy__arrow theinmag-philosophy__arrow--left" viewBox="0 0 64 60" width="60" height="56" fill="none">
+                    <path d="M8 8 C 26 12, 44 20, 52 44" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+                    <path d="M40 42 L 54 47 L 49 33" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              {%- endif -%}
+
+              {%- if label_right != blank -%}
+                <span class="theinmag-philosophy__label theinmag-philosophy__label--right">
+                  <span class="theinmag-philosophy__label-text">{{ label_right }}</span>
+                  <svg class="theinmag-philosophy__arrow theinmag-philosophy__arrow--right" viewBox="0 0 64 60" width="60" height="56" fill="none">
+                    <path d="M56 8 C 38 12, 20 20, 12 44" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+                    <path d="M24 42 L 10 47 L 15 33" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
         {%- endif -%}
       </div>
 
@@ -311,6 +352,93 @@
       height: 100%;
       aspect-ratio: auto;
     }
+  }
+
+  /* ================================================================
+     Handwritten founders annotation - "co-founders & creators" plus a
+     named, arrowed label pointing at each person. Sits inside photo-wrap
+     (which clips to the photo). White Caveat + text-shadow per the
+     on-photography text rule. Positions are percentage-based and tuned
+     to the desktop crop of HERO_founders-atthemarket.jpg (Tam left,
+     Ryan right); they hold up reasonably on the mobile 4:5 crop too.
+     Decorative + pointer-events:none so it never blocks the photo.
+     ================================================================ */
+
+  .theinmag-philosophy__labels {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    color: #FFFFFF;
+  }
+
+  /* Soft dark scrim across the top of the photo so the white labels stay
+     legible even where the market-tent background behind the founders is
+     bright. The design rule for text on photography is white on a soft
+     scrim with shadow - never a coloured pill - so this is a gradient,
+     not a box. Tinted with the brand inky-purple-navy. */
+  .theinmag-philosophy__labels::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56%;
+    background: linear-gradient(to bottom, rgba(42, 31, 61, 0.52) 0%, rgba(42, 31, 61, 0.22) 45%, rgba(42, 31, 61, 0) 100%);
+    pointer-events: none;
+  }
+
+  .theinmag-philosophy__label {
+    position: absolute;
+    font-family: var(--font-emphasis, 'Caveat', cursive);
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 16px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.85);
+  }
+
+  .theinmag-philosophy__label--intro {
+    top: 5%;
+    left: 6%;
+    max-width: 52%;
+    font-size: clamp(20px, 3vw, 34px);
+  }
+
+  .theinmag-philosophy__label--left {
+    top: 15%;
+    left: 13%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .theinmag-philosophy__label--right {
+    top: 8%;
+    right: 7%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .theinmag-philosophy__label-text {
+    font-size: clamp(26px, 3.6vw, 44px);
+  }
+
+  .theinmag-philosophy__arrow {
+    width: clamp(42px, 6vw, 64px);
+    height: auto;
+    margin-top: 2px;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.8));
+  }
+
+  /* Nudge each arrow toward its person: left label sits up-left of Tam
+     so its arrow leans right; right label sits up-right of Ryan so its
+     arrow leans left. */
+  .theinmag-philosophy__arrow--left {
+    margin-left: clamp(18px, 3vw, 34px);
+  }
+
+  .theinmag-philosophy__arrow--right {
+    margin-right: clamp(18px, 3vw, 34px);
   }
 
   /* ================================================================
@@ -712,6 +840,38 @@
     { "type": "text", "id": "founder_two_role", "label": "Founder 2 role" },
     { "type": "text", "id": "org_name", "label": "Organisation name" },
     { "type": "text", "id": "org_url", "label": "Organisation URL" },
+    {
+      "type": "header",
+      "content": "Handwritten photo labels"
+    },
+    {
+      "type": "paragraph",
+      "content": "Hand-lettered overlay on the founders photo: an intro line plus a named, arrowed label pointing at each person. Left label points at the person on the left of the photo, right label at the person on the right."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_founder_labels",
+      "label": "Show handwritten labels on the photo",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "label_intro",
+      "label": "Intro line",
+      "default": "co-founders & creators"
+    },
+    {
+      "type": "text",
+      "id": "label_left",
+      "label": "Left person label",
+      "default": "Tam"
+    },
+    {
+      "type": "text",
+      "id": "label_right",
+      "label": "Right person label",
+      "default": "Ryan"
+    },
     {
       "type": "header",
       "content": "Character sticker (random)"
