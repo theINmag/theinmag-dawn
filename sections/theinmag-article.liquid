@@ -422,8 +422,25 @@
           </div>
         {%- endif -%}
 
+        {%- liquid
+          comment
+            Real Kids Voices posts open with an editor "A note from Field
+            Notes:" paragraph in the body. The kid post should launch
+            straight into the kid's own writing - the same context already
+            lives in the Quick read card above - so on kid posts we strip
+            that leading note paragraph when it's present as the first <p>.
+          endcomment
+          assign body_content = article.content
+          if is_kid
+            assign first_seg = body_content | split: '</p>' | first
+            if first_seg contains 'note from Field Notes'
+              assign note_para = first_seg | append: '</p>'
+              assign body_content = body_content | remove_first: note_para
+            endif
+          endif
+        -%}
         <div class="theinmag-article__body rte">
-          {{ article.content }}
+          {{ body_content }}
         </div>
 
         {%- if advice_block_text != blank -%}

@@ -628,8 +628,10 @@
     .theinmag-editorial__intro {
       flex-direction: row;
       align-items: flex-end;
-      justify-content: space-between;
-      gap: clamp(24px, 3vw, 40px);
+      /* Toggle sits just to the right of the wordmark rather than pushed
+         to the far edge of the row (Ryan, 4 Jun). */
+      justify-content: flex-start;
+      gap: clamp(28px, 4vw, 56px);
     }
   }
 
@@ -765,19 +767,23 @@
 
   /* Slight drop shadow lifts each cover off the painterly bg so the
      images don't read as flat cutouts on the new top background. */
+  /* Drop shadow lifts each cover off the painterly purple bg. Notably
+     deepened (Ryan, 4 Jun) so the images read clearly against the
+     lavender - applies to every card, including the faster-scrolling
+     right column (same .card-cover class). */
   .theinmag-editorial__card-cover {
     position: relative;
     display: block;
     overflow: hidden;
     border-radius: 8px;
     background-color: rgba(42, 31, 61, 0.18);
-    box-shadow: 0 6px 18px rgba(20, 14, 30, 0.22), 0 2px 6px rgba(20, 14, 30, 0.12);
+    box-shadow: 0 12px 28px rgba(20, 14, 30, 0.42), 0 4px 10px rgba(20, 14, 30, 0.28);
     transition: box-shadow 0.25s ease;
   }
 
   .theinmag-editorial__card:hover .theinmag-editorial__card-cover,
   .theinmag-editorial__card:focus-visible .theinmag-editorial__card-cover {
-    box-shadow: 0 12px 28px rgba(20, 14, 30, 0.30), 0 3px 10px rgba(20, 14, 30, 0.16);
+    box-shadow: 0 18px 38px rgba(20, 14, 30, 0.50), 0 5px 14px rgba(20, 14, 30, 0.32);
   }
 
   .theinmag-editorial__card-image {
