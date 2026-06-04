@@ -363,6 +363,17 @@
       var items = Array.prototype.slice.call(host.querySelectorAll('.jdgm-carousel-item'));
       if (!items.length) return;
       items.slice(cap).forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+
+      /* Privacy guard: Judge.me's review editor is text-only and won't let us
+         rename a reviewer, but a kid once entered their full name. Abbreviate
+         known full names to "First L." on display. Add a line here if another
+         ever slips through. Keys are lowercased. */
+      var NAME_FIXES = { 'daisyodgers': 'Daisy O.' };
+      Array.prototype.forEach.call(host.querySelectorAll('.jdgm-carousel-item__reviewer-name'), function (el) {
+        var key = (el.textContent || '').trim().toLowerCase();
+        if (NAME_FIXES[key]) el.textContent = NAME_FIXES[key];
+      });
+
       root.classList.add('is-ready');
     }
     function init() {
