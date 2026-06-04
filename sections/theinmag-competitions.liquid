@@ -65,7 +65,12 @@
   assign bg_filename = bg_pool[day_index]
   assign bg_url = bg_filename | asset_url
 
-  assign last_updated = section.settings.last_updated | default: 'May 2026'
+  comment
+    Freshness date: prefer comp_data_updated (emitted by the build script from
+    the most recent "Last verified" date in the CSV, so Compton's weekly pass
+    moves it automatically). Falls back to the manual section setting.
+  endcomment
+  assign last_updated = comp_data_updated | default: section.settings.last_updated | default: 'May 2026'
 
   comment
     Character pool: pulls from the sitewide /assets/character-1.png ..
@@ -128,13 +133,6 @@
       <p class="theinmag-comps__tagline">{{ tagline_text }}</p>
 
       <div class="theinmag-comps__choice-grid" role="group" aria-label="Pick a competition category">
-        <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--art" data-choice="art">
-          <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
-          <span class="theinmag-comps__choice-btn-stack">
-            <span class="theinmag-comps__choice-btn-label">art</span>
-            <span class="theinmag-comps__choice-btn-sub">art · photo · film · dance · music</span>
-          </span>
-        </button>
         <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--writing" data-choice="writing">
           <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
           <span class="theinmag-comps__choice-btn-stack">
@@ -146,7 +144,14 @@
           <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
           <span class="theinmag-comps__choice-btn-stack">
             <span class="theinmag-comps__choice-btn-label">everything</span>
-            <span class="theinmag-comps__choice-btn-sub">show me all</span>
+            <span class="theinmag-comps__choice-btn-sub">show me all of them</span>
+          </span>
+        </button>
+        <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--art" data-choice="art">
+          <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
+          <span class="theinmag-comps__choice-btn-stack">
+            <span class="theinmag-comps__choice-btn-label">art</span>
+            <span class="theinmag-comps__choice-btn-sub">art · photo · film · dance · music</span>
           </span>
         </button>
       </div>
@@ -390,6 +395,18 @@
                 </a>
               {%- endif -%}
             {%- endfor -%}
+
+            {%- comment -%} Manual flick-through arrows (shown by JS only when >1 top pick). {%- endcomment -%}
+            <button class="theinmag-comps__featured-nav theinmag-comps__featured-nav--prev" type="button" aria-label="Previous top pick" data-featured-prev hidden>
+              <svg width="20" height="20" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+                <polyline points="14,4 6,11 14,18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="theinmag-comps__featured-nav theinmag-comps__featured-nav--next" type="button" aria-label="Next top pick" data-featured-next hidden>
+              <svg width="20" height="20" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+                <polyline points="8,4 16,11 8,18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
           </div>
         </aside>
 
@@ -422,7 +439,7 @@
        Footer transition line - tiny meta below the stage
   ============================================================ {%- endcomment -%}
   <p class="theinmag-comps__updated">
-    updated monthly. last refreshed {{ last_updated }}.
+    checked weekly. last reviewed {{ last_updated }}.
   </p>
 
   {%- comment -%} ============================================================
@@ -749,15 +766,16 @@
     }
   }
 
-  /* Mobile L/R alternation - art on left, writing on right, everything on left */
+  /* Mobile L/R alternation - writing on left, everything on right, art on left.
+     The middle card (everything) is the reversed one to keep the zigzag. */
   @media (max-width: 749px) {
-    .theinmag-comps .theinmag-comps__choice-btn--writing {
+    .theinmag-comps .theinmag-comps__choice-btn--all {
       grid-template-columns: 1fr minmax(110px, 38%);
     }
-    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-character {
+    .theinmag-comps .theinmag-comps__choice-btn--all .theinmag-comps__choice-btn-character {
       order: 2;
     }
-    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-stack {
+    .theinmag-comps .theinmag-comps__choice-btn--all .theinmag-comps__choice-btn-stack {
       order: 1;
     }
   }
@@ -880,9 +898,9 @@
   }
   .theinmag-comps__stage > * { position: relative; z-index: 1; }
 
-  /* Stage hidden until a choice is made */
+  /* Stage hidden until a choice is made. The freshness line stays visible in
+     both states (it sits at the foot of the section, just above the mag promo). */
   .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__stage,
-  .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__updated,
   .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__missed--mobile {
     display: none;
   }
@@ -1386,6 +1404,43 @@
   .theinmag-comps__featured-card:focus-visible {
     outline: none;
     box-shadow: 0 8px 32px rgba(123, 79, 158, 0.22);
+  }
+
+  /* Manual flick-through arrows over the top-pick cover. Sit above the
+     card link (z-index) and are separate buttons, so a tap navigates the
+     rotation rather than opening the competition. */
+  .theinmag-comps__featured-nav {
+    position: absolute;
+    top: 21%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.92);
+    color: var(--comps-ink, #2A1F3D);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(123, 79, 158, 0.3);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+  .theinmag-comps__featured-nav[hidden] {
+    display: none;
+  }
+  .theinmag-comps__featured-nav--prev {
+    left: 10px;
+  }
+  .theinmag-comps__featured-nav--next {
+    right: 10px;
+  }
+  .theinmag-comps__featured-nav:hover,
+  .theinmag-comps__featured-nav:focus-visible {
+    background-color: #FFFFFF;
+    outline: none;
+    transform: translateY(-50%) scale(1.08);
   }
 
   .theinmag-comps__featured-cover {
@@ -1995,20 +2050,35 @@
       var current = 0;
       var rotationInterval = null;
       var paused = false;
+      var prevBtn = root.querySelector('[data-featured-prev]');
+      var nextBtn = root.querySelector('[data-featured-next]');
 
-      function rotate() {
-        if (paused || featuredCards.length < 2) return;
+      function show(idx) {
+        if (featuredCards.length < 2) return;
         featuredCards[current].classList.remove('is-active');
-        current = (current + 1) % featuredCards.length;
+        current = (idx % featuredCards.length + featuredCards.length) % featuredCards.length;
         featuredCards[current].classList.add('is-active');
       }
-      function start() { rotationInterval = setInterval(rotate, 10000); }
+      function rotate() { if (!paused) show(current + 1); }
+      function start() { if (!prefersReducedMotion) rotationInterval = setInterval(rotate, 10000); }
       function stop() { if (rotationInterval) { clearInterval(rotationInterval); rotationInterval = null; } }
+      function restart() { stop(); start(); }
 
       featuredStack.addEventListener('mouseenter', function () { paused = true; });
       featuredStack.addEventListener('mouseleave', function () { paused = false; });
 
-      if (featuredCards.length > 1 && !prefersReducedMotion) start();
+      // Manual flick-through. Each tap advances and resets the auto-rotation timer.
+      if (featuredCards.length > 1) {
+        if (prevBtn) {
+          prevBtn.hidden = false;
+          prevBtn.addEventListener('click', function (e) { e.preventDefault(); show(current - 1); restart(); });
+        }
+        if (nextBtn) {
+          nextBtn.hidden = false;
+          nextBtn.addEventListener('click', function (e) { e.preventDefault(); show(current + 1); restart(); });
+        }
+        start();
+      }
     }
 
     /* ------------------------------------------------------------------
