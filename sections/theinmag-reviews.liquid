@@ -179,7 +179,7 @@
             {%- if invite_heading != blank -%}<span class="theinmag-reviews__invite-heading">{{ invite_heading }}</span>{%- endif -%}
             {%- if invite_text != blank -%}<span class="theinmag-reviews__invite-text">{{ invite_text }}</span>{%- endif -%}
           </span>
-          <span class="theinmag-reviews__invite-cta">{{ invite_cta | default: 'Write a review' }}</span>
+          <span class="theinmag-reviews__invite-cta">{{ invite_cta | default: 'Leave a review' }}</span>
         </a>
       </div>
     {%- endif -%}
@@ -981,20 +981,23 @@
     margin-bottom: clamp(16px, 2.4vw, 28px);
   }
 
+  /* Narrow, centered invite card. The whole card is a link to the
+     Judge.me store-review form, so text-decoration is killed to drop the
+     default link underline. */
   .theinmag-reviews__invite-card {
-    appearance: none;
-    width: 100%;
-    cursor: pointer;
-    text-align: left;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
-    gap: clamp(10px, 1.6vw, 18px);
+    text-align: center;
+    text-decoration: none;
+    gap: clamp(8px, 1.2vw, 12px);
+    max-width: 540px;
+    margin: 0 auto;
+    cursor: pointer;
     background-color: var(--color-cream, #FBF6EA);
     border: 1px dashed rgba(93, 58, 122, 0.45);
-    border-radius: 0;
     box-shadow: 0 4px 18px rgba(42, 31, 61, 0.14);
-    padding: clamp(14px, 1.8vw, 20px) clamp(16px, 2vw, 24px);
+    padding: clamp(20px, 2.6vw, 30px) clamp(22px, 3vw, 36px);
     transition: transform var(--transition-hover, 0.2s ease), box-shadow var(--transition-hover, 0.2s ease), border-color var(--transition-hover, 0.2s ease);
   }
 
@@ -1014,53 +1017,52 @@
   .theinmag-reviews__invite-stars {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    flex: 0 0 auto;
+    gap: 3px;
   }
 
   .theinmag-reviews__invite-stars .theinmag-reviews__star {
-    width: 16px;
-    height: 16px;
-    flex: 0 0 16px;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
   }
 
   .theinmag-reviews__invite-copy {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-    flex: 1 1 240px;
+    align-items: center;
+    gap: 4px;
   }
 
+  /* Heading in Post (the brand heading font); subhead stays Inter. */
   .theinmag-reviews__invite-heading {
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: clamp(15px, 1.5vw, 18px);
-    line-height: 1.25;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(22px, 2.6vw, 30px);
+    line-height: 1.1;
     color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
   .theinmag-reviews__invite-text {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 400;
-    font-size: clamp(12.5px, 1.2vw, 14px);
+    font-size: clamp(13px, 1.3vw, 15px);
     line-height: 1.45;
     color: var(--color-inky-purple-navy, #2A1F3D);
     opacity: 0.78;
   }
 
   .theinmag-reviews__invite-cta {
-    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    margin-top: clamp(4px, 0.8vw, 8px);
     background-color: var(--color-yellow, #F9C23C);
     color: var(--color-inky-purple-navy, #2A1F3D);
     border-radius: 32px;
-    padding: 9px 20px;
+    padding: 10px 24px;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     font-weight: 700;
-    font-size: 13px;
+    font-size: 13.5px;
     line-height: 1;
     letter-spacing: 0.01em;
     white-space: nowrap;
@@ -1211,7 +1213,7 @@
     },
     {
       "type": "paragraph",
-      "content": "A clickable band above the cards opens a branded popup. Tapping a star opens the Judge.me store-review form in a new tab with that rating pre-filled (the same store-review link the email blast uses). Judge.me's form can't be embedded directly, so the popup hands the visitor off to it."
+      "content": "A clickable band above the cards links straight to the Judge.me store-review form (opens in a new tab, same store-review link the email blast uses). This is a store review, not a product review."
     },
     {
       "type": "checkbox",
@@ -1241,7 +1243,7 @@
       "type": "text",
       "id": "invite_cta",
       "label": "Invite button label",
-      "default": "Write a review"
+      "default": "Leave a review"
     },
     {
       "type": "header",
