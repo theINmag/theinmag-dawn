@@ -7,7 +7,7 @@
     2. JS validates the email against a webmail blocklist, writes the
        form values as cart attributes via /cart/update.js, then redirects
        to Shopify checkout with the email + shipping address prefilled.
-    3. At checkout the school picks "Bank transfer - school invoice"
+    3. At checkout the school picks "Schools & Institutions - Bank Transfer"
        (manual payment method, set up in admin Settings -> Payments).
     4. Shop generates the order immediately, emails the pending-payment
        notification + Order Printer invoice PDF. 14 days to pay by bank
@@ -368,7 +368,7 @@
           <p class="theinmag-school-order-form__checkout-help-heading">Paying by invoice? Two quick steps at checkout</p>
           <ol class="theinmag-school-order-form__checkout-help-steps">
             <li>If you're shown a <strong>card-only screen</strong>, choose <strong>Check out as guest</strong>.</li>
-            <li>Under <strong>Payment</strong>, pick <strong>Bank transfer - school invoice</strong>, then place your order.</li>
+            <li>Under <strong>Payment</strong>, pick <strong>Schools & Institutions - Bank Transfer</strong>, then place your order.</li>
           </ol>
           <p class="theinmag-school-order-form__checkout-help-foot">Your mags ship the same day. We email your tax invoice - with our ABN and bank details - so your office can pay within 14 days.</p>
         </div>
@@ -1501,7 +1501,7 @@
       "type": "textarea",
       "id": "trust_line",
       "label": "Trust line (below submit)",
-      "default": "You'll be taken to checkout next - pick Bank transfer - school invoice as your payment method."
+      "default": "You'll be taken to checkout next - pick Schools & Institutions - Bank Transfer as your payment method."
     },
     {
       "type": "header",
