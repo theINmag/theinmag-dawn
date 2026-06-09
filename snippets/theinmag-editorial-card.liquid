@@ -41,10 +41,10 @@
   if article != blank
     assign title = article.title
 
-    assign excerpt = article.excerpt | strip_html
-    if excerpt == blank
-      assign excerpt = article.content | strip_html | truncatewords: 20
-    endif
+    capture excerpt
+      render 'theinmag-card-excerpt', article: article, words: 20
+    endcapture
+    assign excerpt = excerpt | strip
 
     assign topic = article.metafields.field_notes.primary_topic
     if topic == blank

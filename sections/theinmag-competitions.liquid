@@ -244,11 +244,11 @@
         <h2 class="visually-hidden" id="theinmag-comps-question">{{ list_question }}</h2>
         <div class="theinmag-comps__list" data-comps-list tabindex="0" aria-labelledby="theinmag-comps-question">
 
-          {%- comment -%} ---------- Open + soon tiles, top stack ---------- {%- endcomment -%}
+          {%- comment -%} ---------- Live / opening / TBC tiles, top stack ---------- {%- endcomment -%}
           {%- for id in comp_ids -%}
             {%- assign idx = forloop.index0 -%}
             {%- assign tile_state = comp_tile_states[idx] -%}
-            {%- if tile_state == 'closed' -%}{%- continue -%}{%- endif -%}
+            {%- if tile_state == 'annual-again' -%}{%- continue -%}{%- endif -%}
 
             {%- assign cat_slug = comp_category_slugs[idx] -%}
             {%- assign comp_name = comp_names[idx] -%}
@@ -285,32 +285,27 @@
                 <span class="theinmag-comps__tile-title">{{ comp_name }}</span>
                 <span class="theinmag-comps__tile-pitch">{{ comp_pitch }}</span>
                 <span class="theinmag-comps__tile-meta">
-                  {%- if tile_state == 'soon' -%}
-                    <span class="theinmag-comps__tile-meta-item">{{ comp_when | default: 'opening soon' }}</span>
-                  {%- else -%}
-                    <span class="theinmag-comps__tile-meta-item">closes {{ comp_close }}</span>
-                  {%- endif -%}
+                  <span class="theinmag-comps__tile-meta-item">{{ comp_meta_lines[idx] }}</span>
                   <span class="theinmag-comps__tile-meta-item">{{ comp_cost }}</span>
                   <span class="theinmag-comps__tile-meta-item">{{ comp_where }}</span>
                 </span>
                 <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ tile_state }}">
-                  {%- case tile_state -%}
-                    {%- when 'live-now' -%}<span class="theinmag-comps__dot"></span> live now
-                    {%- when 'opens-in' -%}<span class="theinmag-comps__dot"></span> opens soon
-                    {%- when 'soon' -%}<span class="theinmag-comps__dot"></span> registrations opening soon
-                  {%- endcase -%}
+                  <span class="theinmag-comps__dot"></span> {{ comp_state_labels[idx] }}
                 </span>
               </span>
               <span class="theinmag-comps__tile-cta" aria-hidden="true">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
             </a>
           {%- endfor -%}
 
-          {%- comment -%} ---------- Closed tiles, bottom stack ---------- {%- endcomment -%}
-          <h3 class="theinmag-comps__closed-heading">closed for 2026</h3>
+          {%- comment -%} ---------- Annual comps whose 2026 window has passed, bottom stack ---------- {%- endcomment -%}
+          {%- assign states_joined = comp_tile_states | join: ',' -%}
+          {%- if states_joined contains 'annual-again' -%}
+            <h3 class="theinmag-comps__closed-heading">already run this year (back next time)</h3>
+          {%- endif -%}
           {%- for id in comp_ids -%}
             {%- assign idx = forloop.index0 -%}
             {%- assign tile_state = comp_tile_states[idx] -%}
-            {%- if tile_state != 'closed' -%}{%- continue -%}{%- endif -%}
+            {%- if tile_state != 'annual-again' -%}{%- continue -%}{%- endif -%}
 
             {%- assign cat_slug = comp_category_slugs[idx] -%}
             {%- assign comp_url = comp_websites[idx] -%}
@@ -324,7 +319,7 @@
               data-tile-id="{{ id }}"
               data-tags="{{ comp_tags[idx] }}"
               data-search="{{ comp_search_blobs[idx] | escape }}"
-              data-state="closed"
+              data-state="{{ tile_state }}"
             >
               <span class="theinmag-comps__tile-cover" aria-hidden="true">
                 {%- assign closed_logo = comp_logos[idx] -%}
@@ -339,10 +334,10 @@
                 <span class="theinmag-comps__tile-title">{{ comp_names[idx] }}</span>
                 <span class="theinmag-comps__tile-pitch">{{ comp_pitches[idx] }}</span>
                 <span class="theinmag-comps__tile-meta">
-                  <span class="theinmag-comps__tile-meta-item">closed {{ comp_closing_dates[idx] }}</span>
+                  <span class="theinmag-comps__tile-meta-item">{{ comp_meta_lines[idx] }}</span>
                   <span class="theinmag-comps__tile-meta-item">{{ comp_wheres[idx] }}</span>
                 </span>
-                <span class="theinmag-comps__tile-state theinmag-comps__tile-state--closed">closed for 2026</span>
+                <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ tile_state }}"><span class="theinmag-comps__dot"></span> {{ comp_state_labels[idx] }}</span>
               </span>
               <span class="theinmag-comps__tile-cta" aria-hidden="true">view <span class="theinmag-comps__arrow">&rarr;</span></span>
             </a>
@@ -1296,11 +1291,14 @@
   }
   .theinmag-comps__tile-state--live-now { color: var(--comps-mint-dark); }
   .theinmag-comps__tile-state--live-now .theinmag-comps__dot { background-color: var(--comps-mint-dark); }
-  .theinmag-comps__tile-state--opens-in { color: var(--comps-peach-dark); }
-  .theinmag-comps__tile-state--opens-in .theinmag-comps__dot { background-color: var(--comps-peach-dark); }
-  .theinmag-comps__tile-state--soon { color: var(--comps-purple-dark); }
-  .theinmag-comps__tile-state--soon .theinmag-comps__dot { background-color: var(--comps-purple-dark); }
-  .theinmag-comps__tile-state--closed { color: rgba(42, 31, 61, 0.55); }
+  .theinmag-comps__tile-state--opens-soon { color: var(--comps-peach-dark); }
+  .theinmag-comps__tile-state--opens-soon .theinmag-comps__dot { background-color: var(--comps-peach-dark); }
+  .theinmag-comps__tile-state--later { color: var(--comps-peach-dark); }
+  .theinmag-comps__tile-state--later .theinmag-comps__dot { background-color: var(--comps-peach-dark); }
+  .theinmag-comps__tile-state--tbc { color: var(--comps-purple-dark); }
+  .theinmag-comps__tile-state--tbc .theinmag-comps__dot { background-color: var(--comps-purple-dark); }
+  .theinmag-comps__tile-state--annual-again { color: rgba(42, 31, 61, 0.55); }
+  .theinmag-comps__tile-state--annual-again .theinmag-comps__dot { background-color: rgba(42, 31, 61, 0.45); }
 
   /* ----- Tile CTA ----- */
   .theinmag-comps__tile-cta {

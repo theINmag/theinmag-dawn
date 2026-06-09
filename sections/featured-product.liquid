@@ -492,7 +492,7 @@
   -%}
 
   <script type="application/ld+json">
-    {{ product | structured_data }}
+    {% render 'theinmag-product-schema', product: product %}
   </script>
 
   {% if product.media.size > 0 %}

@@ -130,10 +130,10 @@
             {%- if emit_card -%}
               {%- liquid
                 assign card_title = article.title
-                assign card_excerpt = article.excerpt | strip_html
-                if card_excerpt == blank
-                  assign card_excerpt = article.content | strip_html | truncatewords: 18
-                endif
+                capture card_excerpt
+                  render 'theinmag-card-excerpt', article: article, words: 18
+                endcapture
+                assign card_excerpt = card_excerpt | strip
 
                 assign tag_str = article.tags | join: ' '
 

@@ -290,7 +290,7 @@
       {%- else -%}
         <img
           class="theinmag-drawer__logo"
-          src="{{ 'full_logo.svg' | asset_url }}"
+          src="{{ 'full_logo.png' | asset_url }}"
           alt="theINmag - made by kids, for kids"
           loading="lazy"
         >
@@ -1016,7 +1016,7 @@
 
   .theinmag-drawer__logo {
     display: block;
-    width: clamp(200px, 64vw, 300px);
+    width: clamp(160px, 46vw, 210px);
     height: auto;
   }
 
@@ -1036,16 +1036,15 @@
     gap: 20px;
   }
 
-  /* Editorial Inter 700 with tight tracking - mirrors the Field Notes
-     post-title treatment. Post Regular stays on the CTA button only. */
+  /* Matches the desktop primary nav: Inter 500 at 16px, no editorial
+     tracking. Lighter + smaller than the old 700/24px heading look. */
   .theinmag-drawer__link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 24px;
-    letter-spacing: -0.01em;
+    font-weight: 500;
+    font-size: 19px;
     color: var(--color-inky-purple-navy);
     text-decoration: none;
     padding: 4px 12px;
@@ -1074,9 +1073,8 @@
     justify-content: center;
     gap: 6px;
     font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 24px;
-    letter-spacing: -0.01em;
+    font-weight: 500;
+    font-size: 19px;
     color: var(--color-inky-purple-navy);
     background: transparent;
     border: none;
@@ -1101,8 +1099,8 @@
   }
 
   .theinmag-drawer__group-caret {
-    width: 17px;
-    height: 17px;
+    width: 14px;
+    height: 14px;
     transition: transform var(--transition-standard);
   }
 
@@ -1135,7 +1133,7 @@
     display: inline-flex;
     font-family: var(--font-body);
     font-weight: 500;
-    font-size: 18px;
+    font-size: 15px;
     line-height: 1.2;
     color: var(--color-inky-purple-navy);
     text-decoration: none;

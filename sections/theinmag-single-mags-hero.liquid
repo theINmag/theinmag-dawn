@@ -232,7 +232,7 @@
     results still work.
   {%- endcomment -%}
   {%- if product != blank -%}
-    <script type="application/ld+json">{{ product | structured_data }}</script>
+    <script type="application/ld+json">{% render 'theinmag-product-schema', product: product %}</script>
   {%- endif -%}
 
   <div class="theinmag-single-mags-hero__inner">

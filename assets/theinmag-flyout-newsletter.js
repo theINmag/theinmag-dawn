@@ -313,6 +313,16 @@
   // Tab is the default visible state on every page load.
   showTab();
 
+  // Preload the card's background texture so it's cached before the card
+  // opens (tab click or 40% scroll auto-trigger). The CSS background-color
+  // fallback covers the brief window until this lands, so the card never
+  // flashes transparent then snaps to the red wash.
+  const bgSrc = root.dataset.bgSrc;
+  if (bgSrc) {
+    const preloadBg = new Image();
+    preloadBg.src = bgSrc;
+  }
+
   closeBtn.addEventListener('click', dismissToTab);
   tab.addEventListener('click', function () { showCard(); });
   form.addEventListener('submit', onSubmit);

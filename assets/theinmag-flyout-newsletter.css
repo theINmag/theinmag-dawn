@@ -50,13 +50,13 @@
 
 .theinmag-flyout__tab:hover,
 .theinmag-flyout__tab:focus-visible {
-  background: #7B4F9E;
+  background: #C9543E;
   color: #ffffff;
   outline: none;
 }
 
 .theinmag-flyout__tab:focus-visible {
-  box-shadow: 0 0 0 3px rgba(123, 79, 158, 0.35), 0 4px 12px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 0 0 3px rgba(201, 84, 62, 0.35), 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 .theinmag-flyout__tab-icon {
@@ -83,7 +83,16 @@
   align-items: start;
   width: 460px;
   padding: 24px;
-  background-image: url('pop-up_background.jpg');
+  /* Solid coral fallback = the texture's own average colour, so the card
+     paints the final wash colour instantly instead of flashing transparent
+     while the texture JPG downloads. Kills the "clear then flick to red". */
+  background-color: #F49C7F;
+  /* Red-pink wash (coral-dark -> brand soft-pink) over the same homepage
+     texture used by the pull-quote section, nudging the brick-red toward
+     the logo's red-pink while keeping white text legible. */
+  background-image:
+    linear-gradient(135deg, rgba(201, 84, 62, 0.60), rgba(247, 160, 146, 0.52)),
+    url('theinside-homepage-background.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -332,13 +341,13 @@
 
 .theinmag-flyout__submit:hover,
 .theinmag-flyout__submit:focus-visible {
-  background: #7B4F9E;
+  background: #C9543E;
   color: #ffffff;
   outline: none;
 }
 
 .theinmag-flyout__submit:focus-visible {
-  box-shadow: 0 0 0 3px rgba(123, 79, 158, 0.45);
+  box-shadow: 0 0 0 3px rgba(201, 84, 62, 0.45);
 }
 
 .theinmag-flyout__submit[disabled] {

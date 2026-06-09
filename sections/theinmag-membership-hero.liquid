@@ -53,6 +53,29 @@
     assign next_issue = 'Mag' | append: next_num
   endif
 
+  comment
+    PRE-DROP LEAD SHIFT (manual, 2026-06-09). While Mag10 is dropping very soon,
+    the membership starting-issue choices lead with Mag10 ("the current issue,
+    dropping very soon") and offer Mag11 (15 Oct 2026) as the next option; Mag09
+    is retired from the picker. ONLY the lead_/alt_ vars below and the
+    starting-issue tiles use these - the countdown, flick-through video and
+    everything else still read the real current_issue (Mag09) metafield, so they
+    stay correct. The JS computes _starting_mag and _mags_included from the
+    data-current-issue / data-next-issue attributes, so re-pointing those is all
+    that is needed. REVERT on the 15 June drop: flip current_issue_number to
+    Mag10 (and next_release_date to 15 Oct) and delete this block, so the tiles
+    auto-roll normally to current=Mag10 / next=Mag11.
+  endcomment
+  assign lead_issue = next_issue
+  assign lead_release_formatted = next_release_formatted
+  assign alt_num = next_num | plus: 1
+  if alt_num < 10
+    assign alt_issue = 'Mag0' | append: alt_num
+  else
+    assign alt_issue = 'Mag' | append: alt_num
+  endif
+  assign alt_release_formatted = '15 October 2026'
+
   assign first_variant = product.selected_or_first_available_variant
 
   if print_in_stock
@@ -84,8 +107,8 @@
 <section
   class="theinmag-membership-hero"
   data-theinmag-membership-form
-  data-current-issue="{{ current_issue }}"
-  data-next-issue="{{ next_issue }}"
+  data-current-issue="{{ lead_issue }}"
+  data-next-issue="{{ alt_issue }}"
   data-print-in-stock="{{ print_stock_attr }}"
   data-hero-print="{{ hero_print }}"
   data-hero-digital="{{ hero_digital }}"
@@ -268,7 +291,7 @@
       >
         <input type="hidden" name="id" data-variant-id-input value="{{ first_variant.id }}">
         <input type="hidden" name="quantity" value="1">
-        <input type="hidden" name="properties[_starting_mag]" data-prop-starting-mag value="{{ current_issue }}">
+        <input type="hidden" name="properties[_starting_mag]" data-prop-starting-mag value="{{ lead_issue }}">
         <input type="hidden" name="properties[_remaining_after_first]" data-prop-remaining value="3">
         <input type="hidden" name="properties[_mags_included]" data-prop-mags-included value="">
         {%- comment -%}
@@ -311,10 +334,10 @@
           <legend class="theinmag-membership-hero__legend">Starting issue</legend>
           <div class="theinmag-membership-hero__starting" role="radiogroup" data-option-name="starting" data-starting-group>
             <button type="button" class="theinmag-membership-hero__start-tile" data-value="current" data-requires-print-stock="true" aria-pressed="true">
-              <span class="theinmag-membership-hero__start-label"><strong>Start with the current issue</strong> - {{ current_issue }}{% if print_in_stock %}, in stock now{% endif %}</span>
+              <span class="theinmag-membership-hero__start-label"><strong>Start with the current issue</strong> - {{ lead_issue }}, dropping very soon ({{ lead_release_formatted }})</span>
             </button>
             <button type="button" class="theinmag-membership-hero__start-tile" data-value="next" aria-pressed="false">
-              <span class="theinmag-membership-hero__start-label"><strong>Start with the next issue</strong> - {{ next_issue }}, drops {{ next_release_formatted }}</span>
+              <span class="theinmag-membership-hero__start-label"><strong>Start with the next issue</strong> - {{ alt_issue }}, drops {{ alt_release_formatted }}</span>
             </button>
           </div>
           {%- comment -%}
@@ -324,7 +347,7 @@
             keeps the choice because it includes the print copy).
           {%- endcomment -%}
           <p class="theinmag-membership-hero__start-note" data-digital-start-note hidden>
-            Digital always starts with the <strong>current issue ({{ current_issue }})</strong>.
+            Digital always starts with the <strong>current issue ({{ lead_issue }})</strong>.
           </p>
         </fieldset>
 
@@ -446,7 +469,7 @@
 </section>
 
 {%- comment -%} Product JSON-LD for the membership PDP - mirrors the single-mags hero so /products/membership is eligible for product rich results (price, availability, rating). {%- endcomment -%}
-<script type="application/ld+json">{{ product | structured_data }}</script>
+<script type="application/ld+json">{% render 'theinmag-product-schema', product: product %}</script>
 
 {%- comment -%}
   Floating order-summary card. Rendered as a sibling of the hero
@@ -468,7 +491,7 @@
     <button type="button" class="theinmag-membership-hero__floating-cart-tap" data-floating-cart-tap aria-label="Back to the selectors">
       <span class="theinmag-membership-hero__floating-cart-eyebrow">your order</span>
       <span class="theinmag-membership-hero__floating-cart-summary" data-floating-cart-summary>4-Issue Print</span>
-      <span class="theinmag-membership-hero__floating-cart-issue" data-floating-cart-issue>Start with {{ current_issue }}</span>
+      <span class="theinmag-membership-hero__floating-cart-issue" data-floating-cart-issue>Start with {{ lead_issue }}</span>
     </button>
     <button type="button" class="theinmag-membership-hero__floating-cart-cta" data-floating-cart-cta aria-label="Add this Membership to cart">
       <span>Add to cart</span>

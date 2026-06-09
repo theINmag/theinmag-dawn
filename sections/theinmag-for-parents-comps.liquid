@@ -8,7 +8,7 @@
   modulo). Layout is L/R FLIPPED from competitions page:
     LEFT (1/3 on desktop): featured "top picks" card (large, square)
     RIGHT (2/3 on desktop): 2 long horizontal tiles - currently OPEN
-                            comps (live-now > opens-in > soon fallback).
+                            comps (live-now > opens-soon > later/tbc fallback).
 
   Auto-populated. Featured defaults to banabae-artists (Ryan's pick)
   but can be overridden per section. Right column never needs touching -
@@ -109,7 +109,7 @@
     endif
   endfor
 
-  # Pass 2: opens-in (if we still need more).
+  # Pass 2: opens-soon (if we still need more).
   for i in (0..total)
     if i >= total
       break
@@ -121,7 +121,7 @@
       continue
     endif
     assign st = comp_tile_states[i]
-    if st != 'opens-in'
+    if st != 'opens-soon'
       continue
     endif
     assign aud = comp_audiences[i] | default: 'all'
@@ -147,7 +147,7 @@
     endif
   endfor
 
-  # Pass 3: soon (TBC) as last-resort fallback.
+  # Pass 3: later / TBC as last-resort fallback.
   for i in (0..total)
     if i >= total
       break
@@ -159,7 +159,7 @@
       continue
     endif
     assign st = comp_tile_states[i]
-    if st != 'soon'
+    if st != 'later' and st != 'tbc'
       continue
     endif
     assign aud = comp_audiences[i] | default: 'all'
@@ -282,20 +282,12 @@
                 <span class="theinmag-comps__tile-title">{{ comp_name }}</span>
                 <span class="theinmag-comps__tile-pitch">{{ comp_pitch }}</span>
                 <span class="theinmag-comps__tile-meta">
-                  {%- if tile_state == 'soon' -%}
-                    <span class="theinmag-comps__tile-meta-item">{{ comp_when | default: 'opening soon' }}</span>
-                  {%- else -%}
-                    <span class="theinmag-comps__tile-meta-item">closes {{ comp_close }}</span>
-                  {%- endif -%}
+                  <span class="theinmag-comps__tile-meta-item">{{ comp_meta_lines[idx] }}</span>
                   <span class="theinmag-comps__tile-meta-item">{{ comp_cost }}</span>
                   <span class="theinmag-comps__tile-meta-item">{{ comp_where }}</span>
                 </span>
                 <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ tile_state }}">
-                  {%- case tile_state -%}
-                    {%- when 'live-now' -%}<span class="theinmag-comps__dot"></span> live now
-                    {%- when 'opens-in' -%}<span class="theinmag-comps__dot"></span> opens soon
-                    {%- when 'soon' -%}<span class="theinmag-comps__dot"></span> registrations opening soon
-                  {%- endcase -%}
+                  <span class="theinmag-comps__dot"></span> {{ comp_state_labels[idx] }}
                 </span>
               </span>
               <span class="theinmag-comps__tile-cta" aria-hidden="true">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
@@ -728,10 +720,14 @@
   }
   .theinmag-for-parents-comps .theinmag-comps__tile-state--live-now { color: var(--comps-mint-dark); }
   .theinmag-for-parents-comps .theinmag-comps__tile-state--live-now .theinmag-comps__dot { background-color: var(--comps-mint-dark); }
-  .theinmag-for-parents-comps .theinmag-comps__tile-state--opens-in { color: var(--comps-peach-dark); }
-  .theinmag-for-parents-comps .theinmag-comps__tile-state--opens-in .theinmag-comps__dot { background-color: var(--comps-peach-dark); }
-  .theinmag-for-parents-comps .theinmag-comps__tile-state--soon { color: var(--comps-purple-dark); }
-  .theinmag-for-parents-comps .theinmag-comps__tile-state--soon .theinmag-comps__dot { background-color: var(--comps-purple-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--opens-soon { color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--opens-soon .theinmag-comps__dot { background-color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--later { color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--later .theinmag-comps__dot { background-color: var(--comps-peach-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--tbc { color: var(--comps-purple-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--tbc .theinmag-comps__dot { background-color: var(--comps-purple-dark); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--annual-again { color: rgba(42, 31, 61, 0.55); }
+  .theinmag-for-parents-comps .theinmag-comps__tile-state--annual-again .theinmag-comps__dot { background-color: rgba(42, 31, 61, 0.45); }
 
   .theinmag-for-parents-comps .theinmag-comps__tile-cta {
     align-self: center;

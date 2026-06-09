@@ -401,6 +401,14 @@
               <aside class="theinmag-article__quick-read" aria-label="Quick read">
                 <span class="theinmag-article__quick-read-label">Quick read</span>
                 <div class="theinmag-article__quick-read-body rte">{{ quick_answer }}</div>
+                {%- comment -%}
+                  Kid attribution under the Quick read card. The hero byline
+                  scrolls away, so repeat "Written by [name], age [age].
+                  [region]" here where it stays visible alongside the writing.
+                {%- endcomment -%}
+                {%- if is_kid and kid_first_name != blank -%}
+                  <p class="theinmag-article__kid-byline">Written by {{ kid_first_name }}{% if kid_age != blank %}, age {{ kid_age }}{% endif %}{% if kid_region != blank %}. {{ kid_region }}{% endif %}</p>
+                {%- endif -%}
               </aside>
             {%- endif -%}
 
@@ -1176,6 +1184,17 @@
 
   .theinmag-article__quick-read-body p:last-child {
     margin-bottom: 0;
+  }
+
+  .theinmag-article__kid-byline {
+    margin: clamp(12px, 1.4vw, 16px) 0 0;
+    padding-top: clamp(12px, 1.4vw, 16px);
+    border-top: 1px solid rgba(123, 79, 158, 0.14);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(12px, 1.1vw, 13px);
+    line-height: 1.5;
+    color: var(--color-purple-dark);
   }
 
   /* ----- Article body (rendered HTML from Shopify RTE) ----- */

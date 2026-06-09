@@ -37,6 +37,23 @@
     assign next_issue = 'Mag' | append: next_num
   endif
 
+  comment
+    PRE-DROP LEAD SHIFT (manual, 2026-06-09). Mirrors theinmag-membership-hero:
+    while Mag10 is dropping very soon, the popup's starting-issue choices lead
+    with Mag10 and offer Mag11 (15 Oct 2026) as next; Mag09 is retired. Keep this
+    in sync with the hero. REVERT on the 15 June drop (flip current_issue_number
+    to Mag10, delete this block) so the popup auto-rolls to current=Mag10 / next=Mag11.
+  endcomment
+  assign lead_issue = next_issue
+  assign lead_release_formatted = next_release_formatted
+  assign alt_num = next_num | plus: 1
+  if alt_num < 10
+    assign alt_issue = 'Mag0' | append: alt_num
+  else
+    assign alt_issue = 'Mag' | append: alt_num
+  endif
+  assign alt_release_formatted = '15 October 2026'
+
   assign first_variant = membership_product.selected_or_first_available_variant
 -%}
 
@@ -68,7 +85,7 @@
     >
       <input type="hidden" name="id" data-variant-id-input value="{{ first_variant.id }}">
       <input type="hidden" name="quantity" value="1">
-      <input type="hidden" name="properties[_starting_mag]" data-prop-starting-mag value="{{ current_issue }}">
+      <input type="hidden" name="properties[_starting_mag]" data-prop-starting-mag value="{{ lead_issue }}">
       <input type="hidden" name="properties[_remaining_after_first]" data-prop-remaining value="3">
       <input type="hidden" name="properties[_mags_included]" data-prop-mags-included value="">
 
@@ -94,15 +111,15 @@
         <div class="theinmag-membership-popup__starting" role="radiogroup" data-option-name="starting" data-starting-group>
           <button type="button" class="theinmag-membership-popup__start-tile" data-value="current" aria-pressed="true">
             <span class="theinmag-membership-popup__start-title">Start with the current issue</span>
-            <span class="theinmag-membership-popup__start-sub">{{ current_issue }}{% if print_in_stock %} - in stock now{% endif %}</span>
+            <span class="theinmag-membership-popup__start-sub">{{ lead_issue }} - dropping very soon ({{ lead_release_formatted }})</span>
           </button>
           <button type="button" class="theinmag-membership-popup__start-tile" data-value="next" aria-pressed="false">
             <span class="theinmag-membership-popup__start-title">Start with the next issue</span>
-            <span class="theinmag-membership-popup__start-sub">{{ next_issue }} - drops {{ next_release_formatted }}</span>
+            <span class="theinmag-membership-popup__start-sub">{{ alt_issue }} - drops {{ alt_release_formatted }}</span>
           </button>
         </div>
         <p class="theinmag-membership-popup__start-note" data-digital-start-note hidden>
-          Digital always starts with the <strong>current issue ({{ current_issue }})</strong>.
+          Digital always starts with the <strong>current issue ({{ lead_issue }})</strong>.
         </p>
       </fieldset>
 
@@ -403,8 +420,8 @@
     const propRemaining = form.querySelector('[data-prop-remaining]');
     const propIncluded = form.querySelector('[data-prop-mags-included]');
 
-    const currentIssue = '{{ current_issue }}';
-    const nextIssue = '{{ next_issue }}';
+    const currentIssue = '{{ lead_issue }}';
+    const nextIssue = '{{ alt_issue }}';
     const printInStock = {{ print_in_stock | default: false | json }};
 
     function selected(optionName) {

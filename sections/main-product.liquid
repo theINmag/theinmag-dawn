@@ -733,7 +733,7 @@
     -%}
 
     <script type="application/ld+json">
-      {{ product | structured_data }}
+      {% render 'theinmag-product-schema', product: product %}
     </script>
   </div>
 </product-info>

@@ -1,0 +1,46 @@
+{%- comment -%}
+  Card excerpt resolver for field-notes post cards.
+
+  Real Kids Voices posts (field_notes.kid_first_name present) open their
+  body with an editor "A note from Field Notes:" paragraph. That note makes
+  a poor card preview - the card should open the same way the article page
+  does (see sections/theinmag-article.liquid, which strips that note in kid
+  mode). So for kid posts we prefer the Quick read summary
+  (field_notes.quick_answer), falling back to the kid's own writing with the
+  leading note paragraph stripped. Non-kid posts keep the standard
+  article.excerpt -> first-words-of-body behaviour unchanged.
+
+  Usage (capture, since a snippet can't return a value):
+    {%- capture excerpt -%}
+      {%- render 'theinmag-card-excerpt', article: article, words: 24 -%}
+    {%- endcapture -%}
+    {%- assign excerpt = excerpt | strip -%}
+
+  Params:
+    article (required) - the Shopify article object
+    words   (optional) - truncatewords cap, defaults to 24
+{%- endcomment -%}
+{%- liquid
+  assign cap = words | default: 24
+
+  if article.metafields.field_notes.kid_first_name != blank
+    assign quick = article.metafields.field_notes.quick_answer
+    if quick != blank
+      echo quick | strip_html | truncatewords: cap
+    else
+      assign body = article.content
+      assign first_seg = body | split: '</p>' | first
+      if first_seg contains 'note from Field Notes'
+        assign note_para = first_seg | append: '</p>'
+        assign body = body | remove_first: note_para
+      endif
+      echo body | strip_html | truncatewords: cap
+    endif
+  else
+    assign ex = article.excerpt | strip_html
+    if ex == blank
+      assign ex = article.content | strip_html | truncatewords: cap
+    endif
+    echo ex
+  endif
+-%}

@@ -1,0 +1,14 @@
+{%- comment -%}
+  Product JSON-LD. Shopify's native `structured_data` filter omits priceValidUntil,
+  which Google Search Console flags as a non-critical Merchant listings / Product
+  snippets warning. We wrap the filter output and inject priceValidUntil (one year
+  out) into every offer, keeping all of Shopify's other fields intact.
+  Accepts: product (required).
+{%- endcomment -%}
+{%- liquid
+  assign price_valid_until = 'now' | date: '%s' | plus: 31536000 | date: '%Y-%m-%d'
+  assign pvu_find = '"priceCurrency":"' | append: shop.currency | append: '"'
+  assign pvu_repl = pvu_find | append: ',"priceValidUntil":"' | append: price_valid_until | append: '"'
+-%}
+{%- capture product_schema -%}{{ product | structured_data }}{%- endcapture -%}
+{{- product_schema | replace: pvu_find, pvu_repl -}}
