@@ -4,9 +4,9 @@
   (above header/nav) via header-group.json.
 
   - Two messages.
-  - Message 1 = countdown to next mag release (days only).
-    Switches to "Mag X is here!" on release day. Hides automatically
-    two days after the release.
+  - Message 1 = "Mag X is here!" for most of the cycle, switching to a
+    "Mag X+1 dropping in N days" countdown for the final 60 days before
+    the next drop. Metafield-driven; flip both metafields on drop day.
   - Message 2 = free shipping promo (threshold editable in admin).
   - Desktop (>= 750px): both messages side-by-side, static.
   - Mobile (< 750px): single message visible, cycles 6s with fade.
@@ -29,12 +29,20 @@
   else
     assign release_date_str = section.settings.release_date | strip
   endif
+  # current_issue_number holds the just-dropped / current issue (e.g. "Mag10"),
+  # bumped to the new issue on drop day per ../theinmag-docs/new-issue-release-checklist.md.
+  # The LIVE "Mag X is here!" message reads it as-is. The COUNTDOWN message adds
+  # 1 to name the NEXT issue that is dropping - during countdown the metafield
+  # still holds the PREVIOUS issue (it only flips on drop day). A single value
+  # can't serve both because the metafield flips from previous -> current
+  # exactly at the countdown -> live boundary.
   assign current_issue_mf = shop.metafields.theinmag.current_issue_number.value
   if current_issue_mf != blank
-    assign issue_number = current_issue_mf | remove: 'Mag' | times: 1 | plus: 1
+    assign current_number = current_issue_mf | remove: 'Mag' | times: 1
   else
-    assign issue_number = section.settings.issue_number | strip
+    assign current_number = section.settings.issue_number | times: 1
   endif
+  assign upcoming_number = current_number | plus: 1
   assign shipping_threshold = section.settings.shipping_threshold | default: 40
 
   assign show_msg_1 = section.settings.show_msg_1
@@ -43,7 +51,7 @@
   assign msg_1_text = ''
   assign msg_1_state = 'hidden'
 
-  if show_msg_1 and release_date_str != blank and issue_number != blank
+  if show_msg_1 and release_date_str != blank and current_number > 0
     # Normalise both timestamps to midnight before the day-count division so
     # the result is an exact integer. The /shop hero uses the identical
     # midnight-normalised math - without this the two drift by a day because
@@ -52,7 +60,10 @@
     assign now_midnight = 'now' | date: '%Y-%m-%d' | date: '%s' | times: 1
     assign days_until = release_midnight | minus: now_midnight | divided_by: 86400
 
-    if days_until > 0
+    # "Mag X is here!" carries the bulk of the cycle; the next-drop
+    # countdown shows only inside the final 60 days. Roll-over is automatic
+    # on drop day when current_issue_number + next_release_date are flipped.
+    if days_until <= 60 and days_until > 0
       assign msg_1_state = 'countdown'
       assign day_label = 'days'
       if days_until == 1
@@ -60,17 +71,17 @@
       endif
       capture msg_1_text
         echo '<span class="theinmag-announcement__hook">Get ready</span> - Mag'
-        echo issue_number
+        echo upcoming_number
         echo ' dropping in <span class="theinmag-announcement__hook">'
         echo days_until
         echo '</span> '
         echo day_label
       endcapture
-    elsif days_until >= -2
+    else
       assign msg_1_state = 'live'
       capture msg_1_text
         echo '<span class="theinmag-announcement__hook">Mag'
-        echo issue_number
+        echo current_number
         echo ' is here!</span>'
       endcapture
     endif
@@ -83,6 +94,16 @@
       echo shipping_threshold
       echo ' 📮'
     endcapture
+  endif
+
+  # Per-page override: on the stockist hub (/pages/instock) the top bar
+  # speaks to stockists (default navy styling, single message, no rotation).
+  # Hook spans = Post-font emphasis, same as the sitewide messages.
+  if page.handle == 'instock'
+    capture msg_1_text
+      echo 'Are you a <span class="theinmag-announcement__hook">certified stockist?</span> Use your <span class="theinmag-announcement__hook">special code</span> at checkout for your discount.'
+    endcapture
+    assign msg_2_text = ''
   endif
 -%}
 
@@ -221,6 +242,7 @@
     font-size: 1.8em;
     line-height: 0.9;
     letter-spacing: 0;
+    word-spacing: -0.12em;
     vertical-align: -0.12em;
     display: inline-block;
   }

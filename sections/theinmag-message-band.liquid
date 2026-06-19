@@ -1,0 +1,149 @@
+{%- comment -%}
+  theinmag-message-band
+  A slim full-width message band that matches the sitewide announcement
+  bar's register (dark inky-purple band, cream text, same height), but
+  placeable as a page section. Built for the /pages/instock stockist
+  hub's "approved stockists" line, reusable anywhere.
+
+  Emphasis: wrap words in *asterisks* to render them in the Post heading
+  font (handwritten caps), exactly like the "MAG10 IS HERE" hook on the
+  top announcement bar. Everything else stays in Inter.
+    e.g. "Are you a *certified stockist*? Use your *special code* ..."
+
+  Optional link wraps the whole band.
+{%- endcomment -%}
+
+{%- liquid
+  assign text = section.settings.text
+  assign bg = section.settings.bg_color | default: 'purple'
+  assign link = section.settings.link
+  assign parts = text | split: '*'
+-%}
+
+{%- capture band_inner -%}
+  {%- for part in parts -%}
+    {%- assign m = forloop.index0 | modulo: 2 -%}
+    {%- if m == 1 -%}
+      <span class="theinmag-message-band__em">{{ part | escape }}</span>
+    {%- else -%}
+      {{ part | escape }}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- if text != blank -%}
+<aside class="theinmag-message-band theinmag-message-band--{{ bg }}" data-theinmag-message-band>
+  <div class="theinmag-message-band__inner">
+    {%- if link != blank -%}
+      <a class="theinmag-message-band__text theinmag-message-band__text--link" href="{{ link }}">{{ band_inner }}</a>
+    {%- else -%}
+      <p class="theinmag-message-band__text">{{ band_inner }}</p>
+    {%- endif -%}
+  </div>
+</aside>
+{%- endif -%}
+
+{%- stylesheet -%}
+  .theinmag-message-band {
+    color: var(--color-cream);
+    font-family: var(--font-body);
+    font-size: 13px;
+  }
+  .theinmag-message-band--purple { background-color: var(--color-inky-purple-navy); }
+  /* Pinky-red brand band (coral-dark) with white text - reads as
+     stockist-specific, distinct from the purple top announcement bar.
+     White on #C9543E ~ 4.36:1; the Post-font emphasis words are large so
+     comfortably clear AA, the body words sit just under the 4.5 line. */
+  .theinmag-message-band--coral { background-color: var(--color-coral-dark); color: #FFFFFF; }
+  .theinmag-message-band--pink { background-color: var(--color-soft-pink); color: var(--color-inky-purple-navy); }
+  .theinmag-message-band--peach { background-color: var(--color-peach); color: var(--color-inky-purple-navy); }
+
+  @media (min-width: 750px) {
+    .theinmag-message-band { font-size: 14px; }
+  }
+
+  .theinmag-message-band__inner {
+    min-height: 42px;
+    padding: 8px var(--space-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  @media (min-width: 750px) {
+    .theinmag-message-band__inner {
+      min-height: 48px;
+      padding: 10px var(--space-lg);
+    }
+  }
+
+  .theinmag-message-band__text {
+    margin: 0;
+    line-height: 1.4;
+    font-weight: 500;
+    color: inherit;
+  }
+  .theinmag-message-band__text--link {
+    text-decoration: none;
+    color: inherit;
+  }
+  .theinmag-message-band__text--link:hover,
+  .theinmag-message-band__text--link:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Post-font emphasis - matches the announcement bar's __hook treatment.
+     Renders the wrapped words as larger handwritten caps inline; the rest
+     stays in Inter. line-height 0.9 keeps the taller Post glyphs from
+     blowing out the band height. */
+  .theinmag-message-band__em {
+    font-family: var(--font-heading);
+    font-size: 1.8em;
+    line-height: 0.9;
+    vertical-align: -0.04em;
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Message band",
+  "tag": "section",
+  "class": "shopify-section theinmag-message-band-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "A slim full-width band matching the top announcement bar. Wrap words in *asterisks* to render them in the Post heading font (handwritten caps)."
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Message",
+      "info": "Wrap emphasis words in *asterisks*, e.g. Are you a *certified stockist*?"
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Background",
+      "options": [
+        { "value": "purple", "label": "Inky purple (matches top bar)" },
+        { "value": "coral", "label": "Coral-dark / pinky red (white text)" },
+        { "value": "pink", "label": "Soft pink (dark text, best contrast)" },
+        { "value": "peach", "label": "Peach (dark text)" }
+      ],
+      "default": "purple"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link (optional)"
+    }
+  ],
+  "presets": [
+    { "name": "Message band" }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

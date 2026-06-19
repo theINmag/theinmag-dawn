@@ -236,6 +236,10 @@
 
     {%- comment -%} RIGHT pane (desktop) / BOTTOM (mobile): copy {%- endcomment -%}
     <div class="theinmag-shop-hero__copy">
+      {%- if section.settings.show_character -%}
+        {% render 'theinmag-character-pool' %}
+        <span class="theinmag-shop-hero__character" data-theinmag-pool-character></span>
+      {%- endif -%}
       <p class="theinmag-shop-hero__eyebrow">{{ eyebrow }}</p>
       <h1 id="theinmag-shop-hero-heading" class="theinmag-shop-hero__headline">{{ headline }}</h1>
       {%- if hero_state == 'presale' and drop_date != blank -%}
@@ -250,6 +254,7 @@
         </a>
       {%- endif -%}
 
+      {%- unless section.settings.show_price_ctas == false -%}
       <p class="theinmag-shop-hero__price">{{ print_price }} print - {{ digital_price }} digital</p>
 
       <div class="theinmag-shop-hero__ctas">
@@ -264,6 +269,7 @@
         <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--primary" href="{{ primary_url }}"{% if print_available %} data-format-intent="Print"{% endif %}>{{ primary_label }}</a>
         <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--secondary" href="{{ secondary_url }}">{{ secondary_label }}</a>
       </div>
+      {%- endunless -%}
     </div>
   </div>
 </section>
@@ -389,6 +395,23 @@
     justify-content: center;
     padding: clamp(32px, 5vw, 64px) clamp(20px, 4vw, 56px);
     gap: var(--space-sm);
+    position: relative;
+  }
+
+  /* Optional kid-character peek (schema-toggled). Sits in the blank space
+     above the eyebrow, top-right of the copy column. Desktop only. */
+  .theinmag-shop-hero__character {
+    display: none;
+  }
+  @media (min-width: 990px) {
+    .theinmag-shop-hero__character {
+      display: block;
+      position: absolute;
+      top: clamp(8px, 2vw, 28px);
+      right: clamp(72px, 11vw, 200px);
+      width: clamp(92px, 8vw, 124px);
+      z-index: 2;
+    }
   }
 
   .theinmag-shop-hero__eyebrow {
@@ -570,6 +593,20 @@
       "id": "subhead",
       "label": "Subhead",
       "default": "120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price_ctas",
+      "label": "Show price + Shop/See-inside buttons",
+      "info": "Turn off to use this as a spotlight banner without the buy buttons (e.g. the stockist hub, where ordering happens in the picker above).",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_character",
+      "label": "Show a random kid-character peek (desktop)",
+      "info": "Pops a random character from the sitewide pool in the space above the eyebrow. Used on the stockist hub spotlight.",
+      "default": false
     },
     {
       "type": "header",

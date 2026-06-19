@@ -1,0 +1,224 @@
+{
+  "sections": {
+    "hero": {
+      "type": "theinmag-stockist-apply-hero",
+      "settings": {
+        "heading": "Bring theINmag to your shelves",
+        "subhead": "We're looking for shops that grow creative communities. Could yours be next?",
+        "text_align": "left",
+        "bg_filename": "theinmag-stockist-shelf.jpg",
+        "overlay_opacity": 82,
+        "min_height": 760,
+        "padding_top": 72,
+        "padding_bottom": 72
+      },
+      "blocks": {
+        "locations": {
+          "type": "jump_link",
+          "settings": { "label": "Stockist locations", "target_id": "theinmag-stockists-h1" }
+        },
+        "apply": {
+          "type": "jump_link",
+          "settings": { "label": "Become a stockist", "target_id": "theinmag-stockist-apply-form-heading" }
+        },
+        "order": {
+          "type": "jump_link",
+          "settings": { "label": "Order with your code", "target_id": "shop-grid" }
+        }
+      },
+      "block_order": ["locations", "apply", "order"]
+    },
+    "why": {
+      "type": "theinmag-single-mags-pillars",
+      "settings": {
+        "aeo_heading": "Why should my shop stock theINmag?",
+        "intro_text": "A lil creativity for your pocket of Aus.",
+        "artwork_filename_1": "blog-image-universal-28.jpg",
+        "artwork_filename_2": "blog-image-universal-37.jpg",
+        "artwork_filename_3": "blog-image-universal-39.jpg",
+        "artwork_filename_4": "blog-image-universal-40.jpg",
+        "artwork_alt": "Kid-created artwork from a theINmag issue.",
+        "show_character": true,
+        "flush_layout": true,
+        "show_kid_art": false
+      },
+      "blocks": {
+        "p1": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "A magazine with heart",
+            "headline": "Made entirely by Aussie kids.",
+            "body": "120+ pages of writing, art and ideas, all created by kids aged 5 to 13. Zero ads, just creativity. On your shelf it quietly says this is a shop that believes in kids, and in the community around it."
+          }
+        },
+        "p2": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Local kids, in print",
+            "headline": "A local kid, published on your shelf.",
+            "body": "Every issue is built from creations kids send in from all over Australia, and the kids near you can send theirs too. There's nothing like a child seeing their own drawing in a real printed mag, and your shop gets to be part of that moment."
+          }
+        },
+        "p3": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "We work together",
+            "headline": "We point our people to your door.",
+            "body": "It goes both ways. We share your shop on our socials, run cross-promos, and send families your way at least twice a cycle. You're not a name on a list, you're part of how we grow, and we look after the shops that back us."
+          }
+        },
+        "p4": {
+          "type": "pillar",
+          "settings": {
+            "short_name": "Yours, and yours alone",
+            "headline": "The only theINmag stockist in your postcode.",
+            "body": "We keep it to one stockist per postcode, so you're never competing with the shop down the road. You'll also get each new issue before anyone else in the country, ready for your shelves while it's fresh."
+          }
+        }
+      },
+      "block_order": ["p1", "p2", "p3", "p4"]
+    },
+    "pricing_note": {
+      "type": "theinmag-callout-strip",
+      "settings": {
+        "body": "Prices below are retail. Your approved stockist code takes <strong>45% off</strong> at checkout, more on bigger orders, and <strong>shipping is free over $40</strong>.<br>The $23.95 RRP is a <strong>guide, not a rule</strong>: price it however suits your shop.",
+        "callout_style": "plain",
+        "bg_color": "cream",
+        "padding_top": 24,
+        "padding_bottom": 12
+      }
+    },
+    "picker": {
+      "type": "theinmag-shop-grid",
+      "settings": {
+        "heading": "Available for stockists to order",
+        "collection_handle": "all",
+        "exclude_handles": "membership, single-mags, single-issues",
+        "print_available_only": true,
+        "show_format_filter": false,
+        "show_character": false,
+        "print_promote_handles": "mag01",
+        "products_per_page": 12,
+        "empty_text": "Nothing in print to order right now. Check back around the next drop.",
+        "padding_top": 48,
+        "padding_bottom": 72
+      }
+    },
+    "spotlight": {
+      "type": "theinmag-shop-hero",
+      "settings": {
+        "hero_image_filename": "mag08-01-cover-MOCKUP.jpg",
+        "hero_image_alt": "theINmag cover mockup.",
+        "subhead_countdown": "Pre-order now open. Shipping to your letterbox very soon.",
+        "show_price_ctas": false,
+        "show_character": true,
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    "inside": {
+      "type": "theinmag-single-mags-inside",
+      "settings": {
+        "aeo_heading": "What's inside theINmag?",
+        "eyebrow": "you're looking inside",
+        "heading_prefix": "INside",
+        "issues_collection": "single-issues",
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    "map": {
+      "type": "theinmag-stockists-hero"
+    },
+    "map_modal": {
+      "type": "theinmag-stockists-modal"
+    },
+    "review": {
+      "type": "theinmag-pull-quote",
+      "settings": {
+        "quote_body": "Such an incredibly diverse, interesting, thoughtful, creative, fun, engaging magazine. My kids are going to absolutely FIZZZZZ.",
+        "attribution_name": "Brooke B.",
+        "attribution_role": "parent",
+        "background_filename": "theinside-homepage-background.jpg",
+        "scrim_opacity": 45,
+        "heading_font_style": "inter",
+        "padding_top": 72,
+        "padding_bottom": 72
+      }
+    },
+    "ugc": {
+      "type": "theinmag-membership-ugc",
+      "settings": {}
+    },
+    "apply_form": {
+      "type": "theinmag-stockist-apply-form",
+      "settings": {
+        "heading": "Become a stockist"
+      }
+    },
+    "faq": {
+      "type": "theinmag-faq",
+      "settings": {
+        "heading": "Questions about stocking theINmag",
+        "show_cta": true,
+        "cta_label": "Still curious? Get in touch",
+        "cta_link": "/pages/contact",
+        "padding_top": 64,
+        "padding_bottom": 88
+      },
+      "blocks": {
+        "become": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How do I become a stockist?",
+            "answer": "<p>Apply through the form on this page with a few words about your shop. We read every one personally and take a look at your site and socials. If you feel like a good fit, we'll be in touch within a week with your stockist code and the next steps.</p>"
+          }
+        },
+        "exclusive": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Will I be the only stockist in my area?",
+            "answer": "<p>Yes. We keep it to one stockist per postcode, so once you're in, you're the only shop carrying theINmag in your patch. No competing with the store down the road.</p>"
+          }
+        },
+        "pricing": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How does stockist pricing work?",
+            "answer": "<p>Approved stockists get 45% off the $23.95 cover price, with more off as you order more: an extra 5% at 3 copies, 10% at 5, and 15% at 8. Your code applies the discount automatically at checkout, and orders over $40 ship free.</p>"
+          }
+        },
+        "shipping": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How quickly do orders ship?",
+            "answer": "<p>We pack stockist orders the next day, alongside our regular drops, and email you tracking when they're on the way. From there it's standard AusPost across Australia.</p>"
+          }
+        },
+        "reorder": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I reorder or get back issues?",
+            "answer": "<p>Use your code to top up any time. The stockist page only ever shows what's actually in stock, so anything you see there, you can order. We print short runs and lots of issues sell out for good, so once one drops off the page, it's gone. We also check in twice a cycle in case you'd like more.</p>"
+          }
+        },
+        "consignment": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do you offer consignment?",
+            "answer": "<p>No, we keep it simple: you order and pay at checkout, and the mags are yours. No consignment, no returns to manage, no invoices to chase.</p>"
+          }
+        },
+        "invoice": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do I get an invoice, and can I set my own price?",
+            "answer": "<p>Yes to both. We email a tax invoice with every order (we don't post a paper copy). And while the recommended retail price is $23.95, that's a guide, not a rule, so price it however suits your shop.</p>"
+          }
+        }
+      },
+      "block_order": ["become", "exclusive", "pricing", "shipping", "reorder", "consignment", "invoice"]
+    }
+  },
+  "order": ["hero", "why", "pricing_note", "picker", "spotlight", "inside", "map", "map_modal", "review", "ugc", "apply_form", "faq"]
+}

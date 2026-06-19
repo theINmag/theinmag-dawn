@@ -18,6 +18,8 @@
 {%- liquid
   assign heading = section.settings.heading
   assign subhead = section.settings.subhead
+  assign align = section.settings.text_align | default: 'center'
+  assign jumps = section.blocks | where: 'type', 'jump_link'
   assign bg_filename = section.settings.bg_filename
   assign bg_url = ''
   if bg_filename != blank
@@ -35,10 +37,20 @@
   if bg_url != blank
     assign section_style = section_style | append: ' --sah-bg: url(' | append: bg_url | append: ');'
   endif
+
+  # Scrim strength (0-90) + desktop min-height, both schema-driven so a
+  # page can run a taller / darker hero without affecting the others.
+  # Scrim keeps the current 1 / 0.53 / 0.08 top-mid-bottom falloff.
+  assign ov = section.settings.overlay_opacity | default: 60
+  assign ov_top = ov | divided_by: 100.00
+  assign ov_mid = ov | times: 0.53 | divided_by: 100.00
+  assign ov_bot = ov | times: 0.08 | divided_by: 100.00
+  assign mh = section.settings.min_height | default: 460
+  assign section_style = section_style | append: ' --sah-ov-top: ' | append: ov_top | append: '; --sah-ov-mid: ' | append: ov_mid | append: '; --sah-ov-bot: ' | append: ov_bot | append: '; --sah-mh: ' | append: mh | append: 'px;'
 -%}
 
 <section
-  class="theinmag-stockist-apply-hero{% if bg_url != blank %} theinmag-stockist-apply-hero--has-bg{% endif %}"
+  class="theinmag-stockist-apply-hero theinmag-stockist-apply-hero--align-{{ align }}{% if bg_url != blank %} theinmag-stockist-apply-hero--has-bg{% endif %}"
   data-theinmag-stockist-apply-hero
   aria-labelledby="theinmag-stockist-apply-hero-heading"
   style="{{ section_style }}"
@@ -50,6 +62,19 @@
 
     {%- if subhead != blank -%}
       <p class="theinmag-stockist-apply-hero__subhead">{{ subhead }}</p>
+    {%- endif -%}
+
+    {%- if jumps.size > 0 -%}
+      <ul class="theinmag-stockist-apply-hero__jumps" role="list">
+        {%- for block in jumps -%}
+          {%- assign t = block.settings.target_id | strip -%}
+          {%- if t != blank -%}
+            <li class="theinmag-stockist-apply-hero__jump-item" {{ block.shopify_attributes }}>
+              <a class="theinmag-stockist-apply-hero__jump" href="#{{ t }}">{{ block.settings.label }}</a>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
     {%- endif -%}
   </div>
 </section>
@@ -132,9 +157,9 @@
     inset: 0;
     background: linear-gradient(
       to bottom,
-      rgba(20, 14, 30, 0.6) 0%,
-      rgba(20, 14, 30, 0.32) 45%,
-      rgba(20, 14, 30, 0.05) 100%
+      rgba(20, 14, 30, var(--sah-ov-top, 0.6)) 0%,
+      rgba(20, 14, 30, var(--sah-ov-mid, 0.32)) 45%,
+      rgba(20, 14, 30, var(--sah-ov-bot, 0.05)) 100%
     );
     pointer-events: none;
     z-index: 1;
@@ -142,7 +167,7 @@
 
   @media (min-width: 750px) {
     .theinmag-stockist-apply-hero {
-      min-height: clamp(320px, 44vh, 460px);
+      min-height: clamp(320px, var(--sah-mh, 460px), 92vh);
       padding-top: calc(var(--sah-pt, 48px) * 1.6);
       padding-bottom: calc(var(--sah-pb, 40px) * 1.4);
     }
@@ -189,6 +214,76 @@
     margin: 0;
   }
 
+  /* Left-aligned variant: content flush-left within the band, vertically
+     centred. Used on the stockist hub. */
+  .theinmag-stockist-apply-hero--align-left .theinmag-stockist-apply-hero__inner {
+    align-items: flex-start;
+    text-align: left;
+    margin: 0;
+    max-width: 820px;
+  }
+  @media (min-width: 750px) {
+    .theinmag-stockist-apply-hero--align-left {
+      justify-content: flex-start;
+    }
+    .theinmag-stockist-apply-hero--align-left .theinmag-stockist-apply-hero__inner {
+      padding-left: clamp(8px, 4vw, 56px);
+    }
+  }
+
+  /* Jump buttons living inside the hero, under the subhead. Semi-dark
+     fill so they stay legible over any part of the photo; cream outline
+     + cream text, fill cream on hover. */
+  .theinmag-stockist-apply-hero__jumps {
+    list-style: none;
+    margin: clamp(6px, 1vw, 12px) 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+  .theinmag-stockist-apply-hero--align-left .theinmag-stockist-apply-hero__jumps {
+    justify-content: flex-start;
+  }
+  .theinmag-stockist-apply-hero__jump {
+    display: inline-flex;
+    align-items: center;
+    min-height: 50px;
+    padding: 12px 26px;
+    border-radius: var(--radius-pill, 9999px);
+    border: 1.5px solid var(--color-cream);
+    background-color: rgba(20, 14, 30, 0.34);
+    color: var(--color-cream);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .theinmag-stockist-apply-hero__jump:hover,
+  .theinmag-stockist-apply-hero__jump:focus-visible {
+    background-color: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    outline: none;
+  }
+  @media (min-width: 750px) {
+    .theinmag-stockist-apply-hero__jump {
+      min-height: 54px;
+      padding: 14px 30px;
+      font-size: 16px;
+    }
+  }
+
+  /* Anchor-jump offset so targets clear the sticky site header. Harmless
+     on other pages (these IDs only exist where the targets render). */
+  #theinmag-stockists-h1,
+  #theinmag-stockist-apply-form-heading,
+  #shop-grid {
+    scroll-margin-top: 100px;
+  }
+
   /* Photography variant: white type with a soft text-shadow scrim,
      matched to the article-template overlay (rgba 20,14,30,0.35). */
   .theinmag-stockist-apply-hero--has-bg .theinmag-stockist-apply-hero__heading {
@@ -228,6 +323,16 @@
       "info": "Sits on one line at desktop. Wraps to two balanced lines on mobile."
     },
     {
+      "type": "select",
+      "id": "text_align",
+      "label": "Text alignment",
+      "options": [
+        { "value": "center", "label": "Centred" },
+        { "value": "left", "label": "Left" }
+      ],
+      "default": "center"
+    },
+    {
       "type": "header",
       "content": "Background"
     },
@@ -237,6 +342,27 @@
       "label": "Background image filename",
       "default": "theinmag-stockist-shelf.jpg",
       "info": "File inside theme assets/ - the mag on a shelf in a real stockist. Lavender shows as fallback if blank or missing."
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Photo darkening (scrim %)",
+      "min": 0,
+      "max": 90,
+      "step": 2,
+      "unit": "%",
+      "default": 60,
+      "info": "How dark the gradient over the photo is, so white text pops. Only applies when a background image is set."
+    },
+    {
+      "type": "range",
+      "id": "min_height",
+      "label": "Hero height (desktop max)",
+      "min": 240,
+      "max": 900,
+      "step": 20,
+      "unit": "px",
+      "default": 460
     },
     {
       "type": "header",
@@ -261,6 +387,25 @@
       "step": 4,
       "unit": "px",
       "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "jump_link",
+      "name": "Jump button",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Button label"
+        },
+        {
+          "type": "text",
+          "id": "target_id",
+          "label": "Target section ID",
+          "info": "The id of the element to scroll to, with no #. e.g. shop-grid"
+        }
+      ]
     }
   ],
   "presets": [

@@ -42,6 +42,25 @@
   assign heading = section.settings.heading | default: 'Shop everything'
   assign empty_text = section.settings.empty_text | default: 'No mags available right now. Check back soon.'
 
+  # Print-available-only filter (stockist hub). When on, a product is only
+  # rendered if it has at least one AVAILABLE variant whose title is NOT
+  # "digital". This single rule drops digital-only mags, print-sold-out
+  # issues and the Digital Stack, while keeping in-stock print mags + the
+  # Snack Pack (its sole "Default Title" variant is non-digital) and any
+  # pre-sale issue (its print variant reads available). Membership is still
+  # excluded by handle via exclude_handles. Variant classification mirrors
+  # theinmag-bundle-tile (scan variant titles for "print"/"digital").
+  assign print_available_only = section.settings.print_available_only | default: false
+
+  # Format filter pills are pointless on an all-print page, so they can be
+  # hidden independently. Sort + Show-more are unaffected.
+  assign show_format_filter = section.settings.show_format_filter
+  if show_format_filter == nil
+    assign show_format_filter = true
+  endif
+
+  assign show_character = section.settings.show_character
+
   # Handles to skip in the grid (comma-separated). Defaults exclude the
   # deprecated single-mags / single-issues umbrella product left over from
   # before the Stage 4 per-issue refactor. Both candidate handles are
@@ -101,6 +120,20 @@
         assign is_excluded = true
       endif
     endfor
+    if print_available_only and is_excluded == false
+      assign has_available_print = false
+      for v in product.variants
+        if v.available
+          assign vt_dn = v.title | downcase
+          unless vt_dn contains 'digital'
+            assign has_available_print = true
+          endunless
+        endif
+      endfor
+      unless has_available_print
+        assign is_excluded = true
+      endunless
+    endif
     unless is_excluded
       assign weight = '2000'
       if product.title contains membership_match
@@ -156,12 +189,14 @@
       {%- if render_count > 0 -%}
         <div class="theinmag-shop-grid__controls" role="group" aria-label="Filter and sort the product grid">
 
+          {%- if show_format_filter -%}
           <div class="theinmag-shop-grid__filters" role="radiogroup" aria-label="Filter by format">
             <span class="theinmag-shop-grid__filter-label">Format</span>
             <button type="button" class="theinmag-shop-grid__filter-pill" data-format-filter="all" aria-pressed="true">All</button>
             <button type="button" class="theinmag-shop-grid__filter-pill" data-format-filter="print" aria-pressed="false">Print</button>
             <button type="button" class="theinmag-shop-grid__filter-pill" data-format-filter="digital" aria-pressed="false">Digital</button>
           </div>
+          {%- endif -%}
 
           <div class="theinmag-shop-grid__sort">
             <label for="shop-grid-sort" class="theinmag-shop-grid__sort-label">Sort</label>
@@ -174,6 +209,11 @@
           </div>
 
         </div>
+      {%- endif -%}
+
+      {%- if show_character -%}
+        {% render 'theinmag-character-pool' %}
+        <span class="theinmag-shop-grid__character" data-theinmag-pool-character></span>
       {%- endif -%}
     </div>
 
@@ -490,6 +530,7 @@
 
 {%- stylesheet -%}
   .theinmag-shop-grid {
+    position: relative;
     background-color: var(--color-cream);
     color: var(--color-inky-purple-navy);
     /* Horizontal padding bumped 17 May from 16px -> 24px -> 32px min
@@ -515,6 +556,7 @@
     flex-direction: column;
     gap: var(--space-md);
     margin-bottom: var(--space-md);
+    position: relative;
   }
 
   @media (min-width: 750px) {
@@ -1033,6 +1075,23 @@
     outline: none;
   }
 
+  /* Optional kid-character peek (schema-toggled, used on the stockist
+     hub picker). Desktop only, anchored to the head row and lifted into
+     the blank space above the Sort control, top-right. */
+  .theinmag-shop-grid__character {
+    display: none;
+  }
+  @media (min-width: 990px) {
+    .theinmag-shop-grid__character {
+      display: block;
+      position: absolute;
+      right: clamp(0px, 1vw, 12px);
+      bottom: calc(100% + 2px);
+      width: clamp(76px, 6.5vw, 100px);
+      z-index: 3;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .theinmag-bundle-tile__add,
     .theinmag-bundle-tile__join,
@@ -1096,6 +1155,31 @@
       "label": "Print-promoted handles",
       "info": "Comma-separated product handles. Under the Print filter, these tiles jump up the grid to a slot just below the most recent issues (so back-catalogue mags we still have print stock for don't get stranded at the bottom). Cover-only filter; the tile list itself is unchanged.",
       "default": "mag01"
+    },
+    {
+      "type": "header",
+      "content": "Stockist / print-only mode"
+    },
+    {
+      "type": "checkbox",
+      "id": "print_available_only",
+      "label": "Print-available only",
+      "info": "Only show products that have an available, non-digital variant. Hides digital-only mags, print-sold-out issues and the Digital Stack; keeps in-stock print mags, the Snack Pack and pre-sales. Used on the /pages/instock stockist hub. Still exclude Membership via 'Product handles to hide'.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_format_filter",
+      "label": "Show the Print/Digital filter pills",
+      "info": "Turn off on an all-print page (e.g. the stockist hub) where the format filter has nothing to do.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_character",
+      "label": "Show a random kid-character peek (desktop)",
+      "info": "Pops a random character from the sitewide pool, top-right above the Sort control. Desktop only. Used on the stockist hub.",
+      "default": false
     },
     {
       "type": "header",

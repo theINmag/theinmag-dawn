@@ -1,0 +1,349 @@
+{%- comment -%}
+  theinmag-anchor-nav
+  A slim row of jump-link pills that smooth-scroll to other sections on the
+  same page. Generic + reusable: each block is one pill (label + target id).
+  Built for the /pages/instock stockist hub (Find a stockist / Become a
+  stockist / Order with your code) but carries no stockist-specific content.
+
+  Targets are existing element ids elsewhere on the page, e.g.
+    shop-grid                              (theinmag-shop-grid)
+    theinmag-stockists-h1                  (theinmag-stockists-hero)
+    theinmag-stockist-apply-form-heading   (theinmag-stockist-apply-form)
+  The smooth-scroll JS offsets by the sticky header height so the target
+  isn't hidden under it; scroll-margin-top is also set defensively in CSS.
+
+  Visual register: body-font pills (matches the shop-grid format pills),
+  centred, wraps on mobile. Optional eyebrow line above.
+{%- endcomment -%}
+
+{%- liquid
+  assign links = section.blocks | where: 'type', 'link'
+  assign eyebrow = section.settings.eyebrow
+  assign message = section.settings.message
+  assign message_parts = message | split: '*'
+  assign bg = section.settings.bg_color | default: 'cream'
+  assign sticky = section.settings.sticky
+  assign large = section.settings.large
+  assign section_style = '--tan-pt: ' | append: section.settings.padding_top | append: 'px; --tan-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+
+{%- if links.size > 0 -%}
+<nav
+  class="theinmag-anchor-nav theinmag-anchor-nav--{{ bg }}{% if large %} theinmag-anchor-nav--large{% endif %}{% if sticky %} theinmag-anchor-nav--sticky{% endif %}"
+  data-theinmag-anchor-nav
+  aria-label="{{ section.settings.aria_label | default: 'Jump to a section' | escape }}"
+  style="{{ section_style }}"
+>
+  <div class="theinmag-anchor-nav__inner">
+    <div class="theinmag-anchor-nav__bar">
+      {%- if eyebrow != blank -%}
+        <span class="theinmag-anchor-nav__eyebrow">{{ eyebrow }}</span>
+      {%- endif -%}
+      <ul class="theinmag-anchor-nav__list" role="list">
+        {%- for block in links -%}
+          {%- assign target = block.settings.target_id | strip -%}
+          {%- if target != blank -%}
+            <li class="theinmag-anchor-nav__item" {{ block.shopify_attributes }}>
+              <a class="theinmag-anchor-nav__pill" href="#{{ target }}" data-anchor-target="{{ target }}">
+                {{ block.settings.label }}
+              </a>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    </div>
+    {%- if message != blank -%}
+      <p class="theinmag-anchor-nav__message">
+        {%- for part in message_parts -%}
+          {%- assign m = forloop.index0 | modulo: 2 -%}
+          {%- if m == 1 -%}<span class="theinmag-anchor-nav__em">{{ part | escape }}</span>{%- else -%}{{ part | escape }}{%- endif -%}
+        {%- endfor -%}
+      </p>
+    {%- endif -%}
+  </div>
+</nav>
+{%- endif -%}
+
+<script>
+  (function () {
+    var nav = document.querySelector('[data-theinmag-anchor-nav]');
+    if (!nav) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function headerOffset() {
+      /* Sticky site header height, plus this nav's own height when it is
+         sticky, so the target clears both. Falls back to a sane default. */
+      var h = 0;
+      var header = document.querySelector('.shopify-section-group-header-group, [data-theinmag-header], header');
+      if (header) h += header.getBoundingClientRect().height;
+      if (nav.classList.contains('theinmag-anchor-nav--sticky')) h += nav.getBoundingClientRect().height;
+      return h + 12;
+    }
+
+    nav.addEventListener('click', function (e) {
+      var link = e.target.closest('[data-anchor-target]');
+      if (!link) return;
+      var id = link.getAttribute('data-anchor-target');
+      var target = document.getElementById(id);
+      if (!target) return; /* let the default hash jump happen */
+      e.preventDefault();
+      var top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset();
+      window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
+      if (history.replaceState) history.replaceState(null, '', '#' + id);
+    });
+  })();
+</script>
+
+{%- stylesheet -%}
+  .theinmag-anchor-nav {
+    padding: var(--tan-pt, 16px) clamp(16px, 4vw, 32px) var(--tan-pb, 16px);
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-anchor-nav--cream { background-color: var(--color-cream); }
+  .theinmag-anchor-nav--white { background-color: #ffffff; }
+  .theinmag-anchor-nav--lavender { background-color: var(--color-lavender); }
+  .theinmag-anchor-nav--peach { background-color: var(--color-peach); }
+  .theinmag-anchor-nav--purple { background-color: var(--color-inky-purple-navy); color: var(--color-cream); }
+
+  /* Dark band: everything in the cream off-white; pills fill cream on hover. */
+  .theinmag-anchor-nav--purple .theinmag-anchor-nav__eyebrow { color: var(--color-cream); }
+  .theinmag-anchor-nav--purple .theinmag-anchor-nav__pill {
+    border-color: var(--color-cream);
+    color: var(--color-cream);
+  }
+  .theinmag-anchor-nav--purple .theinmag-anchor-nav__pill:hover,
+  .theinmag-anchor-nav--purple .theinmag-anchor-nav__pill:focus-visible {
+    background-color: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-anchor-nav--purple .theinmag-anchor-nav__pill:focus-visible {
+    outline-color: var(--color-cream);
+  }
+
+  /* Optional sticky behaviour. z-index sits below the site header
+     (Dawn header-group is 4) so the header always wins. */
+  .theinmag-anchor-nav--sticky {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    box-shadow: 0 1px 0 rgba(42, 31, 61, 0.08);
+  }
+
+  .theinmag-anchor-nav__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Eyebrow + buttons sit on one row (eyebrow to the left of the pills),
+     centred as a group. Wraps on narrow screens. */
+  .theinmag-anchor-nav__bar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px 16px;
+  }
+
+  .theinmag-anchor-nav__eyebrow {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(42, 31, 61, 0.7);
+    margin: 0;
+  }
+
+  .theinmag-anchor-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Optional message line under the buttons (e.g. the stockist code line).
+     Inherits the band text colour; *asterisk* words render in Post font. */
+  .theinmag-anchor-nav__message {
+    margin: 0;
+    max-width: none;
+    text-align: center;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: clamp(14px, 1.6vw, 16px);
+    line-height: 1.4;
+  }
+  .theinmag-anchor-nav__em {
+    font-family: var(--font-heading);
+    font-size: 1.5em;
+    line-height: 0.9;
+    vertical-align: -0.02em;
+  }
+
+  .theinmag-anchor-nav__pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 8px 18px;
+    border: 1.5px solid var(--color-inky-purple-navy);
+    border-radius: var(--radius-pill, 9999px);
+    background: transparent;
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    text-decoration: none;
+    transition: background-color var(--transition-hover, 0.2s ease), color var(--transition-hover, 0.2s ease);
+  }
+  .theinmag-anchor-nav__pill:hover,
+  .theinmag-anchor-nav__pill:focus-visible {
+    background-color: var(--color-inky-purple-navy);
+    color: var(--color-cream);
+    outline: none;
+  }
+  .theinmag-anchor-nav__pill:focus-visible {
+    outline: 2px solid var(--color-inky-purple-navy);
+    outline-offset: 3px;
+  }
+
+  /* Large variant: bigger, wider-spaced pills for a banner-style band. */
+  .theinmag-anchor-nav--large .theinmag-anchor-nav__list { gap: 12px; }
+  .theinmag-anchor-nav--large .theinmag-anchor-nav__pill {
+    min-height: 50px;
+    padding: 12px 26px;
+    font-size: 15px;
+  }
+  @media (min-width: 750px) {
+    .theinmag-anchor-nav--large .theinmag-anchor-nav__list { gap: 20px; }
+    .theinmag-anchor-nav--large .theinmag-anchor-nav__pill {
+      min-height: 54px;
+      padding: 14px 32px;
+      font-size: 16px;
+    }
+  }
+
+  /* Defensive scroll offset on the known hub targets so a native hash
+     jump (JS disabled) still clears the sticky header. */
+  #shop-grid,
+  #theinmag-stockists-h1,
+  #theinmag-stockist-apply-form-heading {
+    scroll-margin-top: 96px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-anchor-nav__pill { transition: none; }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Anchor nav",
+  "tag": "section",
+  "class": "shopify-section theinmag-anchor-nav-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "A row of jump-link pills that smooth-scroll to other sections on the same page. Add one block per pill and set its target to the id of an element elsewhere on the page (e.g. shop-grid)."
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow line (optional)"
+    },
+    {
+      "type": "text",
+      "id": "message",
+      "label": "Message under the buttons (optional)",
+      "info": "Wrap words in *asterisks* to render them in the Post heading font, e.g. Are you a *certified stockist*?"
+    },
+    {
+      "type": "text",
+      "id": "aria_label",
+      "label": "Accessible nav label",
+      "default": "Jump to a section"
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Background",
+      "options": [
+        { "value": "cream", "label": "Cream" },
+        { "value": "white", "label": "White" },
+        { "value": "lavender", "label": "Lavender" },
+        { "value": "peach", "label": "Peach" },
+        { "value": "purple", "label": "Inky purple / navy (white pills)" }
+      ],
+      "default": "cream"
+    },
+    {
+      "type": "checkbox",
+      "id": "large",
+      "label": "Large pills (banner style)",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "sticky",
+      "label": "Stick to top on scroll",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 64,
+      "step": 4,
+      "default": 16,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 64,
+      "step": 4,
+      "default": 16,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "link",
+      "name": "Pill",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Pill label"
+        },
+        {
+          "type": "text",
+          "id": "target_id",
+          "label": "Target element id",
+          "info": "The id of the element to scroll to, without the # (e.g. shop-grid)."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Anchor nav" }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

@@ -31,6 +31,15 @@
     assign is_current = true
   endif
 
+  # Shop-wide current issue (theinmag.current_issue_number metafield),
+  # independent of which page we're on - so the latest mag is flagged
+  # "Current issue" wherever the strip appears, not just on its own page.
+  assign shop_current_handle = shop.metafields.theinmag.current_issue_number.value | downcase | strip
+  assign is_shop_current = false
+  if shop_current_handle != blank and product.handle == shop_current_handle
+    assign is_shop_current = true
+  endif
+
   # Digital iPad-mockup cover: first image of the digital_media_images metafield.
   # Used as the picker thumbnail when the hero's Format toggle is set to Digital.
   # Absent for bundles / Membership - those tiles always show their featured_image.
@@ -108,6 +117,9 @@
       {%- endif -%}
     </span>
     <span class="theinmag-issue-strip__label">{{ tile_label }}</span>
+    {%- if is_shop_current and tile_is_pre == false and print_sold_out == false and digital_only_product == false -%}
+      <span class="theinmag-issue-strip__current" aria-hidden="true">Current issue</span>
+    {%- endif -%}
     {%- if print_sold_out or digital_only_product -%}
       <span class="theinmag-issue-strip__digital-only" aria-hidden="true">Digital only</span>
     {%- endif -%}

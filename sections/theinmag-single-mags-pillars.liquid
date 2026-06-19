@@ -21,6 +21,8 @@
   assign aeo_heading = section.settings.aeo_heading | default: "What's actually in a theINmag issue?"
   assign intro_text = section.settings.intro_text
 
+  assign show_character = section.settings.show_character
+  assign flush_layout = section.settings.flush_layout
   assign show_kid_art = section.settings.show_kid_art
   assign kid_art_filename = section.settings.kid_art_filename
   assign kid_art_caption = section.settings.kid_art_caption
@@ -31,7 +33,7 @@
 -%}
 
 <section
-  class="theinmag-single-mags-pillars"
+  class="theinmag-single-mags-pillars{% if flush_layout %} theinmag-single-mags-pillars--flush{% endif %}"
   data-theinmag-single-mags-pillars
   aria-labelledby="theinmag-single-mags-pillars-heading"
   style="--theinmag-pillars-bg: url('{{ bg_src }}'); --theinmag-pillars-kid-art-bg: {{ kid_art_bg }};"
@@ -107,6 +109,10 @@
           height="1500"
         >
       </div>
+      {%- if show_character -%}
+        {% render 'theinmag-character-pool' %}
+        <span class="theinmag-single-mags-pillars__character" data-theinmag-pool-character></span>
+      {%- endif -%}
     </div>
   </div>
 
@@ -436,6 +442,69 @@
     margin: var(--space-sm) 0 0;
   }
 
+  /* Optional kid-character peek (schema-toggled, used on the stockist
+     hub). Desktop only - lives in the artwork column and pops out from
+     BEHIND the large image's bottom-left edge (the sitewide character
+     pattern). The artwork wrap sits above it (z-index) so the lower part
+     tucks behind the photo. */
+  .theinmag-single-mags-pillars__character {
+    display: none;
+  }
+  @media (min-width: 990px) {
+    .theinmag-single-mags-pillars__artwork-wrap {
+      position: relative;
+      z-index: 1;
+    }
+    .theinmag-single-mags-pillars__character {
+      display: block;
+      position: absolute;
+      left: clamp(-178px, -12vw, -108px);
+      bottom: clamp(230px, 36vh, 380px);
+      width: clamp(115px, 10vw, 155px);
+      z-index: 0;
+    }
+  }
+
+  /* Flush stockist layout: plain cream background (no dot texture), a
+     shorter capped image with the copy centred beside it. */
+  .theinmag-single-mags-pillars--flush {
+    background-image: none;
+    background-color: var(--color-cream);
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .theinmag-single-mags-pillars--flush .theinmag-single-mags-pillars__copy {
+    padding-top: clamp(24px, 3vw, 44px);
+    padding-bottom: clamp(24px, 3vw, 44px);
+    justify-content: center;
+  }
+  /* Flush intro reads as a bold, dark statement line, not muted helper text. */
+  .theinmag-single-mags-pillars--flush .theinmag-single-mags-pillars__intro {
+    font-weight: 700;
+    font-size: clamp(19px, 2.1vw, 27px);
+    line-height: 1.2;
+    color: var(--color-inky-purple-navy);
+    max-width: none;
+  }
+  @media (min-width: 990px) {
+    .theinmag-single-mags-pillars--flush .theinmag-single-mags-pillars__intro {
+      white-space: nowrap;
+    }
+  }
+  @media (min-width: 990px) {
+    .theinmag-single-mags-pillars--flush .theinmag-single-mags-pillars__inner {
+      align-items: stretch;
+    }
+    .theinmag-single-mags-pillars--flush .theinmag-single-mags-pillars__artwork-col {
+      align-self: stretch;
+    }
+    .theinmag-single-mags-pillars--flush .theinmag-single-mags-pillars__artwork-wrap,
+    .theinmag-single-mags-pillars--flush .theinmag-single-mags-pillars__artwork {
+      height: 100%;
+      max-height: clamp(560px, 74vh, 820px);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .theinmag-single-mags-pillars__nav-btn,
     .theinmag-single-mags-pillars__card {
@@ -504,6 +573,20 @@
       "id": "artwork_alt",
       "label": "Artwork alt text",
       "default": "Kid-created artwork from a theINmag issue."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_character",
+      "label": "Show a random kid-character peek (desktop)",
+      "info": "Pops a random character from the sitewide pool, peeking from behind the artwork's bottom-left edge. Used on the stockist hub.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "flush_layout",
+      "label": "Flush cream layout (full-height image)",
+      "info": "Plain cream background and the artwork runs the full height of the section, no gap above or below. Used on the stockist hub.",
+      "default": false
     },
     {
       "type": "header",
@@ -608,7 +691,7 @@
     }
   ],
   "enabled_on": {
-    "templates": ["product"]
+    "templates": ["product", "page"]
   }
 }
 {% endschema %}

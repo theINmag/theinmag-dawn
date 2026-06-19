@@ -112,7 +112,7 @@
   {%- endcomment -%}
   <div class="theinmag-single-mags-inside__rail-wrap">
     <span class="theinmag-single-mags-inside__pill" data-pill aria-hidden="true">
-      Inside <span data-issue-label>{{ product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', '' }}</span>
+      Inside <span data-issue-label>{{ product.title | default: initial_issue.title | replace: 'theINmag - ', '' | replace: 'theINmag ', '' }}</span>
     </span>
 
     {%- comment -%}
@@ -612,7 +612,7 @@
     { "name": "Single mags inside" }
   ],
   "enabled_on": {
-    "templates": ["product"]
+    "templates": ["product", "page"]
   }
 }
 {% endschema %}

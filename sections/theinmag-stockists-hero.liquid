@@ -273,15 +273,25 @@
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
   }
 
-  /* ----- Custom map markers (Leaflet divIcon) ----- */
-  .theinmag-stockists__marker {
+  /* ----- Custom map markers (Leaflet divIcon) -----
+     Doubled-class selector (0,2,0) bumps specificity past Dawn's
+     base.css `div:empty { display: none }` (0,1,1) - the markers are
+     empty coloured divs, so without this they're hidden and the map
+     shows no pins. */
+  .theinmag-stockists__marker.theinmag-stockists__marker {
+    display: block;
     width: 28px;
     height: 28px;
     border-radius: 50%;
     border: 2.5px solid #FFFFFF;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     background-color: var(--st-purple-dark);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    /* Scale with zoom (JS sets --st-marker-scale on the map container):
+       smaller when zoomed out over all of Australia, full size up close.
+       transform-origin centre keeps the dot anchored over its location. */
+    transform: scale(var(--st-marker-scale, 1));
+    transform-origin: center center;
+    transition: transform 0.2s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     cursor: pointer;
   }
   .theinmag-stockists__marker[data-type="bookshop"]  { background-color: var(--st-purple-dark); }
@@ -291,7 +301,7 @@
   .theinmag-stockists__marker[data-type="gift_shop"] { background-color: var(--st-sky-dark); }
   .theinmag-stockists__marker.is-active,
   .theinmag-stockists__marker:hover {
-    transform: scale(1.25);
+    transform: scale(calc(var(--st-marker-scale, 1) * 1.28));
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
     border-color: var(--st-yellow);
   }
@@ -810,7 +820,11 @@
         icons += '<a class="theinmag-stockists__card-icon" href="' + escapeHtml(telHref(s.contact_phone)) + '" aria-label="Call ' + escapeHtml(s.shop_name) + '">' + icon('phone') + '</a>';
       }
 
-      var mapsHref = 'https://www.google.com/maps/search/?api=1&query=' + s.latitude + ',' + s.longitude;
+      // Query by shop name + address (not raw coords) so Google shows the
+      // named place / business rather than just a dropped pin on coordinates.
+      var mapsQuery = [s.shop_name, s.street_address, s.suburb, s.state, s.postcode]
+        .filter(Boolean).join(', ');
+      var mapsHref = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(mapsQuery);
 
       return (
         '<li class="theinmag-stockists__card" data-stockist-id="' + escapeHtml(s.id) + '" data-type="' + escapeHtml(s.type) + '" data-state="' + escapeHtml(s.state) + '" tabindex="0">' +
@@ -1114,6 +1128,39 @@
     ensureLeaflet(function () {
       initMap();
       applyFilters(); // re-run so renderMarkers paints onto the now-ready map
+
+      // The map can sit far below the fold (e.g. the /pages/instock stockist
+      // hub), where it may initialise before its container has settled, so the
+      // markers never paint. Re-measure + re-paint once it scrolls into view,
+      // and on resize. Harmless on /pages/stockists where it's already visible.
+      if (map && mapEl) {
+        var refitMap = function () {
+          map.invalidateSize();
+          applyFilters();
+        };
+        setTimeout(refitMap, 300);
+
+        // Scale the dots with zoom: small when zoomed out over all of
+        // Australia, full size when zoomed into a town. Sets a CSS var the
+        // marker CSS reads (scale 0.55 at zoom <=5, ramping to 1 at zoom 9+).
+        var updateMarkerScale = function () {
+          var z = map.getZoom();
+          var scale = z <= 5 ? 0.55 : (z >= 9 ? 1 : 0.55 + (z - 5) * 0.1125);
+          mapEl.style.setProperty('--st-marker-scale', scale.toFixed(2));
+        };
+        map.on('zoom', updateMarkerScale);
+        updateMarkerScale();
+
+        if ('IntersectionObserver' in window) {
+          var mapIO = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) { refitMap(); mapIO.disconnect(); }
+            });
+          }, { threshold: 0.01 });
+          mapIO.observe(mapEl);
+        }
+        window.addEventListener('resize', function () { map.invalidateSize(); });
+      }
     });
 
     // (The "Become a stockist" CTA is a plain <a href> to

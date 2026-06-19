@@ -10,6 +10,7 @@
 
 {%- liquid
   assign body = section.settings.body | default: ''
+  assign cstyle = section.settings.callout_style | default: 'pill'
   assign bg = section.settings.bg_color | default: 'cream'
   assign pt = section.settings.padding_top | default: 24
   assign pb = section.settings.padding_bottom | default: 24
@@ -36,7 +37,7 @@
 <section class="theinmag-callout-strip" style="{{ section_style }}">
   <div class="theinmag-callout-strip__inner">
     {%- if body != blank -%}
-      <p class="theinmag-callout-strip__pill">{{ body }}</p>
+      <p class="theinmag-callout-strip__pill{% if cstyle == 'plain' %} theinmag-callout-strip__pill--plain{% endif %}">{{ body }}</p>
     {%- endif -%}
   </div>
 </section>
@@ -72,6 +73,23 @@
     font-weight: 700;
     color: var(--color-purple-dark, #5D3A7A);
   }
+
+  /* Plain variant: no card. A clean, centred editorial line for longer
+     sentences that look cheap squashed into a pill. */
+  .theinmag-callout-strip__pill--plain {
+    display: block;
+    max-width: none;
+    margin: 0 auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    text-align: left;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.6;
+    color: rgba(42, 31, 61, 0.82);
+  }
 {% endstylesheet %}
 
 {% schema %}
@@ -89,6 +107,16 @@
       "id": "body",
       "label": "Callout text",
       "info": "Plain text or limited HTML (<strong>, <a>)."
+    },
+    {
+      "type": "select",
+      "id": "callout_style",
+      "label": "Style",
+      "options": [
+        { "value": "pill", "label": "Pill (one short line)" },
+        { "value": "plain", "label": "Plain text (longer sentences)" }
+      ],
+      "default": "pill"
     },
     {
       "type": "select",
