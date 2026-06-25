@@ -233,6 +233,14 @@
   </div>
 </div>
 
+{%- comment -%}
+  Membership picker lightbox for the cart cross-sell ("Often paired with...
+  Membership"). Rendered here so the /cart cross-sell is self-contained and
+  doesn't depend on another section also rendering the popup. The popup JS
+  guards against double-binding if more than one is present on the page.
+{%- endcomment -%}
+{% render 'theinmag-membership-popup', membership_product: all_products['membership'] %}
+
 {% schema %}
 {
   "name": "t:sections.main-cart-footer.name",

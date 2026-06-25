@@ -44,9 +44,9 @@
     in sync with the hero. REVERT on the 15 June drop (flip current_issue_number
     to Mag10, delete this block) so the popup auto-rolls to current=Mag10 / next=Mag11.
   endcomment
-  assign lead_issue = next_issue
+  assign lead_issue = current_issue
   assign lead_release_formatted = next_release_formatted
-  assign alt_num = next_num | plus: 1
+  assign alt_num = next_num
   if alt_num < 10
     assign alt_issue = 'Mag0' | append: alt_num
   else
@@ -111,7 +111,7 @@
         <div class="theinmag-membership-popup__starting" role="radiogroup" data-option-name="starting" data-starting-group>
           <button type="button" class="theinmag-membership-popup__start-tile" data-value="current" aria-pressed="true">
             <span class="theinmag-membership-popup__start-title">Start with the current issue</span>
-            <span class="theinmag-membership-popup__start-sub">{{ lead_issue }} - dropping very soon ({{ lead_release_formatted }})</span>
+            <span class="theinmag-membership-popup__start-sub">{{ lead_issue }} - in stock now</span>
           </button>
           <button type="button" class="theinmag-membership-popup__start-tile" data-value="next" aria-pressed="false">
             <span class="theinmag-membership-popup__start-title">Start with the next issue</span>
@@ -398,8 +398,15 @@
 
 <script>
   (function () {
+    /* Bind once per page even if this snippet is rendered more than once
+       (e.g. a section popup + the global cart-drawer popup co-exist). The
+       first dialog in the DOM is the one wired + the one openPopup() opens,
+       so they stay consistent. Without this, a second render would double-bind
+       the form submit and add the membership twice. */
+    if (window.__theinmagMembershipPopupInit) return;
     const dialog = document.querySelector('[data-theinmag-membership-popup]');
     if (!dialog) return;
+    window.__theinmagMembershipPopupInit = true;
 
     const form = dialog.querySelector('[data-membership-popup-form]');
     const variantsScript = dialog.querySelector('[data-membership-popup-variants]');

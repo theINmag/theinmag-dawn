@@ -628,3 +628,15 @@
     </div>
   </div>
 </cart-drawer>
+
+{%- comment -%}
+  Shared membership picker lightbox for the cart cross-sell ("Often paired
+  with... Membership"). Rendered OUTSIDE <cart-drawer> on purpose: the drawer
+  is visibility:hidden until opened and its #CartDrawer inner re-renders on
+  every add, so a popup inside it would be hidden or wiped. Here it is stable
+  and present site-wide (cart-drawer is included from theme.liquid). The popup
+  JS guards against double-binding when a section also renders one. The cart
+  cross-sell membership card triggers it via [data-membership-popup-trigger]
+  so a membership is never added without its starting issue.
+{%- endcomment -%}
+{% render 'theinmag-membership-popup', membership_product: all_products['membership'] %}

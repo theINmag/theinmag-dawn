@@ -80,16 +80,34 @@
           {%- endif -%}
           <a href="{{ product.url }}" class="theinmag-cart-crosssell__details">view details →</a>
         </div>
-        <button
-          type="button"
-          class="theinmag-cart-crosssell__add"
-          data-theinmag-crosssell-add
-          data-variant-id="{{ variant.id }}"
-          data-product-handle="{{ product.handle }}"
-          aria-label="Add {{ product.title | replace: 'theINmag - ', '' | escape }} to cart"
-        >
-          Add
-        </button>
+        {%- if product.handle == 'membership' -%}
+          {%- comment -%}
+            Membership must pick a starting issue, so it opens the shared
+            picker lightbox (same as /shop, the PDP cross-sells and the funnel
+            strip) instead of a one-click add. A direct add here was creating
+            memberships with no _starting_mag (orders #51352/#51389/#51503/#51558).
+            The lightbox is rendered once, outside the drawer, by cart-drawer.liquid.
+          {%- endcomment -%}
+          <button
+            type="button"
+            class="theinmag-cart-crosssell__add"
+            data-membership-popup-trigger
+            aria-label="Set up your membership"
+          >
+            Join
+          </button>
+        {%- else -%}
+          <button
+            type="button"
+            class="theinmag-cart-crosssell__add"
+            data-theinmag-crosssell-add
+            data-variant-id="{{ variant.id }}"
+            data-product-handle="{{ product.handle }}"
+            aria-label="Add {{ product.title | replace: 'theINmag - ', '' | escape }} to cart"
+          >
+            Add
+          </button>
+        {%- endif -%}
       </li>
       {%- assign rendered_count = rendered_count | plus: 1 -%}
     {%- endfor -%}
