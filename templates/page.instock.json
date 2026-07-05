@@ -2,6 +2,34 @@
   "sections": {
     "hero": {
       "type": "theinmag-stockist-apply-hero",
+      "blocks": {
+        "locations": {
+          "type": "jump_link",
+          "settings": {
+            "label": "Stockist locations",
+            "target_id": "theinmag-stockists-h1"
+          }
+        },
+        "apply": {
+          "type": "jump_link",
+          "settings": {
+            "label": "Become a stockist",
+            "target_id": "theinmag-stockist-apply-form-heading"
+          }
+        },
+        "order": {
+          "type": "jump_link",
+          "settings": {
+            "label": "Order with your code",
+            "target_id": "shop-grid"
+          }
+        }
+      },
+      "block_order": [
+        "locations",
+        "apply",
+        "order"
+      ],
       "settings": {
         "heading": "Bring theINmag to your shelves",
         "subhead": "We're looking for shops that grow creative communities. Could yours be next?",
@@ -11,37 +39,10 @@
         "min_height": 760,
         "padding_top": 72,
         "padding_bottom": 72
-      },
-      "blocks": {
-        "locations": {
-          "type": "jump_link",
-          "settings": { "label": "Stockist locations", "target_id": "theinmag-stockists-h1" }
-        },
-        "apply": {
-          "type": "jump_link",
-          "settings": { "label": "Become a stockist", "target_id": "theinmag-stockist-apply-form-heading" }
-        },
-        "order": {
-          "type": "jump_link",
-          "settings": { "label": "Order with your code", "target_id": "shop-grid" }
-        }
-      },
-      "block_order": ["locations", "apply", "order"]
+      }
     },
     "why": {
       "type": "theinmag-single-mags-pillars",
-      "settings": {
-        "aeo_heading": "Why should my shop stock theINmag?",
-        "intro_text": "A lil creativity for your pocket of Aus.",
-        "artwork_filename_1": "blog-image-universal-28.jpg",
-        "artwork_filename_2": "blog-image-universal-37.jpg",
-        "artwork_filename_3": "blog-image-universal-39.jpg",
-        "artwork_filename_4": "blog-image-universal-40.jpg",
-        "artwork_alt": "Kid-created artwork from a theINmag issue.",
-        "show_character": true,
-        "flush_layout": true,
-        "show_kid_art": false
-      },
       "blocks": {
         "p1": {
           "type": "pillar",
@@ -76,12 +77,30 @@
           }
         }
       },
-      "block_order": ["p1", "p2", "p3", "p4"]
+      "block_order": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "settings": {
+        "aeo_heading": "Why should my shop stock theINmag?",
+        "intro_text": "A lil creativity for your pocket of Aus.",
+        "artwork_filename_1": "blog-image-universal-28.jpg",
+        "artwork_filename_2": "blog-image-universal-37.jpg",
+        "artwork_filename_3": "blog-image-universal-39.jpg",
+        "artwork_filename_4": "blog-image-universal-40.jpg",
+        "artwork_alt": "Kid-created artwork from a theINmag issue.",
+        "show_character": true,
+        "flush_layout": true,
+        "show_kid_art": false,
+        "show_circles": true
+      }
     },
     "pricing_note": {
       "type": "theinmag-callout-strip",
       "settings": {
-        "body": "Prices below are retail. Your approved stockist code takes <strong>45% off</strong> at checkout, more on bigger orders, and <strong>shipping is free over $40</strong>.<br>The $23.95 RRP is a <strong>guide, not a rule</strong>: price it however suits your shop.",
+        "body": "Prices below are retail. Your approved stockist code takes <strong>45% off</strong> at checkout, and <strong>shipping is free over $40</strong>.<br>The $23.95 RRP is a <strong>guide, not a rule</strong>: price it however suits your shop.",
         "callout_style": "plain",
         "bg_color": "cream",
         "padding_top": 24,
@@ -94,14 +113,17 @@
         "heading": "Available for stockists to order",
         "collection_handle": "all",
         "exclude_handles": "membership, single-mags, single-issues",
+        "print_promote_handles": "mag01",
         "print_available_only": true,
         "show_format_filter": false,
         "show_character": false,
-        "print_promote_handles": "mag01",
         "products_per_page": 12,
         "empty_text": "Nothing in print to order right now. Check back around the next drop.",
         "padding_top": 48,
-        "padding_bottom": 72
+        "padding_bottom": 72,
+        "hide_digital": true,
+        "cover_opens_lightbox": true,
+        "show_cart_cta": true
       }
     },
     "spotlight": {
@@ -109,7 +131,6 @@
       "settings": {
         "hero_image_filename": "mag08-01-cover-MOCKUP.jpg",
         "hero_image_alt": "theINmag cover mockup.",
-        "subhead_countdown": "Pre-order now open. Shipping to your letterbox very soon.",
         "show_price_ctas": false,
         "show_character": true,
         "padding_top": 0,
@@ -128,10 +149,12 @@
       }
     },
     "map": {
-      "type": "theinmag-stockists-hero"
+      "type": "theinmag-stockists-hero",
+      "settings": {}
     },
     "map_modal": {
-      "type": "theinmag-stockists-modal"
+      "type": "theinmag-stockists-modal",
+      "settings": {}
     },
     "review": {
       "type": "theinmag-pull-quote",
@@ -158,14 +181,6 @@
     },
     "faq": {
       "type": "theinmag-faq",
-      "settings": {
-        "heading": "Questions about stocking theINmag",
-        "show_cta": true,
-        "cta_label": "Still curious? Get in touch",
-        "cta_link": "/pages/contact",
-        "padding_top": 64,
-        "padding_bottom": 88
-      },
       "blocks": {
         "become": {
           "type": "faq_item",
@@ -185,7 +200,7 @@
           "type": "faq_item",
           "settings": {
             "question": "How does stockist pricing work?",
-            "answer": "<p>Approved stockists get 45% off the $23.95 cover price, with more off as you order more: an extra 5% at 3 copies, 10% at 5, and 15% at 8. Your code applies the discount automatically at checkout, and orders over $40 ship free.</p>"
+            "answer": "<p>Approved stockists get 45% off the $23.95 cover price. Your code applies the discount automatically at checkout, and orders over $40 ship free.</p>"
           }
         },
         "shipping": {
@@ -217,8 +232,37 @@
           }
         }
       },
-      "block_order": ["become", "exclusive", "pricing", "shipping", "reorder", "consignment", "invoice"]
+      "block_order": [
+        "become",
+        "exclusive",
+        "pricing",
+        "shipping",
+        "reorder",
+        "consignment",
+        "invoice"
+      ],
+      "settings": {
+        "heading": "Questions about stocking theINmag",
+        "show_cta": true,
+        "cta_label": "Still curious? Get in touch",
+        "cta_link": "/pages/contact",
+        "padding_top": 64,
+        "padding_bottom": 88
+      }
     }
   },
-  "order": ["hero", "why", "pricing_note", "picker", "spotlight", "inside", "map", "map_modal", "review", "ugc", "apply_form", "faq"]
+  "order": [
+    "hero",
+    "why",
+    "pricing_note",
+    "picker",
+    "spotlight",
+    "inside",
+    "map",
+    "map_modal",
+    "review",
+    "ugc",
+    "apply_form",
+    "faq"
+  ]
 }

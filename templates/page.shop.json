@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "hero": {
@@ -5,17 +14,12 @@
       "settings": {
         "hero_image_filename": "mag08-01-cover-MOCKUP.jpg",
         "hero_image_alt": "theINmag cover mockup.",
-        "subhead_countdown": "Pre-order now open. Shipping to your letterbox very soon.",
         "padding_top": 0,
         "padding_bottom": 0
       }
     },
     "categories": {
       "type": "theinmag-mission",
-      "settings": {
-        "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
-        "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>"
-      },
       "blocks": {
         "feature-1": {
           "type": "feature",
@@ -82,7 +86,19 @@
           }
         }
       },
-      "block_order": ["feature-1", "feature-2", "feature-3", "feature-4", "membership", "single", "bundle"]
+      "block_order": [
+        "feature-1",
+        "feature-2",
+        "feature-3",
+        "feature-4",
+        "membership",
+        "single",
+        "bundle"
+      ],
+      "settings": {
+        "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
+        "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>"
+      }
     },
     "trust_strip": {
       "type": "theinmag-shop-trust-strip",
@@ -141,9 +157,6 @@
     },
     "cta_closer": {
       "type": "theinmag-behind-the-mag-cta",
-      "settings": {
-        "aeo_heading": "How can I get my kid involved with theINmag?"
-      },
       "blocks": {
         "membership": {
           "type": "cta_card",
@@ -170,18 +183,16 @@
           }
         }
       },
-      "block_order": ["membership", "send_in"]
+      "block_order": [
+        "membership",
+        "send_in"
+      ],
+      "settings": {
+        "aeo_heading": "How can I get my kid involved with theINmag?"
+      }
     },
     "faq": {
       "type": "theinmag-faq",
-      "settings": {
-        "heading": "Questions before you <em>buy</em>",
-        "show_cta": true,
-        "cta_label": "More questions? Get in touch",
-        "cta_link": "/pages/contact",
-        "padding_top": 64,
-        "padding_bottom": 88
-      },
       "blocks": {
         "shipping": {
           "type": "faq_item",
@@ -226,8 +237,32 @@
           }
         }
       },
-      "block_order": ["shipping", "formats", "soldout", "membership", "payment", "international"]
+      "block_order": [
+        "shipping",
+        "formats",
+        "soldout",
+        "membership",
+        "payment",
+        "international"
+      ],
+      "settings": {
+        "heading": "Questions before you <em>buy</em>",
+        "show_cta": true,
+        "cta_label": "More questions? Get in touch",
+        "cta_link": "/pages/contact",
+        "padding_top": 64,
+        "padding_bottom": 88
+      }
     }
   },
-  "order": ["hero", "categories", "trust_strip", "grid", "pull_quote", "reviews", "cta_closer", "faq"]
+  "order": [
+    "hero",
+    "categories",
+    "trust_strip",
+    "grid",
+    "pull_quote",
+    "reviews",
+    "cta_closer",
+    "faq"
+  ]
 }

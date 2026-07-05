@@ -45,6 +45,23 @@
   {%- endcomment -%}
   <h2 id="theinmag-single-mags-pillars-heading" class="theinmag-single-mags-pillars__a11y-heading">{{ aeo_heading }}</h2>
 
+  {%- comment -%}
+    Decorative hollow-circles pattern (opt-in via show_circles), mirrors
+    theinmag-faq. Anchored to the left gutter behind the inner column.
+    aria-hidden, purely decorative.
+  {%- endcomment -%}
+  {%- if section.settings.show_circles -%}
+    <img
+      class="theinmag-single-mags-pillars__circles"
+      src="{{ 'FAQ_HollowCircles.png' | asset_url }}"
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      width="600"
+      height="600"
+    >
+  {%- endif -%}
+
   <div class="theinmag-single-mags-pillars__inner">
     <div class="theinmag-single-mags-pillars__copy">
       {%- if intro_text != blank -%}
@@ -236,6 +253,31 @@
   @media (min-width: 990px) {
     .theinmag-single-mags-pillars {
       padding-right: 0;
+    }
+  }
+
+  /* Decorative hollow-circles pattern (opt-in via show_circles).
+     Mirrors theinmag-faq: anchored to the left gutter behind the inner
+     column (which carries z-index:1), hidden below 750px. */
+  .theinmag-single-mags-pillars__circles {
+    display: none;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-single-mags-pillars__circles {
+      display: block;
+      position: absolute;
+      top: 50%;
+      /* Centred behind the kid-character peek (which sits in the gap
+         between the copy and artwork columns, ~54% across). */
+      left: 54%;
+      width: clamp(280px, 32vw, 480px);
+      height: auto;
+      transform: translate(-50%, -50%);
+      opacity: 0.55;
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
     }
   }
 
@@ -586,6 +628,13 @@
       "id": "flush_layout",
       "label": "Flush cream layout (full-height image)",
       "info": "Plain cream background and the artwork runs the full height of the section, no gap above or below. Used on the stockist hub.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_circles",
+      "label": "Show decorative hollow-circles pattern",
+      "info": "Faint circles in the left gutter behind the content. Used on the stockist hub.",
       "default": false
     },
     {

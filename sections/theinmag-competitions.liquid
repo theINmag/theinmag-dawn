@@ -21,9 +21,10 @@
   snippet `theinmag-competitions-data`. Migration path to Option A
   (Shopify metaobjects) is documented in the spec.
 
-  Spotlight rotation: admin-curated. Pool is the seven competitions
-  flagged as hot leads (Tier 1 green dot) in the master CSV. Rotates
-  every 10s with crossfade, pauses on hover.
+  Spotlight: admin-curated. Pool is the three competitions curated in
+  the build script's SPOTLIGHT_ORDER (first = the pinned top pick,
+  currently Banabae). Does NOT auto-rotate: the top pick holds until a
+  visitor taps the manual prev/next arrows (crossfade between cards).
 
   Static-stage technique: section 2 of the stage uses an internal
   scroll container on desktop (overflow-y: auto on .theinmag-comps__list
@@ -365,6 +366,7 @@
                 {%- assign s_cat = comp_category_slugs[spot_idx] -%}
                 {%- assign s_url = comp_websites[spot_idx] -%}
                 {%- if s_url == blank -%}{%- assign s_url = '#' -%}{%- endif -%}
+                {%- assign s_state = comp_tile_states[spot_idx] -%}
                 <a
                   class="theinmag-comps__featured-card theinmag-comps__featured-card--{{ s_cat }}{% if forloop.first %} is-active{% endif %}"
                   href="{{ s_url }}"
@@ -385,6 +387,12 @@
                     <span class="theinmag-comps__featured-chip">{{ comp_categories[spot_idx] | downcase }}</span>
                     <span class="theinmag-comps__featured-title">{{ comp_names[spot_idx] }}</span>
                     <span class="theinmag-comps__featured-pitch">{{ comp_pitches[spot_idx] }}</span>
+                    <span class="theinmag-comps__tile-meta theinmag-comps__featured-meta">
+                      <span class="theinmag-comps__tile-meta-item">{{ comp_meta_lines[spot_idx] }}</span>
+                      <span class="theinmag-comps__tile-meta-item">{{ comp_costs[spot_idx] }}</span>
+                      <span class="theinmag-comps__tile-meta-item">{{ comp_wheres[spot_idx] }}</span>
+                    </span>
+                    <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ s_state }}"><span class="theinmag-comps__dot"></span> {{ comp_state_labels[spot_idx] }}</span>
                     <span class="theinmag-comps__featured-cta">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
                   </span>
                 </a>
@@ -2040,14 +2048,13 @@
     }
 
     /* ------------------------------------------------------------------
-       Featured tile rotation - 10s, crossfade, pause on hover.
+       Featured top pick - manual flick-through, crossfade. No auto-rotation:
+       the top pick (Banabae) holds until a visitor taps an arrow.
        ------------------------------------------------------------------ */
     var featuredStack = root.querySelector('[data-featured-stack]');
     if (featuredStack) {
       var featuredCards = featuredStack.querySelectorAll('.theinmag-comps__featured-card');
       var current = 0;
-      var rotationInterval = null;
-      var paused = false;
       var prevBtn = root.querySelector('[data-featured-prev]');
       var nextBtn = root.querySelector('[data-featured-next]');
 
@@ -2057,25 +2064,18 @@
         current = (idx % featuredCards.length + featuredCards.length) % featuredCards.length;
         featuredCards[current].classList.add('is-active');
       }
-      function rotate() { if (!paused) show(current + 1); }
-      function start() { if (!prefersReducedMotion) rotationInterval = setInterval(rotate, 10000); }
-      function stop() { if (rotationInterval) { clearInterval(rotationInterval); rotationInterval = null; } }
-      function restart() { stop(); start(); }
 
-      featuredStack.addEventListener('mouseenter', function () { paused = true; });
-      featuredStack.addEventListener('mouseleave', function () { paused = false; });
-
-      // Manual flick-through. Each tap advances and resets the auto-rotation timer.
+      // Manual flick-through only. No auto-rotation: the top pick stays put
+      // until a visitor taps an arrow (Ryan's call, 2026-06-16).
       if (featuredCards.length > 1) {
         if (prevBtn) {
           prevBtn.hidden = false;
-          prevBtn.addEventListener('click', function (e) { e.preventDefault(); show(current - 1); restart(); });
+          prevBtn.addEventListener('click', function (e) { e.preventDefault(); show(current - 1); });
         }
         if (nextBtn) {
           nextBtn.hidden = false;
-          nextBtn.addEventListener('click', function (e) { e.preventDefault(); show(current + 1); restart(); });
+          nextBtn.addEventListener('click', function (e) { e.preventDefault(); show(current + 1); });
         }
-        start();
       }
     }
 

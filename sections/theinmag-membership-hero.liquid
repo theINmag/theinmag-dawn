@@ -54,26 +54,12 @@
   endif
 
   comment
-    PRE-DROP LEAD SHIFT (manual, 2026-06-09). While Mag10 is dropping very soon,
-    the membership starting-issue choices lead with Mag10 ("the current issue,
-    dropping very soon") and offer Mag11 (15 Oct 2026) as the next option; Mag09
-    is retired from the picker. ONLY the lead_/alt_ vars below and the
-    starting-issue tiles use these - the countdown, flick-through video and
-    everything else still read the real current_issue (Mag09) metafield, so they
-    stay correct. The JS computes _starting_mag and _mags_included from the
-    data-current-issue / data-next-issue attributes, so re-pointing those is all
-    that is needed. REVERT on the 15 June drop: flip current_issue_number to
-    Mag10 (and next_release_date to 15 Oct) and delete this block, so the tiles
-    auto-roll normally to current=Mag10 / next=Mag11.
+    PRE-DROP LEAD SHIFT removed 2026-06-16 (Mag10 drop done). Normal mapping:
+    lead = current issue (in stock now), alt = next issue.
   endcomment
-  assign lead_issue = next_issue
+  assign lead_issue = current_issue
   assign lead_release_formatted = next_release_formatted
-  assign alt_num = next_num | plus: 1
-  if alt_num < 10
-    assign alt_issue = 'Mag0' | append: alt_num
-  else
-    assign alt_issue = 'Mag' | append: alt_num
-  endif
+  assign alt_issue = next_issue
   assign alt_release_formatted = '15 October 2026'
 
   assign first_variant = product.selected_or_first_available_variant
@@ -334,7 +320,7 @@
           <legend class="theinmag-membership-hero__legend">Starting issue</legend>
           <div class="theinmag-membership-hero__starting" role="radiogroup" data-option-name="starting" data-starting-group>
             <button type="button" class="theinmag-membership-hero__start-tile" data-value="current" data-requires-print-stock="true" aria-pressed="true">
-              <span class="theinmag-membership-hero__start-label"><strong>Start with the current issue</strong> - {{ lead_issue }}, dropping very soon ({{ lead_release_formatted }})</span>
+              <span class="theinmag-membership-hero__start-label"><strong>Start with the current issue</strong> - {{ lead_issue }}, in stock now</span>
             </button>
             <button type="button" class="theinmag-membership-hero__start-tile" data-value="next" aria-pressed="false">
               <span class="theinmag-membership-hero__start-label"><strong>Start with the next issue</strong> - {{ alt_issue }}, drops {{ alt_release_formatted }}</span>

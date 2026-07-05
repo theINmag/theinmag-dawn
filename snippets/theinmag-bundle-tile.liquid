@@ -101,6 +101,33 @@
     assign pdp_url = '/products/' | append: product.handle
     assign add_suffix = ' to cart'
     assign add_attr = 'data-shop-add'
+    # Peek mode (stockist picker): build a pipe-joined list of preview image
+    # URLs - the print cover first, then this issue's inside_gallery_images
+    # (same source the INside section uses). JS opens these in a lightbox so
+    # the shopper never leaves the page. Blank list = no peek (link falls back).
+    if peek
+      assign peek_urls = ''
+      assign peek_inside = product.metafields.single_mag.inside_gallery_images.value
+      for img in peek_inside
+        assign peek_one = img | image_url: width: 1200
+        if peek_urls == blank
+          assign peek_urls = peek_one
+        else
+          assign peek_urls = peek_urls | append: '|' | append: peek_one
+        endif
+      endfor
+      # Fallback only: a product with NO inside gallery (e.g. Snack Pack)
+      # still opens the lightbox showing its cover, so it never leaves the
+      # page. Mags with a gallery lead with their own first image (the
+      # styled cover), no plain-cover double-up of the tile.
+      if peek_urls == blank
+        if cover_override != blank
+          assign peek_urls = cover_override | asset_url
+        elsif cover_image != blank
+          assign peek_urls = cover_image | image_url: width: 1200
+        endif
+      endif
+    endif
   else
     assign add_suffix = ' to bundle'
     assign add_attr = 'data-bundle-add'
@@ -116,7 +143,7 @@
 >
   <div class="theinmag-bundle-tile__cover">
     {%- if tile_context == 'shop' -%}
-      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link" aria-label="View {{ tile_title }}">
+      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link{% if peek and peek_urls != blank %} theinmag-bundle-tile__cover-link--peek{% endif %}" aria-label="{% if peek and peek_urls != blank %}Peek inside {{ tile_title }}{% else %}View {{ tile_title }}{% endif %}"{% if peek and peek_urls != blank %} data-peek-trigger data-peek-images="{{ peek_urls | escape }}" data-peek-title="{{ tile_title | escape }}" data-peek-variant="{{ print_variant.id }}"{% endif %}>
         {%- if cover_override != blank -%}
           <img
             class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--print"
@@ -162,6 +189,12 @@
             loading="lazy"
             aria-hidden="true"
           >
+        {%- endif -%}
+        {%- if peek and peek_urls != blank -%}
+          <span class="theinmag-bundle-tile__peek-hint" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            Peek inside
+          </span>
         {%- endif -%}
       </a>
       {%- if is_pre_order -%}
@@ -228,24 +261,30 @@
           assign print_sold_out = true
         endif
       -%}
-      <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--print{% if print_sold_out %} is-sold-out{% endif %}" data-variant-id="{{ print_variant.id }}">
+      <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--print{% if print_sold_out %} is-sold-out{% endif %}{% if print_only %} theinmag-bundle-tile__row--qty{% endif %}" data-variant-id="{{ print_variant.id }}">
         <span class="theinmag-bundle-tile__format">Print</span>
         {%- if print_sold_out -%}
           <span class="theinmag-bundle-tile__pill" aria-label="Print sold out">Sold out</span>
         {%- else -%}
-          <span class="theinmag-bundle-tile__price">{{ print_variant.price | money }}</span>
-          <button
-            type="button"
-            class="theinmag-bundle-tile__add"
-            {{ add_attr }}
-            data-variant-id="{{ print_variant.id }}"
-            aria-label="Add {{ tile_title }} Print{{ add_suffix }}"
-          ><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+          <span class="theinmag-bundle-tile__price">{% if print_only %}<span class="theinmag-bundle-tile__rrp">RRP</span> {% endif %}{{ print_variant.price | money }}</span>
+          {%- if print_only -%}
+            <span class="theinmag-bundle-tile__buy">
+              <span class="theinmag-bundle-tile__qty">
+                <button type="button" class="theinmag-bundle-tile__qty-btn" data-tile-minus aria-label="Decrease quantity">&#8722;</button>
+                <input type="text" class="theinmag-bundle-tile__qty-input" data-tile-qty value="1" inputmode="numeric" pattern="[0-9]*" aria-label="Quantity for {{ tile_title }}">
+                <button type="button" class="theinmag-bundle-tile__qty-btn" data-tile-plus aria-label="Increase quantity">+</button>
+              </span>
+              <button type="button" class="theinmag-bundle-tile__add" {{ add_attr }} data-variant-id="{{ print_variant.id }}" aria-label="Add {{ tile_title }} Print{{ add_suffix }}"><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+            </span>
+          {%- else -%}
+            <button type="button" class="theinmag-bundle-tile__add" {{ add_attr }} data-variant-id="{{ print_variant.id }}" aria-label="Add {{ tile_title }} Print{{ add_suffix }}"><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+          {%- endif -%}
         {%- endif -%}
       </div>
     {%- endif -%}
 
-    {%- if digital_variant -%}
+    {%- comment -%} print_only (stockist picker) suppresses the Digital buy row. {%- endcomment -%}
+    {%- if digital_variant and print_only != true -%}
       <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--digital" data-variant-id="{{ digital_variant.id }}">
         <span class="theinmag-bundle-tile__format">Digital</span>
         <span class="theinmag-bundle-tile__price">{{ digital_variant.price | money }}</span>

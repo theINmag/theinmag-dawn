@@ -242,15 +242,30 @@
     display: none;
   }
   @media (max-width: 989px) {
+    /* Compact, content-sized pill centred on the map (was full-width
+       left:16px/right:16px, which read oversized and the shadow spilled
+       past the map edge). Smaller font + padding so it sits naturally. */
     .theinmag-stockists__cta--map-overlay {
       display: inline-flex;
+      width: auto;
+      max-width: calc(100% - 32px);
+      box-sizing: border-box;
       position: absolute;
-      left: 16px;
-      right: 16px;
+      left: 50%;
+      transform: translateX(-50%);
       bottom: 16px;
       z-index: 1000;
-      box-shadow: 0 6px 18px rgba(42, 31, 61, 0.35),
-                  0 4px 0 var(--st-yellow-shadow);
+      padding: 8px 18px;
+      font-size: 14px;
+      border-radius: 22px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(42, 31, 61, 0.3),
+                  0 3px 0 var(--st-yellow-shadow);
+    }
+    /* keep the press animation without losing the horizontal centring */
+    .theinmag-stockists__cta--map-overlay:hover,
+    .theinmag-stockists__cta--map-overlay:focus-visible {
+      transform: translateX(-50%) translateY(2px);
     }
   }
 
@@ -265,6 +280,11 @@
     position: absolute;
     inset: 0;
     background-color: var(--st-purple-light);
+    /* Own stacking context (z-index 0) so Leaflet's internal panes
+       (z-index up to ~700) stay contained and can't paint over the
+       sticky site header (z-index 4) as the page scrolls. */
+    z-index: 0;
+    isolation: isolate;
   }
   /* Leaflet's tile pane sits on top of the bg-color above, so this is
      just a fallback while tiles load. */

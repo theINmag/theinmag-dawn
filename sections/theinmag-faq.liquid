@@ -87,8 +87,8 @@
       <ul class="theinmag-faq__list" role="list">
         {%- for block in faq_blocks -%}
           {%- liquid
-            assign question = block.settings.question | replace: 'theINmag', 'the<span class="theinmag-in">IN</span>mag'
-            assign answer = block.settings.answer | replace: 'theINmag', 'the<span class="theinmag-in">IN</span>mag'
+            assign question = block.settings.question
+            assign answer = block.settings.answer
             assign answer_id = 'theinmag-faq-answer-' | append: section.id | append: '-' | append: forloop.index
           -%}
           <li class="theinmag-faq__item" {{ block.shopify_attributes }}>

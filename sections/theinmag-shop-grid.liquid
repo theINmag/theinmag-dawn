@@ -52,6 +52,17 @@
   # theinmag-bundle-tile (scan variant titles for "print"/"digital").
   assign print_available_only = section.settings.print_available_only | default: false
 
+  # Stockist picker: hide the Digital buy row on every tile (print only).
+  assign hide_digital = section.settings.hide_digital | default: false
+
+  # Stockist picker: clicking a cover opens an inside-pages lightbox instead
+  # of navigating to the PDP (keeps the shopper on the page).
+  assign cover_opens_lightbox = section.settings.cover_opens_lightbox | default: false
+
+  # Stockist picker: a "Go to cart" button under the grid with a reminder to
+  # add the stockist code at checkout.
+  assign show_cart_cta = section.settings.show_cart_cta | default: false
+
   # Format filter pills are pointless on an all-print page, so they can be
   # hidden independently. Sort + Show-more are unaffected.
   assign show_format_filter = section.settings.show_format_filter
@@ -261,7 +272,7 @@
             data-product-created="{{ product.created_at | date: '%s' }}"
             {%- if visible_index > products_per_page %} hidden data-overflow{%- endif %}
           >
-            {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover, digital_cover_filename: tile_digital_cover %}
+            {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover, digital_cover_filename: tile_digital_cover, print_only: hide_digital, peek: cover_opens_lightbox %}
           </li>
         {%- endfor -%}
       </ul>
@@ -273,6 +284,33 @@
       {%- endif -%}
 
       <div class="theinmag-shop-grid__feedback" data-shop-feedback role="status" aria-live="polite" hidden></div>
+
+      {%- if show_cart_cta -%}
+        <div class="theinmag-shop-grid__checkout-bar" data-checkout-bar hidden>
+          <span class="theinmag-shop-grid__checkout-code-field">
+            <input type="text" class="theinmag-shop-grid__checkout-code" data-checkout-code placeholder="Put your stockist code here" aria-label="Your stockist code" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          </span>
+          <div class="theinmag-shop-grid__checkout-content">
+            <div class="theinmag-shop-grid__checkout-content-inner">
+              <ul class="theinmag-shop-grid__checkout-items" data-checkout-items role="list"></ul>
+              <div class="theinmag-shop-grid__checkout-foot">
+                <div class="theinmag-shop-grid__checkout-summary">
+                  <span class="theinmag-shop-grid__checkout-count" data-checkout-count></span>
+                  <span class="theinmag-shop-grid__checkout-note">Just an estimate. Your final price is confirmed at checkout.</span>
+                </div>
+                <div class="theinmag-shop-grid__checkout-pay">
+                  <span class="theinmag-shop-grid__checkout-totals">
+                    <span class="theinmag-shop-grid__checkout-rrp" data-checkout-rrp></span>
+                    <span class="theinmag-shop-grid__checkout-est" data-checkout-est></span>
+                  </span>
+                  <button type="button" class="theinmag-shop-grid__checkout-btn" data-checkout-go>Go to checkout</button>
+                </div>
+              </div>
+            </div>
+            <div class="theinmag-shop-grid__checkout-lock" aria-hidden="true">Type your code to unlock estimated prices</div>
+          </div>
+        </div>
+      {%- endif -%}
     {%- else -%}
       <p class="theinmag-shop-grid__empty">{{ empty_text }}</p>
     {%- endif -%}
@@ -286,6 +324,51 @@
     Snippet silently no-ops if the membership product isn't found.
   {%- endcomment -%}
   {% render 'theinmag-membership-popup', membership_product: all_products['membership'] %}
+
+  {%- comment -%}
+    Peek-inside lightbox (stockist picker). Rendered once. A cover with
+    data-peek-trigger opens this, the JS fills it with that issue's preview
+    images and lets the shopper flick through without leaving the page.
+  {%- endcomment -%}
+  {%- if cover_opens_lightbox -%}
+    <div class="theinmag-peek" data-peek-modal hidden role="dialog" aria-modal="true" aria-label="Inside the magazine">
+      <div class="theinmag-peek__backdrop" data-peek-close></div>
+      <figure class="theinmag-peek__dialog" role="document">
+        <button type="button" class="theinmag-peek__close" data-peek-close aria-label="Close preview">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+        <div class="theinmag-peek__card">
+          <div class="theinmag-peek__stage">
+            <span class="theinmag-peek__rotate" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M3 13a9 9 0 0 0 4 6"/><path d="M21 11a9 9 0 0 0-4-6"/></svg>
+              Rotate your phone for the full view
+            </span>
+            <button type="button" class="theinmag-peek__nav theinmag-peek__nav--prev" data-peek-prev aria-label="Previous page">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <img class="theinmag-peek__img" data-peek-img alt="" decoding="async">
+            <button type="button" class="theinmag-peek__nav theinmag-peek__nav--next" data-peek-next aria-label="Next page">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+          <figcaption class="theinmag-peek__bar">
+            <span class="theinmag-peek__meta">
+              <span class="theinmag-peek__title" data-peek-title></span>
+              <span class="theinmag-peek__counter" data-peek-counter aria-live="polite"></span>
+            </span>
+            <span class="theinmag-peek__buy" data-peek-buy>
+              <span class="theinmag-peek__qty">
+                <button type="button" class="theinmag-peek__qty-btn" data-peek-minus aria-label="Decrease quantity">&#8722;</button>
+                <input type="text" class="theinmag-peek__qty-input" data-peek-qty value="1" inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
+                <button type="button" class="theinmag-peek__qty-btn" data-peek-plus aria-label="Increase quantity">+</button>
+              </span>
+              <button type="button" class="theinmag-peek__add" data-peek-add>Add to cart</button>
+            </span>
+          </figcaption>
+        </div>
+      </figure>
+    </div>
+  {%- endif -%}
 </section>
 
 {%- if render_count > 0 -%}
@@ -465,28 +548,23 @@
         .catch(function () { /* swallow - graceful degradation */ });
     }
 
-    list.addEventListener('click', function (event) {
-      const btn = event.target.closest('[data-shop-add]');
-      if (!btn) return;
-      event.preventDefault();
-      const variantId = btn.getAttribute('data-variant-id');
+    /* Shared add-to-cart. Used by the tile Add buttons (qty 1) and the
+       peek lightbox (qty from its stepper). btn is optional - when present
+       it gets the pending-guard + "Added" flip; the drawer + count refresh
+       happen either way. */
+    function addToCart(variantId, qty, btn) {
       if (!variantId) return;
-      if (btn._pending) return;
-      btn._pending = true;
+      if (btn && btn._pending) return;
+      if (btn) btn._pending = true;
 
-      /* Build sections payload so the response carries fresh
-         cart-drawer + cart-icon-bubble HTML. Then we can hand
-         that straight to cartDrawer.renderContents and the drawer
-         slides in pre-populated - same flow Dawn's product-form.js
-         uses on PDPs. */
       var cartDrawer = document.querySelector('cart-drawer');
       var sectionIds = cartDrawer && typeof cartDrawer.getSectionsToRender === 'function'
         ? cartDrawer.getSectionsToRender().map(function (s) { return s.id; }).join(',')
         : '';
 
-      const body = new FormData();
+      var body = new FormData();
       body.append('id', variantId);
-      body.append('quantity', '1');
+      body.append('quantity', String(qty && qty > 0 ? qty : 1));
       if (sectionIds) {
         body.append('sections', sectionIds);
         body.append('sections_url', window.location.pathname);
@@ -502,29 +580,278 @@
           return r.json();
         })
         .then(function (data) {
-          flipButton(btn, true);
-          /* Toast is owned by the sitewide floating cart (it subscribes to the
-             cartUpdate published in refreshCartCount and pops a single toast
-             above the pill). Don't flash a second one here - that was the
-             duplicate bubble. flashFeedback stays for the error path only. */
+          if (btn) flipButton(btn, true);
           refreshCartCount(data.product_title);
-
-          /* Drawer pop. Per Ryan's Stage 6 brief: ADD TO CART ->
-             drawer slides out -> Check out is one tap away. Skip
-             only if cart_type isn't drawer or the drawer element
-             isn't on the page. */
-          if (cartDrawer && data.sections && typeof cartDrawer.renderContents === 'function') {
+          /* On the stockist picker the on-page summary bar is the feedback,
+             so don't pop the cart drawer on every add (bulk-ordering). */
+          if (cartDrawer && data.sections && typeof cartDrawer.renderContents === 'function' && !checkoutBar) {
             cartDrawer.renderContents(data);
           }
+          updateCheckoutBar();
         })
         .catch(function () {
-          flipButton(btn, false);
+          if (btn) flipButton(btn, false);
           flashFeedback('Could not add to cart. Try again.');
         })
         .finally(function () {
-          setTimeout(function () { btn._pending = false; }, 600);
+          if (btn) setTimeout(function () { btn._pending = false; }, 600);
         });
+    }
+
+    list.addEventListener('click', function (event) {
+      /* Per-tile quantity stepper (stockist picker). */
+      var stepBtn = event.target.closest('[data-tile-minus], [data-tile-plus]');
+      if (stepBtn) {
+        var wrap = stepBtn.closest('.theinmag-bundle-tile__qty');
+        var stepInput = wrap && wrap.querySelector('[data-tile-qty]');
+        if (stepInput) {
+          var cur = parseInt(stepInput.value, 10) || 1;
+          cur = stepBtn.hasAttribute('data-tile-plus') ? cur + 1 : Math.max(1, cur - 1);
+          stepInput.value = cur > 999 ? 999 : cur;
+        }
+        return;
+      }
+      var btn = event.target.closest('[data-shop-add]');
+      if (!btn) return;
+      event.preventDefault();
+      var row = btn.closest('.theinmag-bundle-tile__row');
+      var qInput = row && row.querySelector('[data-tile-qty]');
+      var qty = qInput ? (parseInt(qInput.value, 10) || 1) : 1;
+      addToCart(btn.getAttribute('data-variant-id'), qty, btn);
     });
+
+    /* Keep the tile quantity inputs numeric. */
+    list.addEventListener('input', function (event) {
+      var inp = event.target.closest('[data-tile-qty]');
+      if (inp) { inp.value = inp.value.replace(/[^0-9]/g, ''); }
+    });
+
+    /* ----------------------------------------------------------------
+       Stockist checkout bar: live RRP total + an estimate at 45% off,
+       a code field, and Go to checkout that carries the code straight
+       through (skips the cart). Estimate is conservative (the special
+       $9.90 deals + bigger-order bumps only ever make it cheaper), so
+       the figure never undershoots the real checkout price.
+       ---------------------------------------------------------------- */
+    var checkoutBar = root.querySelector('[data-checkout-bar]');
+    function updateCheckoutBar() {
+      if (!checkoutBar) return;
+      fetch('/cart.js', { headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (cart) {
+          var count = cart.item_count || 0;
+          if (count < 1) { checkoutBar.hidden = true; return; }
+          var sub = cart.items_subtotal_price || cart.total_price || 0;
+          var fmt = function (c) { return '$' + (c / 100).toFixed(2); };
+          var countEl = checkoutBar.querySelector('[data-checkout-count]');
+          var rrpEl = checkoutBar.querySelector('[data-checkout-rrp]');
+          var estEl = checkoutBar.querySelector('[data-checkout-est]');
+          if (countEl) countEl.textContent = count + (count === 1 ? ' mag' : ' mags');
+          if (rrpEl) rrpEl.textContent = 'RRP ' + fmt(sub);
+          if (estEl) estEl.textContent = 'Est. ' + fmt(Math.round(sub * 0.55));
+          /* Line-item breakdown so they can see what's in the order. */
+          var itemsEl = checkoutBar.querySelector('[data-checkout-items]');
+          if (itemsEl) {
+            itemsEl.innerHTML = '';
+            (cart.items || []).forEach(function (it) {
+              var name = (it.product_title || it.title || '').replace(/^theINmag\s*[-–—]\s*/i, '');
+              var li = document.createElement('li');
+              li.className = 'theinmag-shop-grid__checkout-item';
+              var nameEl = document.createElement('span');
+              nameEl.className = 'theinmag-shop-grid__checkout-item-name';
+              var qtyEl = document.createElement('b');
+              qtyEl.textContent = it.quantity + '× ';
+              nameEl.appendChild(qtyEl);
+              nameEl.appendChild(document.createTextNode(name));
+              var rightEl = document.createElement('span');
+              rightEl.className = 'theinmag-shop-grid__checkout-item-right';
+              var priceEl = document.createElement('span');
+              priceEl.className = 'theinmag-shop-grid__checkout-item-price';
+              priceEl.textContent = fmt(Math.round((it.original_line_price || it.line_price || 0) * 0.55));
+              var rmEl = document.createElement('button');
+              rmEl.type = 'button';
+              rmEl.className = 'theinmag-shop-grid__checkout-item-remove';
+              rmEl.setAttribute('data-checkout-remove', it.key);
+              rmEl.setAttribute('aria-label', 'Remove ' + name);
+              rmEl.innerHTML = '&times;';
+              rightEl.appendChild(priceEl);
+              rightEl.appendChild(rmEl);
+              li.appendChild(nameEl);
+              li.appendChild(rightEl);
+              itemsEl.appendChild(li);
+            });
+          }
+          checkoutBar.hidden = false;
+        })
+        .catch(function () {});
+    }
+    if (checkoutBar) {
+      updateCheckoutBar();
+      var goBtn = checkoutBar.querySelector('[data-checkout-go]');
+      var codeInput = checkoutBar.querySelector('[data-checkout-code]');
+      function goCheckout() {
+        var code = (codeInput && codeInput.value || '').trim();
+        window.location.href = code
+          ? '/discount/' + encodeURIComponent(code) + '?redirect=/checkout'
+          : '/checkout';
+      }
+      if (goBtn) goBtn.addEventListener('click', goCheckout);
+      if (codeInput) codeInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); goCheckout(); } });
+
+      /* The estimate is gated behind a stockist code. Unlock when the code
+         carries the shared INMYSTORE- prefix (we don't embed the real list,
+         so a genuine-format code reveals the estimate; the actual discount
+         still only applies at checkout if the code is real). */
+      function codeValid(v) { return /^\s*INMYSTORE-\S+/i.test(v || ''); }
+      function refreshLock() { checkoutBar.classList.toggle('is-unlocked', codeValid(codeInput && codeInput.value)); }
+      if (codeInput) codeInput.addEventListener('input', refreshLock);
+      refreshLock();
+
+      /* Remove a line from the cart (the x on each item). */
+      checkoutBar.addEventListener('click', function (event) {
+        var rm = event.target.closest('[data-checkout-remove]');
+        if (!rm) return;
+        var key = rm.getAttribute('data-checkout-remove');
+        if (!key) return;
+        rm.disabled = true;
+        fetch('/cart/change.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ id: key, quantity: 0 })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function () { updateCheckoutBar(); refreshCartCount(); })
+          .catch(function () { rm.disabled = false; });
+      });
+    }
+
+    /* ----------------------------------------------------------------
+       Peek-inside lightbox. A cover carrying data-peek-trigger opens a
+       gallery of that issue's preview images so the shopper flicks
+       through without leaving the page. The Add button reuses the
+       tile's own [data-shop-add] flow (drawer + count). Degrades
+       gracefully: with no modal rendered, cover links just navigate.
+       ---------------------------------------------------------------- */
+    var peekModal = root.querySelector('[data-peek-modal]');
+    if (peekModal) {
+      /* Move the modal to <body> so position:fixed resolves against the
+         viewport. Inside the section a transformed ancestor was trapping it,
+         which left the dark backdrop only covering part of the page. */
+      document.body.appendChild(peekModal);
+      var peekImg = peekModal.querySelector('[data-peek-img]');
+      var peekTitleEl = peekModal.querySelector('[data-peek-title]');
+      var peekCounter = peekModal.querySelector('[data-peek-counter]');
+      var peekAddBtn = peekModal.querySelector('[data-peek-add]');
+      var peekPrev = peekModal.querySelector('[data-peek-prev]');
+      var peekNext = peekModal.querySelector('[data-peek-next]');
+      var peekStage = peekModal.querySelector('.theinmag-peek__stage');
+      var peekBuy = peekModal.querySelector('[data-peek-buy]');
+      var peekQtyInput = peekModal.querySelector('[data-peek-qty]');
+      var peekMinus = peekModal.querySelector('[data-peek-minus]');
+      var peekPlus = peekModal.querySelector('[data-peek-plus]');
+      var peekImgs = [];
+      var peekIdx = 0;
+      var peekVariant = '';
+      var peekReturn = null;
+
+      function peekQty() {
+        var n = parseInt(peekQtyInput && peekQtyInput.value, 10);
+        if (!n || n < 1) { n = 1; }
+        if (n > 999) { n = 999; }
+        return n;
+      }
+
+      function peekRender() {
+        if (!peekImgs.length) return;
+        peekIdx = (peekIdx + peekImgs.length) % peekImgs.length;
+        peekImg.src = peekImgs[peekIdx];
+        peekCounter.textContent = (peekIdx + 1) + ' / ' + peekImgs.length;
+        var multi = peekImgs.length > 1;
+        peekPrev.hidden = !multi;
+        peekNext.hidden = !multi;
+      }
+
+      function peekOpen(trigger) {
+        var raw = trigger.getAttribute('data-peek-images') || '';
+        peekImgs = raw.split('|').filter(Boolean);
+        if (!peekImgs.length) return;
+        peekIdx = 0;
+        peekVariant = trigger.getAttribute('data-peek-variant') || '';
+        peekTitleEl.textContent = trigger.getAttribute('data-peek-title') || '';
+        if (peekBuy) { peekBuy.hidden = !peekVariant; }
+        if (peekQtyInput) { peekQtyInput.value = '1'; }
+        peekReturn = trigger;
+        peekRender();
+        peekImgs.forEach(function (u) { var i = new Image(); i.src = u; });
+        peekModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        requestAnimationFrame(function () {
+          peekModal.classList.add('is-open');
+          peekModal.querySelector('[data-peek-close]').focus();
+        });
+      }
+
+      function peekClose() {
+        if (peekModal.hidden || !peekModal.classList.contains('is-open')) return;
+        peekModal.classList.remove('is-open');
+        document.body.style.overflow = '';
+        var done = function () {
+          peekModal.hidden = true;
+          peekModal.removeEventListener('transitionend', done);
+          if (peekReturn) { try { peekReturn.focus(); } catch (e) {} }
+        };
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { done(); }
+        else { peekModal.addEventListener('transitionend', done); setTimeout(done, 400); }
+      }
+
+      list.addEventListener('click', function (event) {
+        var trig = event.target.closest('[data-peek-trigger]');
+        if (!trig) return;
+        event.preventDefault();
+        peekOpen(trig);
+      });
+
+      peekPrev.addEventListener('click', function () { peekIdx--; peekRender(); });
+      peekNext.addEventListener('click', function () { peekIdx++; peekRender(); });
+      peekModal.querySelectorAll('[data-peek-close]').forEach(function (el) {
+        el.addEventListener('click', peekClose);
+      });
+
+      /* Click anywhere off the image (backdrop or the cream mat) closes.
+         Clicks on the image, the nav arrows, the buy bar and the close
+         button are excluded so they keep working. */
+      peekModal.addEventListener('click', function (event) {
+        if (event.target.closest('.theinmag-peek__bar, .theinmag-peek__nav, .theinmag-peek__img, .theinmag-peek__close')) return;
+        peekClose();
+      });
+
+      if (peekMinus) peekMinus.addEventListener('click', function () { peekQtyInput.value = Math.max(1, peekQty() - 1); });
+      if (peekPlus) peekPlus.addEventListener('click', function () { peekQtyInput.value = peekQty() + 1; });
+      if (peekQtyInput) {
+        peekQtyInput.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
+        peekQtyInput.addEventListener('blur', function () { this.value = peekQty(); });
+      }
+
+      peekAddBtn.addEventListener('click', function () {
+        if (!peekVariant) return;
+        addToCart(peekVariant, peekQty(), null);
+        peekClose();
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (peekModal.hidden) return;
+        if (event.key === 'Escape') peekClose();
+        else if (event.key === 'ArrowLeft') { peekIdx--; peekRender(); }
+        else if (event.key === 'ArrowRight') { peekIdx++; peekRender(); }
+      });
+
+      var peekTouchX = 0;
+      peekStage.addEventListener('touchstart', function (e) { peekTouchX = e.changedTouches[0].clientX; }, { passive: true });
+      peekStage.addEventListener('touchend', function (e) {
+        var dx = e.changedTouches[0].clientX - peekTouchX;
+        if (Math.abs(dx) > 40) { if (dx < 0) { peekIdx++; } else { peekIdx--; } peekRender(); }
+      }, { passive: true });
+    }
   })();
 </script>
 
@@ -1101,6 +1428,490 @@
       transition: none;
     }
   }
+
+  /* ================================================================
+     Peek-inside: cover hint + lightbox gallery (stockist picker).
+     White-on-scrim hint over the cover photo; dark gallery overlay
+     with a cream action bar and the yellow stamp CTA.
+     ================================================================ */
+  .theinmag-bundle-tile__cover-link--peek { cursor: zoom-in; }
+
+  .theinmag-bundle-tile__peek-hint {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: rgba(26, 18, 32, 0.66);
+    color: #fff;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+    transform: translateY(-4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .theinmag-bundle-tile__peek-hint svg { display: block; }
+  .theinmag-bundle-tile__cover-link--peek:hover .theinmag-bundle-tile__peek-hint,
+  .theinmag-bundle-tile__cover-link--peek:focus-visible .theinmag-bundle-tile__peek-hint {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @media (hover: none) {
+    .theinmag-bundle-tile__peek-hint { opacity: 0.92; transform: translateY(0); }
+  }
+
+  .theinmag-peek {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(14px, 4vw, 48px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .theinmag-peek.is-open { opacity: 1; }
+  .theinmag-peek[hidden] { display: none; }
+
+  .theinmag-peek__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(12, 8, 16, 0.97);
+  }
+
+  .theinmag-peek__dialog {
+    position: relative;
+    margin: 0;
+    width: min(95vw, 780px);
+    transform: scale(0.97);
+    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+  .theinmag-peek.is-open .theinmag-peek__dialog { transform: scale(1); }
+
+  /* Framed box: cream mat around the image + the buy bar. */
+  .theinmag-peek__card {
+    background: var(--color-cream, #FBF6EA);
+    border-radius: 16px;
+    padding: clamp(10px, 1.6vw, 16px);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.4vw, 14px);
+  }
+
+  .theinmag-peek__close {
+    position: absolute;
+    top: -16px;
+    right: -16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    z-index: 3;
+  }
+
+  /* Fixed-size stage so the box never changes shape between portrait and
+     landscape pages. The image is centred and contained within it. */
+  .theinmag-peek__stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: clamp(340px, 64vh, 600px);
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .theinmag-peek__img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+  }
+  .theinmag-peek__rotate { display: none; }
+  @media (max-width: 600px) and (orientation: portrait) {
+    .theinmag-peek__rotate {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 4;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(26, 18, 32, 0.8);
+      color: #fff;
+      font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+      font-weight: 600;
+      font-size: 12px;
+      line-height: 1;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .theinmag-peek__rotate svg { display: block; }
+  }
+  .theinmag-peek__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(255, 255, 255, 0.86);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: background 0.15s ease;
+  }
+  .theinmag-peek__nav:hover { background: #fff; }
+  .theinmag-peek__nav[hidden] { display: none; }
+  .theinmag-peek__nav--prev { left: 8px; }
+  .theinmag-peek__nav--next { right: 8px; }
+
+  .theinmag-peek__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 0;
+    padding: clamp(8px, 1.2vw, 12px) 4px 2px;
+    border-top: 1px solid rgba(42, 31, 61, 0.1);
+  }
+  .theinmag-peek__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .theinmag-peek__title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .theinmag-peek__counter {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 12px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.55;
+  }
+  .theinmag-peek__buy {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+  .theinmag-peek__buy[hidden] { display: none; }
+  .theinmag-peek__qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(42, 31, 61, 0.2);
+    border-radius: 999px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .theinmag-peek__qty-btn {
+    border: 0;
+    background: none;
+    width: 34px;
+    height: 38px;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    cursor: pointer;
+  }
+  .theinmag-peek__qty-btn:hover { background: rgba(42, 31, 61, 0.06); }
+  .theinmag-peek__qty-input {
+    width: 36px;
+    height: 38px;
+    border: 0;
+    background: none;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-peek__qty-input:focus { outline: none; }
+  .theinmag-peek__add {
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 999px;
+    background: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 20px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 2px 0 var(--color-yellow-shadow, #d99a2b);
+    transition: translate 0.12s ease, box-shadow 0.12s ease, filter 0.15s ease;
+  }
+  .theinmag-peek__add:hover { filter: brightness(1.03); }
+  .theinmag-peek__add:active { translate: 0 1px; box-shadow: 0 1px 0 var(--color-yellow-shadow, #d99a2b); }
+
+  @media (max-width: 520px) {
+    .theinmag-peek__bar { flex-direction: column; align-items: stretch; gap: 10px; }
+    .theinmag-peek__buy { justify-content: space-between; }
+    .theinmag-peek__add { flex: 1; text-align: center; }
+  }
+
+  /* Stockist checkout bar (under the grid): a line-item list, then a foot row
+     with the estimate on the left and an underline code field (footer style)
+     + Post-font Go-to-checkout button on the right. */
+  .theinmag-shop-grid__checkout-bar {
+    margin: clamp(28px, 4vw, 46px) auto 0;
+    width: min(100%, 720px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 1.8vw, 18px);
+    background: #fff;
+    border: 1px solid rgba(42, 31, 61, 0.1);
+    border-radius: 18px;
+    padding: clamp(16px, 2.4vw, 26px);
+    box-shadow: 0 10px 34px rgba(42, 31, 61, 0.1);
+  }
+  .theinmag-shop-grid__checkout-bar[hidden] { display: none; }
+
+  .theinmag-shop-grid__checkout-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .theinmag-shop-grid__checkout-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(42, 31, 61, 0.08);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-shop-grid__checkout-item:last-child { border-bottom: 0; }
+  .theinmag-shop-grid__checkout-item-name { font-weight: 500; }
+  .theinmag-shop-grid__checkout-item-name b { font-weight: 700; }
+  .theinmag-shop-grid__checkout-item-price { color: rgba(42, 31, 61, 0.6); white-space: nowrap; }
+  .theinmag-shop-grid__checkout-item-right { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+  .theinmag-shop-grid__checkout-item-remove {
+    border: 0;
+    background: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 18px;
+    line-height: 1;
+    color: rgba(42, 31, 61, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .theinmag-shop-grid__checkout-item-remove:hover { background: rgba(42, 31, 61, 0.08); color: var(--color-inky-purple-navy, #2A1F3D); }
+
+  .theinmag-shop-grid__checkout-foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: clamp(16px, 3vw, 32px);
+    flex-wrap: wrap;
+    border-top: 1.5px solid rgba(42, 31, 61, 0.14);
+    padding-top: clamp(12px, 1.8vw, 18px);
+  }
+  .theinmag-shop-grid__checkout-summary { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .theinmag-shop-grid__checkout-count {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.65;
+  }
+  .theinmag-shop-grid__checkout-est {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: clamp(22px, 2.6vw, 30px);
+    line-height: 1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-shop-grid__checkout-totals { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .theinmag-shop-grid__checkout-rrp {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.55;
+  }
+
+  /* Locked: blur everything below the code field, with a Post-font overlay. */
+  .theinmag-shop-grid__checkout-content { position: relative; }
+  .theinmag-shop-grid__checkout-content-inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 1.8vw, 18px);
+    transition: filter 0.25s ease;
+  }
+  .theinmag-shop-grid__checkout-bar:not(.is-unlocked) .theinmag-shop-grid__checkout-content-inner {
+    filter: blur(8px);
+    pointer-events: none;
+    user-select: none;
+  }
+  .theinmag-shop-grid__checkout-lock {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 12px 24px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: clamp(19px, 2.5vw, 28px);
+    line-height: 1.15;
+    color: var(--color-purple-dark, #5D3A7A);
+    pointer-events: none;
+  }
+  .theinmag-shop-grid__checkout-bar.is-unlocked .theinmag-shop-grid__checkout-lock { display: none; }
+  .theinmag-shop-grid__checkout-note {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.6;
+    max-width: 40ch;
+    margin-top: 2px;
+  }
+  .theinmag-shop-grid__checkout-pay { display: flex; align-items: center; gap: 16px; flex: 0 0 auto; }
+  .theinmag-shop-grid__checkout-code-field {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border-bottom: 1.5px solid rgba(42, 31, 61, 0.3);
+    transition: border-color 0.2s ease;
+  }
+  .theinmag-shop-grid__checkout-code-field:focus-within { border-color: var(--color-purple-dark, #5D3A7A); }
+  .theinmag-shop-grid__checkout-code {
+    border: 0;
+    background: none;
+    padding: 10px 2px;
+    flex: 1;
+    width: 100%;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-transform: uppercase;
+  }
+  .theinmag-shop-grid__checkout-code::placeholder { text-transform: none; font-weight: 500; opacity: 0.5; }
+  .theinmag-shop-grid__checkout-code:focus { outline: none; box-shadow: none; }
+  .theinmag-shop-grid__checkout-btn {
+    border: 0;
+    background: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(16px, 1.8vw, 19px);
+    letter-spacing: 0.01em;
+    padding: 11px 26px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 3px 0 var(--color-yellow-shadow, #d99a2b);
+    transition: translate 0.12s ease, box-shadow 0.12s ease, filter 0.15s ease;
+  }
+  .theinmag-shop-grid__checkout-btn:hover { filter: brightness(1.03); }
+  .theinmag-shop-grid__checkout-btn:active { translate: 0 2px; box-shadow: 0 1px 0 var(--color-yellow-shadow, #d99a2b); }
+
+  @media (max-width: 600px) {
+    .theinmag-shop-grid__checkout-foot { flex-direction: column; align-items: stretch; gap: 14px; }
+    .theinmag-shop-grid__checkout-note { max-width: none; }
+    .theinmag-shop-grid__checkout-pay { justify-content: space-between; }
+  }
+
+  .theinmag-bundle-tile__rrp {
+    font-size: 0.72em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+
+  /* Per-tile quantity stepper (stockist picker). The print row switches from
+     the 3-column grid to a wrapping flex row so the stepper + Add can drop to
+     a second line on a narrow tile rather than crushing the price. */
+  .theinmag-bundle-tile__row--qty {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+  }
+  .theinmag-bundle-tile__row--qty .theinmag-bundle-tile__format { flex: 0 0 auto; }
+  .theinmag-bundle-tile__row--qty .theinmag-bundle-tile__price { flex: 1 1 auto; text-align: right; }
+  /* qty + Add drop to their own line, pinned bottom-right of the tile. */
+  .theinmag-bundle-tile__buy {
+    flex: 1 1 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .theinmag-bundle-tile__qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(42, 31, 61, 0.25);
+    border-radius: 999px;
+    background: #fff;
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  .theinmag-bundle-tile__qty-btn {
+    border: 0;
+    background: none;
+    width: 26px;
+    height: 32px;
+    font-size: 16px;
+    line-height: 1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    cursor: pointer;
+  }
+  .theinmag-bundle-tile__qty-btn:hover { background: rgba(42, 31, 61, 0.06); }
+  .theinmag-bundle-tile__qty-input {
+    width: 30px;
+    height: 32px;
+    border: 0;
+    background: none;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-bundle-tile__qty-input:focus { outline: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-peek,
+    .theinmag-peek__dialog { transition: none; }
+  }
 {%- endstylesheet -%}
 
 {% schema %}
@@ -1173,6 +1984,27 @@
       "label": "Show the Print/Digital filter pills",
       "info": "Turn off on an all-print page (e.g. the stockist hub) where the format filter has nothing to do.",
       "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_digital",
+      "label": "Hide the Digital buy option (print only)",
+      "info": "Removes the Digital add button on every tile so only the Print row shows. Used on the /pages/instock stockist picker (stockists order physical only).",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "cover_opens_lightbox",
+      "label": "Cover opens an inside-pages lightbox",
+      "info": "Clicking a cover opens a flick-through gallery of that issue's inside_gallery_images instead of going to the product page, so shoppers stay on the page. Used on the /pages/instock stockist picker.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart_cta",
+      "label": "Show a 'Go to cart' button under the grid",
+      "info": "Adds a Go to cart button below the products with a reminder to add the stockist code at checkout. Used on the /pages/instock stockist picker.",
+      "default": false
     },
     {
       "type": "checkbox",

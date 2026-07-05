@@ -45,10 +45,17 @@
             "link": "/pages/for-homeschoolers"
           }
         },
+        "info-stockists": {
+          "type": "dropdown_item",
+          "settings": {
+            "label": "For Stockists",
+            "link": "/pages/instock"
+          }
+        },
         "info-our-story": {
           "type": "dropdown_item",
           "settings": {
-            "label": "Behind the mag",
+            "label": "Behind the Mag",
             "link": "/pages/behind-the-mag"
           }
         }
@@ -57,6 +64,7 @@
         "info-parents",
         "info-teachers",
         "info-homeschoolers",
+        "info-stockists",
         "info-competitions",
         "info-our-story"
       ],
