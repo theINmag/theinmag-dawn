@@ -1807,6 +1807,32 @@
     .theinmag-peek__add { flex: 1; text-align: center; }
   }
 
+  /* Landscape phone: the spread fills the width, so move the buy controls into
+     a right-hand column instead of underneath, and cap the height so the whole
+     thing (image + title + toggle + price + qty + add) fits one short screen. */
+  @media (orientation: landscape) and (max-height: 600px) {
+    .theinmag-peek__dialog { width: min(96vw, 940px); }
+    .theinmag-peek__card { flex-direction: row; align-items: stretch; gap: 12px; }
+    .theinmag-peek__stage { height: min(80vh, 500px); flex: 1 1 auto; min-height: 0; }
+    .theinmag-peek__bar {
+      flex: 0 0 190px;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      gap: 12px;
+      border-top: 0;
+      border-left: 1px solid rgba(42, 31, 61, 0.12);
+      padding: 4px 4px 4px 14px;
+    }
+    .theinmag-peek__meta { gap: 4px; }
+    .theinmag-peek__buy { flex-direction: column; align-items: stretch; gap: 10px; }
+    .theinmag-peek__format { justify-content: center; }
+    .theinmag-peek__format-btn { flex: 1; }
+    .theinmag-peek__price { text-align: center; }
+    .theinmag-peek__qty { justify-content: center; }
+    .theinmag-peek__add { text-align: center; }
+  }
+
   /* Stockist checkout bar (under the grid): a line-item list, then a foot row
      with the estimate on the left and an underline code field (footer style)
      + Post-font Go-to-checkout button on the right. */
