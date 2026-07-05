@@ -128,6 +128,13 @@
         endif
       endif
     endif
+    # Peek is offered ONLY for genuine issues, NEVER membership: the peek's
+    # add-to-cart would post the membership variant with no _starting_mag
+    # (the #51018 incident). Membership keeps its 'Join the club' picker CTA.
+    assign peek_enabled = false
+    if peek and peek_urls != blank and product.handle != 'membership'
+      assign peek_enabled = true
+    endif
   else
     assign add_suffix = ' to bundle'
     assign add_attr = 'data-bundle-add'
@@ -143,7 +150,7 @@
 >
   <div class="theinmag-bundle-tile__cover">
     {%- if tile_context == 'shop' -%}
-      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link{% if peek and peek_urls != blank %} theinmag-bundle-tile__cover-link--peek{% endif %}" aria-label="{% if peek and peek_urls != blank %}Peek inside {{ tile_title }}{% else %}View {{ tile_title }}{% endif %}"{% if peek and peek_urls != blank %} data-peek-trigger data-peek-images="{{ peek_urls | escape }}" data-peek-title="{{ tile_title | escape }}" data-peek-variant="{{ print_variant.id }}"{% endif %}>
+      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link{% if peek_enabled %} theinmag-bundle-tile__cover-link--peek{% endif %}" aria-label="{% if peek_enabled %}Peek inside {{ tile_title }}{% else %}View {{ tile_title }}{% endif %}"{% if peek_enabled %} data-peek-trigger data-peek-images="{{ peek_urls | escape }}" data-peek-title="{{ tile_title | escape }}" data-peek-url="{{ pdp_url }}" data-peek-variant="{{ print_variant.id }}"{% if print_variant %} data-peek-variant-print="{{ print_variant.id }}" data-peek-price-print="{{ print_variant.price | money | escape }}"{% if print_variant.available == false %} data-peek-print-soldout="true"{% endif %}{% endif %}{% if digital_variant and print_only != true %} data-peek-variant-digital="{{ digital_variant.id }}" data-peek-price-digital="{{ digital_variant.price | money | escape }}"{% endif %}{% endif %}>
         {%- if cover_override != blank -%}
           <img
             class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--print"
@@ -190,7 +197,7 @@
             aria-hidden="true"
           >
         {%- endif -%}
-        {%- if peek and peek_urls != blank -%}
+        {%- if peek_enabled -%}
           <span class="theinmag-bundle-tile__peek-hint" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
             Peek inside

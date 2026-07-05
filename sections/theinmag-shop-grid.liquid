@@ -355,8 +355,14 @@
             <span class="theinmag-peek__meta">
               <span class="theinmag-peek__title" data-peek-title></span>
               <span class="theinmag-peek__counter" data-peek-counter aria-live="polite"></span>
+              <a class="theinmag-peek__details" data-peek-details href="#" hidden>Full details &amp; reviews &#8594;</a>
             </span>
             <span class="theinmag-peek__buy" data-peek-buy>
+              <span class="theinmag-peek__format" data-peek-format-toggle role="group" aria-label="Choose format" hidden>
+                <button type="button" class="theinmag-peek__format-btn is-active" data-peek-format="print" aria-pressed="true">Print</button>
+                <button type="button" class="theinmag-peek__format-btn" data-peek-format="digital" aria-pressed="false">Digital</button>
+              </span>
+              <span class="theinmag-peek__price" data-peek-price aria-live="polite"></span>
               <span class="theinmag-peek__qty">
                 <button type="button" class="theinmag-peek__qty-btn" data-peek-minus aria-label="Decrease quantity">&#8722;</button>
                 <input type="text" class="theinmag-peek__qty-input" data-peek-qty value="1" inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
@@ -753,6 +759,48 @@
       var peekIdx = 0;
       var peekVariant = '';
       var peekReturn = null;
+      var peekPriceEl = peekModal.querySelector('[data-peek-price]');
+      var peekDetailsEl = peekModal.querySelector('[data-peek-details]');
+      var peekFormatToggle = peekModal.querySelector('[data-peek-format-toggle]');
+      var peekFormatBtns = peekModal.querySelectorAll('[data-peek-format]');
+      var peekVariantPrint = '';
+      var peekVariantDigital = '';
+      var peekPricePrint = '';
+      var peekPriceDigital = '';
+      var peekPrintSoldOut = false;
+
+      function peekPrintBtn() {
+        for (var i = 0; i < peekFormatBtns.length; i++) {
+          if (peekFormatBtns[i].getAttribute('data-peek-format') === 'print') return peekFormatBtns[i];
+        }
+        return null;
+      }
+
+      function peekWobble(btn) {
+        if (!btn) return;
+        btn.classList.remove('is-wobble');
+        void btn.offsetWidth; /* reflow so the animation can restart */
+        btn.classList.add('is-wobble');
+      }
+
+      function peekSetFormat(fmt) {
+        var digital = fmt === 'digital';
+        if (digital && !peekVariantDigital) { digital = false; }
+        if (!digital && !peekVariantPrint && peekVariantDigital) { digital = true; }
+        /* Print sold out: allow the tap, but wobble and bounce it back to Digital. */
+        if (!digital && peekPrintSoldOut && peekVariantDigital) {
+          digital = true;
+          peekWobble(peekPrintBtn());
+        }
+        peekVariant = digital ? peekVariantDigital : peekVariantPrint;
+        if (peekPriceEl) { peekPriceEl.textContent = digital ? peekPriceDigital : peekPricePrint; }
+        for (var i = 0; i < peekFormatBtns.length; i++) {
+          var on = peekFormatBtns[i].getAttribute('data-peek-format') === (digital ? 'digital' : 'print');
+          peekFormatBtns[i].classList.toggle('is-active', on);
+          peekFormatBtns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+        if (peekBuy) { peekBuy.hidden = !peekVariant; }
+      }
 
       function peekQty() {
         var n = parseInt(peekQtyInput && peekQtyInput.value, 10);
@@ -776,9 +824,23 @@
         peekImgs = raw.split('|').filter(Boolean);
         if (!peekImgs.length) return;
         peekIdx = 0;
-        peekVariant = trigger.getAttribute('data-peek-variant') || '';
+        peekVariantPrint = trigger.getAttribute('data-peek-variant-print') || trigger.getAttribute('data-peek-variant') || '';
+        peekVariantDigital = trigger.getAttribute('data-peek-variant-digital') || '';
+        peekPricePrint = trigger.getAttribute('data-peek-price-print') || '';
+        peekPriceDigital = trigger.getAttribute('data-peek-price-digital') || '';
+        peekPrintSoldOut = trigger.getAttribute('data-peek-print-soldout') === 'true';
+        peekVariant = peekVariantPrint;
         peekTitleEl.textContent = trigger.getAttribute('data-peek-title') || '';
         if (peekBuy) { peekBuy.hidden = !peekVariant; }
+        if (peekFormatToggle) { peekFormatToggle.hidden = !peekVariantDigital; }
+        var pbtn = peekPrintBtn();
+        if (pbtn) { pbtn.classList.toggle('is-soldout', peekPrintSoldOut && !!peekVariantDigital); }
+        if (peekDetailsEl) {
+          var purl = trigger.getAttribute('data-peek-url') || '';
+          if (purl) { peekDetailsEl.href = purl; peekDetailsEl.hidden = false; }
+          else { peekDetailsEl.hidden = true; }
+        }
+        peekSetFormat((peekPrintSoldOut && peekVariantDigital) ? 'digital' : 'print');
         if (peekQtyInput) { peekQtyInput.value = '1'; }
         peekReturn = trigger;
         peekRender();
@@ -837,6 +899,12 @@
         addToCart(peekVariant, peekQty(), null);
         peekClose();
       });
+
+      for (var pf = 0; pf < peekFormatBtns.length; pf++) {
+        peekFormatBtns[pf].addEventListener('click', function () {
+          peekSetFormat(this.getAttribute('data-peek-format'));
+        });
+      }
 
       document.addEventListener('keydown', function (event) {
         if (peekModal.hidden) return;
@@ -1622,6 +1690,66 @@
     flex: 0 0 auto;
   }
   .theinmag-peek__buy[hidden] { display: none; }
+  .theinmag-peek__details {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    white-space: nowrap;
+  }
+  .theinmag-peek__details:hover { opacity: 1; }
+  .theinmag-peek__details[hidden] { display: none; }
+  .theinmag-peek__format {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(42, 31, 61, 0.2);
+    border-radius: 999px;
+    background: #fff;
+    padding: 2px;
+    flex: 0 0 auto;
+  }
+  .theinmag-peek__format[hidden] { display: none; }
+  .theinmag-peek__format-btn {
+    border: 0;
+    background: none;
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .theinmag-peek__format-btn.is-active {
+    background: var(--color-inky-purple-navy, #2A1F3D);
+    color: #fff;
+  }
+  .theinmag-peek__format-btn.is-soldout { opacity: 0.4; }
+  @keyframes theinmag-peek-wobble {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+  }
+  .theinmag-peek__format-btn.is-wobble { animation: theinmag-peek-wobble 0.4s ease; }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-peek__format-btn.is-wobble { animation: none; }
+  }
+  .theinmag-peek__price {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .theinmag-peek__price:empty { display: none; }
   .theinmag-peek__qty {
     display: inline-flex;
     align-items: center;
@@ -1673,7 +1801,9 @@
 
   @media (max-width: 520px) {
     .theinmag-peek__bar { flex-direction: column; align-items: stretch; gap: 10px; }
-    .theinmag-peek__buy { justify-content: space-between; }
+    .theinmag-peek__buy { justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .theinmag-peek__format { order: -1; flex: 1 0 100%; justify-content: center; }
+    .theinmag-peek__format-btn { flex: 1; }
     .theinmag-peek__add { flex: 1; text-align: center; }
   }
 
