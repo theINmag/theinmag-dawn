@@ -5,7 +5,7 @@
    Default state on every page load (unless subscribed):
      - tab visible bottom-left
      - card hidden
-     - 40% scroll auto-expands the card ONCE per session,
+     - 20% scroll auto-expands the card ONCE per session,
        only if no dismiss cookie is set
    X (or Esc) minimises card to tab and sets a 14-day dismiss cookie.
    Successful submit sets a 10-year subscribed cookie and hides everything. */
@@ -36,7 +36,7 @@
   const emailInput = form.querySelector('input[name="email"]');
   const firstNameInput = form.querySelector('input[name="first_name"]');
 
-  const scrollTriggerPercent = parseInt(root.dataset.scrollTrigger, 10) || 40;
+  const scrollTriggerPercent = parseInt(root.dataset.scrollTrigger, 10) || 20;
   const dismissDays = parseInt(root.dataset.dismissDays, 10) || 14;
   const publicKey = root.dataset.klaviyoPublicKey;
   const listId = root.dataset.klaviyoListId;
@@ -314,7 +314,7 @@
   showTab();
 
   // Preload the card's background texture so it's cached before the card
-  // opens (tab click or 40% scroll auto-trigger). The CSS background-color
+  // opens (tab click or 20% scroll auto-trigger). The CSS background-color
   // fallback covers the brief window until this lands, so the card never
   // flashes transparent then snaps to the red wash.
   const bgSrc = root.dataset.bgSrc;
