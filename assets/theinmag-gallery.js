@@ -108,6 +108,8 @@
     rendered: 0,
     batch: 24,
     observer: null,
+    mediaObserver: null,
+    useObserver: false,
     state: { category: 'all', query: '' },
     searchTimer: null,
     resizeTimer: null,
@@ -151,6 +153,7 @@
       this.all = creations;
       this.filtered = creations;
       this.colCount = this.computeColCount();
+      this.setupMediaObserver();
 
       // Build the first batch OFF-DOM first. If buildCard throws, the live
       // server-rendered cards are untouched and the outer .catch runs Fallback,
@@ -180,7 +183,63 @@
       this.setupInfiniteScroll();
       this.bindResize();
       this.fillWhileVisible();
+      this.pumpVisibleMedia();
       this.hideLoader();
+    },
+
+    // Image recycling: the gallery keeps every rendered card in the DOM, but only
+    // the images near the viewport carry a live `src`. Cards that scroll well past
+    // release their decoded image (removeAttribute src) and reload it just before
+    // they return to view. The reserved aspect-ratio box means releasing an image
+    // never shifts layout or scroll. This caps decoded-image memory flat no matter
+    // how large the archive grows, which is what was crashing memory-limited phones
+    // and in-app browsers (the whole 1000-card archive decoded at once).
+    setupMediaObserver: function () {
+      this.useObserver = ('IntersectionObserver' in window);
+      if (!this.useObserver || this.mediaObserver) return;
+      var self = this;
+      // Generous margin: load ~1500px before a card enters view so it is ready as
+      // the reader scrolls into it, release it ~1500px after it leaves. The wide
+      // band (viewport + ~3000px) keeps a handful of images live at once and any
+      // reload is served warm from the browser cache, so no thrash at the edge.
+      this.mediaObserver = new IntersectionObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          var media = entries[i].target;
+          if (entries[i].isIntersecting) self.loadMedia(media);
+          else self.unloadMedia(media);
+        }
+      }, { rootMargin: '1500px 0px' });
+    },
+
+    observeMedia: function (card) {
+      if (!this.mediaObserver || !card) return;
+      var medias = card.querySelectorAll('.theinmag-gallery-card__media');
+      for (var i = 0; i < medias.length; i++) this.mediaObserver.observe(medias[i]);
+    },
+
+    loadMedia: function (media) {
+      var imgs = media.querySelectorAll('img[data-src]');
+      for (var i = 0; i < imgs.length; i++) {
+        var src = imgs[i].getAttribute('data-src');
+        if (imgs[i].getAttribute('src') !== src) imgs[i].setAttribute('src', src);
+      }
+    },
+
+    unloadMedia: function (media) {
+      var imgs = media.querySelectorAll('img[data-src]');
+      for (var i = 0; i < imgs.length; i++) imgs[i].removeAttribute('src');
+    },
+
+    // Synchronously load whatever media already sits in (or near) the first screen,
+    // so the top of the gallery paints immediately without waiting on the observer's
+    // first async callback.
+    pumpVisibleMedia: function () {
+      if (!this.mediaObserver || !this.columns) return;
+      var medias = this.columns.querySelectorAll('.theinmag-gallery-card__media');
+      var limit = window.innerHeight + 1500;
+      for (var i = 0; i < medias.length; i++) {
+        if (medias[i].getBoundingClientRect().top < limit) this.loadMedia(medias[i]);
+      }
     },
 
     // True while there are more cards to render AND the sentinel sits within the
@@ -207,6 +266,9 @@
     },
 
     buildCols: function (n) {
+      // Dropping the old cards: stop observing their media so released/stale
+      // elements are not tracked. Re-observation happens as new cards are placed.
+      if (this.mediaObserver) this.mediaObserver.disconnect();
       this.cols = [];
       this.columns.innerHTML = '';
       for (var i = 0; i < n; i++) {
@@ -222,6 +284,7 @@
     placeCards: function (cardEls) {
       for (var i = 0; i < cardEls.length; i++) {
         this.cols[this.rendered % this.colCount].appendChild(cardEls[i]);
+        this.observeMedia(cardEls[i]);
         this.rendered++;
       }
       this.updateSentinel();
@@ -265,6 +328,7 @@
           var cards = [];
           for (var i = 0; i < target; i++) cards.push(self.buildCard(self.filtered[i], i));
           self.placeCards(cards);
+          self.pumpVisibleMedia();
         }, 200);
       });
     },
@@ -285,6 +349,7 @@
       this.rendered = 0;
       this.renderNextBatch();
       this.fillWhileVisible();
+      this.pumpVisibleMedia();
 
       var none = this.filtered.length === 0;
       var showNo = none && (this.state.query !== '' || this.state.category !== 'all');
@@ -399,9 +464,16 @@
           var slide = document.createElement('img');
           slide.className = 'theinmag-gallery-card__image theinmag-gallery-card__slide';
           if (k === 0 && c.cover_w && c.cover_h) slide.style.aspectRatio = c.cover_w + ' / ' + c.cover_h;
-          slide.src = (k === 0) ? cover : sized(c.images[k], cw);
+          var slideUrl = (k === 0) ? cover : sized(c.images[k], cw);
+          // With the observer, the media observer sets src near the viewport and
+          // releases it far away. Without it, fall back to eager src + native lazy.
+          if (this.useObserver) {
+            slide.setAttribute('data-src', slideUrl);
+          } else {
+            slide.src = slideUrl;
+            slide.loading = 'lazy';
+          }
           slide.alt = c.alt_text || '';
-          slide.loading = 'lazy';
           slide.decoding = 'async';
           slide.setAttribute('draggable', 'false');
           slide.setAttribute('oncontextmenu', 'return false;');
@@ -429,10 +501,16 @@
         img.className = 'theinmag-gallery-card__image';
         // Reserve the exact box BEFORE the image loads so tiles don't jump/drop
         // as they paint in - and so the infinite-scroll height math is accurate.
+        // The reserved box also means releasing the src (image recycling) never
+        // shifts layout, so an off-screen card can drop its decoded image safely.
         if (c.cover_w && c.cover_h) img.style.aspectRatio = c.cover_w + ' / ' + c.cover_h;
-        img.src = cover;
+        if (this.useObserver) {
+          img.setAttribute('data-src', cover);
+        } else {
+          img.src = cover;
+          img.loading = 'lazy';
+        }
         img.alt = c.alt_text || '';
-        img.loading = 'lazy';
         img.decoding = 'async';
         img.setAttribute('draggable', 'false');
         img.setAttribute('oncontextmenu', 'return false;');
