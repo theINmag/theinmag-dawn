@@ -413,6 +413,51 @@ main#MainContent > .shopify-section:first-of-type > .theinmag-hero,
         height: 100lvh;
         will-change: transform;
     }
+
+    /* PREFERRED PATH: let the browser move it instead of a scroll listener.
+       A scroll listener runs on the main thread while the page scrolls on the
+       compositor, so it can fall a frame behind and the background drifts a
+       little (Ryan saw exactly that on 2026-08-04 after the first build). A
+       scroll-driven animation is advanced by the browser off the main thread,
+       so it cannot lag. Where this is unsupported the @supports block is
+       skipped entirely and theinmag-section-bg-parallax.js keeps driving the
+       transform itself, which is the previous, working behaviour.
+
+       The maths: with a view() timeline over the section, progress 0 is the
+       moment the section's top edge sits at the bottom of the viewport, and
+       progress 1 is the moment its bottom edge sits at the top. To hold the
+       image at the viewport top the translate has to run linearly from minus
+       one viewport to plus one section height, which is what the keyframes
+       below say. --theinmag-bg-h is the section height, written once per
+       resize by the JS (never per frame). */
+    @supports (animation-timeline: view()) {
+        .theinmag-section-bg[data-theinmag-bg-lock] {
+            view-timeline-name: --theinmag-bg-view;
+        }
+
+        .theinmag-section-bg[data-theinmag-bg-lock] .theinmag-section-bg__image {
+            animation-name: theinmag-section-bg-lock;
+            /* Longhands on purpose: the `animation` shorthand resets duration
+               to 0s, which stops a progress-based timeline from running. */
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --theinmag-bg-view;
+        }
+    }
+}
+
+@keyframes theinmag-section-bg-lock {
+    /* Section top edge at the bottom of the viewport: the image belongs one
+       whole viewport higher, so that it sits at the viewport top. */
+    from {
+        transform: translateY(-100lvh);
+    }
+    /* Section bottom edge at the top of the viewport: the image has to be one
+       section height further down to still be at the viewport top. */
+    to {
+        transform: translateY(var(--theinmag-bg-h, 0px));
+    }
 }
 
 /* Respect reduced motion preferences across the site */

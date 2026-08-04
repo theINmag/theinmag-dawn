@@ -45,6 +45,15 @@
   var mqMobile = window.matchMedia(MOBILE);
   var mqReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+  /* PREFERRED PATH. Where scroll-driven animations exist, the CSS in
+     assets/theinmag-base.css does the moving and the browser advances it off
+     the main thread, so it cannot fall behind the page the way a scroll
+     listener can. All this file does then is write the section height into
+     --theinmag-bg-h (the keyframe end point needs it) and flip the attribute
+     that arms the CSS. No scroll listener, no per-frame work at all. */
+  var COMPOSITED =
+    !!(window.CSS && CSS.supports && CSS.supports('animation-timeline', 'view()'));
+
   var layers = [];
   var running = false;
   var ticking = false;
@@ -59,27 +68,30 @@
          against. */
       var wrap = el.parentElement;
       if (!wrap) continue;
-      layers.push({ el: el, wrap: wrap, top: 0 });
+      layers.push({ el: el, wrap: wrap });
     }
   }
 
-  /* Document-relative offsets, read once per start/resize rather than per
-     frame, so scrolling never forces a layout. */
+  /* Composited path only: hand the section height to the keyframes. Runs on
+     start and on resize, never per frame. */
   function measure() {
-    var sy = window.pageYOffset;
     for (var i = 0; i < layers.length; i++) {
-      layers[i].top = layers[i].wrap.getBoundingClientRect().top + sy;
+      var h = layers[i].wrap.getBoundingClientRect().height;
+      layers[i].wrap.style.setProperty('--theinmag-bg-h', h + 'px');
     }
   }
 
   function paint() {
     ticking = false;
-    var sy = window.pageYOffset;
     for (var i = 0; i < layers.length; i++) {
-      /* How far this section has travelled up past the top of the viewport.
-         Moving the image down by that amount cancels the section's movement,
-         so the image sits still on screen, which is the fixed-background look. */
-      layers[i].el.style.transform = 'translate3d(0,' + (sy - layers[i].top) + 'px,0)';
+      /* Read the section's CURRENT position rather than a cached offset, so
+         anything that shifts the page (a late image, a reflow, chrome moving)
+         cannot leave the background sitting at a stale distance. One rect read
+         per layer per frame is cheap: pages carry one or two of these. */
+      var top = layers[i].wrap.getBoundingClientRect().top;
+      /* Cancelling the section's own movement leaves the image sitting still
+         on screen, which is the fixed-background look. */
+      layers[i].el.style.transform = 'translate3d(0,' + -top + 'px,0)';
     }
   }
 
@@ -96,17 +108,18 @@
   function onResize() {
     sync();
     if (!running) return;
-    measure();
+    if (COMPOSITED) {
+      /* The section height feeds the keyframe end point, so it has to be
+         rewritten whenever the section can have changed size. */
+      measure();
+      return;
+    }
     onScroll();
   }
 
   function onLoad() {
-    /* Late images and webfonts push sections down the page, so offsets taken
-       at DOM-ready go stale. */
-    if (running) {
-      measure();
-      onScroll();
-    }
+    /* Late images and webfonts change section heights. */
+    if (running) onResize();
   }
 
   function start() {
@@ -115,9 +128,19 @@
     if (!layers.length) return;
     running = true;
     for (var i = 0; i < layers.length; i++) {
+      /* Puts the image layer one viewport tall, on both paths. */
       layers[i].el.setAttribute('data-theinmag-bg-parallax', '');
     }
-    measure();
+    if (COMPOSITED) {
+      measure();
+      for (var j = 0; j < layers.length; j++) {
+        /* Arms the CSS scroll-driven animation. Set last, so the height is
+           already in place and the animation never runs a frame against a
+           missing end point. */
+        layers[j].wrap.setAttribute('data-theinmag-bg-lock', '');
+      }
+      return;
+    }
     paint();
     window.addEventListener('scroll', onScroll, { passive: true });
   }
@@ -128,6 +151,8 @@
     for (var i = 0; i < layers.length; i++) {
       layers[i].el.removeAttribute('data-theinmag-bg-parallax');
       layers[i].el.style.transform = '';
+      layers[i].wrap.removeAttribute('data-theinmag-bg-lock');
+      layers[i].wrap.style.removeProperty('--theinmag-bg-h');
     }
     window.removeEventListener('scroll', onScroll);
   }
