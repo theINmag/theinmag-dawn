@@ -352,10 +352,25 @@ main#MainContent > .shopify-section:first-of-type > .theinmag-hero,
    The calling section needs position: relative + foreground content at
    z-index >= 1 to sit above this bg layer.
    ========================================================================== */
-/* Doubled-class selector bumps specificity past Dawn's `div:empty {display:none}`
-   rule in base.css (memory note: empty decorative bg-only divs collapse).
-   The bg layer has no children by design so it would otherwise be hidden. */
+/* Two elements. The outer layer fills the calling section and does the
+   clipping; the inner __image carries the picture. The split is what lets the
+   mobile parallax below move the image without it escaping the section, on
+   sections that cannot take overflow:hidden themselves.
+   Doubled-class selectors throughout bump specificity past Dawn's
+   `div:empty {display:none}` rule in base.css (memory note: empty decorative
+   bg-only divs collapse). The inner __image has no children by design so it
+   would otherwise be hidden. */
 .theinmag-section-bg.theinmag-section-bg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    opacity: var(--theinmag-bg-opacity, 0.4);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.theinmag-section-bg__image.theinmag-section-bg__image {
     display: block;
     position: absolute;
     inset: 0;
@@ -365,11 +380,39 @@ main#MainContent > .shopify-section:first-of-type > .theinmag-hero,
     background-repeat: no-repeat;
     /* attachment: fixed locks the image to the viewport while the section
        div itself scrolls over it - so the bg appears stationary while both
-       columns slide down on top. Matches the competitions section behaviour. */
+       columns slide down on top. Matches the competitions section behaviour.
+       DESKTOP ONLY: phones get the JS parallax below instead. */
     background-attachment: fixed;
-    opacity: var(--theinmag-bg-opacity, 0.4);
-    z-index: 0;
-    pointer-events: none;
+}
+
+/* Touch and small viewports. Phones cannot paint a fixed background smoothly.
+   WebKit (iOS Safari and the Instagram / Facebook in-app browsers, most of our
+   traffic) repaints a fixed background in steps instead of compositing it
+   during scroll, and every time the URL bar slides in or out the visual
+   viewport resizes so background-size: cover re-crops the image. Both read to
+   a user as the background jumping around, which is what Ryan reported on
+   /pages/newsletter on 2026-08-04.
+   Base case here is the plain scrolling background: no locked effect, but
+   nothing jumps. assets/theinmag-section-bg-parallax.js then puts the locked
+   effect back properly, and marks the layers it drives with
+   data-theinmag-bg-parallax. A browser that cannot run it keeps the base case
+   rather than a broken half-state. */
+@media (max-width: 749px), (hover: none) and (pointer: coarse) {
+    .theinmag-section-bg__image.theinmag-section-bg__image {
+        background-attachment: scroll;
+    }
+
+    /* Parallax active. One large-viewport tall so it always covers, and moved
+       by transform (GPU-composited, so no repaint stutter). 100lvh does not
+       change when the URL bar hides, which is what made the fixed background
+       re-crop and jump; there is nothing left to re-crop. The outer layer
+       clips the overhang. */
+    .theinmag-section-bg__image[data-theinmag-bg-parallax] {
+        bottom: auto;
+        height: 100vh;
+        height: 100lvh;
+        will-change: transform;
+    }
 }
 
 /* Respect reduced motion preferences across the site */

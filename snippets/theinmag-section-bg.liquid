@@ -16,6 +16,14 @@
   The calling section must have `position: relative` (or absolute)
   and its foreground content must sit at z-index >= 1. Snippet CSS
   lives in assets/theinmag-base.css under .theinmag-section-bg.
+
+  Two elements by design. The outer .theinmag-section-bg fills the
+  calling section and does the clipping; the inner __image carries
+  the picture. The split is what lets the mobile parallax move the
+  image without it escaping the section, on sections that cannot
+  take overflow:hidden themselves (theinmag-bundle-picker has none
+  deliberately, it would kill its sticky running-total panel).
+  See assets/theinmag-section-bg-parallax.js.
 {%- endcomment -%}
 
 {%- liquid
@@ -31,4 +39,10 @@
   class="theinmag-section-bg"
   aria-hidden="true"
   style="--theinmag-bg-image: url('{{ bg_url }}'); --theinmag-bg-opacity: {{ bg_opacity }};"
-></div>
+><div class="theinmag-section-bg__image"></div></div>
+
+{%- comment -%}
+  Emitted once per render; the script self-guards against a second
+  execution when a page renders this snippet more than once.
+{%- endcomment -%}
+<script src="{{ 'theinmag-section-bg-parallax.js' | asset_url }}" defer></script>
