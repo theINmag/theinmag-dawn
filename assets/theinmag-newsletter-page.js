@@ -89,6 +89,29 @@
     });
   }
 
+  // Ties THIS BROWSER to the profile we just subscribed. Without it a new
+  // subscriber stays anonymous to Klaviyo's onsite tracking, so nothing that
+  // depends on knowing who is browsing (Active on Site, Viewed Product, browse
+  // abandonment) ever fires for them. Klaviyo's own popup does this
+  // automatically; posting to the subscriptions API alone does not.
+  // Feature-detected and wrapped: analytics must never break a successful signup.
+  function identifyToKlaviyo(email, firstName) {
+    try {
+      if (window.klaviyo && typeof window.klaviyo.identify === 'function') {
+        const person = { email: email };
+        if (firstName) person.first_name = firstName;
+        window.klaviyo.identify(person);
+      } else if (window._learnq && typeof window._learnq.push === 'function') {
+        // Legacy onsite object uses $-prefixed keys.
+        const legacy = { $email: email };
+        if (firstName) legacy.$first_name = firstName;
+        window._learnq.push(['identify', legacy]);
+      }
+    } catch (err) {
+      console.warn('[theinmag-newsletter-page] Klaviyo identify skipped:', err);
+    }
+  }
+
   function onSubmit(e) {
     e.preventDefault();
     setError('');
@@ -115,6 +138,7 @@
 
     submitToKlaviyo(email, firstName)
       .then(function () {
+        identifyToKlaviyo(email, firstName);
         submitBtn.disabled = false;
         showSuccess();
       })

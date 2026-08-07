@@ -978,6 +978,29 @@
       }
     };
 
+    // Ties THIS BROWSER to the profile we just subscribed. Without it a new
+    // subscriber stays anonymous to Klaviyo's onsite tracking, so nothing that
+    // depends on knowing who is browsing (Active on Site, Viewed Product,
+    // browse abandonment) ever fires for them. Klaviyo's own popup does this
+    // automatically; posting to the subscriptions API alone does not.
+    // Feature-detected and wrapped: analytics must never break a good signup.
+    var identifyToKlaviyo = function (email, firstName) {
+      try {
+        if (window.klaviyo && typeof window.klaviyo.identify === 'function') {
+          var person = { email: email };
+          if (firstName) person.first_name = firstName;
+          window.klaviyo.identify(person);
+        } else if (window._learnq && typeof window._learnq.push === 'function') {
+          // Legacy onsite object uses $-prefixed keys.
+          var legacy = { $email: email };
+          if (firstName) legacy.$first_name = firstName;
+          window._learnq.push(['identify', legacy]);
+        }
+      } catch (err) {
+        console.warn('[theinmag-footer] Klaviyo identify skipped:', err);
+      }
+    };
+
     form.addEventListener('submit', function (event) {
       event.preventDefault();
 
@@ -1042,6 +1065,7 @@
       })
         .then(function (response) {
           if (response.ok || response.status === 202) {
+            identifyToKlaviyo(email, firstName);
             setStatus('You are IN. Free e-mag heading to your inbox.', 'success');
             form.reset();
           } else {

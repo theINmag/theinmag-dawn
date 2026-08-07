@@ -149,6 +149,23 @@
       status.classList.toggle('newsletter-form__message--success', type === 'success');
     }
 
+    // Ties THIS BROWSER to the profile we just subscribed, so the subscriber is
+    // not anonymous to Klaviyo's onsite tracking. Klaviyo's own popup does this
+    // automatically; posting to the subscriptions API alone does not.
+    // Feature-detected and wrapped: analytics must never break a good signup.
+    var identifyToKlaviyo = function (email) {
+      try {
+        if (window.klaviyo && typeof window.klaviyo.identify === 'function') {
+          window.klaviyo.identify({ email: email });
+        } else if (window._learnq && typeof window._learnq.push === 'function') {
+          // Legacy onsite object uses $-prefixed keys.
+          window._learnq.push(['identify', { $email: email }]);
+        }
+      } catch (err) {
+        console.warn('[theinmag-signup-banner] Klaviyo identify skipped:', err);
+      }
+    };
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       setStatus('');
@@ -201,6 +218,7 @@
       })
         .then(function (res) {
           if (res.ok || res.status === 202) {
+            identifyToKlaviyo(email);
             setStatus("You're IN. We'll let you know the moment we launch.", 'success');
             form.reset();
           } else {
