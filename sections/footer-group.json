@@ -89,7 +89,9 @@
     },
     "theinmag-flyout-newsletter": {
       "type": "theinmag-flyout-newsletter",
-      "settings": {}
+      "settings": {
+        "scroll_trigger_percent": 10
+      }
     }
   },
   "order": [
