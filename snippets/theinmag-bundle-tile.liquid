@@ -150,7 +150,7 @@
 >
   <div class="theinmag-bundle-tile__cover">
     {%- if tile_context == 'shop' -%}
-      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link{% if peek_enabled %} theinmag-bundle-tile__cover-link--peek{% endif %}" aria-label="{% if peek_enabled %}Peek inside {{ tile_title }}{% else %}View {{ tile_title }}{% endif %}"{% if peek_enabled %} data-peek-trigger data-peek-images="{{ peek_urls | escape }}" data-peek-title="{{ tile_title | escape }}" data-peek-url="{{ pdp_url }}" data-peek-variant="{{ print_variant.id }}"{% if print_variant %} data-peek-variant-print="{{ print_variant.id }}" data-peek-price-print="{{ print_variant.price | money | escape }}"{% if print_variant.available == false %} data-peek-print-soldout="true"{% endif %}{% endif %}{% if digital_variant and print_only != true %} data-peek-variant-digital="{{ digital_variant.id }}" data-peek-price-digital="{{ digital_variant.price | money | escape }}"{% endif %}{% endif %}>
+      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link{% if peek_enabled %} theinmag-bundle-tile__cover-link--peek{% endif %}" aria-label="{% if peek_enabled %}Peek inside {{ tile_title }}{% else %}View {{ tile_title }}{% endif %}"{% if peek_enabled %} data-peek-trigger data-peek-images="{{ peek_urls | escape }}" data-peek-title="{{ tile_title | escape }}" data-peek-url="{{ pdp_url }}" data-peek-variant="{{ print_variant.id }}"{% if print_variant %} data-peek-variant-print="{{ print_variant.id }}" data-peek-price-print="{{ print_variant.price | money | escape }}"{% if stockist_pricing %} data-peek-rrp-print="{{ print_variant.price }}"{% endif %}{% if print_variant.available == false %} data-peek-print-soldout="true"{% endif %}{% endif %}{% if digital_variant and print_only != true %} data-peek-variant-digital="{{ digital_variant.id }}" data-peek-price-digital="{{ digital_variant.price | money | escape }}"{% endif %}{% endif %}>
         {%- if cover_override != blank -%}
           <img
             class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--print"
@@ -268,12 +268,26 @@
           assign print_sold_out = true
         endif
       -%}
-      <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--print{% if print_sold_out %} is-sold-out{% endif %}{% if print_only %} theinmag-bundle-tile__row--qty{% endif %}" data-variant-id="{{ print_variant.id }}">
+      <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--print{% if print_sold_out %} is-sold-out{% endif %}{% if print_only %} theinmag-bundle-tile__row--qty{% endif %}" data-variant-id="{{ print_variant.id }}"{% if stockist_pricing %} data-rrp-price="{{ print_variant.price }}"{% endif %}>
         <span class="theinmag-bundle-tile__format">Print</span>
         {%- if print_sold_out -%}
           <span class="theinmag-bundle-tile__pill" aria-label="Print sold out">Sold out</span>
         {%- else -%}
-          <span class="theinmag-bundle-tile__price">{% if print_only %}<span class="theinmag-bundle-tile__rrp">RRP</span> {% endif %}{{ print_variant.price | money }}</span>
+          {%- if stockist_pricing -%}
+            {%- comment -%}
+              Stockist picker: both prices on the tile. The stockist figure is
+              filled in by theinmag-stockist-pricing.js ONLY once it has read
+              the entered code's real value off the live cart, so an empty
+              element here means we have no confirmed rate and retail is all
+              we show.
+            {%- endcomment -%}
+            <span class="theinmag-bundle-tile__price theinmag-bundle-tile__price-stack">
+              <span class="theinmag-bundle-tile__stockist-price" data-stockist-price hidden></span>
+              <span class="theinmag-bundle-tile__price-rrp"><span class="theinmag-bundle-tile__rrp">RRP</span> {{ print_variant.price | money }}</span>
+            </span>
+          {%- else -%}
+            <span class="theinmag-bundle-tile__price">{% if print_only %}<span class="theinmag-bundle-tile__rrp">RRP</span> {% endif %}{{ print_variant.price | money }}</span>
+          {%- endif -%}
           {%- if print_only -%}
             <span class="theinmag-bundle-tile__buy">
               <span class="theinmag-bundle-tile__qty">

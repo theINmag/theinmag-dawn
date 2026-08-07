@@ -63,6 +63,42 @@
   # add the stockist code at checkout.
   assign show_cart_cta = section.settings.show_cart_cta | default: false
 
+  # STOCKIST PRICING (the /pages/instock ordering experience). Gates the
+  # entry lightbox, the code row above the products, the always-visible
+  # order bar and the dual price on every tile. OFF everywhere else, so
+  # /pages/shop renders exactly as it did and loads none of this code.
+  #
+  # No discount percentage lives in this theme. The code the stockist types
+  # is handed to Shopify and we read back what it actually did, because two
+  # rates are live at once (new stockists 45%, Canterbury grandfathered at
+  # 50%) and a single hardcoded figure is guaranteed to be wrong for
+  # somebody. All of that lives in assets/theinmag-stockist-pricing.js.
+  assign stockist_pricing = section.settings.stockist_pricing | default: false
+
+  # How often the entry lightbox asks. 'session' shows it once per browsing
+  # session, so "just having a look" is honoured until the tab closes.
+  # 'always' asks on every page load until a code is entered. A REMEMBERED
+  # CODE skips the gate either way, so this only affects the browse path.
+  assign gate_repeat = section.settings.gate_repeat | default: 'session'
+
+  # Free-shipping threshold, same source as the cart's own shipping bar.
+  # MEASURED 2026-08-07: Shopify applies this to the DISCOUNTED subtotal, not
+  # RRP. 3x Mag10 is $71.85 RRP but $35.94 to a 50% stockist, and AusPost
+  # charged $9.99; at 4x ($47.92 payable) it went free. So the order bar must
+  # count down against what they PAY, or a stockist reads "free over $40"
+  # beside a $71.85 RRP and emails us about the postage.
+  assign free_shipping_threshold = shop.metafields.theinmag.free_shipping_threshold | default: 40
+
+  # How long a stockist's code and resolved rate are remembered in their
+  # browser. Issues drop every 4 months, so this wants to comfortably
+  # outlast one ordering cycle or they get asked again every time.
+  assign code_memory_days = section.settings.code_memory_days | default: 90
+
+  # Bump this if a stockist's rate ever changes. It is part of the browser
+  # storage key, so bumping it makes every remembered price re-resolve
+  # against the live cart instead of trusting what it cached.
+  assign pricing_cache_version = section.settings.pricing_cache_version | default: '1'
+
   # Format filter pills are pointless on an all-print page, so they can be
   # hidden independently. Sort + Show-more are unaffected.
   assign show_format_filter = section.settings.show_format_filter
@@ -185,9 +221,15 @@
   assign section_style = '--tsg-pt: ' | append: section.settings.padding_top | append: 'px; --tsg-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
 
+{%- if stockist_pricing -%}
+  {{ 'theinmag-stockist-pricing.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'theinmag-stockist-pricing.js' | asset_url }}" defer></script>
+{%- endif -%}
+
 <section
   class="theinmag-shop-grid"
   data-theinmag-shop-grid
+  {%- if stockist_pricing %} data-stockist-pricing data-cache-version="{{ pricing_cache_version }}" data-gate-repeat="{{ gate_repeat }}" data-memory-days="{{ code_memory_days }}" data-free-shipping="{{ free_shipping_threshold }}"{% endif %}
   id="shop-grid"
   aria-labelledby="theinmag-shop-grid-heading"
   style="{{ section_style }}"
@@ -227,6 +269,90 @@
         <span class="theinmag-shop-grid__character" data-theinmag-pool-character></span>
       {%- endif -%}
     </div>
+
+    {%- comment -%}
+      Stockist strip: the code row and the running order, side by side on
+      desktop and stacked on mobile. Both sit ABOVE the products, so a
+      stockist sets their code and watches the order build without
+      scrolling past the grid to find either one.
+    {%- endcomment -%}
+    {%- if stockist_pricing -%}
+      <div class="theinmag-stockist-strip{% if show_cart_cta %} theinmag-stockist-strip--two-up{% endif %}">
+    {%- comment -%}
+      Stockist code row. Sits above the products so it can be used at any
+      time, not only on the way to checkout. Shares its state with the entry
+      lightbox and the order bar: one code, three places to see it.
+    {%- endcomment -%}
+        <div class="theinmag-stockist-coderow" data-stockist-coderow>
+          <span class="theinmag-stockist-coderow__label" data-stockist-coderow-label>
+            {{ section.settings.code_row_label | default: 'Ordering for your shop?' }}
+            <span>{{ section.settings.code_row_help | default: "Enter your stockist code and you'll see your real prices." }}</span>
+          </span>
+          <span class="theinmag-stockist-field" data-stockist-field>
+            <input
+              type="text"
+              class="theinmag-stockist-field__input"
+              data-stockist-code-input
+              placeholder="Your stockist code"
+              aria-label="Your stockist code"
+              autocomplete="off"
+              autocapitalize="characters"
+              autocorrect="off"
+              spellcheck="false"
+              enterkeyhint="go"
+            >
+            <button type="button" class="theinmag-stockist-field__submit" data-stockist-submit>See my prices</button>
+          </span>
+          <span class="theinmag-stockist-applied" data-stockist-applied hidden>
+            <span class="theinmag-stockist-applied__text">
+              Code <b class="theinmag-stockist-applied__code" data-stockist-applied-code></b> is on.
+              <span data-stockist-applied-detail></span>
+            </span>
+            <button type="button" class="theinmag-stockist-applied__change" data-stockist-applied-change>Use a different code</button>
+          </span>
+          <p class="theinmag-stockist-status" data-stockist-status role="status" aria-live="polite" hidden></p>
+        </div>
+
+        {%- comment -%}
+          The order bar. Present from the moment the page loads (it used to
+          stay hidden until something was added, so a stockist could not see
+          what they had). The figures here are NOT an estimate: they are the
+          cart's own original_line_price and final_line_price, straight from
+          Shopify, so the bar cannot be wrong in either direction.
+
+          It requires stockist_pricing, because the module that fills it is
+          only loaded under that flag. The old inline filler is gone.
+        {%- endcomment -%}
+        {%- if show_cart_cta and stockist_pricing -%}
+          {%- comment -%}
+            is-unlocked switches OFF the legacy blur-until-a-code-is-typed
+            overlay. There is nothing to hide now: the bar shows the real
+            cart, and retail is the honest default until a code resolves.
+          {%- endcomment -%}
+          <div class="theinmag-shop-grid__checkout-bar is-unlocked" data-checkout-bar>
+            <div class="theinmag-shop-grid__checkout-content">
+              <div class="theinmag-shop-grid__checkout-content-inner">
+                <p class="theinmag-shop-grid__checkout-empty" data-checkout-empty>Nothing in your order yet. Add mags below and they land here.</p>
+                <ul class="theinmag-shop-grid__checkout-items" data-checkout-items role="list"></ul>
+                <div class="theinmag-shop-grid__checkout-foot">
+                  <div class="theinmag-shop-grid__checkout-summary">
+                    <span class="theinmag-shop-grid__checkout-count" data-checkout-count></span>
+                    <span class="theinmag-shop-grid__checkout-note" data-checkout-note></span>
+                  </div>
+                  <div class="theinmag-shop-grid__checkout-pay">
+                    <span class="theinmag-shop-grid__checkout-totals">
+                      <span class="theinmag-shop-grid__checkout-rrp" data-checkout-rrp hidden></span>
+                      <span class="theinmag-shop-grid__checkout-pay-total" data-checkout-pay-total></span>
+                    </span>
+                    <button type="button" class="theinmag-shop-grid__checkout-btn" data-checkout-go>Go to checkout</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
 
     {%- if render_count > 0 -%}
       <p class="theinmag-shop-grid__count" data-count-line>
@@ -272,7 +398,7 @@
             data-product-created="{{ product.created_at | date: '%s' }}"
             {%- if visible_index > products_per_page %} hidden data-overflow{%- endif %}
           >
-            {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover, digital_cover_filename: tile_digital_cover, print_only: hide_digital, peek: cover_opens_lightbox %}
+            {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover, digital_cover_filename: tile_digital_cover, print_only: hide_digital, peek: cover_opens_lightbox, stockist_pricing: stockist_pricing %}
           </li>
         {%- endfor -%}
       </ul>
@@ -285,32 +411,6 @@
 
       <div class="theinmag-shop-grid__feedback" data-shop-feedback role="status" aria-live="polite" hidden></div>
 
-      {%- if show_cart_cta -%}
-        <div class="theinmag-shop-grid__checkout-bar" data-checkout-bar hidden>
-          <span class="theinmag-shop-grid__checkout-code-field">
-            <input type="text" class="theinmag-shop-grid__checkout-code" data-checkout-code placeholder="Put your stockist code here" aria-label="Your stockist code" autocomplete="off" autocapitalize="characters" spellcheck="false">
-          </span>
-          <div class="theinmag-shop-grid__checkout-content">
-            <div class="theinmag-shop-grid__checkout-content-inner">
-              <ul class="theinmag-shop-grid__checkout-items" data-checkout-items role="list"></ul>
-              <div class="theinmag-shop-grid__checkout-foot">
-                <div class="theinmag-shop-grid__checkout-summary">
-                  <span class="theinmag-shop-grid__checkout-count" data-checkout-count></span>
-                  <span class="theinmag-shop-grid__checkout-note">Just an estimate. Your final price is confirmed at checkout.</span>
-                </div>
-                <div class="theinmag-shop-grid__checkout-pay">
-                  <span class="theinmag-shop-grid__checkout-totals">
-                    <span class="theinmag-shop-grid__checkout-rrp" data-checkout-rrp></span>
-                    <span class="theinmag-shop-grid__checkout-est" data-checkout-est></span>
-                  </span>
-                  <button type="button" class="theinmag-shop-grid__checkout-btn" data-checkout-go>Go to checkout</button>
-                </div>
-              </div>
-            </div>
-            <div class="theinmag-shop-grid__checkout-lock" aria-hidden="true">Type your code to unlock estimated prices</div>
-          </div>
-        </div>
-      {%- endif -%}
     {%- else -%}
       <p class="theinmag-shop-grid__empty">{{ empty_text }}</p>
     {%- endif -%}
@@ -324,6 +424,22 @@
     Snippet silently no-ops if the membership product isn't found.
   {%- endcomment -%}
   {% render 'theinmag-membership-popup', membership_product: all_products['membership'] %}
+
+  {%- comment -%}
+    Stockist entry lightbox. Rendered once, only on the stockist picker.
+    The module moves it to <body> on init.
+  {%- endcomment -%}
+  {%- if stockist_pricing -%}
+    {%- comment -%}
+      The pool snippet is guarded internally, so rendering it here as well
+      as under show_character cannot double-bind.
+    {%- endcomment -%}
+    {% render 'theinmag-character-pool' %}
+    {% render 'theinmag-stockist-gate',
+      gate_heading: section.settings.gate_heading,
+      gate_body: section.settings.gate_body
+    %}
+  {%- endif -%}
 
   {%- comment -%}
     Peek-inside lightbox (stockist picker). Rendered once. A cover with
@@ -633,103 +749,25 @@
     });
 
     /* ----------------------------------------------------------------
-       Stockist checkout bar: live RRP total + an estimate at 45% off,
-       a code field, and Go to checkout that carries the code straight
-       through (skips the cart). Estimate is conservative (the special
-       $9.90 deals + bigger-order bumps only ever make it cheaper), so
-       the figure never undershoots the real checkout price.
+       Stockist ordering. The heavy lifting lives in
+       assets/theinmag-stockist-pricing.js, which owns the order bar, the
+       code row and the entry lightbox. This section keeps exactly two
+       hooks so the two files can never bind the same control twice:
+         - updateCheckoutBar() now only announces that the cart moved
+         - refreshCartCount is exposed so the module can refresh the
+           sitewide cart pill after it removes a line
+
+       The bar's old inline code multiplied by 0.55 in two places, which is
+       how this page came to quote 45% off while the real code applied 50%.
+       It has been deleted rather than left behind a flag: a dormant
+       hardcoded rate is exactly how the last one survived unnoticed. There
+       is no percentage anywhere in this file now.
        ---------------------------------------------------------------- */
     var checkoutBar = root.querySelector('[data-checkout-bar]');
     function updateCheckoutBar() {
-      if (!checkoutBar) return;
-      fetch('/cart.js', { headers: { Accept: 'application/json' } })
-        .then(function (r) { return r.json(); })
-        .then(function (cart) {
-          var count = cart.item_count || 0;
-          if (count < 1) { checkoutBar.hidden = true; return; }
-          var sub = cart.items_subtotal_price || cart.total_price || 0;
-          var fmt = function (c) { return '$' + (c / 100).toFixed(2); };
-          var countEl = checkoutBar.querySelector('[data-checkout-count]');
-          var rrpEl = checkoutBar.querySelector('[data-checkout-rrp]');
-          var estEl = checkoutBar.querySelector('[data-checkout-est]');
-          if (countEl) countEl.textContent = count + (count === 1 ? ' mag' : ' mags');
-          if (rrpEl) rrpEl.textContent = 'RRP ' + fmt(sub);
-          if (estEl) estEl.textContent = 'Est. ' + fmt(Math.round(sub * 0.55));
-          /* Line-item breakdown so they can see what's in the order. */
-          var itemsEl = checkoutBar.querySelector('[data-checkout-items]');
-          if (itemsEl) {
-            itemsEl.innerHTML = '';
-            (cart.items || []).forEach(function (it) {
-              var name = (it.product_title || it.title || '').replace(/^theINmag\s*[-–—]\s*/i, '');
-              var li = document.createElement('li');
-              li.className = 'theinmag-shop-grid__checkout-item';
-              var nameEl = document.createElement('span');
-              nameEl.className = 'theinmag-shop-grid__checkout-item-name';
-              var qtyEl = document.createElement('b');
-              qtyEl.textContent = it.quantity + '× ';
-              nameEl.appendChild(qtyEl);
-              nameEl.appendChild(document.createTextNode(name));
-              var rightEl = document.createElement('span');
-              rightEl.className = 'theinmag-shop-grid__checkout-item-right';
-              var priceEl = document.createElement('span');
-              priceEl.className = 'theinmag-shop-grid__checkout-item-price';
-              priceEl.textContent = fmt(Math.round((it.original_line_price || it.line_price || 0) * 0.55));
-              var rmEl = document.createElement('button');
-              rmEl.type = 'button';
-              rmEl.className = 'theinmag-shop-grid__checkout-item-remove';
-              rmEl.setAttribute('data-checkout-remove', it.key);
-              rmEl.setAttribute('aria-label', 'Remove ' + name);
-              rmEl.innerHTML = '&times;';
-              rightEl.appendChild(priceEl);
-              rightEl.appendChild(rmEl);
-              li.appendChild(nameEl);
-              li.appendChild(rightEl);
-              itemsEl.appendChild(li);
-            });
-          }
-          checkoutBar.hidden = false;
-        })
-        .catch(function () {});
+      document.dispatchEvent(new CustomEvent('theinmag:cart-updated'));
     }
-    if (checkoutBar) {
-      updateCheckoutBar();
-      var goBtn = checkoutBar.querySelector('[data-checkout-go]');
-      var codeInput = checkoutBar.querySelector('[data-checkout-code]');
-      function goCheckout() {
-        var code = (codeInput && codeInput.value || '').trim();
-        window.location.href = code
-          ? '/discount/' + encodeURIComponent(code) + '?redirect=/checkout'
-          : '/checkout';
-      }
-      if (goBtn) goBtn.addEventListener('click', goCheckout);
-      if (codeInput) codeInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); goCheckout(); } });
-
-      /* The estimate is gated behind a stockist code. Unlock when the code
-         carries the shared INMYSTORE- prefix (we don't embed the real list,
-         so a genuine-format code reveals the estimate; the actual discount
-         still only applies at checkout if the code is real). */
-      function codeValid(v) { return /^\s*INMYSTORE-\S+/i.test(v || ''); }
-      function refreshLock() { checkoutBar.classList.toggle('is-unlocked', codeValid(codeInput && codeInput.value)); }
-      if (codeInput) codeInput.addEventListener('input', refreshLock);
-      refreshLock();
-
-      /* Remove a line from the cart (the x on each item). */
-      checkoutBar.addEventListener('click', function (event) {
-        var rm = event.target.closest('[data-checkout-remove]');
-        if (!rm) return;
-        var key = rm.getAttribute('data-checkout-remove');
-        if (!key) return;
-        rm.disabled = true;
-        fetch('/cart/change.js', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ id: key, quantity: 0 })
-        })
-          .then(function (r) { return r.json(); })
-          .then(function () { updateCheckoutBar(); refreshCartCount(); })
-          .catch(function () { rm.disabled = false; });
-      });
-    }
+    root.__theinmagRefreshCartCount = refreshCartCount;
 
     /* ----------------------------------------------------------------
        Peek-inside lightbox. A cover carrying data-peek-trigger opens a
@@ -766,6 +804,7 @@
       var peekVariantPrint = '';
       var peekVariantDigital = '';
       var peekPricePrint = '';
+      var peekRrpPrint = '';
       var peekPriceDigital = '';
       var peekPrintSoldOut = false;
 
@@ -793,7 +832,15 @@
           peekWobble(peekPrintBtn());
         }
         peekVariant = digital ? peekVariantDigital : peekVariantPrint;
-        if (peekPriceEl) { peekPriceEl.textContent = digital ? peekPriceDigital : peekPricePrint; }
+        if (peekPriceEl) {
+          peekPriceEl.textContent = digital ? peekPriceDigital : peekPricePrint;
+          /* Stockist picker: let the pricing module put their price on the
+             peek lightbox too, so it cannot contradict the tile behind it.
+             No-op on every other surface. */
+          if (typeof window.__theinmagStockistPeekPrice === 'function') {
+            window.__theinmagStockistPeekPrice(peekPriceEl, digital ? '' : peekRrpPrint);
+          }
+        }
         for (var i = 0; i < peekFormatBtns.length; i++) {
           var on = peekFormatBtns[i].getAttribute('data-peek-format') === (digital ? 'digital' : 'print');
           peekFormatBtns[i].classList.toggle('is-active', on);
@@ -827,6 +874,7 @@
         peekVariantPrint = trigger.getAttribute('data-peek-variant-print') || trigger.getAttribute('data-peek-variant') || '';
         peekVariantDigital = trigger.getAttribute('data-peek-variant-digital') || '';
         peekPricePrint = trigger.getAttribute('data-peek-price-print') || '';
+        peekRrpPrint = trigger.getAttribute('data-peek-rrp-print') || '';
         peekPriceDigital = trigger.getAttribute('data-peek-price-digital') || '';
         peekPrintSoldOut = trigger.getAttribute('data-peek-print-soldout') === 'true';
         peekVariant = peekVariantPrint;
@@ -2158,9 +2206,73 @@
     {
       "type": "checkbox",
       "id": "show_cart_cta",
-      "label": "Show a 'Go to cart' button under the grid",
-      "info": "Adds a Go to cart button below the products with a reminder to add the stockist code at checkout. Used on the /pages/instock stockist picker.",
+      "label": "Show the running order bar under the grid",
+      "info": "Adds an always-visible order summary below the products with a Go to checkout button. Needs 'Stockist pricing' on as well, since that is what fills it in. Used on the /pages/instock stockist picker.",
       "default": false
+    },
+    {
+      "type": "header",
+      "content": "Stockist pricing (/pages/instock only)"
+    },
+    {
+      "type": "checkbox",
+      "id": "stockist_pricing",
+      "label": "Stockist pricing",
+      "info": "Turns on the entry lightbox, the stockist code row above the products, the always-visible order bar and both prices on every tile. The discount is read back from the code the stockist types, never assumed, because more than one rate is live at once. Leave OFF on /pages/shop.",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "gate_heading",
+      "label": "Entry lightbox heading",
+      "default": "Ordering for your shop?"
+    },
+    {
+      "type": "textarea",
+      "id": "gate_body",
+      "label": "Entry lightbox body",
+      "default": "Pop your code in and you'll see your real prices."
+    },
+    {
+      "type": "text",
+      "id": "code_row_label",
+      "label": "Code row heading",
+      "default": "Ordering for your shop?"
+    },
+    {
+      "type": "textarea",
+      "id": "code_row_help",
+      "label": "Code row helper line",
+      "default": "Enter your stockist code and you'll see your real prices."
+    },
+    {
+      "type": "select",
+      "id": "gate_repeat",
+      "label": "How often the entry lightbox asks",
+      "info": "A stockist who has entered a code never sees it again either way. This only controls the 'just having a look' path.",
+      "options": [
+        { "value": "session", "label": "Once per browsing session" },
+        { "value": "always", "label": "Every time the page loads" }
+      ],
+      "default": "session"
+    },
+    {
+      "type": "range",
+      "id": "code_memory_days",
+      "label": "Remember a stockist's code for",
+      "unit": "d",
+      "min": 30,
+      "max": 365,
+      "step": 5,
+      "default": 90,
+      "info": "How long their code and price sit in their own browser so they never retype. Issues drop every 4 months, so anything under about 120 days means a stockist who only orders per drop will be asked again each cycle."
+    },
+    {
+      "type": "text",
+      "id": "pricing_cache_version",
+      "label": "Remembered-price version",
+      "info": "A stockist's code and resolved price are remembered in their browser for 30 days so they never retype it. If you ever CHANGE an existing stockist's discount rate, bump this number by 1 and every remembered price is thrown away and re-resolved.",
+      "default": "1"
     },
     {
       "type": "checkbox",

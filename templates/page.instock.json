@@ -100,7 +100,7 @@
     "pricing_note": {
       "type": "theinmag-callout-strip",
       "settings": {
-        "body": "Prices below are retail. Your approved stockist code takes <strong>45% off</strong> at checkout, and <strong>shipping is free over $40</strong>.<br>The $23.95 RRP is a <strong>guide, not a rule</strong>: price it however suits your shop.",
+        "body": "Prices below are retail. Enter your stockist code above and you'll see your real prices. Postage is free once <strong>your own total</strong> passes $40, about 4 mags.<br>The $23.95 RRP is a <strong>guide, not a rule</strong>: price it however suits your shop.",
         "callout_style": "plain",
         "bg_color": "cream",
         "padding_top": 24,
@@ -123,7 +123,8 @@
         "padding_bottom": 72,
         "hide_digital": true,
         "cover_opens_lightbox": true,
-        "show_cart_cta": true
+        "show_cart_cta": true,
+        "stockist_pricing": true
       }
     },
     "spotlight": {

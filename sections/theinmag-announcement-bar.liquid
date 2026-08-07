@@ -99,9 +99,13 @@
   # Per-page override: on the stockist hub (/pages/instock) the top bar
   # speaks to stockists (default navy styling, single message, no rotation).
   # Hook spans = Post-font emphasis, same as the sitewide messages.
+  # Copy changed 2026-08-07: it used to say "at checkout", which was true
+  # until the page learned to resolve a stockist's real prices on the page
+  # itself. Telling them to wait for checkout now reads as a contradiction
+  # of the prices sitting right in front of them.
   if page.handle == 'instock'
     capture msg_1_text
-      echo 'Are you a <span class="theinmag-announcement__hook">certified stockist?</span> Use your <span class="theinmag-announcement__hook">special code</span> at checkout for your discount.'
+      echo 'Are you a <span class="theinmag-announcement__hook">certified stockist?</span> Pop your <span class="theinmag-announcement__hook">code</span> in below and every price becomes your price.'
     endcapture
     assign msg_2_text = ''
   endif

@@ -1,0 +1,99 @@
+{%- comment -%}
+  theinmag-stockist-gate
+
+  Entry lightbox for the stockist picker on /pages/instock. Rendered ONCE,
+  only when theinmag-shop-grid has stockist_pricing on, so it can never
+  appear on /pages/shop.
+
+  Two ways past, deliberately unequal in weight: enter a stockist code (the
+  yellow stamp, the action we want) or carry on at retail (a plain text
+  button). Nobody is trapped, but the decision is explicit, which is the
+  whole point: today a stockist lands on a page of retail prices with no
+  idea those are not their prices.
+
+  A mINion from the sitewide pool peeks over the top edge of the card and
+  can be switched, exactly as on the 404 page. The pool snippet is rendered
+  by the section; the switch button reuses the pool's own sessionStorage
+  cache of valid indices, so it never probes twice.
+
+  Archetype: design system 6.4, hero choice gate (decision-first), which
+  names a future stockist page as its use case. Mechanics are lifted from
+  the peek lightbox already on this page: the module moves this node to
+  <body> so position:fixed resolves against the viewport rather than a
+  transformed section ancestor, ESC closes, focus is trapped while open and
+  returns to the trigger on close.
+
+  Behaviour lives in assets/theinmag-stockist-pricing.js. This file is
+  markup only.
+
+  Params:
+    gate_heading  - string, the question
+    gate_body     - string, the one-line explainer
+{%- endcomment -%}
+
+{%- liquid
+  assign gate_heading = gate_heading | default: 'Ordering for your shop?'
+  assign gate_body = gate_body | default: "Pop your code in and you'll see your real prices."
+-%}
+
+<div class="theinmag-stockist-gate" data-stockist-gate hidden>
+  <div class="theinmag-stockist-gate__scrim"></div>
+  <div
+    class="theinmag-stockist-gate__card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="theinmag-stockist-gate-title"
+  >
+    <div class="theinmag-stockist-gate__stage" data-stockist-character-stage>
+      <span class="theinmag-stockist-gate__character" data-theinmag-pool-character data-stockist-character></span>
+    </div>
+
+    {%- comment -%}
+      Sits in the card's top right corner, beside the character it swaps.
+      Icon only: the label is for screen readers and the hover tooltip, so
+      the card stays minimal.
+    {%- endcomment -%}
+    <button
+      type="button"
+      class="theinmag-stockist-gate__switch"
+      data-stockist-character-switch
+      title="Switch mINion"
+      aria-label="Switch to a different character"
+    >
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+        <path d="M3 12a9 9 0 0 1 15.5-6.3M21 6v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21 12a9 9 0 0 1-15.5 6.3M3 18v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <h2 class="theinmag-stockist-gate__title" id="theinmag-stockist-gate-title">{{ gate_heading }}</h2>
+    <p class="theinmag-stockist-gate__body">{{ gate_body }}</p>
+
+    <div class="theinmag-stockist-gate__form">
+      <span class="theinmag-stockist-field" data-stockist-field>
+        <input
+          type="text"
+          class="theinmag-stockist-field__input"
+          data-stockist-code-input
+          placeholder="Your stockist code"
+          aria-label="Your stockist code"
+          autocomplete="off"
+          autocapitalize="characters"
+          autocorrect="off"
+          spellcheck="false"
+          enterkeyhint="go"
+        >
+        <button type="button" class="theinmag-stockist-field__submit" data-stockist-submit>See my prices</button>
+      </span>
+      <p class="theinmag-stockist-status" data-stockist-status role="status" aria-live="polite" hidden></p>
+    </div>
+
+    {%- comment -%}
+      Outlined purple, the sitewide secondary button. Yellow stays on the
+      one action we actually want, per design system 7.5 Q22.
+    {%- endcomment -%}
+    <button type="button" class="theinmag-stockist-gate__browse" data-stockist-gate-close data-stockist-browse>
+      I'm curious - just having a look
+    </button>
+  </div>
+</div>
