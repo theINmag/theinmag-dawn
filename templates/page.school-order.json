@@ -26,9 +26,19 @@
         "padding_top": 56,
         "padding_bottom": 64
       }
+    },
+    "stack-module": {
+      "type": "theinmag-stack-module",
+      "settings": {
+        "stack_handle": "digital-stack",
+        "issues_collection": "single-issues",
+        "heading_override": "Add the digital library to your order",
+        "body_override": "Totally shareable: every issue as instant PDFs. Reading groups on the whiteboard, lesson inspiration, or the carrot that gets one more draft out of a young writer. It travels home too, for families who want to take the learning further."
+      }
     }
   },
   "order": [
-    "main"
+    "main",
+    "stack-module"
   ]
 }

@@ -31,7 +31,7 @@
         "cta_primary_link": "/pages/gallery",
         "cta_secondary_label": "Get the Membership",
         "cta_secondary_link": "/products/membership",
-        "dish_strip": "KID-LED · MULTI-AGE · RICH & AUTHENTIC LEARNING",
+        "dish_strip": "KID-LED \u00b7 MULTI-AGE \u00b7 RICH & AUTHENTIC LEARNING",
         "image_filename": "HERO_audiences-homeschoolers.jpg",
         "image_alt": "An Australian homeschool kid with their copy of theINmag at the kitchen table.",
         "show_trust_bar": false
@@ -99,7 +99,11 @@
           }
         }
       },
-      "block_order": ["card-1", "card-2", "card-3"]
+      "block_order": [
+        "card-1",
+        "card-2",
+        "card-3"
+      ]
     },
     "spread-break": {
       "type": "theinmag-spread-break",
@@ -150,7 +154,10 @@
           }
         }
       },
-      "block_order": ["print", "digital"]
+      "block_order": [
+        "print",
+        "digital"
+      ]
     },
     "statement": {
       "type": "theinmag-for-parents-statement",
@@ -207,7 +214,10 @@
           }
         }
       },
-      "block_order": ["youtube", "instagram"]
+      "block_order": [
+        "youtube",
+        "instagram"
+      ]
     },
     "comps": {
       "type": "theinmag-for-parents-comps",
@@ -324,7 +334,18 @@
           }
         }
       },
-      "block_order": ["i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9", "i10"]
+      "block_order": [
+        "i1",
+        "i2",
+        "i3",
+        "i4",
+        "i5",
+        "i6",
+        "i7",
+        "i8",
+        "i9",
+        "i10"
+      ]
     },
     "field-notes": {
       "type": "theinmag-blog-feed",
@@ -403,7 +424,12 @@
           }
         }
       },
-      "block_order": ["post-1", "post-2", "post-3", "post-4"]
+      "block_order": [
+        "post-1",
+        "post-2",
+        "post-3",
+        "post-4"
+      ]
     },
     "founders": {
       "type": "theinmag-for-parents-founders",
@@ -449,7 +475,7 @@
             "title": "theINmag Membership",
             "tagline": "Your kid never misses an issue.",
             "price": "From $89 / 4 issues",
-            "trust_dots": "3 issues a year · Free shipping over $40",
+            "trust_dots": "3 issues a year \u00b7 Free shipping over $40",
             "cta_label": "Get the Membership",
             "image_filename": "product-membership.jpg",
             "image_alt": "A kid opening their copy of theINmag at the kitchen bench."
@@ -484,7 +510,11 @@
           }
         }
       },
-      "block_order": ["membership", "single", "bundle"]
+      "block_order": [
+        "membership",
+        "single",
+        "bundle"
+      ]
     },
     "faq": {
       "type": "theinmag-teacher-faq",
@@ -554,7 +584,16 @@
           }
         }
       },
-      "block_order": ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8"]
+      "block_order": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6",
+        "q7",
+        "q8"
+      ]
     },
     "cross-link": {
       "type": "theinmag-audience-tiles",
@@ -596,7 +635,12 @@
           }
         }
       },
-      "block_order": ["kids", "teachers", "homeschoolers", "parents-excluded"],
+      "block_order": [
+        "kids",
+        "teachers",
+        "homeschoolers",
+        "parents-excluded"
+      ],
       "settings": {
         "heading": "",
         "heading_position": "top",
@@ -609,6 +653,15 @@
         "bg_image_opacity": 30,
         "tile_shadow": true
       }
+    },
+    "stack-module": {
+      "type": "theinmag-stack-module",
+      "settings": {
+        "stack_handle": "digital-stack",
+        "issues_collection": "single-issues",
+        "heading_override": "The whole library, for the home classroom",
+        "body_override": "Every issue as instant PDFs. On the big screen for group time, the iPad for independent reading, or printed for the workbook pile. The sold-out ones included."
+      }
     }
   },
   "order": [
@@ -619,6 +672,7 @@
     "in-your-home",
     "spread-break",
     "print-vs-digital",
+    "stack-module",
     "statement",
     "ugc",
     "branching-out",
