@@ -118,13 +118,24 @@
   endfor
   assign fan_covers = fan_covers | split: '|'
 
-  # Kid character peeking from behind the fan (Ryan approved 2026-08-12).
-  # Day-stable pick from the sitewide /assets/character-N.png pool so it
-  # matches the field/bg cadence rather than shuffling every reload.
-  assign char_pool_size = 53
-  assign char_index = 'now' | date: '%j' | times: 1 | modulo: char_pool_size | plus: 1
-  assign char_filename = 'character-' | append: char_index | append: '.png'
-  assign char_url = char_filename | asset_url
+  # Kid character (Ryan, 2026-08-12 v2): a NEW one every page load, like
+  # the sitewide pool. Six candidates emitted (epoch-seeded spread across
+  # the 53-strong pool); the section JS random-picks one per load so even
+  # Shopify's full-page cache cannot pin a single character. Candidate 1
+  # is the server-rendered src for no-JS visitors.
+  assign char_seed = 'now' | date: '%s' | times: 1 | plus: 23
+  assign char_pool = ''
+  for ci in (0..5)
+    assign char_index = ci | times: 11 | plus: char_seed | modulo: 53 | plus: 1
+    assign char_filename = 'character-' | append: char_index | append: '.png'
+    assign char_one = char_filename | asset_url
+    if char_pool == blank
+      assign char_pool = char_one
+    else
+      assign char_pool = char_pool | append: '|' | append: char_one
+    endif
+  endfor
+  assign char_url = char_pool | split: '|' | first
 -%}
 
 {%- if render_module -%}
@@ -199,7 +210,7 @@
       Kid character holds the far right end. Day-stable pick. No
       loading=lazy: decorative art needs natural dimensions at paint.
     {%- endcomment -%}
-    <img class="theinmag-stack-module__char" src="{{ char_url }}" alt="" aria-hidden="true" width="110" height="110">
+    <img class="theinmag-stack-module__char" data-stack-char-pool="{{ char_pool | escape }}" src="{{ char_url }}" alt="" aria-hidden="true" width="110" height="110">
 
   </div>
 </section>
@@ -409,6 +420,18 @@
       }
     } catch (err) { /* never block the navigation */ }
   });
+
+  /* Fresh kid character per page load (Ryan, 2026-08-12): re-roll from
+     the emitted candidate pool so even a cached page varies per visit. */
+  (function () {
+    var chars = document.querySelectorAll('[data-stack-char-pool]');
+    for (var i = 0; i < chars.length; i++) {
+      var pool = (chars[i].getAttribute('data-stack-char-pool') || '').split('|');
+      if (pool.length > 1) {
+        chars[i].src = pool[Math.floor(Math.random() * pool.length)];
+      }
+    }
+  })();
 {% endjavascript %}
 
 {% schema %}

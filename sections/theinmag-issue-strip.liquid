@@ -204,15 +204,29 @@
 
       {%- if strip_style == 'shelf' -%}
         {%- liquid
-          # Shelf buddy (Ryan, 2026-08-12): a small kid character stands at
-          # the end of the row next to Mag01. Day-stable pick, offset from
-          # the stack module's character index so the two never match on
-          # the same day.
-          assign buddy_index = 'now' | date: '%j' | times: 1 | plus: 17 | modulo: 53 | plus: 1
-          assign buddy_filename = 'character-' | append: buddy_index | append: '.png'
+          # Shelf buddy (Ryan, 2026-08-12 v2): a NEW kid character every
+          # page load, like the sitewide pool. Liquid alone cannot do
+          # per-visit randomness under Shopify's full-page cache, so the
+          # section emits SIX candidate URLs (spread through the 53-strong
+          # pool from an epoch seed) and the section JS random-picks one
+          # per load. The server-rendered src is candidate 1, so no-JS
+          # visitors still get a character.
+          assign buddy_seed = 'now' | date: '%s' | times: 1
+          assign buddy_pool = ''
+          for bi in (0..5)
+            assign buddy_index = bi | times: 9 | plus: buddy_seed | modulo: 53 | plus: 1
+            assign buddy_filename = 'character-' | append: buddy_index | append: '.png'
+            assign buddy_one = buddy_filename | asset_url
+            if buddy_pool == blank
+              assign buddy_pool = buddy_one
+            else
+              assign buddy_pool = buddy_pool | append: '|' | append: buddy_one
+            endif
+          endfor
+          assign buddy_first = buddy_pool | split: '|' | first
         -%}
-        <li class="theinmag-issue-strip__item theinmag-issue-strip__buddy" aria-hidden="true">
-          <img class="theinmag-issue-strip__buddy-img" src="{{ buddy_filename | asset_url }}" alt="" width="52" height="52">
+        <li class="theinmag-issue-strip__item theinmag-issue-strip__buddy" aria-hidden="true" data-buddy-pool="{{ buddy_pool | escape }}">
+          <img class="theinmag-issue-strip__buddy-img" data-buddy-img src="{{ buddy_first }}" alt="" width="52" height="52">
         </li>
       {%- endif -%}
     </ol>
@@ -676,6 +690,18 @@
     }
 
     function init() {
+      /* SHELF BUDDY: fresh character every page load (Ryan, 2026-08-12).
+         Server renders candidate 1; JS re-rolls from the emitted pool so
+         even a cached page shows a different kid per visit. */
+      var buddyHosts = document.querySelectorAll('[data-buddy-pool]');
+      for (var b = 0; b < buddyHosts.length; b++) {
+        var pool = (buddyHosts[b].getAttribute('data-buddy-pool') || '').split('|');
+        var img = buddyHosts[b].querySelector('[data-buddy-img]');
+        if (img && pool.length > 1) {
+          img.src = pool[Math.floor(Math.random() * pool.length)];
+        }
+      }
+
       /* MEMBERSHIP PAGE SYNC (2026-08-12). The membership page has no
          single-mags-hero, so the strip used to follow the sticky
          sessionStorage format from a PREVIOUS page while the membership

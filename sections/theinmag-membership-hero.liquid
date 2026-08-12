@@ -97,7 +97,7 @@
   # The whole hero content sits in one elevated cream tile on top.
   assign show_field = section.settings.show_colour_field | default: false
   if show_field
-    assign field_pool_str = 'membership-section-bg_1.jpg|membership-section-bg_2.jpg|membership-section-bg_3.jpg'
+    assign field_pool_str = 'membership-section-bg-seamless_1.jpg|membership-section-bg-seamless_2.jpg|membership-section-bg-seamless_3.jpg'
     assign field_pool = field_pool_str | split: '|'
     assign field_day_index = 'now' | date: '%j' | times: 1 | modulo: field_pool.size
     assign field_url = field_pool[field_day_index] | asset_url
@@ -312,9 +312,19 @@
       grid-template-areas. The Liquid assigns here stay global, the mini
       reviews bubble below still reads hero_jm.
     {%- endcomment -%}
+    {%- comment -%}
+      Headline = the TITLE ONLY (Ryan, 2026-08-12 v2: subtitle and stars
+      above the photo read weird on phones, so they moved back to the
+      widget top; on desktop the widget starts directly under the title
+      so the composition barely changes). Mobile centres the title.
+    {%- endcomment -%}
     <div class="theinmag-membership-hero__headline">
       {%- assign title_html = product.title | replace: 'theINmag', 'the<span class="theinmag-in">IN</span>mag' -%}
       <h1 id="theinmag-membership-hero-heading" class="theinmag-membership-hero__title">{{ title_html }}</h1>
+    </div>
+
+    {%- comment -%} RIGHT: sticky info widget {%- endcomment -%}
+    <div class="theinmag-membership-hero__widget" data-widget>
 
       {%- liquid
         assign hero_jm = shop.metafields.judgeme
@@ -343,10 +353,6 @@
       </div>
 
       <p class="theinmag-membership-hero__trust-line">Cancel Rolling anytime &middot; Gifting? Every mag arrives addressed to them</p>
-    </div>
-
-    {%- comment -%} RIGHT: sticky info widget {%- endcomment -%}
-    <div class="theinmag-membership-hero__widget" data-widget>
 
       <p class="theinmag-membership-hero__shipping-note" data-shipping-note hidden>Shipping included</p>
 
@@ -689,6 +695,10 @@
   @media (max-width: 749px) {
     .theinmag-membership-hero__inner {
       row-gap: var(--space-md);
+    }
+    /* Phones: the lone title above the photo sits centred (Ryan). */
+    .theinmag-membership-hero__title {
+      text-align: center;
     }
   }
 

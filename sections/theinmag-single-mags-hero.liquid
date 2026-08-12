@@ -93,7 +93,7 @@
   # (per-second pick, low opacity); leave that OFF when this is ON.
   assign show_colour_field = section.settings.show_colour_field | default: false
   if show_colour_field
-    assign cf_pool_str = 'membership-section-bg_1.jpg|membership-section-bg_2.jpg|membership-section-bg_3.jpg'
+    assign cf_pool_str = 'membership-section-bg-seamless_1.jpg|membership-section-bg-seamless_2.jpg|membership-section-bg-seamless_3.jpg'
     assign cf_pool = cf_pool_str | split: '|'
     assign cf_day_index = 'now' | date: '%j' | times: 1 | modulo: cf_pool.size
     assign cf_url = cf_pool[cf_day_index] | asset_url
@@ -409,36 +409,12 @@
           assign initial_eyebrow = initial_issue.metafields.single_mag.theme_eyebrow
         -%}
 
-        <h2 class="theinmag-single-mags-hero__title" data-issue-title>{{ initial_title }}</h2>
-
         {%- comment -%}
-          Tagline row: subtagline + optional rating chip. Mirrors the
-          Membership hero pattern - hyphen separator before stars,
-          chip jumps to #theinmag-single-mags-reviews-heading.
+          Title only up here (Ryan, 2026-08-12 v2): the subtitle and
+          stars read weird above the photo on phones, so they live at
+          the widget top again. Mobile centres this title.
         {%- endcomment -%}
-        <div class="theinmag-single-mags-hero__tagline-row">
-          <p class="theinmag-single-mags-hero__tagline" data-issue-subtagline>{{ initial_subtag }}</p>
-          {%- if show_rating_chip and hero_count != 0 and hero_count != blank -%}
-            {%- liquid
-              # Inline unicode-star rendering. Judge.me's preview-badge JS was
-              # intermittent; this Liquid-only fallback always renders and
-              # never depends on a script firing in the right order. Half-stars
-              # round to nearest full for simplicity (3.4 -> 3 filled, 3.6 -> 4).
-              assign rating_full = hero_rating | round
-              if rating_full > 5
-                assign rating_full = 5
-              endif
-              assign rating_empty = 5 | minus: rating_full
-            -%}
-            <a href="#theinmag-membership-reviews-heading" class="theinmag-single-mags-hero__rating-link" aria-label="Rated {{ hero_rating | round: 1 }} out of 5 from {{ hero_count }} reviews">
-              <span class="theinmag-single-mags-hero__rating-stars" role="img" aria-hidden="true">
-                {%- if rating_full > 0 -%}{%- for i in (1..rating_full) -%}★{%- endfor -%}{%- endif -%}
-                {%- if rating_empty > 0 -%}<span class="theinmag-single-mags-hero__rating-stars--empty">{%- for i in (1..rating_empty) -%}★{%- endfor -%}</span>{%- endif -%}
-              </span>
-              <span class="theinmag-single-mags-hero__rating-count">({{ hero_count }})</span>
-            </a>
-          {%- endif -%}
-        </div>
+        <h2 class="theinmag-single-mags-hero__title" data-issue-title>{{ initial_title }}</h2>
       </div>
 
       {%- comment -%}
@@ -807,9 +783,35 @@
       <div class="theinmag-single-mags-hero__widget" data-widget>
 
         {%- comment -%}
-          (Title + tagline row moved to the __headline grid area above,
-          2026-08-12 - phones read them before the media gallery.)
+          Tagline row: subtagline + optional rating chip. Mirrors the
+          Membership hero pattern - hyphen separator before stars,
+          chip jumps to #theinmag-single-mags-reviews-heading. Sits at
+          the widget top (under the photo on phones, directly under the
+          title in the right column on desktop).
         {%- endcomment -%}
+        <div class="theinmag-single-mags-hero__tagline-row">
+          <p class="theinmag-single-mags-hero__tagline" data-issue-subtagline>{{ initial_subtag }}</p>
+          {%- if show_rating_chip and hero_count != 0 and hero_count != blank -%}
+            {%- liquid
+              # Inline unicode-star rendering. Judge.me's preview-badge JS was
+              # intermittent; this Liquid-only fallback always renders and
+              # never depends on a script firing in the right order. Half-stars
+              # round to nearest full for simplicity (3.4 -> 3 filled, 3.6 -> 4).
+              assign rating_full = hero_rating | round
+              if rating_full > 5
+                assign rating_full = 5
+              endif
+              assign rating_empty = 5 | minus: rating_full
+            -%}
+            <a href="#theinmag-membership-reviews-heading" class="theinmag-single-mags-hero__rating-link" aria-label="Rated {{ hero_rating | round: 1 }} out of 5 from {{ hero_count }} reviews">
+              <span class="theinmag-single-mags-hero__rating-stars" role="img" aria-hidden="true">
+                {%- if rating_full > 0 -%}{%- for i in (1..rating_full) -%}★{%- endfor -%}{%- endif -%}
+                {%- if rating_empty > 0 -%}<span class="theinmag-single-mags-hero__rating-stars--empty">{%- for i in (1..rating_empty) -%}★{%- endfor -%}</span>{%- endif -%}
+              </span>
+              <span class="theinmag-single-mags-hero__rating-count">({{ hero_count }})</span>
+            </a>
+          {%- endif -%}
+        </div>
 
         {%- comment -%}
           Pre-order drop date - the single shop metafield
@@ -1955,6 +1957,13 @@
     .theinmag-single-mags-hero__headline { grid-area: headline; }
     .theinmag-single-mags-hero__widget { grid-area: widget; }
     .theinmag-single-mags-hero__desc-col { grid-area: desc; }
+  }
+
+  @media (max-width: 749px) {
+    /* Phones: the lone title above the photo sits centred (Ryan). */
+    .theinmag-single-mags-hero__title {
+      text-align: center;
+    }
   }
 
   /* ---------- Media column ---------- */
