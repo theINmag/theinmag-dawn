@@ -624,6 +624,21 @@
     transform: rotate(0);
   }
 
+  /* "You are here" ring for the Digital Stack tile: the standard
+     is-current treatment draws on __cover, which the fan doesn't have,
+     so the fan box carries its own pink frame (Ryan, 2026-08-12). */
+  .theinmag-issue-strip__item--stack.is-current .theinmag-issue-strip__fan {
+    outline: 3px solid var(--color-soft-pink);
+    outline-offset: 4px;
+    border-radius: 8px;
+  }
+  @media (max-width: 480px) {
+    .theinmag-issue-strip__item--stack.is-current .theinmag-issue-strip__fan {
+      outline-width: 2px;
+      outline-offset: 3px;
+    }
+  }
+
   /* Shelf buddy: kid character at the end of the row, vertically
      centred in the band (Ryan, 2026-08-12 round 2: bigger, centred).
      OVERLAP-PROOF BY CONSTRUCTION: it is a normal flex item in the
