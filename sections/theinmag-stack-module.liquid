@@ -1,0 +1,467 @@
+{%- comment -%}
+  theinmag-stack-module
+  The Digital Stack, merchandised where the intent is (2026-08-11).
+  Bandcamp's "buy the full discography" pattern: the whole-collection
+  offer sits beside every single-item purchase moment, value-anchored
+  against the summed price of buying the issues one by one.
+
+  Renders one of three modes, decided from the product it sits under:
+    stack   - on the Digital Stack PDP itself: the value stack
+              (anchor struck through, save + per-issue chips,
+              instant/forever/not-a-subscription reassurance row).
+    soldout - on an issue whose Print is gone: the sold-out bridge
+              ("Print sold out. MagNN lives on in the Digital Stack.").
+    issue   - on every other issue / bundle: the cross-module
+              ("This issue is in the Digital Stack").
+  Renders nothing on Membership (its own template never includes this
+  section anyway) and nothing if the Digital Stack product is missing.
+
+  All figures are LIVE: the anchor is the sum of each issue's Digital
+  variant price, the stack price comes off the product, and save and
+  per-issue are computed - so the $59 -> $65 price change and every new
+  drop update the copy with zero theme edits.
+{%- endcomment -%}
+
+{%- liquid
+  assign stack_handle = section.settings.stack_handle | default: 'digital-stack'
+  assign stack_product = all_products[stack_handle]
+
+  assign issues_collection_handle = section.settings.issues_collection | default: 'single-issues'
+  assign issues = collections[issues_collection_handle].products
+
+  # Anchor: what the collection costs bought one digital issue at a time.
+  # Real magazines only (issue_number > 0), pre-orders excluded (the stack
+  # is every BACK issue).
+  assign anchor_cents = 0
+  assign issue_count = 0
+  for issue in issues
+    assign inum = issue.metafields.single_mag.issue_number.value | default: 0
+    assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
+    if inum > 0 and is_pre == false
+      for v in issue.variants
+        if v.option1 == 'Digital'
+          assign anchor_cents = anchor_cents | plus: v.price
+          assign issue_count = issue_count | plus: 1
+          break
+        endif
+      endfor
+    endif
+  endfor
+
+  assign render_module = true
+  if stack_product == blank or stack_product.available == false or issue_count == 0
+    assign render_module = false
+  endif
+  # (2026-08-12: the membership guard is gone - Ryan wants the module on
+  # the membership page too, under the UGC strip. It renders the generic
+  # "Every issue, in one download" heading there via the inum 0 path.)
+
+  assign stack_cents = stack_product.price
+  assign save_cents = anchor_cents | minus: stack_cents
+  assign per_issue_cents = stack_cents | divided_by: issue_count
+
+  # Mode
+  assign mode = 'issue'
+  if product.handle == stack_handle
+    assign mode = 'stack'
+  else
+    assign inum_here = product.metafields.single_mag.issue_number.value | default: 0
+    if inum_here > 0
+      assign has_print_here = false
+      assign print_available_here = false
+      for v in product.variants
+        if v.option1 == 'Print'
+          assign has_print_here = true
+          if v.available
+            assign print_available_here = true
+          endif
+        endif
+      endfor
+      if has_print_here and print_available_here == false
+        assign mode = 'soldout'
+      endif
+      if has_print_here == false
+        assign mode = 'soldout'
+      endif
+    endif
+  endif
+
+  assign issue_label = product.title | replace: 'theINmag - ', '' | replace: 'theINmag ', '' | split: ' (' | first | strip
+
+  # Fan covers: the three newest real magazines.
+  assign fan_urls = ''
+  assign fan_found = 0
+  for issue in issues
+    assign inum = issue.metafields.single_mag.issue_number.value | default: 0
+    assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
+    if inum > 0 and is_pre == false and issue.featured_image != blank
+      assign fan_img_url = issue.featured_image | image_url: width: 360
+      assign fan_key = inum | plus: 100 | append: '~' | append: fan_img_url
+      if fan_urls == blank
+        assign fan_urls = fan_key
+      else
+        assign fan_urls = fan_urls | append: ',' | append: fan_key
+      endif
+    endif
+  endfor
+  assign fan_sorted = fan_urls | split: ',' | sort | reverse
+  assign fan_covers = ''
+  for fk in fan_sorted limit: 3
+    assign fk_parts = fk | split: '~'
+    if fk_parts.size > 1
+      if fan_covers == blank
+        assign fan_covers = fk_parts[1]
+      else
+        assign fan_covers = fan_covers | append: '|' | append: fk_parts[1]
+      endif
+    endif
+  endfor
+  assign fan_covers = fan_covers | split: '|'
+
+  # Kid character peeking from behind the fan (Ryan approved 2026-08-12).
+  # Day-stable pick from the sitewide /assets/character-N.png pool so it
+  # matches the field/bg cadence rather than shuffling every reload.
+  assign char_pool_size = 53
+  assign char_index = 'now' | date: '%j' | times: 1 | modulo: char_pool_size | plus: 1
+  assign char_filename = 'character-' | append: char_index | append: '.png'
+  assign char_url = char_filename | asset_url
+-%}
+
+{%- if render_module -%}
+<section class="theinmag-stack-module theinmag-stack-module--{{ mode }} theinmag-stack-module--bg-{{ section.settings.bg | default: 'lavender' }}" aria-label="theINmag Digital Stack">
+  <div class="theinmag-stack-module__inner">
+
+    <a class="theinmag-stack-module__fan" href="{{ stack_product.url }}" aria-hidden="true" tabindex="-1">
+      {%- for fan_src in fan_covers reversed -%}
+        <img class="theinmag-stack-module__fan-img theinmag-stack-module__fan-img--{{ forloop.index }}" src="{{ fan_src }}" alt="" loading="lazy" width="120" height="160">
+      {%- endfor -%}
+      <span class="theinmag-stack-module__fan-badge">Save {{ save_cents | money_without_trailing_zeros }}</span>
+    </a>
+
+    <div class="theinmag-stack-module__copy">
+      {%- if mode == 'stack' -%}
+        <h2 class="theinmag-stack-module__heading">Every issue we have ever made</h2>
+        <p class="theinmag-stack-module__body">All {{ issue_count }} mags as instant PDFs, including the sold-out ones. On the big screen at school, the iPad on a road trip, or printed at home.</p>
+      {%- elsif mode == 'soldout' -%}
+        <h2 class="theinmag-stack-module__heading">Print sold out. {{ issue_label }} lives on in the Digital Stack.</h2>
+        <p class="theinmag-stack-module__body">The only way to get every issue, including the sold-out ones. All {{ issue_count }} mags as instant PDFs.</p>
+      {%- else -%}
+        {%- liquid
+          # A real magazine gets the possessive heading; a bundle like the
+          # Snack Pack (no issue number) gets the generic one - "Snack Pack
+          # is in the Digital Stack" would be untrue. On PAGES (freebies,
+          # teachers) product is blank, so the generic path runs and the
+          # per-instance overrides let each page speak its own language.
+          assign inum_label = product.metafields.single_mag.issue_number.value | default: 0
+        -%}
+        {%- if inum_label > 0 -%}
+          <h2 class="theinmag-stack-module__heading">{{ issue_label }} is in the Digital Stack</h2>
+        {%- elsif section.settings.heading_override != blank -%}
+          <h2 class="theinmag-stack-module__heading">{{ section.settings.heading_override }}</h2>
+        {%- else -%}
+          <h2 class="theinmag-stack-module__heading">Every issue, in one download</h2>
+        {%- endif -%}
+        {%- if inum_label <= 0 and section.settings.body_override != blank -%}
+          <p class="theinmag-stack-module__body">{{ section.settings.body_override }}</p>
+        {%- else -%}
+          <p class="theinmag-stack-module__body">Every issue we have ever made, including the sold-out ones, as instant PDFs. On the big screen, the iPad, or printed at home.</p>
+        {%- endif -%}
+      {%- endif -%}
+
+      <p class="theinmag-stack-module__value">
+        <s class="theinmag-stack-module__anchor" aria-label="Bought one at a time, {{ anchor_cents | money }}">{{ anchor_cents | money_without_trailing_zeros }}</s>
+        <strong class="theinmag-stack-module__price">{{ stack_cents | money_without_trailing_zeros }}</strong>
+        <span class="theinmag-stack-module__chip">That's {{ per_issue_cents | money }} an issue</span>
+      </p>
+
+      {%- if mode == 'stack' -%}
+        <p class="theinmag-stack-module__reassure">Instant download - Yours forever - Not a subscription</p>
+      {%- endif -%}
+
+    </div>
+
+    {%- comment -%}
+      CTA in its own column between the copy and the character (Ryan,
+      2026-08-12 round 2: under the copy made the band too tall; hard
+      right made it a stranger). On the stack's own PDP it adds to cart
+      via a cart permalink - dependency-free, no shared add-to-cart JS,
+      so no double-bind risk.
+    {%- endcomment -%}
+    <div class="theinmag-stack-module__cta-col">
+      {%- if mode == 'stack' -%}
+        <a class="theinmag-stack-module__cta" data-stack-cta="add-to-cart" href="/cart/add?id={{ stack_product.selected_or_first_available_variant.id }}&quantity=1">Add to cart</a>
+      {%- else -%}
+        <a class="theinmag-stack-module__cta" data-stack-cta="{{ mode }}" href="{{ stack_product.url }}">See the Digital Stack</a>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%}
+      Kid character holds the far right end. Day-stable pick. No
+      loading=lazy: decorative art needs natural dimensions at paint.
+    {%- endcomment -%}
+    <img class="theinmag-stack-module__char" src="{{ char_url }}" alt="" aria-hidden="true" width="110" height="110">
+
+  </div>
+</section>
+{%- endif -%}
+
+{% stylesheet %}
+  .theinmag-stack-module {
+    background-color: var(--color-lavender);
+    padding: clamp(24px, 4vw, 40px) var(--space-lg);
+  }
+  /* Per-page background (colour pairs). Lavender is the default; peach
+     bridges the freebies page's pink-into-orange run. */
+  .theinmag-stack-module--bg-peach { background-color: var(--color-peach); }
+  .theinmag-stack-module--bg-cream { background-color: var(--color-cream); }
+  .theinmag-stack-module--bg-mint { background-color: var(--color-mint); }
+  .theinmag-stack-module--bg-sky { background-color: var(--color-sky); }
+
+  .theinmag-stack-module__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: clamp(20px, 4vw, 44px);
+  }
+
+  .theinmag-stack-module__fan {
+    position: relative;
+    flex: 0 0 auto;
+    display: block;
+    width: 148px;
+    height: 128px;
+    text-decoration: none;
+  }
+  .theinmag-stack-module__fan-img {
+    position: absolute;
+    bottom: 0;
+    width: 84px;
+    height: 112px;
+    object-fit: cover;
+    object-position: top center;
+    /* Black rounded bezel so the pile reads as tablets, matching the
+       homepage tile (Ryan, 2026-08-12: white frames said print; bezel
+       thinned 6px -> 4px on his second look). */
+    background-color: #1A1A1C;
+    padding: 4px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(42, 31, 61, 0.30);
+    box-sizing: content-box;
+  }
+  .theinmag-stack-module__fan-img--1 { left: 0; transform: rotate(-8deg); }
+  .theinmag-stack-module__fan-img--2 { left: 22px; bottom: 3px; transform: rotate(-1deg); }
+  .theinmag-stack-module__fan-img--3 { left: 46px; bottom: 1px; transform: rotate(7deg); }
+
+  /* Kid character in its own slot at the row's right end, gentle bob
+     matching the sitewide character animation. */
+  .theinmag-stack-module__char {
+    flex: 0 0 auto;
+    width: clamp(80px, 9vw, 120px);
+    height: auto;
+    align-self: center;
+    margin-left: auto;
+    animation: theinmag-stack-char-bob 4s ease-in-out infinite;
+  }
+  @keyframes theinmag-stack-char-bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-5px) rotate(2deg); }
+  }
+  .theinmag-stack-module__fan-badge {
+    position: absolute;
+    top: -8px;
+    right: -6px;
+    z-index: 2;
+    background-color: var(--color-yellow);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    border-radius: var(--radius-pill);
+    transform: rotate(8deg);
+    white-space: nowrap;
+  }
+
+  .theinmag-stack-module__copy {
+    /* No grow: the copy keeps its natural width so the CTA column sits
+       just after it, in the gap before the character (Ryan's placement).
+       The character carries margin-left auto to hold the far edge. */
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .theinmag-stack-module__cta-col {
+    flex: 0 0 auto;
+    align-self: center;
+  }
+  .theinmag-stack-module__heading {
+    margin: 0 0 4px;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(22px, 3vw, 30px);
+    line-height: 1.2;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-stack-module__body {
+    margin: 0 0 10px;
+    font-family: var(--font-body);
+    font-size: clamp(13px, 1.5vw, 15px);
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+    max-width: 56ch;
+  }
+  .theinmag-stack-module__value {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-family: var(--font-body);
+  }
+  .theinmag-stack-module__anchor {
+    font-size: 16px;
+    color: rgba(42, 31, 61, 0.55);
+  }
+  .theinmag-stack-module__price {
+    font-size: clamp(22px, 2.6vw, 28px);
+    font-weight: 700;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-stack-module__chip {
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-soft-pink);
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-inky-purple-navy);
+    padding: 4px 12px;
+  }
+  .theinmag-stack-module__reassure {
+    margin: 10px 0 0;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.7;
+  }
+
+  .theinmag-stack-module__cta {
+    display: inline-block;
+    background-color: var(--color-yellow);
+    box-shadow: 0 4px 0 var(--color-yellow-shadow);
+    border-radius: var(--radius-button);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    padding: 12px 22px;
+    transition: transform var(--transition-standard), box-shadow var(--transition-standard);
+  }
+  .theinmag-stack-module__cta:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow);
+  }
+
+  @media (max-width: 749px) {
+    /* Compact phone layout (Ryan, 2026-08-12: the stacked column ran
+       too tall): fan and CTA share the top row, copy spans below, and
+       the kid character sits this one out. */
+    .theinmag-stack-module__inner {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        'fan cta'
+        'copy copy';
+      column-gap: 18px;
+      row-gap: 14px;
+      align-items: center;
+    }
+    .theinmag-stack-module__fan { grid-area: fan; }
+    .theinmag-stack-module__cta-col {
+      grid-area: cta;
+      align-self: center;
+      justify-self: start;
+    }
+    .theinmag-stack-module__copy { grid-area: copy; }
+    .theinmag-stack-module__char { display: none; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  /* Click tracking for the Digital Stack push (2026-08-12, feeds Ryan's
+     which-surface-sells question and any future A/B). Sends a GA4 custom
+     event via the real gtag that has run on-page since the 07 Aug tag
+     swap. Guarded: analytics must never break a click, and if gtag is
+     absent (blocked or removed) this is a silent no-op. */
+  document.addEventListener('click', function (event) {
+    var cta = event.target.closest('[data-stack-cta]');
+    if (!cta) return;
+    try {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'stack_cta_click', {
+          stack_mode: cta.getAttribute('data-stack-cta'),
+          page_path: window.location.pathname
+        });
+      }
+    } catch (err) { /* never block the navigation */ }
+  });
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Digital Stack module",
+  "tag": "section",
+  "class": "shopify-section theinmag-stack-module-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "The whole-collection offer beside every single-issue purchase moment. Self-gating: value stack on the Digital Stack PDP, sold-out bridge on print-sold-out issues, cross-module elsewhere. All prices computed live."
+    },
+    {
+      "type": "text",
+      "id": "stack_handle",
+      "label": "Digital Stack product handle",
+      "default": "digital-stack"
+    },
+    {
+      "type": "collection",
+      "id": "issues_collection",
+      "label": "Issues collection"
+    },
+    {
+      "type": "select",
+      "id": "bg",
+      "label": "Background",
+      "options": [
+        { "value": "lavender", "label": "Lavender" },
+        { "value": "peach", "label": "Peach" },
+        { "value": "cream", "label": "Cream" },
+        { "value": "mint", "label": "Mint" },
+        { "value": "sky", "label": "Sky" }
+      ],
+      "default": "lavender"
+    },
+    {
+      "type": "text",
+      "id": "heading_override",
+      "label": "Heading override (pages only)",
+      "info": "Replaces the generic heading on page templates, e.g. the freebies or teachers wording. Ignored on issue PDPs."
+    },
+    {
+      "type": "text",
+      "id": "body_override",
+      "label": "Body override (pages only)"
+    }
+  ],
+  "presets": [
+    { "name": "Digital Stack module" }
+  ],
+  "enabled_on": {
+    "templates": ["product", "page"]
+  }
+}
+{% endschema %}

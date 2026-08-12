@@ -88,10 +88,66 @@
 
   assign tagline = section.settings.tagline | default: 'Inspiring creative kids.'
   assign section_style = '--tmh-pt: ' | append: section.settings.padding_top | append: 'px; --tmh-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+
+  # Colour field (2026-08-11, Ryan's concept 3): the kid-art pattern pool
+  # runs FULL strength behind the hero, softened by a cream wash exactly
+  # like the competitions choice gate (rgba cream at 0.55 by default -
+  # the value Ryan tuned there). Day-stable pick, same cadence as
+  # competitions, so the bg does not jump between page loads in a session.
+  # The whole hero content sits in one elevated cream tile on top.
+  assign show_field = section.settings.show_colour_field | default: false
+  if show_field
+    assign field_pool_str = 'membership-section-bg_1.jpg|membership-section-bg_2.jpg|membership-section-bg_3.jpg'
+    assign field_pool = field_pool_str | split: '|'
+    assign field_day_index = 'now' | date: '%j' | times: 1 | modulo: field_pool.size
+    assign field_url = field_pool[field_day_index] | asset_url
+    assign field_wash = section.settings.field_wash | default: 55 | divided_by: 100.0
+    assign section_style = section_style | append: ' --tmh-field-img: url(' | append: field_url | append: '); --tmh-field-wash: ' | append: field_wash | append: ';'
+  endif
+
+  # Peek-inside data for the membership hero. The main image is a lifestyle
+  # photo, not a cover, so the preview shows the CURRENT issue's inside
+  # pages - resolved from the shop-level current_issue_number metafield
+  # (e.g. Mag10 -> handle "mag10"), so it auto-rolls to Mag11 in October
+  # with no manual edit. Falls back through inside_gallery_images ->
+  # media_images -> cover. The peek's Add is a membership guard: it bounces
+  # to /products/membership (a membership must never be added without
+  # _starting_mag; the #51018 incident), so no variant ids are emitted.
+  assign peek_current_handle = current_issue | downcase
+  assign peek_issue = all_products[peek_current_handle]
+  assign peek_urls = ''
+  assign peek_inside_imgs = peek_issue.metafields.single_mag.inside_gallery_images.value
+  if peek_inside_imgs != blank
+    for pimg in peek_inside_imgs
+      assign peek_one = pimg | image_url: width: 1200
+      if peek_urls == blank
+        assign peek_urls = peek_one
+      else
+        assign peek_urls = peek_urls | append: '|' | append: peek_one
+      endif
+    endfor
+  endif
+  if peek_urls == blank
+    assign peek_media_imgs = peek_issue.metafields.single_mag.media_images.value
+    if peek_media_imgs != blank
+      for pimg in peek_media_imgs
+        assign peek_one = pimg | image_url: width: 1200
+        if peek_urls == blank
+          assign peek_urls = peek_one
+        else
+          assign peek_urls = peek_urls | append: '|' | append: peek_one
+        endif
+      endfor
+    endif
+  endif
+  if peek_urls == blank and peek_issue.featured_image != blank
+    assign peek_urls = peek_issue.featured_image | image_url: width: 1200
+  endif
+  assign peek_issue_label = peek_issue.title | default: current_issue | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
 -%}
 
 <section
-  class="theinmag-membership-hero"
+  class="theinmag-membership-hero{% if show_field %} theinmag-membership-hero--field{% endif %}"
   data-theinmag-membership-form
   data-current-issue="{{ lead_issue }}"
   data-next-issue="{{ alt_issue }}"
@@ -103,9 +159,14 @@
   style="{{ section_style }}"
 >
   {%- comment -%}
-    Plain cream background. The hero's section CSS sets
-    background-color: var(--color-cream); no patterned-bg render
-    here so the flat layout reads clean against the page.
+    Background: classic mode is a plain white section. Field mode layers
+    the day-stable kid-art pattern (full colour, cream-washed at
+    --tmh-field-wash) behind the cream content tile via the section's
+    OWN ::before (image) and ::after (wash) pseudo-elements - NOT an
+    empty div, which Dawn's base.css div:empty rule hides. The wash sits
+    above the image so the pattern keeps full saturation underneath, the
+    exact competitions treatment. No fixed attachment: phones cannot
+    composite it (watchlist item 27).
   {%- endcomment -%}
 
   <div class="theinmag-membership-hero__inner">
@@ -125,6 +186,30 @@
     <div class="theinmag-membership-hero__media-col">
 
       <div class="theinmag-membership-hero__media-main" data-media-main>
+        {%- comment -%}
+          Peek-inside affordance. The hero image is a lifestyle photo, so
+          this opens the CURRENT issue's inside pages in the shared
+          flick-through lightbox (snippets/theinmag-peek-lightbox). Add-to-
+          cart in the peek is guarded (data-peek-membership) to bounce to
+          the membership PDP - a membership must never be added without a
+          _starting_mag (#51018). type=button so it never submits the form.
+        {%- endcomment -%}
+        {%- if peek_urls != blank -%}
+          <button
+            type="button"
+            class="theinmag-membership-hero__peek-trigger"
+            data-peek-trigger
+            data-peek-images="{{ peek_urls | escape }}"
+            data-peek-title="INside {{ peek_issue_label | escape }}, the latest issue"
+            data-peek-membership="true"
+          >
+            <span class="theinmag-membership-hero__peek-cue" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              See inside
+            </span>
+            <span class="theinmag-membership-hero__peek-a11y">Peek inside the latest issue</span>
+          </button>
+        {%- endif -%}
         {%- comment -%} Slide 0: variant-swap photo (Print / Digital / Combo). {%- endcomment -%}
         <div class="theinmag-membership-hero__slide is-active" data-slide>
           <img class="theinmag-membership-hero__slide-img" data-hero-swap src="{{ hero_print }}" alt="theINmag Membership - the magazine for creative kids." loading="eager" fetchpriority="high">
@@ -220,26 +305,17 @@
       {%- endif -%}
     </div>
 
-    {%- comment -%} RIGHT: sticky info widget {%- endcomment -%}
-    <div class="theinmag-membership-hero__widget" data-widget>
-
-      {%- comment -%}
-        Wrap the brand-pun IN in <span class="theinmag-in"> for sitewide
-        emphasis treatment (Post Regular renders the IN glyphs slightly
-        larger per the design rule). Targets "theINmag" specifically so
-        we don't catch unrelated IN substrings (PRINTING, INTERESTING, etc).
-      {%- endcomment -%}
+    {%- comment -%}
+      HEADLINE BLOCK: its own grid area (2026-08-12, Ryan's mobile call)
+      so phones read title, tagline, stars and trust line BEFORE the big
+      photo, while desktop keeps it at the top of the right column via
+      grid-template-areas. The Liquid assigns here stay global, the mini
+      reviews bubble below still reads hero_jm.
+    {%- endcomment -%}
+    <div class="theinmag-membership-hero__headline">
       {%- assign title_html = product.title | replace: 'theINmag', 'the<span class="theinmag-in">IN</span>mag' -%}
       <h1 id="theinmag-membership-hero-heading" class="theinmag-membership-hero__title">{{ title_html }}</h1>
 
-      {%- comment -%}
-        Tagline row: subtagline + inline shop-wide rating chip (stars + count)
-        sitting on the same logical line. Rating links to the main reviews
-        section. Pre-Judge.me-load the rating renders empty space; once shop
-        metafields are populated (which they are at this point) it shows
-        ★★★★★ (N). Atari-PDP-style placement: small rating immediately after
-        the value-prop tagline.
-      {%- endcomment -%}
       {%- liquid
         assign hero_jm = shop.metafields.judgeme
         assign hero_rating = hero_jm.all_reviews_rating | default: 0
@@ -265,6 +341,12 @@
           </a>
         {%- endif -%}
       </div>
+
+      <p class="theinmag-membership-hero__trust-line">Cancel Rolling anytime &middot; Gifting? Every mag arrives addressed to them</p>
+    </div>
+
+    {%- comment -%} RIGHT: sticky info widget {%- endcomment -%}
+    <div class="theinmag-membership-hero__widget" data-widget>
 
       <p class="theinmag-membership-hero__shipping-note" data-shipping-note hidden>Shipping included</p>
 
@@ -437,7 +519,7 @@
       </ul>
 
       <aside class="theinmag-membership-hero__post-add" aria-label="Shipping and digital alternative" data-post-add-tile hidden>
-        <p>Grabbing a printed mag? It's about to start its Aussie road trip to your house 🚐💨 - up to three business days to ship. We'll email you the moment it's on its way.</p>
+        <p>Grabbing a printed mag? It's about to start its Aussie road trip to your house 🚐💨 It can take up to three business days for us to pop in the post. We'll email you the moment it's on its way.</p>
       </aside>
 
     </div>
@@ -451,6 +533,12 @@
       {%- endfor -%}
     ]
   </script>
+
+  {%- comment -%}
+    Shared peek-inside lightbox. Rendered once; the current-issue cover
+    trigger above drives it. Self-binds + moves to <body>.
+  {%- endcomment -%}
+  {% render 'theinmag-peek-lightbox' %}
 
 </section>
 
@@ -585,15 +673,83 @@
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr;
+    /* Mobile reads headline (title, tagline, stars, trust) BEFORE the
+       photo (Ryan, 2026-08-12); grid areas reorder visually while the
+       DOM keeps media first. */
+    grid-template-areas:
+      'headline'
+      'media'
+      'widget';
     gap: var(--space-xl);
+  }
+  .theinmag-membership-hero__headline { grid-area: headline; }
+  .theinmag-membership-hero__media-col { grid-area: media; }
+  .theinmag-membership-hero__widget { grid-area: widget; }
+
+  @media (max-width: 749px) {
+    .theinmag-membership-hero__inner {
+      row-gap: var(--space-md);
+    }
   }
 
   @media (min-width: 750px) {
     .theinmag-membership-hero__inner {
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-      gap: var(--space-2xl);
+      /* Headline tops the right column, media spans both rows - the
+         desktop look is unchanged from when the title lived inside the
+         widget. */
+      grid-template-areas:
+        'media headline'
+        'media widget';
+      grid-template-rows: auto 1fr;
+      /* Tight row gap keeps the title visually attached to the widget
+         below it, as when it lived inside the widget. */
+      column-gap: var(--space-2xl);
+      row-gap: var(--space-sm);
       align-items: start;
     }
+  }
+
+  /* ---------- Colour field mode (concept 3) ---------- */
+  /* Full-strength kid-art pattern behind one elevated cream tile. The
+     wash sits on the layer's ::after so the pattern keeps its colour
+     under a translucent cream veil (competitions treatment). */
+  .theinmag-membership-hero--field {
+    background-color: var(--color-cream);
+    padding-left: clamp(12px, 3vw, 40px);
+    padding-right: clamp(12px, 3vw, 40px);
+  }
+  /* Pattern on ::before, cream wash on ::after (paints above ::before at
+     the same z-index). An empty layer div would be display:none'd by
+     Dawn's base.css div:empty rule. */
+  .theinmag-membership-hero--field::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: var(--tmh-field-img);
+    /* Sized off the VIEWPORT WIDTH, not the element (cover), so the
+       pattern never rescales when an accordion opens and the section
+       grows taller - Ryan's "background zooms" report. Tall sections
+       tile vertically; the cream wash keeps any seam quiet. */
+    background-size: 100vw auto;
+    background-position: top center;
+    background-repeat: repeat;
+    pointer-events: none;
+  }
+  .theinmag-membership-hero--field::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-color: rgba(251, 246, 234, var(--tmh-field-wash, 0.55));
+    pointer-events: none;
+  }
+  .theinmag-membership-hero--field .theinmag-membership-hero__inner {
+    background-color: var(--color-cream);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
+    padding: clamp(16px, 3vw, 32px);
   }
 
   /* ---------- LEFT: media gallery (main image + thumb strip) ---------- */
@@ -641,6 +797,65 @@
     display: block;
   }
 
+  /* Peek-inside affordance. Full-cover click target + white-on-scrim
+     "See inside" cue pinned bottom-centre. Mirrors the single-mags hero. */
+  .theinmag-membership-hero__peek-trigger {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: clamp(10px, 2vw, 16px);
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .theinmag-membership-hero__peek-cue {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(26, 18, 32, 0.62);
+    color: #fff;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    transition: background 0.15s ease, transform 0.15s ease;
+    pointer-events: none;
+  }
+  .theinmag-membership-hero__peek-cue svg { display: block; }
+  .theinmag-membership-hero__peek-trigger:hover .theinmag-membership-hero__peek-cue,
+  .theinmag-membership-hero__peek-trigger:focus-visible .theinmag-membership-hero__peek-cue {
+    background: rgba(26, 18, 32, 0.8);
+    transform: translateY(-1px);
+  }
+  .theinmag-membership-hero__peek-trigger:focus-visible {
+    outline: 2px solid var(--color-yellow, #F9C23C);
+    outline-offset: -3px;
+  }
+  .theinmag-membership-hero__peek-a11y {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-hero__peek-cue { transition: none; }
+    .theinmag-membership-hero__peek-trigger:hover .theinmag-membership-hero__peek-cue,
+    .theinmag-membership-hero__peek-trigger:focus-visible .theinmag-membership-hero__peek-cue { transform: none; }
+  }
+
   .theinmag-membership-hero__media-arrow {
     position: absolute;
     top: 50%;
@@ -655,7 +870,8 @@
     line-height: 1;
     cursor: pointer;
     display: none;
-    z-index: 2;
+    /* Above the peek-inside trigger (z-index 2) so prev/next stay clickable. */
+    z-index: 3;
     transition: background 0.15s ease;
   }
   .theinmag-membership-hero__media-arrow:hover { background: #ffffff; }
@@ -818,7 +1034,9 @@
   .theinmag-membership-hero__title {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(26px, 3.2vw, 34px);
+    /* Bumped from 26-34 (Ryan, 2026-08-12: product names should grab
+       more attention). */
+    font-size: clamp(30px, 3.8vw, 42px);
     line-height: 1.05;
     color: var(--color-inky-purple-navy);
     margin: 0 0 2px;
@@ -1100,6 +1318,23 @@
     opacity: 0.78;
     margin: var(--space-sm) 0 0;
     text-align: center;
+  }
+  /* One-line trust note under the stars. 11px holds the full line at the
+     widget's desktop width; it may wrap to two on narrow phones, which
+     is fine. */
+  .theinmag-membership-hero__trust-line {
+    margin: 4px 0 0;
+    font-family: var(--font-body);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.7;
+    white-space: nowrap;
+  }
+  @media (max-width: 989px) {
+    .theinmag-membership-hero__trust-line {
+      white-space: normal;
+    }
   }
 
   /* Rolling-only billing-timing note (charge on the 1st, issue mid-month).
@@ -1521,6 +1756,28 @@
       "id": "tagline",
       "label": "Tagline (under product title)",
       "default": "Inspiring creative kids."
+    },
+    {
+      "type": "header",
+      "content": "Colour field"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_colour_field",
+      "label": "Show the colour field",
+      "default": false,
+      "info": "Full-strength kid-art pattern behind the hero (day-stable pick from membership-section-bg_1/2/3.jpg), content in one elevated cream tile."
+    },
+    {
+      "type": "range",
+      "id": "field_wash",
+      "label": "Cream wash over the pattern",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "default": 55,
+      "unit": "%",
+      "info": "Higher = softer pattern. 55 matches the competitions page."
     },
     {
       "type": "header",

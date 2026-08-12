@@ -13,15 +13,21 @@
       "type": "theinmag-issue-strip",
       "settings": {
         "heading": "So many issues...",
+        "style": "shelf",
+        "subline": "check them out",
         "issues_collection": "single-issues",
         "membership_handle": "membership",
-        "padding_top": 24,
+        "padding_top": 12,
         "padding_bottom": 8
       }
     },
     "hero": {
       "type": "theinmag-membership-hero",
-      "settings": {}
+      "settings": {
+        "tagline": "Inspiring creative kids, three drops a year",
+        "show_colour_field": true,
+        "field_wash": 55
+      }
     },
     "pillars": {
       "type": "theinmag-membership-pillars",
@@ -75,6 +81,13 @@
     "ugc": {
       "type": "theinmag-membership-ugc",
       "settings": {}
+    },
+    "stack-module": {
+      "type": "theinmag-stack-module",
+      "settings": {
+        "stack_handle": "digital-stack",
+        "issues_collection": "single-issues"
+      }
     },
     "pull_quote": {
       "type": "theinmag-pull-quote",
@@ -221,6 +234,7 @@
     "issue-strip",
     "hero",
     "ugc",
+    "stack-module",
     "pillars",
     "pull_quote",
     "reviews",

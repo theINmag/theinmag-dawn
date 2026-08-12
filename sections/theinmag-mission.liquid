@@ -151,7 +151,11 @@
                 <span class="theinmag-mission__product-tagline">{{ tagline_out }}</span>
               {%- endif -%}
               {%- if block.settings.price != blank -%}
-                <span class="theinmag-mission__product-price">{{ block.settings.price }}</span>
+                <span class="theinmag-mission__product-price">
+                  {%- if block.settings.compare_price != blank -%}
+                    <s class="theinmag-mission__product-compare">{{ block.settings.compare_price }}</s>
+                  {%- endif -%}
+                  {{ block.settings.price }}</span>
               {%- endif -%}
             </div>
           </a>
@@ -621,6 +625,12 @@
     opacity: 0.85;
   }
 
+  .theinmag-mission__product-compare {
+    font-weight: 400;
+    color: rgba(42, 31, 61, 0.5);
+    margin-right: 6px;
+  }
+
   .theinmag-mission__product-price {
     flex: 0 0 auto;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
@@ -898,6 +908,12 @@
           "id": "link",
           "label": "Link",
           "info": "Use /products/latest-mag to auto-route to whatever issue is currently being promoted (driven by shop.theinmag.promoted_issue_handle metafield)."
+        },
+        {
+          "type": "text",
+          "id": "compare_price",
+          "label": "Compare-at price (optional)",
+          "info": "Shown struck through before the price, e.g. $104 on the Digital Stack tile."
         },
         {
           "type": "image_picker",

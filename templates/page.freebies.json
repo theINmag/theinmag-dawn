@@ -18,9 +18,17 @@
     "grid": {
       "type": "theinmag-freebies-grid",
       "blocks": {
-        "faq1": { "type": "faq", "settings": { "question": "Free to use, print and share?", "answer": "Yes, all of them. Use them, print them, share them with whoever you like. Every freebie is 100% free, no email or account needed. Enjoy." } }
+        "faq1": {
+          "type": "faq",
+          "settings": {
+            "question": "Free to use, print and share?",
+            "answer": "Yes, all of them. Use them, print them, share them with whoever you like. Every freebie is 100% free, no email or account needed. Enjoy."
+          }
+        }
       },
-      "block_order": ["faq1"],
+      "block_order": [
+        "faq1"
+      ],
       "settings": {
         "initial_batch": 60,
         "batch_size": 60,
@@ -44,15 +52,80 @@
     "mission": {
       "type": "theinmag-mission",
       "blocks": {
-        "feature-1": { "type": "feature", "settings": { "label": "Printed sustainably in Australia", "hover_message": "That's right, locally in Melbourne by our friends at <strong>PrintGraphics PrintGreen</strong>." } },
-        "feature-2": { "type": "feature", "settings": { "label": "100% kid-created", "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a <strong>voice</strong>." } },
-        "feature-3": { "type": "feature", "settings": { "label": "Always ad-free", "hover_message": "This is super important to us. <strong>No ads. Ever.</strong>" } },
-        "feature-4": { "type": "feature", "settings": { "label": "Tri-annual", "hover_message": "New issues drop each <strong>February, June and October</strong>." } },
-        "product-membership": { "type": "product_link", "settings": { "label": "theINmag Membership", "tagline": "Every issue delivered, no fuss.", "price": "From $89", "link": "/products/membership", "fallback_filename": "product-membership.jpg", "fallback_hover_filename": "product-membership-hover.jpg", "image_alt": "theINmag membership pack with the latest issue." } },
-        "product-mag": { "type": "product_link", "settings": { "label": "Single issue", "tagline": "120+ pages of kid-made creativity.", "price": "$23.95", "link": "/products/latest-mag", "fallback_filename": "product-mag.jpg", "fallback_hover_filename": "product-mag-hover.jpg", "image_alt": "Cover of the latest theINmag issue." } },
-        "product-bundle": { "type": "product_link", "settings": { "label": "Build a bundle", "tagline": "Pick the issues your kid will love most.", "price": "", "link": "/pages/build-a-bundle", "fallback_filename": "product-bundle.jpg", "fallback_hover_filename": "product-bundle-hover.jpg", "image_alt": "Stack of hand-picked theINmag issues." } }
+        "feature-1": {
+          "type": "feature",
+          "settings": {
+            "label": "Printed sustainably in Australia",
+            "hover_message": "That's right, locally in Melbourne by our friends at <strong>PrintGraphics PrintGreen</strong>."
+          }
+        },
+        "feature-2": {
+          "type": "feature",
+          "settings": {
+            "label": "100% kid-created",
+            "hover_message": "<strong>120+ pages</strong> dedicated to giving kids a <strong>voice</strong>."
+          }
+        },
+        "feature-3": {
+          "type": "feature",
+          "settings": {
+            "label": "Always ad-free",
+            "hover_message": "This is super important to us. <strong>No ads. Ever.</strong>"
+          }
+        },
+        "feature-4": {
+          "type": "feature",
+          "settings": {
+            "label": "Tri-annual",
+            "hover_message": "New issues drop each <strong>February, June and October</strong>."
+          }
+        },
+        "product-membership": {
+          "type": "product_link",
+          "settings": {
+            "label": "theINmag Membership",
+            "tagline": "Every issue delivered, no fuss.",
+            "price": "From $89",
+            "link": "/products/membership",
+            "fallback_filename": "product-membership.jpg",
+            "fallback_hover_filename": "product-membership-hover.jpg",
+            "image_alt": "theINmag membership pack with the latest issue."
+          }
+        },
+        "product-mag": {
+          "type": "product_link",
+          "settings": {
+            "label": "Single issue",
+            "tagline": "120+ pages of kid-made creativity.",
+            "price": "$23.95",
+            "link": "/products/latest-mag",
+            "fallback_filename": "product-mag.jpg",
+            "fallback_hover_filename": "product-mag-hover.jpg",
+            "image_alt": "Cover of the latest theINmag issue."
+          }
+        },
+        "product-bundle": {
+          "type": "product_link",
+          "settings": {
+            "label": "Build a bundle",
+            "tagline": "Pick the issues your kid will love most.",
+            "price": "",
+            "link": "/pages/build-a-bundle",
+            "fallback_filename": "product-bundle.jpg",
+            "fallback_hover_filename": "product-bundle-hover.jpg",
+            "image_alt": "Stack of hand-picked theINmag issues."
+          }
+        }
       },
-      "block_order": ["feature-1", "feature-2", "feature-3", "feature-4", "product-membership", "product-mag", "product-bundle"],
+      "block_order": [
+        "feature-1",
+        "feature-2",
+        "feature-3",
+        "feature-4",
+        "product-membership",
+        "product-mag",
+        "product-bundle"
+      ],
       "settings": {
         "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
         "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>"
@@ -61,18 +134,80 @@
     "press": {
       "type": "theinmag-press-band",
       "blocks": {
-        "press-1": { "type": "press_logo", "settings": { "fallback_filename": "press-1.png", "alt": "Press mention" } },
-        "press-2": { "type": "press_logo", "settings": { "fallback_filename": "press-2.png", "alt": "Press mention" } },
-        "press-3": { "type": "press_logo", "settings": { "fallback_filename": "press-3.png", "alt": "Press mention" } },
-        "press-4": { "type": "press_logo", "settings": { "fallback_filename": "press-4.png", "alt": "Press mention" } },
-        "press-5": { "type": "press_logo", "settings": { "fallback_filename": "press-5.png", "alt": "Press mention", "size": "large" } },
-        "press-6": { "type": "press_logo", "settings": { "fallback_filename": "press-6.png", "alt": "Press mention" } }
+        "press-1": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-1.png",
+            "alt": "Press mention"
+          }
+        },
+        "press-2": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-2.png",
+            "alt": "Press mention"
+          }
+        },
+        "press-3": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-3.png",
+            "alt": "Press mention"
+          }
+        },
+        "press-4": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-4.png",
+            "alt": "Press mention"
+          }
+        },
+        "press-5": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-5.png",
+            "alt": "Press mention",
+            "size": "large"
+          }
+        },
+        "press-6": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-6.png",
+            "alt": "Press mention"
+          }
+        }
       },
-      "block_order": ["press-1", "press-2", "press-3", "press-4", "press-5", "press-6"],
+      "block_order": [
+        "press-1",
+        "press-2",
+        "press-3",
+        "press-4",
+        "press-5",
+        "press-6"
+      ],
       "settings": {
         "heading": "Seen IN"
       }
+    },
+    "stack-module": {
+      "type": "theinmag-stack-module",
+      "settings": {
+        "stack_handle": "digital-stack",
+        "issues_collection": "single-issues",
+        "heading_override": "Loved these? There's a whole stack more",
+        "body_override": "Every issue we have ever made as instant PDFs, over 1,000 pages of kid-made everything. On the iPad, the big screen, or printed at home.",
+        "bg": "peach"
+      }
     }
   },
-  "order": ["banner", "controls", "grid", "lightbox", "mission", "press"]
+  "order": [
+    "banner",
+    "controls",
+    "grid",
+    "lightbox",
+    "stack-module",
+    "mission",
+    "press"
+  ]
 }

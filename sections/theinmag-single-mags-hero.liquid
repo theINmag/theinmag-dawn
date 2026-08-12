@@ -86,6 +86,21 @@
 
   assign section_style = '--tmsm-pt: ' | append: section.settings.padding_top | append: 'px; --tmsm-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 
+  # Colour field (2026-08-12, concept 3 rollout from the membership hero):
+  # day-stable kid-art pattern at FULL colour under a cream wash (the
+  # competitions treatment), with the whole hero content in one elevated
+  # cream tile (__inner). Distinct from the older show_section_bg snippet
+  # (per-second pick, low opacity); leave that OFF when this is ON.
+  assign show_colour_field = section.settings.show_colour_field | default: false
+  if show_colour_field
+    assign cf_pool_str = 'membership-section-bg_1.jpg|membership-section-bg_2.jpg|membership-section-bg_3.jpg'
+    assign cf_pool = cf_pool_str | split: '|'
+    assign cf_day_index = 'now' | date: '%j' | times: 1 | modulo: cf_pool.size
+    assign cf_url = cf_pool[cf_day_index] | asset_url
+    assign cf_wash = section.settings.field_wash | default: 55 | divided_by: 100.0
+    assign section_style = section_style | append: ' --tmsm-field-img: url(' | append: cf_url | append: '); --tmsm-field-wash: ' | append: cf_wash | append: ';'
+  endif
+
   assign hero_jm = shop.metafields.judgeme
   assign hero_rating = hero_jm.all_reviews_rating | default: 0
   assign hero_count = hero_jm.all_reviews_count | default: 0
@@ -207,7 +222,7 @@
 -%}
 
 <section
-  class="theinmag-single-mags-hero{% unless show_card %} theinmag-single-mags-hero--flat{% endunless %}"
+  class="theinmag-single-mags-hero{% unless show_card %} theinmag-single-mags-hero--flat{% endunless %}{% if show_colour_field %} theinmag-single-mags-hero--colour-field{% endif %}"
   data-theinmag-single-mags
   aria-labelledby="theinmag-single-mags-hero-heading"
   style="{{ section_style }}"
@@ -371,6 +386,62 @@
     <div class="theinmag-single-mags-hero__row">
 
       {%- comment -%}
+        HEADLINE BLOCK: its own grid area (2026-08-12, Ryan's mobile
+        call, matching the membership hero) so phones read title,
+        tagline and stars BEFORE the media gallery, while desktop keeps
+        them at the top of the right column. The data-issue-title /
+        data-issue-subtagline hooks move with it; the picker JS looks
+        them up section-wide, so the swap logic is untouched.
+      {%- endcomment -%}
+      <div class="theinmag-single-mags-hero__headline">
+        {%- liquid
+          # Strip the "theINmag - " prefix so the widget shows just the
+          # issue label (e.g. "Mag09"). The brand name lives in the page
+          # chrome (header + footer), repeating it on every issue title
+          # reads as padding rather than information.
+          assign initial_title_parts = initial_issue.title | split: ' - '
+          if initial_title_parts.size > 1
+            assign initial_title = initial_title_parts.last
+          else
+            assign initial_title = initial_issue.title
+          endif
+          assign initial_subtag = initial_issue.metafields.single_mag.subtagline
+          assign initial_eyebrow = initial_issue.metafields.single_mag.theme_eyebrow
+        -%}
+
+        <h2 class="theinmag-single-mags-hero__title" data-issue-title>{{ initial_title }}</h2>
+
+        {%- comment -%}
+          Tagline row: subtagline + optional rating chip. Mirrors the
+          Membership hero pattern - hyphen separator before stars,
+          chip jumps to #theinmag-single-mags-reviews-heading.
+        {%- endcomment -%}
+        <div class="theinmag-single-mags-hero__tagline-row">
+          <p class="theinmag-single-mags-hero__tagline" data-issue-subtagline>{{ initial_subtag }}</p>
+          {%- if show_rating_chip and hero_count != 0 and hero_count != blank -%}
+            {%- liquid
+              # Inline unicode-star rendering. Judge.me's preview-badge JS was
+              # intermittent; this Liquid-only fallback always renders and
+              # never depends on a script firing in the right order. Half-stars
+              # round to nearest full for simplicity (3.4 -> 3 filled, 3.6 -> 4).
+              assign rating_full = hero_rating | round
+              if rating_full > 5
+                assign rating_full = 5
+              endif
+              assign rating_empty = 5 | minus: rating_full
+            -%}
+            <a href="#theinmag-membership-reviews-heading" class="theinmag-single-mags-hero__rating-link" aria-label="Rated {{ hero_rating | round: 1 }} out of 5 from {{ hero_count }} reviews">
+              <span class="theinmag-single-mags-hero__rating-stars" role="img" aria-hidden="true">
+                {%- if rating_full > 0 -%}{%- for i in (1..rating_full) -%}★{%- endfor -%}{%- endif -%}
+                {%- if rating_empty > 0 -%}<span class="theinmag-single-mags-hero__rating-stars--empty">{%- for i in (1..rating_empty) -%}★{%- endfor -%}</span>{%- endif -%}
+              </span>
+              <span class="theinmag-single-mags-hero__rating-count">({{ hero_count }})</span>
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+
+      {%- comment -%}
         MEDIA COLUMN. One container per issue, all in DOM. Hidden via
         attribute, swapped by JS on picker change. Each container:
           - Main image (current selected from gallery)
@@ -391,6 +462,42 @@
             if issue.handle == initial_issue.handle
               assign is_active_issue = true
             endif
+
+            # Peek-inside data for this issue. Preview images = the issue's
+            # inside_gallery_images ONLY (the same real inside-page samples
+            # the INside section shows). The peek SELF-GATES on this: a mag
+            # with no inside_gallery_images renders no trigger and its cover
+            # behaves as a plain static image, no click handler, no empty
+            # lightbox. Deliberately NO media_images / cover fallback here -
+            # a peek that just re-shows the cover or product mockups is not
+            # a real "see inside" and would mislead. Print/Digital variant
+            # ids + prices let the shared lightbox offer the format toggle +
+            # add-to-cart. Membership is never a single-mag peek (its own
+            # picker handles _starting_mag), so no membership guard needed -
+            # these are all single-issue / bundle products.
+            assign peek_inside_imgs = issue.metafields.single_mag.inside_gallery_images.value
+            assign peek_urls = ''
+            if peek_inside_imgs != blank
+              for pimg in peek_inside_imgs
+                assign peek_one = pimg | image_url: width: 1200
+                if peek_urls == blank
+                  assign peek_urls = peek_one
+                else
+                  assign peek_urls = peek_urls | append: '|' | append: peek_one
+                endif
+              endfor
+            endif
+
+            assign peek_print_v = nil
+            assign peek_digital_v = nil
+            for v in issue.variants
+              if v.option1 == 'Print'
+                assign peek_print_v = v
+              elsif v.option1 == 'Digital'
+                assign peek_digital_v = v
+              endif
+            endfor
+            assign issue_label_peek = issue.title | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
           -%}
           {%- comment -%}
             Print media container. Default visible when format = Print or
@@ -406,6 +513,32 @@
             {% unless is_active_issue %}hidden{% endunless %}
           >
             <div class="theinmag-single-mags-hero__media-main" data-media-main>
+              {%- comment -%}
+                Peek-inside affordance. Clarity showed shoppers tapping the
+                cover expecting a preview; this overlay makes the cover open
+                the shared flick-through lightbox (snippets/theinmag-peek-
+                lightbox). Per-issue so whichever media container is visible
+                carries the correct issue's pages + variants. type=button so
+                it never submits the buy form.
+              {%- endcomment -%}
+              {%- if peek_urls != blank -%}
+                <button
+                  type="button"
+                  class="theinmag-single-mags-hero__peek-trigger"
+                  data-peek-trigger
+                  data-peek-images="{{ peek_urls | escape }}"
+                  data-peek-title="{{ issue_label_peek | escape }}"
+                  data-peek-url="/products/{{ issue.handle }}"
+                  {%- if peek_print_v %} data-peek-variant-print="{{ peek_print_v.id }}" data-peek-price-print="{{ peek_print_v.price | money | escape }}"{% if peek_print_v.available == false %} data-peek-print-soldout="true"{% endif %}{%- endif -%}
+                  {%- if peek_digital_v %} data-peek-variant-digital="{{ peek_digital_v.id }}" data-peek-price-digital="{{ peek_digital_v.price | money | escape }}"{%- endif -%}
+                >
+                  <span class="theinmag-single-mags-hero__peek-cue" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    See inside
+                  </span>
+                  <span class="theinmag-single-mags-hero__peek-a11y">Peek inside {{ issue_label_peek }}</span>
+                </button>
+              {%- endif -%}
               {%- liquid
                 assign slide_index = 0
               -%}
@@ -673,51 +806,10 @@
       {%- endcomment -%}
       <div class="theinmag-single-mags-hero__widget" data-widget>
 
-        {%- liquid
-          # Strip the "theINmag - " prefix so the widget shows just the
-          # issue label (e.g. "Mag09"). The brand name lives in the page
-          # chrome (header + footer), repeating it on every issue title
-          # reads as padding rather than information.
-          assign initial_title_parts = initial_issue.title | split: ' - '
-          if initial_title_parts.size > 1
-            assign initial_title = initial_title_parts.last
-          else
-            assign initial_title = initial_issue.title
-          endif
-          assign initial_subtag = initial_issue.metafields.single_mag.subtagline
-          assign initial_eyebrow = initial_issue.metafields.single_mag.theme_eyebrow
-        -%}
-
-        <h2 class="theinmag-single-mags-hero__title" data-issue-title>{{ initial_title }}</h2>
-
         {%- comment -%}
-          Tagline row: subtagline + optional rating chip. Mirrors the
-          Membership hero pattern - hyphen separator before stars,
-          chip jumps to #theinmag-single-mags-reviews-heading.
+          (Title + tagline row moved to the __headline grid area above,
+          2026-08-12 - phones read them before the media gallery.)
         {%- endcomment -%}
-        <div class="theinmag-single-mags-hero__tagline-row">
-          <p class="theinmag-single-mags-hero__tagline" data-issue-subtagline>{{ initial_subtag }}</p>
-          {%- if show_rating_chip and hero_count != 0 and hero_count != blank -%}
-            {%- liquid
-              # Inline unicode-star rendering. Judge.me's preview-badge JS was
-              # intermittent; this Liquid-only fallback always renders and
-              # never depends on a script firing in the right order. Half-stars
-              # round to nearest full for simplicity (3.4 -> 3 filled, 3.6 -> 4).
-              assign rating_full = hero_rating | round
-              if rating_full > 5
-                assign rating_full = 5
-              endif
-              assign rating_empty = 5 | minus: rating_full
-            -%}
-            <a href="#theinmag-membership-reviews-heading" class="theinmag-single-mags-hero__rating-link" aria-label="Rated {{ hero_rating | round: 1 }} out of 5 from {{ hero_count }} reviews">
-              <span class="theinmag-single-mags-hero__rating-stars" role="img" aria-hidden="true">
-                {%- if rating_full > 0 -%}{%- for i in (1..rating_full) -%}★{%- endfor -%}{%- endif -%}
-                {%- if rating_empty > 0 -%}<span class="theinmag-single-mags-hero__rating-stars--empty">{%- for i in (1..rating_empty) -%}★{%- endfor -%}</span>{%- endif -%}
-              </span>
-              <span class="theinmag-single-mags-hero__rating-count">({{ hero_count }})</span>
-            </a>
-          {%- endif -%}
-        </div>
 
         {%- comment -%}
           Pre-order drop date - the single shop metafield
@@ -964,6 +1056,14 @@
       }
     }
   </script>
+
+  {%- comment -%}
+    Shared peek-inside lightbox. Rendered once; the per-issue cover
+    triggers above (data-peek-trigger) drive it. Snippet self-binds and
+    moves itself to <body>, so the section's stacking context can't trap
+    the backdrop.
+  {%- endcomment -%}
+  {% render 'theinmag-peek-lightbox' %}
 
 </section>
 
@@ -1533,6 +1633,45 @@
     gap: var(--space-xl);
   }
 
+  /* ---------- Colour field mode (concept 3, mirrors the membership
+     hero). Pattern on the section's ::before, cream wash on ::after -
+     NOT an empty layer div, which Dawn's base.css div:empty rule hides.
+     __inner becomes the one elevated cream tile holding everything,
+     including the description. ---------- */
+  .theinmag-single-mags-hero--colour-field {
+    background-color: var(--color-cream);
+    padding-left: clamp(12px, 3vw, 40px);
+    padding-right: clamp(12px, 3vw, 40px);
+  }
+  .theinmag-single-mags-hero--colour-field::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: var(--tmsm-field-img);
+    /* Viewport-width sizing, not cover: the pattern must not rescale
+       when accordions open and the section grows (see the matching rule
+       in theinmag-membership-hero). */
+    background-size: 100vw auto;
+    background-position: top center;
+    background-repeat: repeat;
+    pointer-events: none;
+  }
+  .theinmag-single-mags-hero--colour-field::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-color: rgba(251, 246, 234, var(--tmsm-field-wash, 0.55));
+    pointer-events: none;
+  }
+  .theinmag-single-mags-hero--colour-field .theinmag-single-mags-hero__inner {
+    background-color: var(--color-cream);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 12px 36px rgba(42, 31, 61, 0.22);
+    padding: clamp(16px, 3vw, 32px);
+  }
+
   /* ---------- Unified card ---------- */
   /* Wraps the picker + the two-column (media + widget) row in a single
      cream card with the lifted box-shadow. Picker tiles, media carousel,
@@ -1799,10 +1938,13 @@
          the full cover + the start of the description land on one desktop
          screen (Ryan's call). Widget (1fr) absorbs the freed width so
          there's no gap beside a smaller image. The square + contain are
-         unchanged on __media-main, so the whole cover still shows. */
+         unchanged on __media-main, so the whole cover still shows.
+         Headline (title + tagline + stars) tops the right column,
+         mirroring the membership hero (2026-08-12). */
       grid-template-columns: minmax(0, clamp(320px, 46%, 540px)) minmax(0, 1fr);
-      grid-template-rows: auto auto;
+      grid-template-rows: auto auto auto;
       grid-template-areas:
+        "media headline"
         "media widget"
         "desc widget";
       column-gap: var(--space-2xl);
@@ -1810,6 +1952,7 @@
       align-items: start;
     }
     .theinmag-single-mags-hero__media-col { grid-area: media; }
+    .theinmag-single-mags-hero__headline { grid-area: headline; }
     .theinmag-single-mags-hero__widget { grid-area: widget; }
     .theinmag-single-mags-hero__desc-col { grid-area: desc; }
   }
@@ -1839,6 +1982,69 @@
     aspect-ratio: 1 / 1;
     background-color: rgba(42, 31, 61, 0.04);
     overflow: hidden;
+  }
+
+  /* Peek-inside affordance. Full-cover invisible click target with a
+     small white-on-scrim "See inside" cue pinned bottom-centre. Sits
+     ABOVE the slides but BELOW the media arrows (arrows are z-index-less
+     but painted later; give this a modest z-index and keep the arrows on
+     top by leaving them after in source + bumping them). White on a soft
+     scrim, no coloured pill (per the premium-photo rule). */
+  .theinmag-single-mags-hero__peek-trigger {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: clamp(10px, 2vw, 16px);
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .theinmag-single-mags-hero__peek-cue {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(26, 18, 32, 0.62);
+    color: #fff;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    transition: background 0.15s ease, transform 0.15s ease;
+    pointer-events: none;
+  }
+  .theinmag-single-mags-hero__peek-cue svg { display: block; }
+  .theinmag-single-mags-hero__peek-trigger:hover .theinmag-single-mags-hero__peek-cue,
+  .theinmag-single-mags-hero__peek-trigger:focus-visible .theinmag-single-mags-hero__peek-cue {
+    background: rgba(26, 18, 32, 0.8);
+    transform: translateY(-1px);
+  }
+  .theinmag-single-mags-hero__peek-trigger:focus-visible {
+    outline: 2px solid var(--color-yellow, #F9C23C);
+    outline-offset: -3px;
+  }
+  .theinmag-single-mags-hero__peek-a11y {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-single-mags-hero__peek-cue { transition: none; }
+    .theinmag-single-mags-hero__peek-trigger:hover .theinmag-single-mags-hero__peek-cue,
+    .theinmag-single-mags-hero__peek-trigger:focus-visible .theinmag-single-mags-hero__peek-cue { transform: none; }
   }
 
   .theinmag-single-mags-hero__slide {
@@ -1881,7 +2087,8 @@
     line-height: 1;
     cursor: pointer;
     display: none;
-    z-index: 2;
+    /* Above the peek-inside trigger (z-index 2) so prev/next stay clickable. */
+    z-index: 3;
     transition: background 0.15s ease;
   }
   .theinmag-single-mags-hero__media-arrow:hover { background: #ffffff; }
@@ -1965,7 +2172,9 @@
   .theinmag-single-mags-hero__title {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(24px, 3vw, 32px);
+    /* Bumped from 24-32 (Ryan, 2026-08-12: product names should grab
+       more attention). */
+    font-size: clamp(28px, 3.6vw, 40px);
     line-height: 1.05;
     color: var(--color-inky-purple-navy);
     margin: 0 0 var(--space-xs);
@@ -2755,6 +2964,24 @@
     {
       "type": "header",
       "content": "Background"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_colour_field",
+      "label": "Show the colour field",
+      "default": false,
+      "info": "Full-strength kid-art pattern behind the hero (day-stable pick), content in one elevated cream tile. Leave the section background below OFF when this is on."
+    },
+    {
+      "type": "range",
+      "id": "field_wash",
+      "label": "Cream wash over the pattern",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "default": 55,
+      "unit": "%",
+      "info": "Higher = softer pattern. 55 matches the competitions page."
     },
     {
       "type": "checkbox",

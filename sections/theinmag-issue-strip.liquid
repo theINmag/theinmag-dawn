@@ -5,12 +5,13 @@
   single-mags picker reimagined as honest navigation (real URLs, one
   product per page, no in-page content swapping).
 
-  Order (Ryan's call):
+  Order (Ryan's call, revised 2026-08-12: stack promoted from last to
+  second - the best-margin product was buried at the end of the row):
     1. Membership
-    2. Snack Pack
-    3. Pre-sale magazine(s) - the is_pre_order one(s)
-    4. The rest of the magazines, newest-first
-    5. Digital Stack last
+    2. Digital Stack
+    3. Snack Pack
+    4. Pre-sale magazine(s) - the is_pre_order one(s)
+    5. The rest of the magazines, newest-first
 
   Rendered in five filtered passes rather than one re-sorted array -
   slice/where/concat on product arrays proved unreliable, so each pass
@@ -55,27 +56,111 @@
   assign sorted_handles = sorted_handles | split: ','
   assign membership_product = all_products[section.settings.membership_handle]
   assign section_style = '--tmis-pt: ' | append: section.settings.padding_top | append: 'px; --tmis-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+
+  # Dark-shelf style (2026-08-11, Ryan's concept 3): the strip becomes an
+  # inky gallery band - white-framed covers with a slight scatter, labels
+  # in white, digital tiles undimmed, and the Digital Stack rendered as a
+  # fanned end-cap with a yellow value sticker. Default stays "classic" so
+  # the single-issue PDPs are untouched until Ryan flips them; only the
+  # membership template sets style: shelf.
+  assign strip_style = section.settings.style | default: 'classic'
+
+  # Fan end-cap data: the three newest real magazines' covers (sorted_handles
+  # is already newest-first) plus the issue count for the sticker copy.
+  assign fan_urls = ''
+  assign stack_issue_count = 0
+  if strip_style == 'shelf'
+    for sorted_handle in sorted_handles
+      assign fan_issue = issues | where: 'handle', sorted_handle | first
+      if fan_issue == blank
+        continue
+      endif
+      assign fan_inum = fan_issue.metafields.single_mag.issue_number.value | default: 0
+      if fan_inum > 0
+        assign stack_issue_count = stack_issue_count | plus: 1
+        if stack_issue_count <= 3 and fan_issue.featured_image != blank
+          assign fan_one = fan_issue.featured_image | image_url: width: 280
+          if fan_urls == blank
+            assign fan_urls = fan_one
+          else
+            assign fan_urls = fan_urls | append: '|' | append: fan_one
+          endif
+        endif
+      endif
+    endfor
+  endif
+  assign fan_covers = fan_urls | split: '|'
 -%}
 
 {%- if sorted_handles.size > 0 -%}
 <section
-  class="theinmag-issue-strip"
+  class="theinmag-issue-strip{% if strip_style == 'shelf' %} theinmag-issue-strip--shelf{% endif %}"
   style="{{ section_style }}"
   aria-label="Browse theINmag issues"
   data-active-format="Print"
   data-theinmag-issue-strip
 >
   <div class="theinmag-issue-strip__inner">
-    {%- if section.settings.heading != blank -%}
-      <p class="theinmag-issue-strip__heading">{{ section.settings.heading }}</p>
-    {%- endif -%}
+    {%- comment -%}
+      Heading + subline share one centred row (Ryan, 2026-08-12: the
+      stacked pair made the dark band too tall). Wraps naturally on
+      narrow screens.
+    {%- endcomment -%}
+    <div class="theinmag-issue-strip__head">
+      {%- if section.settings.heading != blank -%}
+        <p class="theinmag-issue-strip__heading">{{ section.settings.heading }}</p>
+      {%- endif -%}
+      {%- if strip_style == 'shelf' and section.settings.subline != blank -%}
+        <p class="theinmag-issue-strip__subline">{{ section.settings.subline }}</p>
+      {%- endif -%}
+    </div>
     <ol class="theinmag-issue-strip__list" role="list">
       {%- comment -%} 1. Membership {%- endcomment -%}
       {%- if membership_product != blank -%}
         {%- render 'theinmag-issue-strip-tile', product: membership_product, current_handle: product.handle -%}
       {%- endif -%}
 
-      {%- comment -%} 2. Snack Pack - bundle (not pre-order, no positive issue number) WITH a Print variant {%- endcomment -%}
+      {%- comment -%} 2. Digital Stack - bundle (not pre-order, no positive issue number) with NO Print variant {%- endcomment -%}
+      {%- for sorted_handle in sorted_handles -%}
+        {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
+        {%- if issue == blank -%}{%- continue -%}{%- endif -%}
+        {%- liquid
+          assign inum = issue.metafields.single_mag.issue_number.value | default: 0
+          assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
+          assign has_print = false
+          for v in issue.variants
+            if v.option1 == 'Print'
+              assign has_print = true
+            endif
+          endfor
+        -%}
+        {%- if is_pre == false and inum <= 0 and has_print == false -%}
+          {%- if strip_style == 'shelf' and fan_covers.size > 0 -%}
+            {%- comment -%}
+              Shelf mode: the Digital Stack stops being a dimmed tile and
+              becomes a fanned end-cap of the three newest covers with a
+              yellow value sticker. Count + price read live from the
+              product so the sticker survives the $65 price change and
+              each new drop without a theme edit.
+            {%- endcomment -%}
+            <li class="theinmag-issue-strip__item theinmag-issue-strip__item--stack{% if issue.handle == product.handle %} is-current{% endif %}">
+              <a class="theinmag-issue-strip__link" href="{{ issue.url }}" {% if issue.handle == product.handle %}aria-current="page"{% endif %}>
+                <span class="theinmag-issue-strip__fan" aria-hidden="true">
+                  {%- for fan_src in fan_covers reversed -%}
+                    <img class="theinmag-issue-strip__fan-img theinmag-issue-strip__fan-img--{{ forloop.index }}" src="{{ fan_src }}" alt="" loading="lazy" width="100" height="130">
+                  {%- endfor -%}
+                  <span class="theinmag-issue-strip__fan-badge">All {{ stack_issue_count }}<br>{{ issue.price | money_without_trailing_zeros }}</span>
+                </span>
+                <span class="theinmag-issue-strip__label theinmag-issue-strip__label--stack">Digital Stack</span>
+              </a>
+            </li>
+          {%- else -%}
+            {%- render 'theinmag-issue-strip-tile', product: issue, current_handle: product.handle -%}
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- comment -%} 3. Snack Pack - bundle (not pre-order, no positive issue number) WITH a Print variant {%- endcomment -%}
       {%- for sorted_handle in sorted_handles -%}
         {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
         {%- if issue == blank -%}{%- continue -%}{%- endif -%}
@@ -94,7 +179,7 @@
         {%- endif -%}
       {%- endfor -%}
 
-      {%- comment -%} 3. Pre-sale magazine(s) {%- endcomment -%}
+      {%- comment -%} 4. Pre-sale magazine(s) {%- endcomment -%}
       {%- for sorted_handle in sorted_handles -%}
         {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
         {%- if issue == blank -%}{%- continue -%}{%- endif -%}
@@ -104,7 +189,7 @@
         {%- endif -%}
       {%- endfor -%}
 
-      {%- comment -%} 4. The rest of the magazines, newest-first {%- endcomment -%}
+      {%- comment -%} 5. The rest of the magazines, newest-first {%- endcomment -%}
       {%- for sorted_handle in sorted_handles -%}
         {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
         {%- if issue == blank -%}{%- continue -%}{%- endif -%}
@@ -117,24 +202,19 @@
         {%- endif -%}
       {%- endfor -%}
 
-      {%- comment -%} 5. Digital Stack - bundle (not pre-order, no positive issue number) with NO Print variant {%- endcomment -%}
-      {%- for sorted_handle in sorted_handles -%}
-        {%- assign issue = issues | where: 'handle', sorted_handle | first -%}
-        {%- if issue == blank -%}{%- continue -%}{%- endif -%}
+      {%- if strip_style == 'shelf' -%}
         {%- liquid
-          assign inum = issue.metafields.single_mag.issue_number.value | default: 0
-          assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
-          assign has_print = false
-          for v in issue.variants
-            if v.option1 == 'Print'
-              assign has_print = true
-            endif
-          endfor
+          # Shelf buddy (Ryan, 2026-08-12): a small kid character stands at
+          # the end of the row next to Mag01. Day-stable pick, offset from
+          # the stack module's character index so the two never match on
+          # the same day.
+          assign buddy_index = 'now' | date: '%j' | times: 1 | plus: 17 | modulo: 53 | plus: 1
+          assign buddy_filename = 'character-' | append: buddy_index | append: '.png'
         -%}
-        {%- if is_pre == false and inum <= 0 and has_print == false -%}
-          {%- render 'theinmag-issue-strip-tile', product: issue, current_handle: product.handle -%}
-        {%- endif -%}
-      {%- endfor -%}
+        <li class="theinmag-issue-strip__item theinmag-issue-strip__buddy" aria-hidden="true">
+          <img class="theinmag-issue-strip__buddy-img" src="{{ buddy_filename | asset_url }}" alt="" width="52" height="52">
+        </li>
+      {%- endif -%}
     </ol>
   </div>
 </section>
@@ -382,6 +462,194 @@
       font-size: 8px;
     }
   }
+
+  /* ================================================================
+     Dark shelf (style: shelf). The strip becomes an inky gallery band:
+     Post heading in white, covers in white frames with a slight
+     alternating scatter, current tile keeps the soft-pink frame, and
+     nothing is dimmed - on a dark shelf a digital issue is a glowing
+     cover, not a faded one. Scoped entirely under the modifier class so
+     classic strips render byte-identically.
+     ================================================================ */
+  .theinmag-issue-strip--shelf {
+    background-color: var(--color-inky-purple-navy);
+  }
+  .theinmag-issue-strip__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    flex-wrap: wrap;
+    column-gap: 14px;
+    row-gap: 2px;
+  }
+  .theinmag-issue-strip__head .theinmag-issue-strip__heading {
+    margin: 0;
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__heading {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(15px, 1.8vw, 19px);
+    letter-spacing: 0.1em;
+    text-transform: none;
+    color: #FFFFFF;
+  }
+  .theinmag-issue-strip__subline {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__list {
+    /* Tight: Ryan flagged the band as too tall. The 10px top still
+       clears the current-tile outline + hover lift. 12px inline +
+       scroll-padding stops the snap from pulling the first tile's pink
+       outline outside the clip box on phones (it snapped 6px left and
+       the frame's left edge vanished). */
+    padding: 10px 12px 8px;
+    gap: 10px;
+    scroll-padding-inline: 12px;
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__cover {
+    background-color: #FFFFFF;
+    padding: 3px;
+    border-radius: 3px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+    box-sizing: content-box;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  /* Gallery scatter: gentle alternating tilt, straightened on hover and
+     on the current tile so the "you are here" frame reads square. */
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item:nth-child(odd) .theinmag-issue-strip__cover {
+    transform: rotate(-2deg);
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item:nth-child(even) .theinmag-issue-strip__cover {
+    transform: rotate(1.6deg);
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__link:hover .theinmag-issue-strip__cover,
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item.is-current .theinmag-issue-strip__cover {
+    transform: rotate(0);
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item.is-current .theinmag-issue-strip__cover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+    /* Slightly smaller "you are here" tile than classic (92x122): the
+       dark band was reading too tall with the full-size bump. */
+    width: 80px;
+    height: 106px;
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__label {
+    color: #FFFFFF;
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__current {
+    color: var(--color-soft-pink);
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__presale {
+    color: var(--color-soft-pink);
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__digital-only {
+    color: rgba(255, 255, 255, 0.65);
+  }
+  /* Undim: a dark shelf never fades a cover. */
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item.is-print-sold-out .theinmag-issue-strip__cover,
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item.is-digital-only .theinmag-issue-strip__cover,
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item.is-print-sold-out .theinmag-issue-strip__label,
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item.is-digital-only .theinmag-issue-strip__label {
+    opacity: 1;
+  }
+
+  /* Digital Stack fan end-cap. Sized off the base cover box (62x82,
+     48x64 under 480px) so it scales with the rest of the row. */
+  .theinmag-issue-strip__fan {
+    position: relative;
+    display: block;
+    width: 96px;
+    height: 96px;
+  }
+  .theinmag-issue-strip__fan-img {
+    position: absolute;
+    bottom: 0;
+    width: 62px;
+    height: 82px;
+    object-fit: cover;
+    object-position: top center;
+    background-color: #FFFFFF;
+    padding: 2px;
+    border-radius: 3px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+    box-sizing: content-box;
+  }
+  /* Covers render reversed (oldest first) so the newest issue lands on
+     top of the pile. --1 is the bottom of the fan, --3 the top. */
+  .theinmag-issue-strip__fan-img--1 { left: 0; transform: rotate(-8deg); }
+  .theinmag-issue-strip__fan-img--2 { left: 12px; bottom: 2px; transform: rotate(-1deg); }
+  .theinmag-issue-strip__fan-img--3 { left: 26px; bottom: 1px; transform: rotate(7deg); }
+  .theinmag-issue-strip__fan-badge {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    z-index: 2;
+    background-color: var(--color-yellow);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 10px;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    text-align: center;
+    padding: 5px 8px;
+    border-radius: var(--radius-pill);
+    transform: rotate(8deg);
+  }
+  .theinmag-issue-strip__label--stack {
+    font-weight: 700;
+  }
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item--stack .theinmag-issue-strip__link:hover .theinmag-issue-strip__fan-img,
+  .theinmag-issue-strip--shelf .theinmag-issue-strip__item--stack.is-current .theinmag-issue-strip__fan-img {
+    transform: rotate(0);
+  }
+
+  /* Shelf buddy: kid character at the end of the row, vertically
+     centred in the band (Ryan, 2026-08-12 round 2: bigger, centred).
+     OVERLAP-PROOF BY CONSTRUCTION: it is a normal flex item in the
+     row (never absolutely positioned), so at ANY viewport it occupies
+     its own slot after Mag01 - tablets and phones scroll the row, they
+     cannot push it over the covers. Keep it that way. */
+  .theinmag-issue-strip__buddy {
+    align-self: center;
+    flex: 0 0 auto;
+  }
+  .theinmag-issue-strip__buddy-img {
+    display: block;
+    width: 76px;
+    height: auto;
+    animation: theinmag-strip-buddy-bob 4s ease-in-out infinite;
+  }
+  @keyframes theinmag-strip-buddy-bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-4px) rotate(2deg); }
+  }
+  @media (max-width: 480px) {
+    .theinmag-issue-strip__buddy-img { width: 56px; }
+  }
+
+  @media (max-width: 480px) {
+    .theinmag-issue-strip__fan {
+      width: 78px;
+      height: 78px;
+    }
+    .theinmag-issue-strip__fan-img {
+      width: 48px;
+      height: 64px;
+    }
+    .theinmag-issue-strip__fan-img--2 { left: 10px; }
+    .theinmag-issue-strip__fan-img--3 { left: 21px; }
+    .theinmag-issue-strip__fan-badge {
+      font-size: 9px;
+      padding: 4px 7px;
+    }
+  }
 {% endstylesheet %}
 
 {% javascript %}
@@ -408,6 +676,37 @@
     }
 
     function init() {
+      /* MEMBERSHIP PAGE SYNC (2026-08-12). The membership page has no
+         single-mags-hero, so the strip used to follow the sticky
+         sessionStorage format from a PREVIOUS page while the membership
+         form sat on Print - Ryan caught the mismatch (Print selected,
+         digital covers showing). Here the form is the source of truth:
+         sync the strip AND the sitewide sticky format to whatever pill
+         is pressed, at load and on every toggle. */
+      var memberPills = document.querySelector('[data-theinmag-membership-form] [data-option-name="format"]');
+      if (memberPills) {
+        var syncFromMembership = function () {
+          var pressed = memberPills.querySelector('[data-value][aria-pressed="true"]');
+          var fmt = pressed && pressed.dataset.value === 'Digital' ? 'Digital' : 'Print';
+          syncStrips(fmt);
+          document.documentElement.setAttribute('data-theinmag-format', fmt);
+          try { sessionStorage.setItem('theinmag.activeFormat', fmt); } catch (e) { /* private mode */ }
+        };
+        syncFromMembership();
+        memberPills.addEventListener('click', function (event) {
+          if (!event.target.closest('[data-value]')) return;
+          /* Let the form's own JS flip aria-pressed first. */
+          setTimeout(syncFromMembership, 0);
+        });
+        /* Belt-and-braces: the form JS can flip format without a click
+           (e.g. forcing Digital when Print sells out). */
+        var pillObserver = new MutationObserver(syncFromMembership);
+        var pills = memberPills.querySelectorAll('[data-value]');
+        for (var k = 0; k < pills.length; k++) {
+          pillObserver.observe(pills[k], { attributes: true, attributeFilter: ['aria-pressed'] });
+        }
+      }
+
       var group = document.querySelector('[data-variant-group]');
       if (!group) return;
 
@@ -465,6 +764,23 @@
       "id": "heading",
       "label": "Heading (optional)",
       "default": "So many issues..."
+    },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "options": [
+        { "value": "classic", "label": "Classic (white)" },
+        { "value": "shelf", "label": "Dark shelf" }
+      ],
+      "default": "classic",
+      "info": "Dark shelf: inky band, white-framed covers, Digital Stack fan end-cap. Classic is unchanged."
+    },
+    {
+      "type": "text",
+      "id": "subline",
+      "label": "Subline (dark shelf only)",
+      "info": "Optional line under the heading, e.g. Start with whichever issue you like."
     },
     {
       "type": "collection",

@@ -31,7 +31,7 @@
 
 {%- liquid
   assign max_tiles = section.settings.max_tiles | default: 4
-  assign priority_handles = 'membership,mag10,mag09,mag08,mag07,mag06,snack-pack,digital-stack' | split: ','
+  assign priority_handles = 'membership,digital-stack,mag10,mag09,mag08,mag07,mag06,snack-pack' | split: ','
 
   assign cart_handles = ''
   for item in cart.items

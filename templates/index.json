@@ -77,13 +77,16 @@
         "product-bundle": {
           "type": "product_link",
           "settings": {
-            "label": "Build a bundle",
-            "tagline": "Pick the issues your kid will love most.",
-            "price": "",
-            "link": "/pages/build-a-bundle",
+            "label": "Digital Stack",
+            "tagline": "Every mag we've ever made, in one download.",
+            "compare_price": "$104",
+            "price": "$65",
+            "link": "/products/digital-stack",
+            "image": "shopify://shop_images/digital-stack-tile-tablets-v2.jpg",
+            "hover_image": "shopify://shop_images/snackpack_2_2.jpg",
             "fallback_filename": "product-bundle.jpg",
             "fallback_hover_filename": "product-bundle-hover.jpg",
-            "image_alt": "Stack of hand-picked theINmag issues."
+            "image_alt": "The Digital Stack: every issue of theINmag on a tablet."
           }
         }
       },

@@ -213,6 +213,34 @@
         </span>
       {%- elsif is_current_issue -%}
         <span class="theinmag-bundle-tile__ribbon theinmag-bundle-tile__ribbon--current" aria-label="Current issue">Current issue</span>
+      {%- elsif product.handle == 'digital-stack' -%}
+        {%- liquid
+          # Value ribbon (2026-08-11): the Digital Stack's savings against
+          # buying each digital issue one at a time, computed live so the
+          # price change and each new drop keep it honest.
+          assign ds_anchor = 0
+          assign ds_count = 0
+          for ds_issue in collections['single-issues'].products
+            assign ds_inum = ds_issue.metafields.single_mag.issue_number.value | default: 0
+            assign ds_pre = ds_issue.metafields.theinmag.is_pre_order | default: false
+            if ds_inum > 0 and ds_pre == false
+              for ds_v in ds_issue.variants
+                if ds_v.option1 == 'Digital'
+                  assign ds_anchor = ds_anchor | plus: ds_v.price
+                  assign ds_count = ds_count | plus: 1
+                  break
+                endif
+              endfor
+            endif
+          endfor
+          assign ds_save = ds_anchor | minus: product.price
+        -%}
+        {%- if ds_save > 0 -%}
+          <span class="theinmag-bundle-tile__ribbon theinmag-bundle-tile__ribbon--value" aria-label="All {{ ds_count }} issues, save {{ ds_save | money }}">
+            <span class="theinmag-bundle-tile__ribbon-top">Save {{ ds_save | money_without_trailing_zeros }}</span>
+            <span class="theinmag-bundle-tile__ribbon-sub">All {{ ds_count }} issues</span>
+          </span>
+        {%- endif -%}
       {%- endif -%}
     {%- else -%}
       {%- if cover_image != blank -%}
@@ -319,5 +347,15 @@
       </div>
     {%- endif -%}
 
+  {%- endif -%}
+
+  {%- comment -%}
+    Optional one-line blurb under the buy controls (Ryan, 2026-08-12:
+    the Membership and Digital Stack tiles said nothing about what they
+    ARE). Passed in by the shop grid from its own settings; blank on
+    every other product and in non-shop contexts.
+  {%- endcomment -%}
+  {%- if blurb != blank and tile_context == 'shop' -%}
+    <p class="theinmag-bundle-tile__blurb">{{ blurb }}</p>
   {%- endif -%}
 </article>

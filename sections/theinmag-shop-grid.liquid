@@ -145,13 +145,15 @@
 
   # Build a sortable "WEIGHT:handle" list. Weights are 4-digit zero-padded
   # so a plain string sort is also a numeric sort. Sorted descending the
-  # final grid order is: Membership, Snack Pack, mags newest-first, any
-  # other product, then Digital Stack last.
+  # final grid order is: Membership, Digital Stack, Snack Pack, mags
+  # newest-first, then any other product. (Ryan promoted the stack from
+  # dead last to second on 2026-08-12: the best-margin product sat behind
+  # the grid's Show more fold where nobody met it.)
   #   Membership    9999
-  #   Snack Pack    9998
+  #   Digital Stack 9998
+  #   Snack Pack    9997
   #   MagNN         3000 + NN   (Mag10 = 3010, Mag01 = 3001)
   #   other         2000
-  #   Digital Stack 1000
   #
   # A parallel print_sort_keys list is also built. It uses 5-digit
   # weights (default x10) so promoted handles can slot between mags
@@ -185,10 +187,10 @@
       assign weight = '2000'
       if product.title contains membership_match
         assign weight = '9999'
-      elsif product.title contains snack_pack_match
-        assign weight = '9998'
       elsif product.title contains digital_stack_match
-        assign weight = '1000'
+        assign weight = '9998'
+      elsif product.title contains snack_pack_match
+        assign weight = '9997'
       else
         assign handle_prefix = product.handle | slice: 0, 3
         if handle_prefix == 'mag'
@@ -398,7 +400,18 @@
             data-product-created="{{ product.created_at | date: '%s' }}"
             {%- if visible_index > products_per_page %} hidden data-overflow{%- endif %}
           >
-            {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover, digital_cover_filename: tile_digital_cover, print_only: hide_digital, peek: cover_opens_lightbox, stockist_pricing: stockist_pricing %}
+            {%- liquid
+              # One-line blurb for the two tiles that otherwise say nothing
+              # about what they are (Ryan, 2026-08-12). Editable in the
+              # theme editor; blank hides the line.
+              assign tile_blurb = ''
+              if product.handle == 'membership'
+                assign tile_blurb = section.settings.membership_blurb
+              elsif product.handle == 'digital-stack'
+                assign tile_blurb = section.settings.digital_stack_blurb
+              endif
+            -%}
+            {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover, digital_cover_filename: tile_digital_cover, print_only: hide_digital, peek: cover_opens_lightbox, stockist_pricing: stockist_pricing, blurb: tile_blurb %}
           </li>
         {%- endfor -%}
       </ul>
@@ -1417,6 +1430,30 @@
     white-space: nowrap;
   }
 
+  /* One-line blurb under the tile's buy controls (membership + stack). */
+  .theinmag-bundle-tile__blurb {
+    margin: 8px 12px 12px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(42, 31, 61, 0.7);
+  }
+
+  /* Value ribbon (Digital Stack): yellow sticker stack of savings over
+     issue count - same two-line shape as the pre-sale ribbon. */
+  .theinmag-bundle-tile__ribbon--value {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: right;
+    background-color: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow);
+  }
+
   .theinmag-bundle-tile__title {
     margin: 10px 12px 6px;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
@@ -2287,7 +2324,7 @@
     },
     {
       "type": "paragraph",
-      "content": "Grid order is: Membership, Snack Pack, mags newest-first, any other product, then Digital Stack last. The three values below are matched against each product's title (case-sensitive, partial match) to anchor that order."
+      "content": "Grid order is: Membership, Digital Stack, Snack Pack, mags newest-first, then any other product. The three values below are matched against each product's title (case-sensitive, partial match) to anchor that order."
     },
     {
       "type": "text",
@@ -2306,6 +2343,20 @@
       "id": "digital_stack_match",
       "label": "Digital Stack - title contains",
       "default": "Digital Stack"
+    },
+    {
+      "type": "text",
+      "id": "membership_blurb",
+      "label": "Membership tile blurb",
+      "default": "The perfect gift. A brand new mag lands every Feb, June and October.",
+      "info": "One line under the Join button. Blank hides it."
+    },
+    {
+      "type": "text",
+      "id": "digital_stack_blurb",
+      "label": "Digital Stack tile blurb",
+      "default": "Every mag we have ever made, on your device in minutes.",
+      "info": "One line under the Add button. Blank hides it."
     },
     {
       "type": "range",
