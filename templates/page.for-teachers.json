@@ -131,12 +131,37 @@
         "padding_bottom": 80
       },
       "blocks": {
-        "b1": { "type": "bullet", "settings": { "text": "Project it. Print it. Send it home." } },
-        "b2": { "type": "bullet", "settings": { "text": "Share across staff, year levels, even other schools." } },
-        "b3": { "type": "bullet", "settings": { "text": "Send it home with families." } },
-        "b4": { "type": "bullet", "settings": { "text": "Keep every issue forever." } }
+        "b1": {
+          "type": "bullet",
+          "settings": {
+            "text": "Project it. Print it. Send it home."
+          }
+        },
+        "b2": {
+          "type": "bullet",
+          "settings": {
+            "text": "Share across staff, year levels, even other schools."
+          }
+        },
+        "b3": {
+          "type": "bullet",
+          "settings": {
+            "text": "Send it home with families."
+          }
+        },
+        "b4": {
+          "type": "bullet",
+          "settings": {
+            "text": "Keep every issue forever."
+          }
+        }
       },
-      "block_order": ["b1", "b2", "b3", "b4"]
+      "block_order": [
+        "b1",
+        "b2",
+        "b3",
+        "b4"
+      ]
     },
     "statement": {
       "type": "theinmag-for-parents-statement",
@@ -259,7 +284,18 @@
           }
         }
       },
-      "block_order": ["i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9", "i10"]
+      "block_order": [
+        "i1",
+        "i2",
+        "i3",
+        "i4",
+        "i5",
+        "i6",
+        "i7",
+        "i8",
+        "i9",
+        "i10"
+      ]
     },
     "consent-tile": {
       "type": "theinmag-teacher-consent-tile",
@@ -415,7 +451,7 @@
             "title": "theINmag Membership",
             "tagline": "Your classroom never misses an issue.",
             "price": "From $89 / 4 issues",
-            "trust_dots": "3 issues a year · Free shipping over $40",
+            "trust_dots": "3 issues a year \u00b7 Free shipping over $40",
             "cta_label": "Get the Membership",
             "image_filename": "product-membership.jpg",
             "image_alt": "A kid opening their copy of theINmag at the kitchen bench."
@@ -435,25 +471,26 @@
             "image_alt": "A fanned spread of recent theINmag covers."
           }
         },
-        "bundle": {
+        "stack": {
           "type": "tile",
           "settings": {
             "weight": "standard",
-            "tile_link": "/pages/build-a-bundle",
-            "eyebrow": "BUILD YOUR OWN",
-            "title": "Build a Bundle",
-            "tagline": "Mix copies for the class or staff room. Save 5-15%.",
-            "badge": "Save more with more",
-            "cta_label": "Build yours",
-            "image_filename": "product-bundle.jpg",
-            "image_alt": "A mixed stack of theINmag issues and Membership cards."
+            "tile_link": "/products/digital-stack",
+            "eyebrow": "TOTALLY SHAREABLE",
+            "title": "Digital Stack",
+            "tagline": "All 10 issues as instant PDFs. Whiteboard, student devices, home.",
+            "price": "$65",
+            "badge": "Save $39",
+            "cta_label": "Get the Stack",
+            "image": "shopify://shop_images/digital-stack-tile-tablets-v2.jpg",
+            "image_alt": "Three tablets fanned out showing different theINmag issues."
           }
         }
       },
       "block_order": [
         "membership",
         "single",
-        "bundle"
+        "stack"
       ]
     },
     "faq": {
