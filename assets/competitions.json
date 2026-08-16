@@ -1,17 +1,92 @@
 {
   "competitions": [
     {
-      "id": "young-archie",
-      "name": "Young Archie",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Flagship",
+      "id": "pm-spelling-bee",
+      "name": "Prime Minister's Spelling Bee",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "Spelling",
       "status": "Confirmed 2026",
-      "pitch": "The little sibling of the Archibald, Australia's most prestigious portrait prize. Kids paint, draw or pastel a portrait of someone who matters to them - a parent, a grandparent, a best friend - and finalists hang in the Art Gallery of NSW alongside the grown-ups.",
-      "when": "Late Jan to early March",
-      "closing_date_2026": "2026-03-02",
-      "opening_date_2026": "2026-01-27",
+      "pitch": "A national kids' spelling tradition. Three reading levels (Green Years 3-4, Orange 5-6, Red 7-8). Kids compete from school, with state finalists progressing to a national final. Past winners have met the actual Prime Minister.",
+      "when": "School round 20 July - 21 August; National Final September",
+      "closing_date_2026": "2026-08-21",
+      "opening_date_2026": "2026-07-20",
       "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "spelling"
+      ],
+      "format": [
+        "online",
+        "school-entry"
+      ],
+      "website": "https://www.spelling-bee.com.au/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "live-now",
+      "first_letter": "P",
+      "logo_filename": "comp-logo-pm-spelling-bee.png",
+      "audience": "all"
+    },
+    {
+      "id": "crikey-magazine",
+      "name": "Crikey! Magazine Photography Competition (Australia Zoo)",
+      "category": "Photography & Film",
+      "category_slug": "photofilm",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Run by Australia Zoo and the Irwin family. Big-ticket prizes: 2 nights at the Crocodile Hunter Lodge (over $1,800 value), Australia Zoo family passes, signed gift baskets. Robert Irwin started his photography career here as a junior finalist.",
+      "when": "Entries 15 June to 31 August",
+      "closing_date_2026": "2026-08-31",
+      "opening_date_2026": "2026-06-15",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "photography",
+        "environment"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://australiazoo.com.au/photography-competition/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "live-now",
+      "first_letter": "C",
+      "logo_filename": "comp-logo-crikey-magazine.png",
+      "audience": "all"
+    },
+    {
+      "id": "water-week",
+      "name": "National Water Week Poster Competition",
+      "category": "Social Good",
+      "category_slug": "social-good",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Run by water authorities like Yarra Valley Water and Greater Western Water. The 2026 theme is 'Water Heroes: Make Every Drop Count.' Posters can be drawing, painting, mixed media or digital. Category winners progress to statewide finals during National Water Week (19-25 October).",
+      "when": "Closes 11 September",
+      "closing_date_2026": "2026-09-11",
+      "opening_date_2026": "",
+      "where": "National (state water authorities)",
       "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
@@ -20,43 +95,6 @@
         "ages-10-12",
         "ages-13-16",
         "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "postal",
-        "individual-entry"
-      ],
-      "website": "https://www.artgallery.nsw.gov.au/art/prizes/young-archie/enter/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "Y",
-      "logo_filename": "logos/young-archie.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "wild-at-art",
-      "name": "Wild At Art",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Flagship",
-      "status": "Confirmed 2026",
-      "pitch": "Run by the Australian Conservation Foundation. Kids pick an Aussie threatened species, create art that tells its story, and help raise awareness for some of our most at-risk wildlife. Judges look for emotional connection over technical skill - exactly what kid art does best.",
-      "when": "Entries 22 June to 10 August",
-      "closing_date_2026": "2026-08-10",
-      "opening_date_2026": "2026-06-22",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
       ],
       "states": [
         "national"
@@ -66,108 +104,64 @@
         "environment"
       ],
       "format": [
-        "online",
-        "individual-entry"
+        "school-entry"
       ],
-      "website": "https://www.acf.org.au/get-involved/wild-at-art-competition",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "opens-soon",
-      "first_letter": "W",
-      "logo_filename": "logos/wild-at-art.png",
-      "audience": "all"
-    },
-    {
-      "id": "operation-art",
-      "name": "Operation Art",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Flagship",
-      "status": "Confirmed 2026",
-      "pitch": "A NSW classic with a beautiful purpose. Kids create artwork, and 50 pieces are gifted each year to The Children's Hospital at Westmead - actually hung in the wards to lift sick kids' spirits. Every entry is framed and exhibited in a NSW gallery. More than 10,000 visitors see the exhibitions each year.",
-      "when": "Applications close late June for following year",
-      "closing_date_2026": "2026-06-26",
-      "opening_date_2026": "",
-      "where": "NSW",
-      "cost_raw": "Paid - $100/artwork (paid by school)",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "nsw"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "school-entry",
-        "postal"
-      ],
-      "website": "https://artsunit.nsw.edu.au/program/operation-art",
+      "website": "https://www.nationalwaterweek.com.au",
       "cross_tier": "N/A",
       "cross_signal": "",
       "tile_state": "live-now",
-      "first_letter": "O",
-      "logo_filename": "logos/operation-art.jpg",
+      "first_letter": "N",
+      "logo_filename": "comp-logo-water-week.png",
       "audience": "all"
     },
     {
-      "id": "cossack-children",
-      "name": "Cossack Children's Art Awards",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Flagship",
+      "id": "book-links",
+      "name": "Book Links Short Story Writing Competition",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "A regional WA gem. Each child gets a free 30x30cm canvas to paint, and finalists are exhibited at the Galbraith Store in Cossack alongside the famous Cossack Art Awards. Category winners receive $100, the overall winner takes home $300 plus a 50% framing discount. Plus art packs from paintbox for highly commendeds.",
-      "when": "Entries 24 March - 28 April",
-      "closing_date_2026": "2026-04-28",
-      "opening_date_2026": "2026-03-24",
-      "where": "WA - regional only",
-      "cost_raw": "Free, canvas provided",
+      "pitch": "A nice low-key one for upper primary writers. $100 prize plus the winning story published on the Book Links website. Open theme.",
+      "when": "Closes 18 September",
+      "closing_date_2026": "2026-09-18",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
-        "ages-4-6",
         "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
+        "ages-10-12"
       ],
       "states": [
-        "wa",
-        "regional-only"
+        "national"
       ],
       "fields": [
-        "art"
+        "writing"
       ],
       "format": [
-        "postal",
+        "online",
         "individual-entry"
       ],
-      "website": "https://www.cossackartawards.com.au/childrens",
+      "website": "https://booklinks.org.au/childrens-short-story-competition-guidelines/",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "C",
-      "logo_filename": "logos/cossack-children.jpg",
+      "tile_state": "live-now",
+      "first_letter": "B",
+      "logo_filename": "comp-logo-book-links.png",
       "audience": "all"
     },
     {
-      "id": "shaun-tan-award",
-      "name": "Shaun Tan Award for Young Artists",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Flagship",
+      "id": "acmf-songwriting",
+      "name": "ACMF National Songwriting Competition",
+      "category": "Performance",
+      "category_slug": "performance",
+      "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "Named after picture book legend Shaun Tan (The Arrival, The Lost Thing). Winners' work hangs in a month-long public exhibition at Subiaco Library, professionally framed or mounted. The City of Subiaco picks up the framing tab. No AI-generated work allowed.",
-      "when": "Open 24 April, close 18 May",
-      "closing_date_2026": "2026-05-18",
-      "opening_date_2026": "2026-04-24",
-      "where": "WA",
+      "pitch": "Run by the Australian Children's Music Foundation. Over $20,000 in prizes - all paid towards musical equipment or tuition (so prize money goes straight back into music). A breakthrough comp for any kid who writes songs in their bedroom.",
+      "when": "Closes 21 September",
+      "closing_date_2026": "2026-09-21",
+      "opening_date_2026": "",
+      "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
@@ -178,21 +172,21 @@
         "all-ages"
       ],
       "states": [
-        "wa"
+        "national"
       ],
       "fields": [
-        "art"
+        "music"
       ],
       "format": [
-        "postal",
+        "online",
         "individual-entry"
       ],
-      "website": "https://www.subiaco.wa.gov.au/see-do/things-to-see-do/community-awards/shaun-tan-award-for-young-artists/",
+      "website": "https://acmf.com.au/national-songwriting-competition/",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "S",
-      "logo_filename": "logos/shaun-tan-award.png",
+      "tile_state": "live-now",
+      "first_letter": "A",
+      "logo_filename": "comp-logo-acmf-songwriting.png",
       "audience": "all"
     },
     {
@@ -201,10 +195,10 @@
       "category": "Art",
       "category_slug": "art",
       "sub_category": "Flagship",
-      "status": "Annual unconfirmed",
+      "status": "Confirmed 2026",
       "pitch": "Run by the Commissioner for Aboriginal Children and Young People in SA. A safe, celebrated space for First Nations kids to express themselves through creative artwork on the year's National Aboriginal and Torres Strait Islander Children's Day theme. All artwork displayed at the Commissioner's office during NAIDOC Week.",
-      "when": "Annually, aligned with NAIDOC Week (early July)",
-      "closing_date_2026": "TBC",
+      "when": "Entries close 24 September (awards 19 October)",
+      "closing_date_2026": "2026-09-24",
       "opening_date_2026": "",
       "where": "SA",
       "cost_raw": "Free",
@@ -229,573 +223,9 @@
       "website": "https://cacyp.com.au/nungakidsartcompetition/",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "tbc",
+      "tile_state": "live-now",
       "first_letter": "N",
-      "logo_filename": "logos/nunga-kids.png",
-      "audience": "all"
-    },
-    {
-      "id": "faber-castell-cym",
-      "name": "Faber-Castell Create Your Mark",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Annual unconfirmed",
-      "pitch": "A whole-class crowd-pleaser. Faber-Castell partners with Cool Australia to build a curriculum-aligned brief for Aussie classrooms - kids create using Faber-Castell products around themes like 'Create Your Mark For A Brighter Future.' The school of the most inspiring entries scores $1,500 worth of Faber-Castell products.",
-      "when": "Annually, school-aligned (Term 3)",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "school-entry",
-        "online"
-      ],
-      "website": "https://createyourmark.com.au/",
-      "cross_tier": "Tier 1",
-      "cross_signal": "🟢",
-      "tile_state": "tbc",
-      "first_letter": "F",
-      "logo_filename": "logos/faber-castell-cym.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "spencil-art-prize",
-      "name": "Spencil Art Prize",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Confirmed 2026",
-      "pitch": "Run by Aussie kids' stationery brand Spencil. Major Prize Packs worth $400 each plus 20 runner-up prizes and weekly staff picks. The prize pack includes Get Arty Colouring Sets, Silky Crayons, art smock, sketchbook and more - so the prize itself is fuel for the next masterpiece.",
-      "when": "Closes early March",
-      "closing_date_2026": "2026-03-04",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://spencil.com.au/artprize/",
-      "cross_tier": "Tier 1",
-      "cross_signal": "🟢",
-      "tile_state": "annual-again",
-      "first_letter": "S",
-      "logo_filename": "logos/spencil-art-prize.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "banabae-artists",
-      "name": "Banabae - We Are All Artists",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Confirmed 2026",
-      "pitch": "The dream prize for any kid who loves clothes and creativity. Banabae - the Aussie kids' clothing brand - turns the winner's artwork into a real product in their next collection. Winner takes home a $500 voucher plus their design printed onto actual Banabae wares. Five runners-up each get a $50 voucher plus a copy of theINmag's art zine for kids.",
-      "when": "Entries 17 June to 19 July",
-      "closing_date_2026": "2026-07-19",
-      "opening_date_2026": "2026-06-17",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://banabae.com/blogs/on-the-blog/we-are-artists-2026-kids-art-comp",
-      "cross_tier": "Tier 1",
-      "cross_signal": "🟢",
-      "tile_state": "opens-soon",
-      "first_letter": "B",
-      "logo_filename": "logos/banabae-artists.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "camp-aus-big-art",
-      "name": "Camp Australia Big Art Comp",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Confirmed 2026",
-      "pitch": "Australia's biggest OSHC provider runs a national art comp every single term. Hundreds of kids enter each round. Past prizes have included custom hoodies featuring kids' own artwork, LEGO Creative Happy Boxes, $50 Art Shed vouchers, and a Grand Prize trophy designed by The Brickman himself. Real artist Kerry Evitts judges each round.",
-      "when": "Quarterly - one per school term",
-      "closing_date_2026": "Quarterly",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "individual-entry"
-      ],
-      "website": "https://campaustralia.com.au/big-art-comp/",
-      "cross_tier": "Tier 2",
-      "cross_signal": "🟡",
-      "tile_state": "live-now",
-      "first_letter": "C",
-      "logo_filename": "logos/camp-aus-big-art.png",
-      "audience": "all"
-    },
-    {
-      "id": "eckersleys-colouring",
-      "name": "Eckersley's Kids Colouring Competition",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Confirmed 2026",
-      "pitch": "Eckersley's Art & Craft is Australia's beloved 60-year-old art supplies chain. Kids pick up a free colouring sheet at any Eckersley's store (or download it online), colour it in any way they like - pencils, paints, crayons, anything goes - and submit. Winners scoop $50 Eckersley's gift cards.",
-      "when": "Multiple times per year (Easter, holidays, Christmas)",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.eckersleys.com.au/competitions",
-      "cross_tier": "Tier 1",
-      "cross_signal": "🟢",
-      "tile_state": "tbc",
-      "first_letter": "E",
-      "logo_filename": "logos/eckersleys-colouring.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "eckersleys-prize",
-      "name": "Eckersley's Art & Craft Prize",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Annual unconfirmed",
-      "pitch": "Launched 2025 to celebrate Eckersley's 60th anniversary. National exhibition at Hazelhurst Arts Centre in September. While the headline prize targets adult artists, this one's worth tracking for any youth/junior categories that may be added.",
-      "when": "Annually",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Paid (entry fee)",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.eckersleys.com.au/eckersley-s-art-craft-prize",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "E",
-      "logo_filename": "logos/eckersleys-prize.png",
-      "audience": "all"
-    },
-    {
-      "id": "staedtler-aoty",
-      "name": "Staedtler Secondary School Artist of the Year",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Confirmed 2026",
-      "pitch": "Staedtler runs an annual high-school comp with a $5,000 prize pool. Weekly random draw of $200 Staedtler art packs throughout the entry period. Plus a People's Choice voting round. Three professional Australian artists judge.",
-      "when": "Term 2, voting in June",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "2026-06-22",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://au.competitions.staedtler.com/staedtler-secondary-school-artists-of-the-year-competition/",
-      "cross_tier": "Tier 3",
-      "cross_signal": "🟡",
-      "tile_state": "opens-soon",
-      "first_letter": "S",
-      "logo_filename": "logos/staedtler-aoty.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "staedtler-wkcd",
-      "name": "Staedtler World Kids Colouring Day",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Confirmed 2026",
-      "pitch": "A global initiative by Staedtler that's been running for 18 years. Kids submit a drawing on the year's theme, and for every picture submitted Staedtler donates to a Plan International project supporting girls' education - in 2026 this funds education for girls in Malawi.",
-      "when": "Entries March-May, day is 6 May",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "National (international)",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.staedtler.com/intl/en/company/about-staedtler/corporate-social-responsibility/world-kids-colouring-day/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "S",
-      "logo_filename": "logos/staedtler-wkcd.png",
-      "audience": "all"
-    },
-    {
-      "id": "smiggle-christmas",
-      "name": "Smiggle Christmas Card Competition",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Annual unconfirmed",
-      "pitch": "The cult Aussie kids' stationery brand runs an annual Christmas card design comp. Kids download a template, draw the front cover, colour it in - the winning design gets featured on actual Smiggle Christmas cards. Prizes typically include vouchers and Smiggle gear.",
-      "when": "Annually around October-November",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.smiggle.com.au/shop/en/smiggle/competitions",
-      "cross_tier": "Tier 3",
-      "cross_signal": "🟡",
-      "tile_state": "tbc",
-      "first_letter": "S",
-      "logo_filename": "logos/smiggle-christmas.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "crayola-acts",
-      "name": "Crayola Creative Acts of Color (Open Call)",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Brand-led",
-      "status": "Year-round",
-      "pitch": "Crayola's 'Creative Acts of Color' is an open call rather than a traditional comp - kids share their creative work on social tagged @Crayola and #StayCreative. Less about winning, more about being part of a global creative movement. Crayola also runs an annual Crayola Creativity Week (typically January).",
-      "when": "Year-round Open Call",
-      "closing_date_2026": "Year-round",
-      "opening_date_2026": "",
-      "where": "International",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.crayola.com/news/blog/2025/06/26/crayola-launches-creative-acts-of-color-with-global-open-call",
-      "cross_tier": "Tier 3",
-      "cross_signal": "🔴",
-      "tile_state": "live-now",
-      "first_letter": "C",
-      "logo_filename": "logos/crayola-acts.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "sydney-easter-show",
-      "name": "Sydney Royal Easter Show - Junior Arts & Crafts",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Royal Show",
-      "status": "Confirmed 2026",
-      "pitch": "Australia's biggest creativity showcase has been running since 1869 - approximately 5,500 exhibits across 500 categories. The Junior Art, Craft & Design competition has hundreds of classes for kids aged 2-20. Winning entries displayed in the Arts & Crafts Pavilion, the third-most-visited pavilion at the Easter Show.",
-      "when": "Entries close 29 January",
-      "closing_date_2026": "2026-01-29",
-      "opening_date_2026": "",
-      "where": "National (NSW)",
-      "cost_raw": "Paid (entry fees)",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "postal",
-        "individual-entry"
-      ],
-      "website": "https://www.rasnsw.com.au/competitions/arts-and-crafts/arts-and-crafts-details/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "S",
-      "logo_filename": "logos/sydney-easter-show.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "royal-adelaide-junior",
-      "name": "Royal Adelaide Show - Junior Art, Craft & Design",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Royal Show",
-      "status": "Confirmed 2026",
-      "pitch": "Australia's largest annual junior art, craft and design display. Real prize money, real exhibition slots in the Goyder Pavilion. Categories cover painting, drawing, digital photography, pottery, sewing, and dozens more.",
-      "when": "Entries close 17 July, Show in September",
-      "closing_date_2026": "2026-07-17",
-      "opening_date_2026": "",
-      "where": "SA",
-      "cost_raw": "Paid (entry fees)",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "sa"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "postal",
-        "individual-entry"
-      ],
-      "website": "https://www.theshow.com.au/competitions/junior-art-craft-design",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "R",
-      "logo_filename": "logos/royal-adelaide-junior.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "nsw-childrens-week",
-      "name": "NSW Children's Week Art Competition",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Civic",
-      "status": "Annual unconfirmed",
-      "pitch": "Run by the NSW Advocate for Children and Young People. The 2025 theme was 'Everyone should know about children's rights' based on Article 42 of the UN Convention on the Rights of the Child. Group entries allowed and encouraged. Three age categories with 1st, 2nd and 3rd place per category.",
-      "when": "Mid-October",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "NSW",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "nsw"
-      ],
-      "fields": [
-        "art",
-        "culture"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.acyp.nsw.gov.au/get-involved/childrens-week-art-competition",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "N",
-      "logo_filename": "logos/nsw-childrens-week.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "childrens-rights-qld",
-      "name": "Children's Rights Queensland Art Competition",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Civic",
-      "status": "Annual unconfirmed",
-      "pitch": "Run by Children's Rights Queensland in partnership with the Queensland Family and Child Commission. 2025 theme was 'Every Queensland child is loved, respected and has their rights upheld.' Over 300 entries received in 2025, with first/second/third place winners sharing $2,000+ in prizes across age groups.",
-      "when": "Annually",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "QLD",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "qld"
-      ],
-      "fields": [
-        "art",
-        "culture"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://childrensrights.org.au/competitions",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "C",
-      "logo_filename": "logos/childrens-rights-qld.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "festival-of-owls",
-      "name": "International Festival of Owls Kids' Art Contest",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "International",
-      "status": "Confirmed 2026",
-      "pitch": "Started in 2004 as a small US festival comp, now over 2,000 entries from dozens of countries. Niche but enthusiastic - a perfect home for kids who love owls (and kids who love owls really love owls). No AI, no adult help. Original art, posted to Minnesota.",
-      "when": "Closes 15 January",
-      "closing_date_2026": "2026-01-15",
-      "opening_date_2026": "",
-      "where": "International (postal to USA)",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "postal",
-        "individual-entry"
-      ],
-      "website": "https://www.festivalofowls.com/kids-art-contest.html",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "I",
-      "logo_filename": "logos/festival-of-owls.jpg",
+      "logo_filename": "comp-logo-nunga-kids.png",
       "audience": "all"
     },
     {
@@ -833,26 +263,27 @@
       "website": "https://savethefrogs.com/art/",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "later",
+      "tile_state": "live-now",
       "first_letter": "S",
-      "logo_filename": "logos/save-the-frogs.jpg",
+      "logo_filename": "comp-logo-save-the-frogs.jpg",
       "audience": "all"
     },
     {
-      "id": "what-matters",
-      "name": "Whitlam Institute What Matters? Writing Competition",
-      "category": "Writing",
-      "category_slug": "writing",
+      "id": "nspc",
+      "name": "National Schools Poster Competition (NSPC)",
+      "category": "Social Good",
+      "category_slug": "social-good",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "A really special one. The Whitlam Institute asks kids one question - what matters? - and lets them answer however they want. Last year over 6,500 students entered. Year 5/6 winners get $350, a creative writing workshop, and an Allen & Unwin book pack. The overall winner takes home $1,500. Every entry is read by a real human.",
-      "when": "Closes 15 May",
-      "closing_date_2026": "2026-05-15",
+      "pitch": "Project-based learning meets statistics, sustainability and STEM. Kids design and run their own investigation, then create a digital poster to share what they found. Cash prizes per division ($15-$40 individual). Optional second stream specifically for sustainability investigations.",
+      "when": "Closes 10 November",
+      "closing_date_2026": "2026-11-10",
       "opening_date_2026": "",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
+        "ages-7-9",
         "ages-10-12",
         "ages-13-16"
       ],
@@ -860,73 +291,73 @@
         "national"
       ],
       "fields": [
-        "writing",
-        "poetry"
+        "science",
+        "stem",
+        "environment"
       ],
       "format": [
         "online",
         "individual-entry"
       ],
-      "website": "https://www.whitlam.org/what-matters",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "W",
-      "logo_filename": "logos/what-matters.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "nsw-writeon",
-      "name": "NSW WriteOn Competition",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "The annual creative writing comp run by the NSW Department of Education in partnership with the State Library. The 2026 stimulus: 'It was a small thing, but it made a difference.' Winning entries are published in the 'Best of WriteOn' anthology - a real book, kids' words in print.",
-      "when": "Opens 23 March, closes 19 June",
-      "closing_date_2026": "2026-06-19",
-      "opening_date_2026": "2026-03-23",
-      "where": "NSW",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "nsw"
-      ],
-      "fields": [
-        "writing"
-      ],
-      "format": [
-        "online",
-        "school-entry"
-      ],
-      "website": "https://www.nsw.gov.au/education-and-training/nesa/awards-and-events/writeon-competition",
+      "website": "https://ssapostercomp.info/",
       "cross_tier": "N/A",
       "cross_signal": "",
       "tile_state": "live-now",
       "first_letter": "N",
-      "logo_filename": "logos/nsw-writeon.jpg",
+      "logo_filename": "comp-logo-nspc.png",
       "audience": "all"
     },
     {
-      "id": "dorothea-mackellar",
-      "name": "Dorothea Mackellar Poetry Awards",
-      "category": "Writing",
-      "category_slug": "writing",
+      "id": "asme-young-composers",
+      "name": "ASME Young Composers Awards (state-based)",
+      "category": "Performance",
+      "category_slug": "performance",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "One of Australia's longest-running and most prestigious kids' poetry comps, named after the woman who wrote 'My Country.' 2026's optional theme is The Traveller. Cash prizes plus an annual anthology that publishes winners, runners-up, shortlisted and commended poems. Entries can be solo, group, or whole-class. No AI.",
-      "when": "Closes 30 June",
-      "closing_date_2026": "2026-06-30",
-      "opening_date_2026": "2026-03-01",
-      "where": "National",
+      "pitch": "State-by-state competition for young composers. Multiple categories - solo instrument, ensemble, choir, rock/pop/EDM with or without lyrics. Winning compositions are performed live at the awards ceremony.",
+      "when": "State-based, varies",
+      "closing_date_2026": "Varies",
+      "opening_date_2026": "",
+      "where": "SA, QLD, others",
       "cost_raw": "Paid (small fee)",
       "cost_slug": "paid",
       "ages": [
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "sa",
+        "qld"
+      ],
+      "fields": [
+        "music"
+      ],
+      "format": [
+        "individual-entry"
+      ],
+      "website": "https://asme.edu.au/2026-qld-young-composers-competition/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "live-now",
+      "first_letter": "A",
+      "logo_filename": "comp-logo-asme-young-composers.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "aca-cartoon-prize",
+      "name": "Australian Cartoonists Association Prize (in theINmag)",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "In the mag",
+      "status": "Confirmed, starts next issue",
+      "pitch": "Going since 1924, the ACA picks a winner from the cartoons kids send in to theINmag each issue. No separate entry form. The winner gets a year of Inkspot, their own magazine, plus a chance to meet Australia's best cartoonists.",
+      "when": "Every issue, year-round",
+      "closing_date_2026": "Rolling",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
         "ages-4-6",
         "ages-7-9",
         "ages-10-12",
@@ -937,340 +368,72 @@
         "national"
       ],
       "fields": [
-        "writing",
-        "poetry"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://dorothea.com.au/entry-information/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "D",
-      "logo_filename": "logos/dorothea-mackellar.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "better-read-kids",
-      "name": "Better Read Kids Writing Competition",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by Sydney's beloved Better Read Than Dead bookstore. The 2026 theme is 'metamorphosis.' Every entry gets published in an anthology - so just by entering, kids become published writers. Category winners score a $100 Better Read voucher, runners-up get $50.",
-      "when": "Closes 1 August",
-      "closing_date_2026": "2026-08-01",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "writing",
-        "poetry"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.betterreadkids.com/2026-writing-competition",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "B",
-      "logo_filename": "logos/better-read-kids.png",
-      "audience": "all"
-    },
-    {
-      "id": "whitsunday-voices",
-      "name": "Whitsunday Voices Short Story Competition",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Cash prizes for first, second and third place in each age category. Word limits step up with year level - 300-400 for Grades 3-4, up to 1,200 for Years 11-12. Pure creative freedom on subject matter. Strictly no AI.",
-      "when": "Closes 30 April",
-      "closing_date_2026": "2026-04-30",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "writing"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.whitsundayvoices.com.au/short-story-competition-copy",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "W",
-      "logo_filename": "logos/whitsunday-voices.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "laura-literary",
-      "name": "Laura Literary Awards (Prose & Poetry)",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by the Rocky River Writers Club out of country SA. A lovely small-but-mighty comp with two streams - Prose and Poetry (CJ Dennis Poetry Awards). $25 to Junior winners, $15 to Junior Primary. Note: entries must be POSTED, not emailed.",
-      "when": "Closes 8 May",
-      "closing_date_2026": "2026-05-08",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free for primary",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "writing",
-        "poetry"
-      ],
-      "format": [
-        "postal",
-        "individual-entry"
-      ],
-      "website": "https://rockyriverriters.club",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "L",
-      "logo_filename": "logos/laura-literary.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "cbca-wa-storybook",
-      "name": "CBCA WA's Make Your Own Storybook Awards",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Make a real book - cover to cover, original text, original illustrations, hand-bound. Solo or duo. Run by the Children's Book Council of Australia (WA). The most 'you've actually made a book' feel of any kids' comp out there. Strictly no AI.",
-      "when": "Closes 5 June",
-      "closing_date_2026": "2026-06-05",
-      "opening_date_2026": "",
-      "where": "WA",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "wa"
-      ],
-      "fields": [
-        "writing",
         "art"
       ],
       "format": [
-        "postal",
+        "online",
         "individual-entry"
       ],
-      "website": "https://wa.cbca.org.au/entry-information.html",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "C",
-      "logo_filename": "logos/cbca-wa-storybook.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "randolph-stow",
-      "name": "Randolph Stow Young Writers Award",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Cash prizes for primary writers in regional WA. Winners get a perpetual trophy displayed in their school until end of Term 2 the following year. Two students from Years 6-11 also win passes to The Literature Centre's Young Writers Collective Program.",
-      "when": "Opens 20 April, closes 3 July",
-      "closing_date_2026": "2026-07-03",
-      "opening_date_2026": "2026-04-20",
-      "where": "WA - regional only",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "wa",
-        "regional-only"
-      ],
-      "fields": [
-        "writing",
-        "poetry"
-      ],
-      "format": [
-        "individual-entry"
-      ],
-      "website": "https://library.cgg.wa.gov.au/kids/randolph-stow-young-writers-awards.aspx",
-      "cross_tier": "N/A",
-      "cross_signal": "",
+      "website": "https://theinmag.com.au/pages/send-in",
+      "cross_tier": "Partner",
+      "cross_signal": "🟢",
       "tile_state": "live-now",
-      "first_letter": "R",
-      "logo_filename": "logos/randolph-stow.png",
+      "first_letter": "A",
+      "logo_filename": "comp-logo-aca-cartoon-prize.png",
       "audience": "all"
     },
     {
-      "id": "spywa",
-      "name": "South Perth Young Writers Award (SPYWA)",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
+      "id": "camp-aus-big-art",
+      "name": "Camp Australia Big Art Comp",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
       "status": "Confirmed 2026",
-      "pitch": "Shortlisted entrants score a one-on-one workshop with a published local author for tailored feedback. Finalists get prizes up to $150 and have their work published in a SPYWA Anthology - one copy gifted to each finalist, one to their school library, one held in City of South Perth Libraries.",
-      "when": "Closes 18 May",
-      "closing_date_2026": "2026-05-18",
+      "pitch": "Australia's biggest OSHC provider runs a national art comp every single term. Hundreds of kids enter each round. Past prizes have included custom hoodies featuring kids' own artwork, LEGO Creative Happy Boxes, $50 Art Shed vouchers, and a Grand Prize trophy designed by The Brickman himself. Real artist Kerry Evitts judges each round.",
+      "when": "Quarterly - one per school term",
+      "closing_date_2026": "Quarterly",
       "opening_date_2026": "",
-      "where": "WA - regional only",
+      "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
         "ages-4-6",
         "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "wa",
-        "regional-only"
-      ],
-      "fields": [
-        "writing"
-      ],
-      "format": [
-        "individual-entry"
-      ],
-      "website": "https://southperth.wa.gov.au/community/libraries/about-our-libraries/south-perth-young-writers-award",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "S",
-      "logo_filename": "logos/spywa.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "golden-pen",
-      "name": "The Golden Pen (Scribblers Festival)",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by Scribblers Festival, Perth's kids' lit festival. The 2026 theme is Metamorphosis. Overall winner gets an e-reader and book pack ($249 value). Shortlisted entrants get 6-month book subscriptions. Bonus: classroom entries of 5+ can win a workshop with a Scribblers creative.",
-      "when": "Closes 3 March",
-      "closing_date_2026": "2026-03-03",
-      "opening_date_2026": "",
-      "where": "WA",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "wa"
-      ],
-      "fields": [
-        "writing",
-        "poetry"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.scribblersfestival.com.au/golden-pen",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "T",
-      "logo_filename": "logos/golden-pen.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "cya-hatchlings",
-      "name": "CYA Conference Hatchlings Award",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by the CYA Conference (Children's & Young Adults' writers conference). Solid cash prizes - $100 first, $60 second, $40 third. Categories vary by writing form, with word counts to match.",
-      "when": "Closes mid-April",
-      "closing_date_2026": "2026-04-12",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
+        "ages-10-12"
       ],
       "states": [
         "national"
       ],
       "fields": [
-        "writing"
+        "art"
       ],
       "format": [
-        "online",
         "individual-entry"
       ],
-      "website": "https://www.cyaconference.com/entry/hatchlings",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
+      "website": "https://campaustralia.com.au/big-art-comp/",
+      "cross_tier": "Tier 2",
+      "cross_signal": "🟡",
+      "tile_state": "live-now",
       "first_letter": "C",
-      "logo_filename": "logos/cya-hatchlings.jpg",
+      "logo_filename": "comp-logo-camp-aus-big-art.png",
       "audience": "all"
     },
     {
-      "id": "book-links",
-      "name": "Book Links Short Story Writing Competition",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "A nice low-key one for upper primary writers. $100 prize plus the winning story published on the Book Links website. Open theme.",
-      "when": "Closes 18 September",
-      "closing_date_2026": "2026-09-18",
+      "id": "crayola-acts",
+      "name": "Crayola Creative Acts of Color (Open Call)",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
+      "status": "Year-round",
+      "pitch": "Crayola's 'Creative Acts of Color' is an open call rather than a traditional comp - kids share their creative work on social tagged @Crayola and #StayCreative. Less about winning, more about being part of a global creative movement. Crayola also runs an annual Crayola Creativity Week (typically January).",
+      "when": "Year-round Open Call",
+      "closing_date_2026": "Year-round",
       "opening_date_2026": "",
-      "where": "National",
+      "where": "International",
       "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
+        "ages-4-6",
         "ages-7-9",
         "ages-10-12"
       ],
@@ -1278,54 +441,18 @@
         "national"
       ],
       "fields": [
-        "writing"
+        "art"
       ],
       "format": [
         "online",
         "individual-entry"
       ],
-      "website": "https://booklinks.org.au/childrens-short-story-competition-guidelines/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "later",
-      "first_letter": "B",
-      "logo_filename": "logos/book-links.png",
-      "audience": "all"
-    },
-    {
-      "id": "just-write-sa",
-      "name": "Just Write - For Kids (SA Public Libraries)",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by Marion City Council's library network. First prize up to $200, second up to $100. Word limits 300-750 (9-10s) or 500-1,000 (11-13s). Open theme.",
-      "when": "Closes 18 January",
-      "closing_date_2026": "2026-01-18",
-      "opening_date_2026": "",
-      "where": "SA",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "sa"
-      ],
-      "fields": [
-        "writing"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.marion.sa.gov.au/venues-and-facilities/libraries/whats-on/just-write-for-kids",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "J",
-      "logo_filename": "logos/just-write-sa.png",
+      "website": "https://www.crayola.com/news/blog/2025/06/26/crayola-launches-creative-acts-of-color-with-global-open-call",
+      "cross_tier": "Tier 3",
+      "cross_signal": "🔴",
+      "tile_state": "live-now",
+      "first_letter": "C",
+      "logo_filename": "comp-logo-crayola-acts.jpg",
       "audience": "all"
     },
     {
@@ -1368,198 +495,7 @@
       "cross_signal": "",
       "tile_state": "live-now",
       "first_letter": "S",
-      "logo_filename": "logos/premiers-reading.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "crikey-magazine",
-      "name": "Crikey! Magazine Photography Competition (Australia Zoo)",
-      "category": "Photography & Film",
-      "category_slug": "photofilm",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by Australia Zoo and the Irwin family. Big-ticket prizes: 2 nights at the Crocodile Hunter Lodge (over $1,800 value), Australia Zoo family passes, signed gift baskets. Robert Irwin started his photography career here as a junior finalist.",
-      "when": "Entries 15 June to 31 August",
-      "closing_date_2026": "2026-08-31",
-      "opening_date_2026": "2026-06-15",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "photography",
-        "environment"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://australiazoo.com.au/photography-competition/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "C",
-      "logo_filename": "logos/crikey-magazine.png",
-      "audience": "all"
-    },
-    {
-      "id": "agnpoty-junior",
-      "name": "Australian Geographic Nature Photographer of the Year - Junior Category",
-      "category": "Photography & Film",
-      "category_slug": "photofilm",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "The big one. Run by the South Australian Museum with Australian Geographic. Junior winners take home $500, runners-up $250, plus all finalists get exhibited at the SA Museum and Australian Museum. Up to 4 entries per kid across categories like Animals in Nature, Landscape, Threatened Species, Macro, Astrophotography. This is the comp Robert Irwin won as a kid.",
-      "when": "Entries early Dec - early Feb",
-      "closing_date_2026": "2026-02-05",
-      "opening_date_2026": "2025-12-08",
-      "where": "National (and NZ)",
-      "cost_raw": "Paid - $10 first image, $5 each additional",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "photography",
-        "environment"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.samuseum.sa.gov.au/c/npoty",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "A",
-      "logo_filename": "logos/agnpoty-junior.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "little-sydney-lives",
-      "name": "Little Sydney Lives Photography Competition",
-      "category": "Photography & Film",
-      "category_slug": "photofilm",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by City of Sydney as part of the Australian Life program. Kids capture Sydney through their own lens - phone snaps welcome, no fancy gear needed. From harbour sparkle to suburban stillness. Selected works exhibit outdoors in central Sydney.",
-      "when": "Opens 13 April, closes 17 May",
-      "closing_date_2026": "2026-05-17",
-      "opening_date_2026": "2026-04-13",
-      "where": "NSW (Sydney)",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "nsw",
-        "regional-only"
-      ],
-      "fields": [
-        "photography"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.cityofsydney.nsw.gov.au/opportunities/enter-little-sydney-lives-photography-competition",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "L",
-      "logo_filename": "logos/little-sydney-lives.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "aus-museum-ocean",
-      "name": "Australian Museum Ocean Photography (Young Ocean Photographer)",
-      "category": "Photography & Film",
-      "category_slug": "photofilm",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Linked to the Australian Museum's Ocean Photographer of the Year program. Three winners receive OM System Tough TG-7 underwater cameras - actual gear they can use to take more photos.",
-      "when": "Closes 3 May",
-      "closing_date_2026": "2026-05-03",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "photography",
-        "environment"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.sea.museum/en/whats-on/exhibitions/ocean-photographer-of-the-year",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "A",
-      "logo_filename": "logos/aus-museum-ocean.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "vsff-junior",
-      "name": "Very Short Film Festival - Junior Category (VSFF)",
-      "category": "Photography & Film",
-      "category_slug": "photofilm",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Australia's coolest under-the-radar youth film festival. Selected films premiere at the VSFF Festival Weekend in Hobart, then tour nationally. The festival publishes a free step-by-step filmmaking guide. Phone footage is fine.",
-      "when": "Annually, festival in Hobart",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "film"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://veryshortfilmfestival.com.au/school-film-competition/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "V",
-      "logo_filename": "logos/vsff-junior.jpg",
+      "logo_filename": "comp-logo-premiers-reading.jpg",
       "audience": "all"
     },
     {
@@ -1570,8 +506,8 @@
       "sub_category": "",
       "status": "Confirmed 2026",
       "pitch": "Australia's leading short film festival - and the Academy Award qualifying one. The youth competition (FlickerUp) screens at Bondi alongside the international films. Winning here is a proper foot in the door of the Aussie film industry.",
-      "when": "FlickerUp entries close late November, festival January at Bondi",
-      "closing_date_2026": "2025-11-23",
+      "when": "FlickerUp entries close 23 November, festival January 2027 at Bondi",
+      "closing_date_2026": "2026-11-23",
       "opening_date_2026": "",
       "where": "National",
       "cost_raw": "Paid (check site)",
@@ -1592,46 +528,48 @@
       "website": "https://flickerfest.com.au/entries/",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "annual-again",
+      "tile_state": "later",
       "first_letter": "F",
-      "logo_filename": "logos/flickerfest-flickerup.png",
+      "logo_filename": "comp-logo-flickerfest-flickerup.png",
       "audience": "all"
     },
     {
-      "id": "amc",
-      "name": "Australian Mathematics Competition (AMC)",
-      "category": "STEM",
-      "category_slug": "stem",
-      "sub_category": "",
+      "id": "festival-of-owls",
+      "name": "International Festival of Owls Kids' Art Contest",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "International",
       "status": "Confirmed 2026",
-      "pitch": "Australia's oldest and biggest maths comp - running since 1978. Over 250,000 entries annually. Every student gets an award (Participation, Proficiency, Distinction, High Distinction, Prize). Entered through schools. The pathway to the Australian Maths Olympiad starts here.",
-      "when": "Closes early July",
-      "closing_date_2026": "2026-07-03",
+      "pitch": "Started in 2004 as a small US festival comp, now over 2,000 entries from dozens of countries. Niche but enthusiastic - a perfect home for kids who love owls (and kids who love owls really love owls). No AI, no adult help. Original art, posted to Minnesota.",
+      "when": "Closes 15 January",
+      "closing_date_2026": "2027-01-15",
       "opening_date_2026": "",
-      "where": "National (and international)",
-      "cost_raw": "Paid (school entry)",
-      "cost_slug": "paid",
+      "where": "International (postal to USA)",
+      "cost_raw": "Free",
+      "cost_slug": "free",
       "ages": [
+        "ages-4-6",
         "ages-7-9",
         "ages-10-12",
-        "ages-13-16"
+        "ages-13-16",
+        "all-ages"
       ],
       "states": [
         "national"
       ],
       "fields": [
-        "maths",
-        "stem"
+        "art"
       ],
       "format": [
-        "school-entry"
+        "postal",
+        "individual-entry"
       ],
-      "website": "https://amt.edu.au/amc",
+      "website": "https://www.festivalofowls.com/kids-art-contest.html",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "A",
-      "logo_filename": "logos/amc.svg",
+      "tile_state": "later",
+      "first_letter": "I",
+      "logo_filename": "comp-logo-festival-of-owls.jpg",
       "audience": "all"
     },
     {
@@ -1666,18 +604,128 @@
       "cross_signal": "",
       "tile_state": "tbc",
       "first_letter": "A",
-      "logo_filename": "logos/apsmo-olympiad.png",
+      "logo_filename": "comp-logo-apsmo-olympiad.png",
       "audience": "all"
     },
     {
-      "id": "matific-olympiad",
-      "name": "Matific Maths Olympiad",
-      "category": "STEM",
-      "category_slug": "stem",
+      "id": "childrens-rights-qld",
+      "name": "Children's Rights Queensland Art Competition",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Civic",
+      "status": "Annual unconfirmed",
+      "pitch": "Run by Children's Rights Queensland in partnership with the Queensland Family and Child Commission. 2025 theme was 'Every Queensland child is loved, respected and has their rights upheld.' Over 300 entries received in 2025, with first/second/third place winners sharing $2,000+ in prizes across age groups.",
+      "when": "Annually",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "where": "QLD",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "qld"
+      ],
+      "fields": [
+        "art",
+        "culture"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://childrensrights.org.au/competitions",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "tbc",
+      "first_letter": "C",
+      "logo_filename": "comp-logo-childrens-rights-qld.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "class-clowns",
+      "name": "Class Clowns",
+      "category": "Performance",
+      "category_slug": "performance",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "A 5-day-long online comp focused on participation, not excellence. Schools and kids earn stars by completing maths activities. Top schools win up to $1,500. Every student gets a certificate.",
-      "when": "Registration June - August, competition mid-August",
+      "pitch": "Run by the Melbourne International Comedy Festival. A free workshop with a professional comedian, then perform at a real heat in front of a live audience. Past participants include Joel Creasey and Rhys Nicholson. Cash prize $1,500 for the National Grand Final winner plus $1,000 for their school.",
+      "when": "Heats Term 1, National Grand Final at Melbourne Comedy Festival",
+      "closing_date_2026": "Term 1",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "comedy",
+        "performance"
+      ],
+      "format": [
+        "individual-entry"
+      ],
+      "website": "https://classclowns.com.au/the-comp",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "tbc",
+      "first_letter": "C",
+      "logo_filename": "comp-logo-class-clowns.png",
+      "audience": "all"
+    },
+    {
+      "id": "eckersleys-prize",
+      "name": "Eckersley's Art & Craft Prize",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
+      "status": "Annual unconfirmed",
+      "pitch": "Launched 2025 to celebrate Eckersley's 60th anniversary. National exhibition at Hazelhurst Arts Centre in September. While the headline prize targets adult artists, this one's worth tracking for any youth/junior categories that may be added.",
+      "when": "Annually",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Paid (entry fee)",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.eckersleys.com.au/eckersley-s-art-craft-prize",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "tbc",
+      "first_letter": "E",
+      "logo_filename": "comp-logo-eckersleys-prize.png",
+      "audience": "all"
+    },
+    {
+      "id": "eckersleys-colouring",
+      "name": "Eckersley's Kids Colouring Competition",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
+      "status": "Confirmed 2026",
+      "pitch": "Eckersley's Art & Craft is Australia's beloved 60-year-old art supplies chain. Kids pick up a free colouring sheet at any Eckersley's store (or download it online), colour it in any way they like - pencils, paints, crayons, anything goes - and submit. Winners scoop $50 Eckersley's gift cards.",
+      "when": "Multiple times per year (Easter, holidays, Christmas)",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
       "where": "National",
@@ -1692,130 +740,55 @@
         "national"
       ],
       "fields": [
-        "maths",
-        "stem"
-      ],
-      "format": [
-        "online",
-        "school-entry"
-      ],
-      "website": "https://www.matific.com/au/en-au/home/matific-olympiad/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "M",
-      "logo_filename": "logos/matific-olympiad.png",
-      "audience": "all"
-    },
-    {
-      "id": "big-science",
-      "name": "Big Science Competition (ASI)",
-      "category": "STEM",
-      "category_slug": "stem",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by Australian Science Innovations. 50 minutes, mixed format, problem-solving and critical thinking in real-life contexts. Pathway to the Australian Science Olympiads program.",
-      "when": "Sitting period early-mid May",
-      "closing_date_2026": "2026-05-15",
-      "opening_date_2026": "",
-      "where": "National (and international)",
-      "cost_raw": "Paid (school entry)",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "science",
-        "stem"
-      ],
-      "format": [
-        "online",
-        "school-entry"
-      ],
-      "website": "https://asi.edu.au/program/big-science-competition/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "B",
-      "logo_filename": "logos/big-science.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "think-science",
-      "name": "Think Science! Competition (ANSTO)",
-      "category": "STEM",
-      "category_slug": "stem",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by ANSTO (Australia's Nuclear Science and Technology Organisation). Free entry, generous prizes for winning schools. Designed to teach science inquiry skills in a fun way. Particularly strong at primary level.",
-      "when": "Submissions close 3 July",
-      "closing_date_2026": "2026-07-03",
-      "opening_date_2026": "2026-02-09",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "science",
-        "stem"
-      ],
-      "format": [
-        "school-entry"
-      ],
-      "website": "https://www.ansto.gov.au/education/primary-school/think-science-competition",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "T",
-      "logo_filename": "logos/think-science.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "yicte",
-      "name": "Young ICT Explorers (YICTE)",
-      "category": "STEM",
-      "category_slug": "stem",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Founded by SAP and free to enter. Approximately $30,000 in cash prizes annually. Kids build real-world tech projects - from coding apps to designing tools for people with disabilities to building robots.",
-      "when": "Registration closes 1 July, projects close 31 July",
-      "closing_date_2026": "2026-07-31",
-      "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "coding",
-        "stem"
+        "art"
       ],
       "format": [
         "online",
         "individual-entry"
       ],
-      "website": "https://www.youngictexplorers.net.au/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "Y",
-      "logo_filename": "logos/yicte.png",
+      "website": "https://www.eckersleys.com.au/competitions",
+      "cross_tier": "Tier 1",
+      "cross_signal": "🟢",
+      "tile_state": "tbc",
+      "first_letter": "E",
+      "logo_filename": "comp-logo-eckersleys-colouring.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "faber-castell-cym",
+      "name": "Faber-Castell Create Your Mark",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
+      "status": "Annual unconfirmed",
+      "pitch": "A whole-class crowd-pleaser. Faber-Castell partners with Cool Australia to build a curriculum-aligned brief for Aussie classrooms - kids create using Faber-Castell products around themes like 'Create Your Mark For A Brighter Future.' The school of the most inspiring entries scores $1,500 worth of Faber-Castell products.",
+      "when": "Annually, school-aligned (Term 3)",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "school-entry",
+        "online"
+      ],
+      "website": "https://createyourmark.com.au/",
+      "cross_tier": "Tier 1",
+      "cross_signal": "🟢",
+      "tile_state": "tbc",
+      "first_letter": "F",
+      "logo_filename": "comp-logo-faber-castell-cym.jpg",
       "audience": "all"
     },
     {
@@ -1855,20 +828,244 @@
       "cross_signal": "",
       "tile_state": "tbc",
       "first_letter": "F",
-      "logo_filename": "logos/first-lego.png",
+      "logo_filename": "comp-logo-first-lego.png",
       "audience": "all"
     },
     {
-      "id": "pm-spelling-bee",
-      "name": "Prime Minister's Spelling Bee",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "Spelling",
+      "id": "micador-giveaways",
+      "name": "Micador Brand Giveaways",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
+      "status": "Unconfirmed - promotions page removed",
+      "pitch": "Aussie owned art supplies brand. Micador runs regular brand giveaways - 'Win a Year of Micador,' 'Win a Year of early stART,' etc. Sub-brands include early stART (toddlers), Micador jR. (kids), Micador (tweens) and Micador for Artists.",
+      "when": "No giveaway running that we can confirm",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://micador.com.au",
+      "cross_tier": "Tier 2",
+      "cross_signal": "🟢",
+      "tile_state": "tbc",
+      "first_letter": "M",
+      "logo_filename": "comp-logo-micador-giveaways.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "nsw-childrens-week",
+      "name": "NSW Children's Week Art Competition",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Civic",
+      "status": "Annual unconfirmed",
+      "pitch": "Run by the NSW Advocate for Children and Young People. The 2025 theme was 'Everyone should know about children's rights' based on Article 42 of the UN Convention on the Rights of the Child. Group entries allowed and encouraged. Three age categories with 1st, 2nd and 3rd place per category.",
+      "when": "Mid-October",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "where": "NSW",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "nsw"
+      ],
+      "fields": [
+        "art",
+        "culture"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.acyp.nsw.gov.au/get-involved/childrens-week-art-competition",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "tbc",
+      "first_letter": "N",
+      "logo_filename": "comp-logo-nsw-childrens-week.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "osic",
+      "name": "Oz Schools Instrumental Championships (OSIC)",
+      "category": "Performance",
+      "category_slug": "performance",
+      "sub_category": "",
+      "status": "Unconfirmed - organiser website down",
+      "pitch": "A national series of state championships culminating in a National Final. Kids qualify by audition, nomination, or by placing 1st-3rd in an Australian eisteddfod. Top placers go to State Finals at iconic venues.",
+      "when": "Qualifying period Aug-Aug",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Paid",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "music"
+      ],
+      "format": [
+        "individual-entry"
+      ],
+      "website": "https://www.osic.com.au/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "tbc",
+      "first_letter": "O",
+      "logo_filename": "comp-logo-osic.png",
+      "audience": "all"
+    },
+    {
+      "id": "smiggle-christmas",
+      "name": "Smiggle Christmas Card Competition",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
+      "status": "Annual unconfirmed",
+      "pitch": "The cult Aussie kids' stationery brand runs an annual Christmas card design comp. Kids download a template, draw the front cover, colour it in - the winning design gets featured on actual Smiggle Christmas cards. Prizes typically include vouchers and Smiggle gear.",
+      "when": "Annually around October-November",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.smiggle.com.au/shop/en/smiggle/competitions",
+      "cross_tier": "Tier 3",
+      "cross_signal": "🟡",
+      "tile_state": "tbc",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-smiggle-christmas.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "staedtler-aoty",
+      "name": "Staedtler Secondary School Artist of the Year",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
+      "status": "Unconfirmed - entry page 404s",
+      "pitch": "Staedtler runs an annual high-school comp with a $5,000 prize pool. Weekly random draw of $200 Staedtler art packs throughout the entry period. Plus a People's Choice voting round. Three professional Australian artists judge.",
+      "when": "Term 2, voting in June",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.staedtler.com/au/en/",
+      "cross_tier": "Tier 3",
+      "cross_signal": "🟡",
+      "tile_state": "tbc",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-staedtler-aoty.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "staedtler-wkcd",
+      "name": "Staedtler World Kids Colouring Day",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
       "status": "Confirmed 2026",
-      "pitch": "A national kids' spelling tradition. Three reading levels (Green Years 3-4, Orange 5-6, Red 7-8). Kids compete from school, with state finalists progressing to a national final. Past winners have met the actual Prime Minister.",
-      "when": "School round 20 July - 21 August; National Final September",
-      "closing_date_2026": "2026-08-21",
-      "opening_date_2026": "2026-07-20",
+      "pitch": "A global initiative by Staedtler that's been running for 18 years. Kids submit a drawing on the year's theme, and for every picture submitted Staedtler donates to a Plan International project supporting girls' education - in 2026 this funds education for girls in Malawi.",
+      "when": "Entries March-May, day is 6 May",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "where": "National (international)",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.staedtler.com/intl/en/company/about-staedtler/corporate-social-responsibility/world-kids-colouring-day/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "tbc",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-staedtler-wkcd.png",
+      "audience": "all"
+    },
+    {
+      "id": "vsff-junior",
+      "name": "Very Short Film Festival - Junior Category (VSFF)",
+      "category": "Photography & Film",
+      "category_slug": "photofilm",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Australia's coolest under-the-radar youth film festival. Selected films premiere at the VSFF Festival Weekend in Hobart, then tour nationally. The festival publishes a free step-by-step filmmaking guide. Phone footage is fine.",
+      "when": "Annually, festival in Hobart",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -1881,53 +1078,18 @@
         "national"
       ],
       "fields": [
-        "spelling"
+        "film"
       ],
       "format": [
         "online",
-        "school-entry"
+        "individual-entry"
       ],
-      "website": "https://www.spelling-bee.com.au/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "opens-soon",
-      "first_letter": "P",
-      "logo_filename": "logos/pm-spelling-bee.png",
-      "audience": "all"
-    },
-    {
-      "id": "nsw-spelling-bee",
-      "name": "NSW Premier's Spelling Bee",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "Spelling",
-      "status": "Confirmed 2026",
-      "pitch": "The classic spoken spelling bee. Kids compete at class level, then school level, then regional level via video. Winners progress to State Finals at Penrith Performing & Visual Arts.",
-      "when": "School Term 2-3, Regional Term 3, State Final October",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "NSW",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "nsw"
-      ],
-      "fields": [
-        "spelling"
-      ],
-      "format": [
-        "school-entry"
-      ],
-      "website": "https://artsunit.nsw.edu.au/program/nsw-premiers-spelling-bee",
+      "website": "https://veryshortfilmfestival.com.au/school-film-competition/",
       "cross_tier": "N/A",
       "cross_signal": "",
       "tile_state": "tbc",
-      "first_letter": "N",
-      "logo_filename": "logos/nsw-spelling-bee.jpg",
+      "first_letter": "V",
+      "logo_filename": "comp-logo-vsff-junior.jpg",
       "audience": "all"
     },
     {
@@ -1967,61 +1129,58 @@
       "cross_signal": "",
       "tile_state": "tbc",
       "first_letter": "W",
-      "logo_filename": "logos/wakakirri.png",
+      "logo_filename": "comp-logo-wakakirri.png",
       "audience": "all"
     },
     {
-      "id": "acmf-songwriting",
-      "name": "ACMF National Songwriting Competition",
-      "category": "Performance",
-      "category_slug": "performance",
+      "id": "just-write-sa",
+      "name": "Just Write - For Kids (SA Public Libraries)",
+      "category": "Writing",
+      "category_slug": "writing",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "Run by the Australian Children's Music Foundation. Over $20,000 in prizes - all paid towards musical equipment or tuition (so prize money goes straight back into music). A breakthrough comp for any kid who writes songs in their bedroom.",
-      "when": "Closes 21 September",
-      "closing_date_2026": "2026-09-21",
+      "pitch": "Run by Marion City Council's library network. First prize up to $200, second up to $100. Word limits 300-750 (9-10s) or 500-1,000 (11-13s). Open theme.",
+      "when": "Closes 18 January",
+      "closing_date_2026": "2026-01-18",
       "opening_date_2026": "",
-      "where": "National",
+      "where": "SA",
       "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
-        "ages-4-6",
         "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
+        "ages-10-12"
       ],
       "states": [
-        "national"
+        "sa"
       ],
       "fields": [
-        "music"
+        "writing"
       ],
       "format": [
         "online",
         "individual-entry"
       ],
-      "website": "https://acmf.com.au/national-songwriting-competition/",
+      "website": "https://www.marion.sa.gov.au/venues-and-facilities/libraries/whats-on/just-write-for-kids",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "later",
-      "first_letter": "A",
-      "logo_filename": "logos/acmf-songwriting.png",
+      "tile_state": "annual-again",
+      "first_letter": "J",
+      "logo_filename": "comp-logo-just-write-sa.png",
       "audience": "all"
     },
     {
-      "id": "osic",
-      "name": "Oz Schools Instrumental Championships (OSIC)",
-      "category": "Performance",
-      "category_slug": "performance",
-      "sub_category": "",
+      "id": "sydney-easter-show",
+      "name": "Sydney Royal Easter Show - Junior Arts & Crafts",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Royal Show",
       "status": "Confirmed 2026",
-      "pitch": "A national series of state championships culminating in a National Final. Kids qualify by audition, nomination, or by placing 1st-3rd in an Australian eisteddfod. Top placers go to State Finals at iconic venues.",
-      "when": "Qualifying period Aug-Aug",
-      "closing_date_2026": "Year-round",
+      "pitch": "Australia's biggest creativity showcase has been running since 1869 - approximately 5,500 exhibits across 500 categories. The Junior Art, Craft & Design competition has hundreds of classes for kids aged 2-20. Winning entries displayed in the Arts & Crafts Pavilion, the third-most-visited pavilion at the Easter Show.",
+      "when": "Entries close 29 January",
+      "closing_date_2026": "2026-01-29",
       "opening_date_2026": "",
-      "where": "National",
-      "cost_raw": "Paid",
+      "where": "National (NSW)",
+      "cost_raw": "Paid (entry fees)",
       "cost_slug": "paid",
       "ages": [
         "ages-4-6",
@@ -2034,180 +1193,70 @@
         "national"
       ],
       "fields": [
-        "music"
+        "art"
       ],
       "format": [
+        "postal",
         "individual-entry"
       ],
-      "website": "https://www.osic.com.au/",
+      "website": "https://www.rasnsw.com.au/competitions/arts-and-crafts/arts-and-crafts-details/",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "O",
-      "logo_filename": "logos/osic.png",
+      "tile_state": "annual-again",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-sydney-easter-show.jpg",
       "audience": "all"
     },
     {
-      "id": "asme-young-composers",
-      "name": "ASME Young Composers Awards (state-based)",
-      "category": "Performance",
-      "category_slug": "performance",
-      "sub_category": "",
+      "id": "young-archie",
+      "name": "Young Archie",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Flagship",
       "status": "Confirmed 2026",
-      "pitch": "State-by-state competition for young composers. Multiple categories - solo instrument, ensemble, choir, rock/pop/EDM with or without lyrics. Winning compositions are performed live at the awards ceremony.",
-      "when": "State-based, varies",
-      "closing_date_2026": "Varies",
-      "opening_date_2026": "",
-      "where": "SA, QLD, others",
-      "cost_raw": "Paid (small fee)",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "sa",
-        "qld"
-      ],
-      "fields": [
-        "music"
-      ],
-      "format": [
-        "individual-entry"
-      ],
-      "website": "https://asme.edu.au/2026-qld-young-composers-competition/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "A",
-      "logo_filename": "logos/asme-young-composers.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "class-clowns",
-      "name": "Class Clowns",
-      "category": "Performance",
-      "category_slug": "performance",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by the Melbourne International Comedy Festival. A free workshop with a professional comedian, then perform at a real heat in front of a live audience. Past participants include Joel Creasey and Rhys Nicholson. Cash prize $1,500 for the National Grand Final winner plus $1,000 for their school.",
-      "when": "Heats Term 1, National Grand Final at Melbourne Comedy Festival",
-      "closing_date_2026": "Term 1",
-      "opening_date_2026": "",
+      "pitch": "The little sibling of the Archibald, Australia's most prestigious portrait prize. Kids paint, draw or pastel a portrait of someone who matters to them - a parent, a grandparent, a best friend - and finalists hang in the Art Gallery of NSW alongside the grown-ups.",
+      "when": "Late Jan to early March",
+      "closing_date_2026": "2026-03-02",
+      "opening_date_2026": "2026-01-27",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
-        "ages-13-16"
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
       ],
       "states": [
         "national"
       ],
       "fields": [
-        "comedy",
-        "performance"
+        "art"
       ],
       "format": [
+        "postal",
         "individual-entry"
       ],
-      "website": "https://classclowns.com.au/the-comp",
+      "website": "https://www.artgallery.nsw.gov.au/art/prizes/young-archie/enter/",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "C",
-      "logo_filename": "logos/class-clowns.png",
+      "tile_state": "annual-again",
+      "first_letter": "Y",
+      "logo_filename": "comp-logo-young-archie.jpg",
       "audience": "all"
     },
     {
-      "id": "water-week",
-      "name": "National Water Week Poster Competition",
-      "category": "Social Good",
-      "category_slug": "social-good",
+      "id": "think-science",
+      "name": "Think Science! Competition (ANSTO)",
+      "category": "STEM",
+      "category_slug": "stem",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "Run by water authorities like Yarra Valley Water and Greater Western Water. The 2026 theme is 'Water Heroes: Make Every Drop Count.' Posters can be drawing, painting, mixed media or digital. Category winners progress to statewide finals during National Water Week (19-25 October).",
-      "when": "Closes 11 September",
-      "closing_date_2026": "2026-09-11",
-      "opening_date_2026": "",
-      "where": "National (state water authorities)",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art",
-        "environment"
-      ],
-      "format": [
-        "school-entry"
-      ],
-      "website": "https://www.nationalwaterweek.com.au",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "N",
-      "logo_filename": "logos/water-week.png",
-      "audience": "all"
-    },
-    {
-      "id": "resourcesmart",
-      "name": "ResourceSmart Schools - Sustainability Through Your Own Lens",
-      "category": "Social Good",
-      "category_slug": "social-good",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Photo competition celebrating student creativity through imagery and written reflection. The 2026 theme: 'Building a climate-ready future.' Run by Sustainability Victoria.",
-      "when": "Annual, check site",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "where": "VIC",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "vic"
-      ],
-      "fields": [
-        "photography",
-        "environment"
-      ],
-      "format": [
-        "school-entry",
-        "online"
-      ],
-      "website": "https://www.sustainability.vic.gov.au/about-us/what-we-do/resourcesmart-schools/resourcesmart-schools-awards-and-competitions/sustainability-through-your-own-lens-photography-competition",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "R",
-      "logo_filename": "logos/resourcesmart.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "nspc",
-      "name": "National Schools Poster Competition (NSPC)",
-      "category": "Social Good",
-      "category_slug": "social-good",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Project-based learning meets statistics, sustainability and STEM. Kids design and run their own investigation, then create a digital poster to share what they found. Cash prizes per division ($15-$40 individual). Optional second stream specifically for sustainability investigations.",
-      "when": "Closes 10 November",
-      "closing_date_2026": "2026-11-10",
-      "opening_date_2026": "",
+      "pitch": "Run by ANSTO (Australia's Nuclear Science and Technology Organisation). Free entry, generous prizes for winning schools. Designed to teach science inquiry skills in a fun way. Particularly strong at primary level.",
+      "when": "Submissions close 3 July",
+      "closing_date_2026": "2026-07-03",
+      "opening_date_2026": "2026-02-09",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -2221,32 +1270,637 @@
       ],
       "fields": [
         "science",
-        "stem",
+        "stem"
+      ],
+      "format": [
+        "school-entry"
+      ],
+      "website": "https://www.ansto.gov.au/education/primary-school/think-science-competition",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "T",
+      "logo_filename": "comp-logo-think-science.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "cossack-children",
+      "name": "Cossack Children's Art Awards",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Flagship",
+      "status": "Confirmed 2026",
+      "pitch": "A regional WA gem. Each child gets a free 30x30cm canvas to paint, and finalists are exhibited at the Galbraith Store in Cossack alongside the famous Cossack Art Awards. Category winners receive $100, the overall winner takes home $300 plus a 50% framing discount. Plus art packs from paintbox for highly commendeds.",
+      "when": "Entries 24 March - 28 April",
+      "closing_date_2026": "2026-04-28",
+      "opening_date_2026": "2026-03-24",
+      "where": "WA - regional only",
+      "cost_raw": "Free, canvas provided",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "wa",
+        "regional-only"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "postal",
+        "individual-entry"
+      ],
+      "website": "https://www.cossackartawards.com.au/childrens",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "C",
+      "logo_filename": "comp-logo-cossack-children.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "dorothea-mackellar",
+      "name": "Dorothea Mackellar Poetry Awards",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "One of Australia's longest-running and most prestigious kids' poetry comps, named after the woman who wrote 'My Country.' 2026's optional theme is The Traveller. Cash prizes plus an annual anthology that publishes winners, runners-up, shortlisted and commended poems. Entries can be solo, group, or whole-class. No AI.",
+      "when": "Closes 30 June",
+      "closing_date_2026": "2026-06-30",
+      "opening_date_2026": "2026-03-01",
+      "where": "National",
+      "cost_raw": "Paid (small fee)",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "writing",
+        "poetry"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://dorothea.com.au/entry-information/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "D",
+      "logo_filename": "comp-logo-dorothea-mackellar.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "nsw-spelling-bee",
+      "name": "NSW Premier's Spelling Bee",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "Spelling",
+      "status": "Confirmed 2026",
+      "pitch": "The classic spoken spelling bee. Kids compete at class level, then school level, then regional level via video. Winners progress to State Finals at Penrith Performing & Visual Arts.",
+      "when": "Enrolment 2 March to 5 June, State Final 6 November",
+      "closing_date_2026": "2026-06-05",
+      "opening_date_2026": "2026-03-02",
+      "where": "NSW",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "nsw"
+      ],
+      "fields": [
+        "spelling"
+      ],
+      "format": [
+        "school-entry"
+      ],
+      "website": "https://artsunit.nsw.edu.au/program/nsw-premiers-spelling-bee",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "N",
+      "logo_filename": "comp-logo-nsw-spelling-bee.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "nsw-writeon",
+      "name": "NSW WriteOn Competition",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "The annual creative writing comp run by the NSW Department of Education in partnership with the State Library. The 2026 stimulus: 'It was a small thing, but it made a difference.' Winning entries are published in the 'Best of WriteOn' anthology - a real book, kids' words in print.",
+      "when": "Opens 23 March, closes 19 June",
+      "closing_date_2026": "2026-06-19",
+      "opening_date_2026": "2026-03-23",
+      "where": "NSW",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "nsw"
+      ],
+      "fields": [
+        "writing"
+      ],
+      "format": [
+        "online",
+        "school-entry"
+      ],
+      "website": "https://www.nsw.gov.au/education-and-training/nesa/awards-and-events/writeon-competition",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "N",
+      "logo_filename": "comp-logo-nsw-writeon.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "spencil-art-prize",
+      "name": "Spencil Art Prize",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Brand-led",
+      "status": "Confirmed 2026",
+      "pitch": "Run by Aussie kids' stationery brand Spencil. Major Prize Packs worth $400 each plus 20 runner-up prizes and weekly staff picks. The prize pack includes Get Arty Colouring Sets, Silky Crayons, art smock, sketchbook and more - so the prize itself is fuel for the next masterpiece.",
+      "when": "Closes early March",
+      "closing_date_2026": "2026-03-04",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://spencil.com.au/artprize/",
+      "cross_tier": "Tier 1",
+      "cross_signal": "🟢",
+      "tile_state": "annual-again",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-spencil-art-prize.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "golden-pen",
+      "name": "The Golden Pen (Scribblers Festival)",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Run by Scribblers Festival, Perth's kids' lit festival. The 2026 theme is Metamorphosis. Overall winner gets an e-reader and book pack ($249 value). Shortlisted entrants get 6-month book subscriptions. Bonus: classroom entries of 5+ can win a workshop with a Scribblers creative.",
+      "when": "Closes 3 March",
+      "closing_date_2026": "2026-03-03",
+      "opening_date_2026": "",
+      "where": "WA",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "wa"
+      ],
+      "fields": [
+        "writing",
+        "poetry"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.scribblersfestival.com.au/golden-pen",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "T",
+      "logo_filename": "comp-logo-golden-pen.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "cya-hatchlings",
+      "name": "CYA Conference Hatchlings Award",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Run by the CYA Conference (Children's & Young Adults' writers conference). Solid cash prizes - $100 first, $60 second, $40 third. Categories vary by writing form, with word counts to match.",
+      "when": "Closes mid-April",
+      "closing_date_2026": "2026-04-12",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "writing"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.cyaconference.com/entry/hatchlings",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "C",
+      "logo_filename": "comp-logo-cya-hatchlings.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "little-sydney-lives",
+      "name": "Little Sydney Lives Photography Competition",
+      "category": "Photography & Film",
+      "category_slug": "photofilm",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Run by City of Sydney as part of the Australian Life program. Kids capture Sydney through their own lens - phone snaps welcome, no fancy gear needed. From harbour sparkle to suburban stillness. Selected works exhibit outdoors in central Sydney.",
+      "when": "Opens 13 April, closes 17 May",
+      "closing_date_2026": "2026-05-17",
+      "opening_date_2026": "2026-04-13",
+      "where": "NSW (Sydney)",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "nsw",
+        "regional-only"
+      ],
+      "fields": [
+        "photography"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.cityofsydney.nsw.gov.au/opportunities/enter-little-sydney-lives-photography-competition",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "L",
+      "logo_filename": "comp-logo-little-sydney-lives.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "randolph-stow",
+      "name": "Randolph Stow Young Writers Award",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Cash prizes for primary writers in regional WA. Winners get a perpetual trophy displayed in their school until end of Term 2 the following year. Two students from Years 6-11 also win passes to The Literature Centre's Young Writers Collective Program.",
+      "when": "Opens 20 April, closes 3 July",
+      "closing_date_2026": "2026-07-03",
+      "opening_date_2026": "2026-04-20",
+      "where": "WA - regional only",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "wa",
+        "regional-only"
+      ],
+      "fields": [
+        "writing",
+        "poetry"
+      ],
+      "format": [
+        "individual-entry"
+      ],
+      "website": "https://library.cgg.wa.gov.au/kids/randolph-stow-young-writers-awards.aspx",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "R",
+      "logo_filename": "comp-logo-randolph-stow.png",
+      "audience": "all"
+    },
+    {
+      "id": "shaun-tan-award",
+      "name": "Shaun Tan Award for Young Artists",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Flagship",
+      "status": "Confirmed 2026",
+      "pitch": "Named after picture book legend Shaun Tan (The Arrival, The Lost Thing). Winners' work hangs in a month-long public exhibition at Subiaco Library, professionally framed or mounted. The City of Subiaco picks up the framing tab. No AI-generated work allowed.",
+      "when": "Open 24 April, close 18 May",
+      "closing_date_2026": "2026-05-18",
+      "opening_date_2026": "2026-04-24",
+      "where": "WA",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "wa"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "postal",
+        "individual-entry"
+      ],
+      "website": "https://www.subiaco.wa.gov.au/see-do/things-to-see-do/community-awards/shaun-tan-award-for-young-artists/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-shaun-tan-award.png",
+      "audience": "all"
+    },
+    {
+      "id": "whitsunday-voices",
+      "name": "Whitsunday Voices Short Story Competition",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Cash prizes for first, second and third place in each age category. Word limits step up with year level - 300-400 for Grades 3-4, up to 1,200 for Years 11-12. Pure creative freedom on subject matter. Strictly no AI.",
+      "when": "Closes 30 April",
+      "closing_date_2026": "2026-04-30",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "writing"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.whitsundayvoices.com.au/short-story-competition",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "W",
+      "logo_filename": "comp-logo-whitsunday-voices.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "aus-museum-ocean",
+      "name": "Australian Museum Ocean Photography (Young Ocean Photographer)",
+      "category": "Photography & Film",
+      "category_slug": "photofilm",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Linked to the Australian Museum's Ocean Photographer of the Year program. Three winners receive OM System Tough TG-7 underwater cameras - actual gear they can use to take more photos.",
+      "when": "Closes 3 May",
+      "closing_date_2026": "2026-05-03",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "photography",
         "environment"
       ],
       "format": [
         "online",
         "individual-entry"
       ],
-      "website": "https://ssapostercomp.info/",
+      "website": "https://www.sea.museum/en/whats-on/exhibitions/ocean-photographer-of-the-year",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "later",
-      "first_letter": "N",
-      "logo_filename": "logos/nspc.png",
+      "tile_state": "annual-again",
+      "first_letter": "A",
+      "logo_filename": "comp-logo-aus-museum-ocean.jpg",
       "audience": "all"
     },
     {
-      "id": "micador-giveaways",
-      "name": "Micador Brand Giveaways",
+      "id": "big-science",
+      "name": "Big Science Competition (ASI)",
+      "category": "STEM",
+      "category_slug": "stem",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Run by Australian Science Innovations. 50 minutes, mixed format, problem-solving and critical thinking in real-life contexts. Pathway to the Australian Science Olympiads program.",
+      "when": "Sitting period early-mid May",
+      "closing_date_2026": "2026-05-15",
+      "opening_date_2026": "",
+      "where": "National (and international)",
+      "cost_raw": "Paid (school entry)",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "science",
+        "stem"
+      ],
+      "format": [
+        "online",
+        "school-entry"
+      ],
+      "website": "https://asi.edu.au/program/big-science-competition/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "B",
+      "logo_filename": "comp-logo-big-science.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "laura-literary",
+      "name": "Laura Literary Awards (Prose & Poetry)",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Run by the Rocky River Writers Club out of country SA. A lovely small-but-mighty comp with two streams - Prose and Poetry (CJ Dennis Poetry Awards). $25 to Junior winners, $15 to Junior Primary. Note: entries must be POSTED, not emailed.",
+      "when": "Closes 8 May",
+      "closing_date_2026": "2026-05-08",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free for primary",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "writing",
+        "poetry"
+      ],
+      "format": [
+        "postal",
+        "individual-entry"
+      ],
+      "website": "https://rockyriverriters.club",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "L",
+      "logo_filename": "comp-logo-laura-literary.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "spywa",
+      "name": "South Perth Young Writers Award (SPYWA)",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Shortlisted entrants score a one-on-one workshop with a published local author for tailored feedback. Finalists get prizes up to $150 and have their work published in a SPYWA Anthology - one copy gifted to each finalist, one to their school library, one held in City of South Perth Libraries.",
+      "when": "Closes 18 May",
+      "closing_date_2026": "2026-05-18",
+      "opening_date_2026": "",
+      "where": "WA - regional only",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "wa",
+        "regional-only"
+      ],
+      "fields": [
+        "writing"
+      ],
+      "format": [
+        "individual-entry"
+      ],
+      "website": "https://southperth.wa.gov.au/community/libraries/about-our-libraries/south-perth-young-writers-award",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-spywa.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "what-matters",
+      "name": "Whitlam Institute What Matters? Writing Competition",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "A really special one. The Whitlam Institute asks kids one question - what matters? - and lets them answer however they want. Last year over 6,500 students entered. Year 5/6 winners get $350, a creative writing workshop, and an Allen & Unwin book pack. The overall winner takes home $1,500. Every entry is read by a real human.",
+      "when": "Closes 15 May",
+      "closing_date_2026": "2026-05-15",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "writing",
+        "poetry"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.whitlam.org/what-matters",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "W",
+      "logo_filename": "comp-logo-what-matters.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "banabae-artists",
+      "name": "Banabae - We Are All Artists",
       "category": "Art",
       "category_slug": "art",
       "sub_category": "Brand-led",
-      "status": "Year-round",
-      "pitch": "Aussie owned art supplies brand. Micador runs regular brand giveaways - 'Win a Year of Micador,' 'Win a Year of early stART,' etc. Sub-brands include early stART (toddlers), Micador jR. (kids), Micador (tweens) and Micador for Artists.",
-      "when": "Rolling throughout the year",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
+      "status": "Confirmed 2026",
+      "pitch": "The dream prize for any kid who loves clothes and creativity. Banabae - the Aussie kids' clothing brand - turns the winner's artwork into a real product in their next collection. Winner takes home a $500 voucher plus their design printed onto actual Banabae wares. Five runners-up each get a $50 voucher plus a copy of theINmag's art zine for kids.",
+      "when": "Entries 17 June to 19 July",
+      "closing_date_2026": "2026-07-19",
+      "opening_date_2026": "2026-06-17",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -2265,12 +1919,357 @@
         "online",
         "individual-entry"
       ],
-      "website": "https://micador.com.au/promotions",
-      "cross_tier": "Tier 2",
+      "website": "https://banabae.com/blogs/on-the-blog/we-are-artists-2026-kids-art-comp",
+      "cross_tier": "Tier 1",
       "cross_signal": "🟢",
-      "tile_state": "tbc",
+      "tile_state": "annual-again",
+      "first_letter": "B",
+      "logo_filename": "comp-logo-banabae-artists.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "cbca-wa-storybook",
+      "name": "CBCA WA's Make Your Own Storybook Awards",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Make a real book - cover to cover, original text, original illustrations, hand-bound. Solo or duo. Run by the Children's Book Council of Australia (WA). The most 'you've actually made a book' feel of any kids' comp out there. Strictly no AI.",
+      "when": "Closes 5 June",
+      "closing_date_2026": "2026-06-05",
+      "opening_date_2026": "",
+      "where": "WA",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "wa"
+      ],
+      "fields": [
+        "writing",
+        "art"
+      ],
+      "format": [
+        "postal",
+        "individual-entry"
+      ],
+      "website": "https://wa.cbca.org.au/entry-information.html",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "C",
+      "logo_filename": "comp-logo-cbca-wa-storybook.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "matific-olympiad",
+      "name": "Matific Maths Olympiad",
+      "category": "STEM",
+      "category_slug": "stem",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "A 5-day-long online comp focused on participation, not excellence. Schools and kids earn stars by completing maths activities. Top schools win up to $1,500. Every student gets a certificate.",
+      "when": "Registration 15 June to 9 August, competition 10 to 14 August",
+      "closing_date_2026": "2026-08-09",
+      "opening_date_2026": "2026-06-15",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "maths",
+        "stem"
+      ],
+      "format": [
+        "online",
+        "school-entry"
+      ],
+      "website": "https://www.matific.com/au/en-au/home/matific-olympiad/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
       "first_letter": "M",
-      "logo_filename": "logos/micador-giveaways.jpg",
+      "logo_filename": "comp-logo-matific-olympiad.png",
+      "audience": "all"
+    },
+    {
+      "id": "operation-art",
+      "name": "Operation Art",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Flagship",
+      "status": "Confirmed 2026",
+      "pitch": "A NSW classic with a beautiful purpose. Kids create artwork, and 50 pieces are gifted each year to The Children's Hospital at Westmead - actually hung in the wards to lift sick kids' spirits. Every entry is framed and exhibited in a NSW gallery. More than 10,000 visitors see the exhibitions each year.",
+      "when": "Applications close late June for following year",
+      "closing_date_2026": "2026-06-26",
+      "opening_date_2026": "",
+      "where": "NSW",
+      "cost_raw": "Paid - $100/artwork (paid by school)",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "nsw"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "school-entry",
+        "postal"
+      ],
+      "website": "https://artsunit.nsw.edu.au/program/operation-art",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "O",
+      "logo_filename": "comp-logo-operation-art.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "wild-at-art",
+      "name": "Wild At Art",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Flagship",
+      "status": "Confirmed 2026",
+      "pitch": "Run by the Australian Conservation Foundation. Kids pick an Aussie threatened species, create art that tells its story, and help raise awareness for some of our most at-risk wildlife. Judges look for emotional connection over technical skill - exactly what kid art does best.",
+      "when": "Entries 22 June to 10 August",
+      "closing_date_2026": "2026-08-10",
+      "opening_date_2026": "2026-06-22",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art",
+        "environment"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.acf.org.au/get-involved/wild-at-art-competition",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "W",
+      "logo_filename": "comp-logo-wild-at-art.png",
+      "audience": "all"
+    },
+    {
+      "id": "amc",
+      "name": "Australian Mathematics Competition (AMC)",
+      "category": "STEM",
+      "category_slug": "stem",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Australia's oldest and biggest maths comp - running since 1978. Over 250,000 entries annually. Every student gets an award (Participation, Proficiency, Distinction, High Distinction, Prize). Entered through schools. The pathway to the Australian Maths Olympiad starts here.",
+      "when": "Registration closes 31 July, sat early August",
+      "closing_date_2026": "2026-07-31",
+      "opening_date_2026": "",
+      "where": "National (and international)",
+      "cost_raw": "Paid (school entry)",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "maths",
+        "stem"
+      ],
+      "format": [
+        "school-entry"
+      ],
+      "website": "https://amt.edu.au/amc",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "A",
+      "logo_filename": "comp-logo-amc.svg",
+      "audience": "all"
+    },
+    {
+      "id": "royal-adelaide-junior",
+      "name": "Royal Adelaide Show - Junior Art, Craft & Design",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Royal Show",
+      "status": "Confirmed 2026",
+      "pitch": "Australia's largest annual junior art, craft and design display. Real prize money, real exhibition slots in the Goyder Pavilion. Categories cover painting, drawing, digital photography, pottery, sewing, and dozens more.",
+      "when": "Entries close 17 July, Show in September",
+      "closing_date_2026": "2026-07-17",
+      "opening_date_2026": "",
+      "where": "SA",
+      "cost_raw": "Paid (entry fees)",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "sa"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "postal",
+        "individual-entry"
+      ],
+      "website": "https://www.theshow.com.au/competitions/junior-art-craft-design",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "R",
+      "logo_filename": "comp-logo-royal-adelaide-junior.jpg",
+      "audience": "all"
+    },
+    {
+      "id": "yicte",
+      "name": "Young ICT Explorers (YICTE)",
+      "category": "STEM",
+      "category_slug": "stem",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Founded by SAP and free to enter. Approximately $30,000 in cash prizes annually. Kids build real-world tech projects - from coding apps to designing tools for people with disabilities to building robots.",
+      "when": "Registration closes 1 July, projects close 31 July",
+      "closing_date_2026": "2026-07-31",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "coding",
+        "stem"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.youngictexplorers.net.au/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "Y",
+      "logo_filename": "comp-logo-yicte.png",
+      "audience": "all"
+    },
+    {
+      "id": "better-read-kids",
+      "name": "Better Read Kids Writing Competition",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Run by Sydney's beloved Better Read Than Dead bookstore. The 2026 theme is 'metamorphosis.' Every entry gets published in an anthology - so just by entering, kids become published writers. Category winners score a $100 Better Read voucher, runners-up get $50.",
+      "when": "Closes 1 August",
+      "closing_date_2026": "2026-08-01",
+      "opening_date_2026": "",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "writing",
+        "poetry"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.betterreadkids.com/2026-writing-competition",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "B",
+      "logo_filename": "comp-logo-better-read-kids.png",
+      "audience": "all"
+    },
+    {
+      "id": "agnpoty-junior",
+      "name": "Australian Geographic Nature Photographer of the Year - Junior Category",
+      "category": "Photography & Film",
+      "category_slug": "photofilm",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "The big one. Run by the South Australian Museum with Australian Geographic. Junior winners take home $500, runners-up $250, plus all finalists get exhibited at the SA Museum and Australian Museum. Up to 4 entries per kid across categories like Animals in Nature, Landscape, Threatened Species, Macro, Astrophotography. This is the comp Robert Irwin won as a kid.",
+      "when": "Entries early Dec - early Feb",
+      "closing_date_2026": "2026-02-05",
+      "opening_date_2026": "2025-12-08",
+      "where": "National (and NZ)",
+      "cost_raw": "Paid - $10 first image, $5 each additional",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "photography",
+        "environment"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.samuseum.sa.gov.au/c/npoty",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "A",
+      "logo_filename": "comp-logo-agnpoty-junior.jpg",
       "audience": "all"
     }
   ]

@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "name": "t:sections.header.name",
   "type": "header",
@@ -20,8 +29,8 @@
         "info-competitions": {
           "type": "dropdown_item",
           "settings": {
-            "label": "Competitions for Kids",
-            "link": "/pages/competitions"
+            "label": "Field notes",
+            "link": "/blogs/field-notes"
           }
         },
         "info-parents": {
@@ -61,11 +70,11 @@
         }
       },
       "block_order": [
+        "info-competitions",
         "info-parents",
         "info-teachers",
         "info-homeschoolers",
         "info-stockists",
-        "info-competitions",
         "info-our-story"
       ],
       "settings": {
@@ -76,8 +85,8 @@
         "nav_2_label": "INfo",
         "nav_3_label": "Gallery",
         "nav_3_link": "/pages/gallery",
-        "nav_4_label": "Field notes",
-        "nav_4_link": "/blogs/field-notes",
+        "nav_4_label": "Competitions",
+        "nav_4_link": "/pages/competitions",
         "nav_5_label": "Freebies",
         "nav_5_link": "/pages/freebies",
         "instagram_url": "https://www.instagram.com/the.inmag/",

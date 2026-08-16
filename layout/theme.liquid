@@ -15,10 +15,24 @@
       <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
     {%- endunless -%}
 
-    {%- comment -%} theINmag - Google Fonts for Caveat (emphasis font) {%- endcomment -%}
+    {%- comment -%}
+      theINmag - Google Fonts: Inter (body, every page) + Caveat (--font-emphasis,
+      used by 9 sections). ONE request for both.
+
+      Merged 2026-08-16. Previously Caveat 400 was linked here and Inter came from
+      an @import inside theinmag-base.css. That put the font used on EVERY page on
+      a three-hop serialised chain (HTML -> base.css -> Google CSS -> woff2) while
+      the rarely-seen one got the preload scanner's fast lane. Now both are
+      discoverable in the initial HTML. Purely a loading change, nothing visual.
+
+      The Caveat woff2 is still only downloaded when a glyph actually renders in
+      it, so pages that do not use --font-emphasis pay for the CSS response only.
+      Do NOT try to load this per-template: it would fail silently to `cursive`
+      the first time a new section uses the token on an unlisted template.
+    {%- endcomment -%}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:wght@400;500;600;700&display=swap">
 
     <title>
       {{ page_title }}

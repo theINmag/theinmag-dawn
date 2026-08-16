@@ -11,8 +11,12 @@
        doesn't move while the user browses. Mobile collapses to natural
        page scroll, featured tile sits between buttons and list.
     3. Filter bar (sticky to top of stage on desktop; collapses to a
-       drawer on mobile).
-    4. "Missed a comp?" lightbox card with adult-only suggest form.
+       drawer on mobile). Search + category + age + state. Cost and
+       format were removed 2026-08-16; format's real content moved onto
+       the tile as the entry note.
+    4. "Missed a comp?" - in the filter bar on desktop, a stamp card
+       below the stage on phone. Opens the adult-only suggest lightbox,
+       which posts through Shopify's native contact form.
     5. Footer transition line.
 
   Data architecture: Option C (JSON in /assets/) - data lives in
@@ -133,19 +137,27 @@
       <p class="visually-hidden">A free directory of {{ comp_size }} real Australian competitions for kids in 2026 - art competitions, writing competitions, photography and film competitions, STEM and maths competitions, performance and music competitions, and social good competitions. Filter by age (4-6, 7-9, 10-12, 13-16), state (NSW, VIC, QLD, WA, SA, TAS, NT, ACT, national), entry cost (free, paid, paid-optional) and format (online, postal, school-entry, individual, team). Updated monthly by theINmag, Australia's magazine made by kids for kids.</p>
       <p class="theinmag-comps__tagline">{{ tagline_text }}</p>
 
+      {%- comment -%}
+        DOM ORDER IS THE MOBILE ORDER: everything, writing, art.
+        Ryan's call 2026-08-12 - on phone the "everything" tile leads,
+        on desktop it stays in the middle. Mobile is the fragile,
+        majority-real-traffic view, so mobile gets the natural DOM order
+        (tab order and screen-reader order match what is on screen) and
+        desktop takes the CSS `order` override below instead.
+      {%- endcomment -%}
       <div class="theinmag-comps__choice-grid" role="group" aria-label="Pick a competition category">
-        <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--writing" data-choice="writing">
-          <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
-          <span class="theinmag-comps__choice-btn-stack">
-            <span class="theinmag-comps__choice-btn-label">writing</span>
-            <span class="theinmag-comps__choice-btn-sub">writing · poetry · reading · spelling</span>
-          </span>
-        </button>
         <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--all" data-choice="all">
           <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
           <span class="theinmag-comps__choice-btn-stack">
             <span class="theinmag-comps__choice-btn-label">everything</span>
             <span class="theinmag-comps__choice-btn-sub">show me all of them</span>
+          </span>
+        </button>
+        <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--writing" data-choice="writing">
+          <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
+          <span class="theinmag-comps__choice-btn-stack">
+            <span class="theinmag-comps__choice-btn-label">writing</span>
+            <span class="theinmag-comps__choice-btn-sub">writing · poetry · reading · spelling</span>
           </span>
         </button>
         <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--art" data-choice="art">
@@ -185,6 +197,28 @@
         filters
       </button>
 
+      {%- comment -%}
+        Missed-a-comp. ONE copy now, at every width. It sits here in the DOM,
+        immediately after the filters toggle, because on a phone the toggle and
+        this button are a pair on the same row and nothing may come between
+        them: when the drawer opens, [data-filter-group] takes a full-width
+        line, so anything after it gets pushed down a row. Desktop wants it last
+        instead, which is a `order: 3` in the CSS, not a second copy in the
+        markup. The old separate phone card below the stage is gone: two entry
+        points to one modal on a short screen is clutter, and two copies of a
+        control is exactly what produced the dead-button bug.
+        Sits OUTSIDE [data-filter-group] on purpose: the group is the mobile
+        filter drawer, and this is not a filter.
+        Two labels, one per breakpoint. Beside `filters` the button has no
+        heading above it, so it has to say what it does on its own.
+      {%- endcomment -%}
+      <div class="theinmag-comps__missed">
+        <p class="theinmag-comps__missed-copy">missed a comp?</p>
+        <button type="button" class="theinmag-comps__missed-btn" data-open-suggest>
+          <span class="theinmag-comps__missed-btn-long">suggest a comp</span><span class="theinmag-comps__missed-btn-short">suggest one</span>
+        </button>
+      </div>
+
       <div class="theinmag-comps__filter-group" data-filter-group>
         <select class="theinmag-comps__select" data-filter="category" aria-label="Category">
           <option value="all">all categories</option>
@@ -217,24 +251,19 @@
           <option value="act">act</option>
         </select>
 
-        <select class="theinmag-comps__select" data-filter="cost" aria-label="Cost">
-          <option value="all">any cost</option>
-          <option value="free">free</option>
-          <option value="paid">paid</option>
-          <option value="paid-optional">paid-optional</option>
-        </select>
-
-        <select class="theinmag-comps__select" data-filter="format" aria-label="Format">
-          <option value="all">any format</option>
-          <option value="online">online</option>
-          <option value="postal">postal</option>
-          <option value="school-entry">school-entry</option>
-          <option value="individual-entry">individual</option>
-          <option value="team">team</option>
-        </select>
+        {%- comment -%}
+          Cost and format dropdowns were removed 2026-08-16 (Ryan's call, data
+          checked by Compton). Cost narrowed almost nothing (46 of 60 comps are
+          free) and is printed on every tile anyway. Format was the only surface
+          for school-entry and postal, so that detail moved ONTO the tile as the
+          entry note rather than being dropped - see comp_entry_notes below.
+          The tags themselves are untouched in the data, so either filter can be
+          restored by re-adding its select.
+        {%- endcomment -%}
 
         <button type="button" class="theinmag-comps__clear" data-clear-filters>clear</button>
       </div>
+
     </div>
 
     <div class="theinmag-comps__grid">
@@ -244,6 +273,18 @@
         {%- comment -%} H2 is visually-hidden but kept for AEO ("H2 as question" rule per CLAUDE.md). {%- endcomment -%}
         <h2 class="visually-hidden" id="theinmag-comps-question">{{ list_question }}</h2>
         <div class="theinmag-comps__list" data-comps-list tabindex="0" aria-labelledby="theinmag-comps-question">
+
+          {%- comment -%}
+            State group headings. Hidden until a real state is picked in the
+            filter bar, at which point the JS sets the flex `order` on every
+            tile so the state's own comps sit under "in <state>" and the
+            national ones sit below under "open to kids everywhere". DOM
+            position here is irrelevant (order does the placing); they live at
+            the top of the list so the no-JS reading order still makes sense.
+            Each one stays hidden when its group has nothing in it.
+          {%- endcomment -%}
+          <h3 class="theinmag-comps__group-heading" data-group-heading="local" hidden></h3>
+          <h3 class="theinmag-comps__group-heading" data-group-heading="everywhere" hidden>open to kids everywhere</h3>
 
           {%- comment -%} ---------- Live / opening / TBC tiles, top stack ---------- {%- endcomment -%}
           {%- for id in comp_ids -%}
@@ -263,8 +304,17 @@
             {%- assign comp_url = comp_websites[idx] -%}
             {%- if comp_url == blank -%}{%- assign comp_url = '#' -%}{%- endif -%}
 
+            {%- comment -%}
+              id="comp-<id>" makes every tile deep-linkable:
+              /pages/competitions#comp-nunga-kids opens the page scrolled to
+              that comp (newsletter, ads, Instagram). Deliberately invisible -
+              no chrome on the tile. The JS at the foot of the section does the
+              landing, because the stage starts hidden behind the choice gate
+              and the list scrolls internally.
+            {%- endcomment -%}
             <a
               class="theinmag-comps__tile theinmag-comps__tile--{{ cat_slug }}"
+              id="comp-{{ id }}"
               href="{{ comp_url }}"
               target="_blank"
               rel="noopener noreferrer"
@@ -285,9 +335,23 @@
                 <span class="theinmag-comps__tile-chip">{{ comp_categories[idx] | downcase }}</span>
                 <span class="theinmag-comps__tile-title">{{ comp_name }}</span>
                 <span class="theinmag-comps__tile-pitch">{{ comp_pitch }}</span>
+                {%- comment -%}
+                  Entry note sits between cost and where:
+                  CLOSES 2026-09-11 · FREE · SCHOOL ENTRY ONLY · NATIONAL
+                  Only the awkward cases carry one (school entry only, postal
+                  entry); an ordinary online entry needs no warning, so 38 of
+                  the 60 render nothing here. This is the surface that replaced
+                  the removed format filter. Note the generated array drops its
+                  trailing blanks on split, so a high index reads nil, which is
+                  blank, which is exactly what we want.
+                {%- endcomment -%}
+                {%- assign comp_note = comp_entry_notes[idx] -%}
                 <span class="theinmag-comps__tile-meta">
                   <span class="theinmag-comps__tile-meta-item">{{ comp_meta_lines[idx] }}</span>
                   <span class="theinmag-comps__tile-meta-item">{{ comp_cost }}</span>
+                  {%- if comp_note != blank -%}
+                    <span class="theinmag-comps__tile-meta-item theinmag-comps__tile-meta-item--note">{{ comp_note }}</span>
+                  {%- endif -%}
                   <span class="theinmag-comps__tile-meta-item">{{ comp_where }}</span>
                 </span>
                 <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ tile_state }}">
@@ -301,7 +365,7 @@
           {%- comment -%} ---------- Annual comps whose 2026 window has passed, bottom stack ---------- {%- endcomment -%}
           {%- assign states_joined = comp_tile_states | join: ',' -%}
           {%- if states_joined contains 'annual-again' -%}
-            <h3 class="theinmag-comps__closed-heading">already run this year (back next time)</h3>
+            <h3 class="theinmag-comps__closed-heading" data-closed-heading>already run this year (back next time)</h3>
           {%- endif -%}
           {%- for id in comp_ids -%}
             {%- assign idx = forloop.index0 -%}
@@ -314,6 +378,7 @@
 
             <a
               class="theinmag-comps__tile theinmag-comps__tile--{{ cat_slug }} theinmag-comps__tile--closed"
+              id="comp-{{ id }}"
               href="{{ comp_url }}"
               target="_blank"
               rel="noopener noreferrer"
@@ -334,8 +399,12 @@
                 <span class="theinmag-comps__tile-chip">{{ comp_categories[idx] | downcase }}</span>
                 <span class="theinmag-comps__tile-title">{{ comp_names[idx] }}</span>
                 <span class="theinmag-comps__tile-pitch">{{ comp_pitches[idx] }}</span>
+                {%- assign closed_note = comp_entry_notes[idx] -%}
                 <span class="theinmag-comps__tile-meta">
                   <span class="theinmag-comps__tile-meta-item">{{ comp_meta_lines[idx] }}</span>
+                  {%- if closed_note != blank -%}
+                    <span class="theinmag-comps__tile-meta-item theinmag-comps__tile-meta-item--note">{{ closed_note }}</span>
+                  {%- endif -%}
                   <span class="theinmag-comps__tile-meta-item">{{ comp_wheres[idx] }}</span>
                 </span>
                 <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ tile_state }}"><span class="theinmag-comps__dot"></span> {{ comp_state_labels[idx] }}</span>
@@ -387,13 +456,24 @@
                     <span class="theinmag-comps__featured-chip">{{ comp_categories[spot_idx] | downcase }}</span>
                     <span class="theinmag-comps__featured-title">{{ comp_names[spot_idx] }}</span>
                     <span class="theinmag-comps__featured-pitch">{{ comp_pitches[spot_idx] }}</span>
+                    {%- assign spot_note = comp_entry_notes[spot_idx] -%}
                     <span class="theinmag-comps__tile-meta theinmag-comps__featured-meta">
                       <span class="theinmag-comps__tile-meta-item">{{ comp_meta_lines[spot_idx] }}</span>
                       <span class="theinmag-comps__tile-meta-item">{{ comp_costs[spot_idx] }}</span>
+                      {%- if spot_note != blank -%}
+                        <span class="theinmag-comps__tile-meta-item theinmag-comps__tile-meta-item--note">{{ spot_note }}</span>
+                      {%- endif -%}
                       <span class="theinmag-comps__tile-meta-item">{{ comp_wheres[spot_idx] }}</span>
                     </span>
-                    <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ s_state }}"><span class="theinmag-comps__dot"></span> {{ comp_state_labels[spot_idx] }}</span>
-                    <span class="theinmag-comps__featured-cta">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
+                    {%- comment -%}
+                      Foot row - state on the left, CTA hard right, pinned to
+                      the bottom of the card. Mirrors the list tile, where the
+                      "enter" button is right-aligned away from the copy.
+                    {%- endcomment -%}
+                    <span class="theinmag-comps__featured-foot">
+                      <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ s_state }}"><span class="theinmag-comps__dot"></span> {{ comp_state_labels[spot_idx] }}</span>
+                      <span class="theinmag-comps__featured-cta">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
+                    </span>
                   </span>
                 </a>
               {%- endif -%}
@@ -413,30 +493,18 @@
           </div>
         </aside>
 
-        {%- comment -%} Desktop missed-a-comp - sits inside right-col under top pick. Hidden on mobile via CSS. {%- endcomment -%}
-        <div class="theinmag-comps__missed theinmag-comps__missed--desktop">
-          <p class="theinmag-comps__missed-copy">missed a comp?</p>
-          <button type="button" class="theinmag-comps__missed-btn" data-open-suggest>
-            suggest one
-          </button>
-        </div>
       </div>
 
     </div>
   </div>
 
-  {%- comment -%} ============================================================
-       Mobile missed-a-comp - lives OUTSIDE the static stage so it
-       sits below the list scroll on phone. Hidden on desktop via CSS.
-       Both copies share the [data-open-suggest] handler so the modal
-       opens from either.
-  ============================================================ {%- endcomment -%}
-  <div class="theinmag-comps__missed theinmag-comps__missed--mobile">
-    <p class="theinmag-comps__missed-copy">missed a comp?</p>
-    <button type="button" class="theinmag-comps__missed-btn" data-open-suggest>
-      suggest one
-    </button>
-  </div>
+  {%- comment -%}
+       The separate phone missed-a-comp card used to sit here, below the stage.
+       Removed 2026-08-16 (Ryan: put the suggest button next to `filters`). Its
+       job moved into the filter bar, so there is now exactly ONE suggest entry
+       point at every width. Do not reintroduce a second copy: two copies of
+       this control is what produced the dead-mobile-button bug.
+  {%- endcomment -%}
 
   {%- comment -%} ============================================================
        Footer transition line - tiny meta below the stage
@@ -449,6 +517,31 @@
        Suggest-a-comp modal (lightbox)
        Adult-only form per CLAUDE.md. Kid character random-of-three
        sits in the modal head and only renders once the modal opens.
+
+       REBUILT 2026-08-16 on Shopify's native {% form 'contact' %}.
+       Before this it was a bare <form> with an optional
+       section.settings.suggest_form_action, and that setting was never
+       filled in, so the JS caught the submit, told the person "your
+       suggestion is in the queue" and threw the whole thing away -
+       including an adult's name and email. Nothing was ever stored or
+       sent, and Compton never received a single suggestion. The fake
+       success path is deleted; there is no longer any code path that can
+       claim success without a real POST.
+
+       Where it lands: shop.email / shop.contactEmail, which is
+       heyhey@theinmag.com.au (verified by Compton via the Admin API).
+       No third party, no endpoint setting, no API key.
+
+       Field naming: contact[email] and contact[body] are the two names
+       Shopify treats specially. Every other contact[...] key is shown in
+       the notification email under exactly that label, so the labels are
+       written to be read by a human in an inbox, not decoded.
+
+       Success state: the native form does a real POST and comes back on
+       ?contact_posted=true, so the confirmation is driven off
+       form.posted_successfully? and the JS reopens the modal on arrival
+       - otherwise the person lands on a closed modal with no idea
+       whether it worked.
   ============================================================ {%- endcomment -%}
   <div class="theinmag-comps__modal" data-suggest-modal hidden>
     <div class="theinmag-comps__modal-backdrop" data-modal-close></div>
@@ -457,57 +550,114 @@
         <span aria-hidden="true">&times;</span>
       </button>
 
-      {%- comment -%} Modal character: JS picks one random from the unified 13-pool on the section root when modal opens. {%- endcomment -%}
-      <div class="theinmag-comps__modal-character" data-comps-character aria-hidden="true"></div>
+      {%- comment -%}
+        Modal character: JS picks one random from the sitewide pool on the
+        section root when the modal opens.
+        It is a <span>, not a <div>, and that is load-bearing. Dawn's
+        base.css has a `div:empty { display: none }` rule, and this element
+        is empty by design (the character is a background-image the JS
+        sets), so as a div it was display:none on every viewport and the kid
+        character in this modal has never once rendered on the live site.
+        `span:empty` is not in Dawn's list. Found 2026-08-16.
+      {%- endcomment -%}
+      <span class="theinmag-comps__modal-character" data-comps-character aria-hidden="true"></span>
 
       <h3 id="comps-suggest-title" class="theinmag-comps__modal-heading">suggest a comp</h3>
-      <p class="theinmag-comps__modal-copy">{{ section.settings.modal_copy | default: 'Adults only. Send the details and we will verify and add it next sweep.' }}</p>
 
-      <form class="theinmag-comps__modal-form" data-suggest-form {% if section.settings.suggest_form_action != blank %}action="{{ section.settings.suggest_form_action }}" method="post"{% endif %}>
-        <label class="theinmag-comps__modal-field">
-          <span>competition name</span>
-          <input type="text" name="comp_name" required>
-        </label>
-        <label class="theinmag-comps__modal-field">
-          <span>competition website</span>
-          <input type="url" name="comp_url" required placeholder="https://">
-        </label>
-        <div class="theinmag-comps__modal-row">
+      {%- form 'contact', class: 'theinmag-comps__modal-form' -%}
+        {%- if form.posted_successfully? -%}
+          {%- comment -%} Marker the JS reads on load to reopen the modal after the redirect. {%- endcomment -%}
+          <span data-suggest-posted hidden></span>
+          <p class="theinmag-comps__modal-success" role="status">
+            thanks! we'll take a look and add it if it checks out.
+          </p>
+          <button type="button" class="theinmag-comps__modal-submit" data-modal-close>close</button>
+        {%- else -%}
+          <p class="theinmag-comps__modal-copy">{{ section.settings.modal_copy | default: 'Adults only. Send the details and we will check it before it goes on the board.' }}</p>
+
+          {%- if form.errors -%}
+            <span data-suggest-error hidden></span>
+            <div class="theinmag-comps__modal-error" role="alert">
+              that didn't send. {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+
           <label class="theinmag-comps__modal-field">
-            <span>age range</span>
-            <input type="text" name="comp_age" placeholder="e.g. 7-12">
+            <span>competition name</span>
+            <input type="text" name="contact[Competition name]" required>
           </label>
           <label class="theinmag-comps__modal-field">
-            <span>state</span>
-            <select name="comp_state">
-              <option value="">pick one</option>
-              <option value="national">national</option>
-              <option value="nsw">nsw</option>
-              <option value="vic">vic</option>
-              <option value="qld">qld</option>
-              <option value="wa">wa</option>
-              <option value="sa">sa</option>
-              <option value="tas">tas</option>
-              <option value="nt">nt</option>
-              <option value="act">act</option>
-            </select>
+            <span>competition website</span>
+            <input type="url" name="contact[Competition website]" required placeholder="https://">
           </label>
-        </div>
-        <label class="theinmag-comps__modal-field">
-          <span>your name (adult)</span>
-          <input type="text" name="adult_name" required>
-        </label>
-        <label class="theinmag-comps__modal-field">
-          <span>your email (adult)</span>
-          <input type="email" name="adult_email" required>
-        </label>
-        <label class="theinmag-comps__modal-field">
-          <span>short pitch (optional)</span>
-          <textarea name="comp_pitch" rows="3" maxlength="500"></textarea>
-        </label>
-        <button type="submit" class="theinmag-comps__modal-submit">send</button>
-        <p class="theinmag-comps__modal-success" data-modal-success hidden>thanks! we'll review and add it.</p>
-      </form>
+          <div class="theinmag-comps__modal-row">
+            <label class="theinmag-comps__modal-field">
+              <span>age range</span>
+              <input type="text" name="contact[Age range]" placeholder="e.g. 7-12">
+            </label>
+            <label class="theinmag-comps__modal-field">
+              <span>state</span>
+              <select name="contact[State]">
+                <option value="">pick one</option>
+                <option value="national">national</option>
+                <option value="nsw">nsw</option>
+                <option value="vic">vic</option>
+                <option value="qld">qld</option>
+                <option value="wa">wa</option>
+                <option value="sa">sa</option>
+                <option value="tas">tas</option>
+                <option value="nt">nt</option>
+                <option value="act">act</option>
+              </select>
+            </label>
+          </div>
+          <label class="theinmag-comps__modal-field">
+            <span>your name (adult)</span>
+            <input type="text" name="contact[name]" required>
+          </label>
+          <label class="theinmag-comps__modal-field">
+            <span>your email (adult)</span>
+            <input type="email" name="contact[email]" required>
+          </label>
+
+          {%- comment -%}
+            The three optional extras. The organiser email is the one that
+            earns its place: whoever suggests a comp often knows the people
+            running it, and that contact is otherwise hand-scraped.
+          {%- endcomment -%}
+          <label class="theinmag-comps__modal-field">
+            <span>the comp's own contact email (optional)</span>
+            <input type="email" name="contact[Organiser email]" placeholder="if you know it">
+          </label>
+          <label class="theinmag-comps__modal-field">
+            <span>their instagram or facebook (optional)</span>
+            <input type="url" name="contact[Socials link]" placeholder="https://">
+          </label>
+          <label class="theinmag-comps__modal-field">
+            <span>a couple of sentences about it (optional)</span>
+            <textarea name="contact[body]" rows="3" maxlength="500"></textarea>
+          </label>
+
+          {%- comment -%}
+            Honeypot. A public form wired to a real inbox gets bot traffic.
+            Hidden from sight and from screen readers, skipped by tab order,
+            autocomplete off. The JS blocks the submit when it is filled;
+            anything that posts without running JS still arrives labelled
+            "Company", so a human can spot it in one glance.
+          {%- endcomment -%}
+          <div class="theinmag-comps__modal-honeypot" aria-hidden="true">
+            <label>
+              company
+              <input type="text" name="contact[Company]" tabindex="-1" autocomplete="off" data-suggest-honeypot>
+            </label>
+          </div>
+
+          <input type="hidden" name="contact[Sent from]" value="competitions page - suggest a comp">
+
+          <button type="submit" class="theinmag-comps__modal-submit">send</button>
+          <p class="theinmag-comps__modal-fineprint">adults only. we use these details to check the comp, nothing else. no newsletter signup.</p>
+        {%- endif -%}
+      {%- endform -%}
     </div>
   </div>
 
@@ -767,18 +917,26 @@
       padding: clamp(20px, 2.6vw, 36px) clamp(16px, 1.8vw, 28px);
       min-height: clamp(360px, 56vh, 520px);
     }
+    /* Desktop keeps "everything" in the MIDDLE. DOM order is
+       everything / writing / art (mobile order, see the markup note), so
+       desktop reorders visually here. Only applies from 750px up. */
+    .theinmag-comps__choice-btn--writing { order: 1; }
+    .theinmag-comps__choice-btn--all { order: 2; }
+    .theinmag-comps__choice-btn--art { order: 3; }
   }
 
-  /* Mobile L/R alternation - writing on left, everything on right, art on left.
-     The middle card (everything) is the reversed one to keep the zigzag. */
+  /* Mobile L/R alternation - everything on left, writing on right, art on left.
+     The MIDDLE card is the reversed one to keep the zigzag, and since the
+     mobile order changed to everything / writing / art, the reversed card is
+     now --writing (it used to be --all when everything sat in the middle). */
   @media (max-width: 749px) {
-    .theinmag-comps .theinmag-comps__choice-btn--all {
+    .theinmag-comps .theinmag-comps__choice-btn--writing {
       grid-template-columns: 1fr minmax(110px, 38%);
     }
-    .theinmag-comps .theinmag-comps__choice-btn--all .theinmag-comps__choice-btn-character {
+    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-character {
       order: 2;
     }
-    .theinmag-comps .theinmag-comps__choice-btn--all .theinmag-comps__choice-btn-stack {
+    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-stack {
       order: 1;
     }
   }
@@ -902,9 +1060,10 @@
   .theinmag-comps__stage > * { position: relative; z-index: 1; }
 
   /* Stage hidden until a choice is made. The freshness line stays visible in
-     both states (it sits at the foot of the section, just above the mag promo). */
-  .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__stage,
-  .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__missed--mobile {
+     both states (it sits at the foot of the section, just above the mag promo).
+     The suggest button now lives inside the stage, so it hides with it and no
+     longer needs its own rule here. */
+  .theinmag-comps[data-choice-state="choosing"] .theinmag-comps__stage {
     display: none;
   }
 
@@ -1167,6 +1326,44 @@
   }
   .theinmag-comps__tile[hidden] { display: none; }
 
+  /* ----- Arrival highlight for a #comp-<id> deep link -----
+     A share link has to say "this is the one you came for" and then get out of
+     the way. Warm yellow glow, held for a beat, faded back to the tile's normal
+     shadow over ~2.4s, after which the tile looks exactly like every other one.
+     Colour and shadow only: nothing here changes the tile's size or position,
+     so nothing shifts around it and the list scroll cannot jump.
+     The tile is still genuinely focused underneath (keyboard and screen-reader
+     users land on it); is-arrival-pointer below is what stops a mouse or touch
+     visitor seeing a focus ring they did not ask for. */
+  @keyframes theinmag-comps-arrive {
+    0% {
+      box-shadow: 0 0 0 3px rgba(249, 194, 60, 0.95), 0 8px 26px rgba(249, 194, 60, 0.50);
+    }
+    45% {
+      box-shadow: 0 0 0 3px rgba(249, 194, 60, 0.90), 0 8px 26px rgba(249, 194, 60, 0.42);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(249, 194, 60, 0), 0 2px 12px rgba(123, 79, 158, 0.08);
+    }
+  }
+  .theinmag-comps__tile.is-arrival {
+    animation: theinmag-comps-arrive 2.4s ease-out 1;
+  }
+  /* Pointer or cold-link arrival: no focus ring. Keyboard arrivals never get
+     this class, so they keep the purple ring above and stay navigable. The
+     animation still wins while it runs (keyframe declarations beat normal
+     author rules), so this is just the resting state underneath.
+     transform:none matters as much as the shadow: the shared hover/focus rule
+     lifts a tile 2px, and a tile that arrives already lifted looks stuck.
+     :not(:hover) keeps the normal hover lift working the moment the visitor
+     actually points at it. */
+  .theinmag-comps__tile.is-arrival-pointer:focus:not(:hover),
+  .theinmag-comps__tile.is-arrival-pointer:focus-visible:not(:hover) {
+    outline: none;
+    transform: none;
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.08);
+  }
+
   /* ----- Tile cover (letter placeholder) ----- */
   .theinmag-comps__tile-cover {
     position: relative;
@@ -1264,6 +1461,10 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  /* The row's dimming is done with a colour alpha, NOT opacity. Opacity on
+     the row would create a group that no child could climb out of, and the
+     entry note below has to sit at full strength inside this row. Visually
+     identical to the old `opacity: 0.62` for every other item. */
   .theinmag-comps__tile-meta {
     display: flex;
     flex-wrap: wrap;
@@ -1273,13 +1474,26 @@
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--comps-cream-dark);
-    opacity: 0.62;
+    color: rgba(42, 31, 61, 0.62);
   }
   .theinmag-comps__tile-meta-item:not(:last-child)::after {
     content: ' \00B7';
     margin-left: 6px;
     opacity: 0.5;
+  }
+
+  /* Entry note - "school entry only" / "postal entry". Deliberately NOT a
+     badge and not a colour: school entry is not a bad thing, it is just the
+     thing a parent needs to know before a kid gets invested. Same row, same
+     size, full-strength ink and a heavier weight, so the eye stops on it
+     without anything looking like an alarm. Its separator drops back to the
+     row's dimmed ink so the rhythm of the dots stays even. */
+  .theinmag-comps__tile-meta-item--note {
+    color: var(--comps-cream-dark);
+    font-weight: 700;
+  }
+  .theinmag-comps__tile-meta-item--note:not(:last-child)::after {
+    color: rgba(42, 31, 61, 0.62);
   }
 
   .theinmag-comps__tile-state {
@@ -1344,6 +1558,36 @@
   }
   .theinmag-comps__tile--closed:hover { opacity: 0.85; }
 
+  /* ----- State group headings -----
+     Only in play when a real state is picked. 43 of the 60 comps are
+     national, so a state pick now reads: the state's own comps first under
+     "in <state>", the national ones below under "open to kids everywhere".
+     Same small-caps register as the closed heading below, one notch stronger
+     (purple, heavier, fuller opacity) because this is the primary grouping
+     and the closed line is a sub-note. Placement is done with flex `order`
+     in the filter JS, not DOM position. */
+  .theinmag-comps__group-heading {
+    /* Cream pill, not bare text: the only thing behind the list is the kid-art
+       background photo, and its contrast changes with the daily image. Every
+       other piece of copy on this stage sits on a cream surface, so the group
+       label gets one too and stays legible on any background. align-self keeps
+       the pill hugging its text inside the flex column. */
+    align-self: flex-start;
+    margin: clamp(14px, 1.8vw, 22px) 0 2px;
+    padding: 7px 14px;
+    background-color: var(--comps-cream);
+    border-radius: 999px;
+    box-shadow: 0 2px 12px rgba(123, 79, 158, 0.10);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--comps-purple-dark);
+    scroll-snap-align: start;
+  }
+  .theinmag-comps__group-heading[hidden] { display: none; }
+
   .theinmag-comps__closed-heading {
     margin: clamp(20px, 2.4vw, 32px) 0 4px;
     padding-left: 4px;
@@ -1381,8 +1625,25 @@
     flex: 1 1 auto;
     min-height: 280px;
   }
+  /* DESKTOP: the card sizes to its own content instead of being stretched
+     to match the comps list beside it.
+     Was: stack stretched (flex 1 1 auto) and each card was position:absolute
+     inset:0, so the card was always as tall as the left-hand list and any
+     leftover height opened a hole between the copy and the CTA. A short
+     spotlight pitch made it obvious.
+     Now: the stack is a 1x1 GRID and every card sits in the same cell
+     (grid-area 1/1). Grid sizes the stack to the TALLEST card's content, the
+     crossfade still works on opacity, and rotating top picks no longer jumps
+     the layout. Leftover height falls below the "missed a comp" box, where it
+     reads as ordinary whitespace next to a long list, not as a gap in a card.
+     Kept to >=990px on purpose: below that the featured is height-capped
+     (35vh / 30vh) and the absolute-fill behaviour is still what we want. */
   @media (min-width: 990px) {
+    .theinmag-comps__featured {
+      flex: 0 0 auto;
+    }
     .theinmag-comps__featured-stack {
+      display: grid;
       min-height: 0;
     }
   }
@@ -1405,6 +1666,15 @@
   .theinmag-comps__featured-card.is-active {
     opacity: 1;
     pointer-events: auto;
+  }
+  @media (min-width: 990px) {
+    /* Grid-stacked: same cell, no absolute positioning, so the cards
+       contribute their height to the stack. */
+    .theinmag-comps__featured-card {
+      position: relative;
+      inset: auto;
+      grid-area: 1 / 1;
+    }
   }
   .theinmag-comps__featured-card:hover,
   .theinmag-comps__featured-card:focus-visible {
@@ -1457,6 +1727,16 @@
     justify-content: center;
     background-color: var(--comps-coral-light);
     min-height: 120px;
+  }
+  @media (min-width: 990px) {
+    /* The card is content-sized on desktop now, so a percentage flex-basis
+       has nothing to resolve against and would collapse the cover to its
+       min-height. Give it a real height instead - close to the 42% it used
+       to compute to in the right-hand column. */
+    .theinmag-comps__featured-cover {
+      flex: 0 0 auto;
+      height: clamp(200px, 19vw, 300px);
+    }
   }
   .theinmag-comps__featured-card--art .theinmag-comps__featured-cover { background-color: var(--comps-coral-light); }
   .theinmag-comps__featured-card--writing .theinmag-comps__featured-cover { background-color: var(--comps-mint-light); }
@@ -1541,9 +1821,20 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .theinmag-comps__featured-cta {
+  /* Foot row - state left, "enter" hard right, pinned to the bottom of the
+     body. margin-top:auto still matters: when one top pick in the rotation is
+     shorter than the tallest, grid stretches its card and this keeps the CTA
+     on the same baseline across the rotation. */
+  .theinmag-comps__featured-foot {
     margin-top: auto;
-    align-self: flex-start;
+    padding-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+  }
+  .theinmag-comps__featured-cta {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -1570,35 +1861,59 @@
      Narrower than the surrounding cards per Ryan's review.
   ================================================================ */
   .theinmag-comps__missed {
-    flex: 0 0 auto;
-    background-color: var(--comps-cream);
-    border-radius: 0;
-    padding: clamp(10px, 1.2vw, 14px) clamp(12px, 1.4vw, 18px);
-    text-align: center;
-    box-shadow: 5px 5px 0 var(--comps-purple-dark);
-    border: 1.5px solid var(--comps-cream-dark);
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    gap: clamp(8px, 1.4vw, 14px);
-    flex-wrap: wrap;
-    /* Narrower than the spotlight + tile cards. Centered. */
-    max-width: 320px;
-    width: max-content;
-    margin: 0 auto;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
   }
-  /* Desktop variant - shown on >=990px, hidden everywhere else */
-  .theinmag-comps__missed--desktop { display: none; }
+  /* Phone: no heading above the button, so the long self-describing label
+     takes over. "suggest one" only makes sense under "missed a comp?". */
+  .theinmag-comps__missed-btn-short { display: none; }
+  @media (max-width: 989px) {
+    .theinmag-comps .theinmag-comps__missed-copy { display: none; }
+  }
+  /* From 750 the filters toggle is gone and the selects sit inline, so the
+     suggest button must move to the END of the row. `order` does it with one
+     copy in the markup; a second copy is what caused the dead-button bug. */
+  @media (min-width: 750px) {
+    .theinmag-comps__missed {
+      order: 3;
+      /* Tablet widths wrap it onto its own line under the selects. Hard right
+         puts it under `clear` instead of stranded on the left with the row's
+         whole width empty beside it. */
+      margin-left: auto;
+    }
+  }
+  /* 990 to 1099: search + three selects + clear already fill the row, so
+     rather than let it wrap into an accident, it takes a full second line
+     inside the bar and reads as the card's own foot. Measured, not guessed:
+     the row needs about 1040px of bar before this fits alongside. The label
+     comes back here because there is room for it. */
   @media (min-width: 990px) {
-    .theinmag-comps__missed--desktop { display: flex; }
+    .theinmag-comps__missed-btn-long { display: none; }
+    .theinmag-comps__missed-btn-short { display: inline; }
+    .theinmag-comps__missed {
+      flex: 1 1 100%;
+      justify-content: flex-end;
+      border-top: 1.5px solid rgba(42, 31, 61, 0.14);
+      padding: 10px 2px 0;
+      margin: 2px 0 0;
+    }
   }
-  /* Mobile variant - shown <990px, hidden on desktop */
-  .theinmag-comps__missed--mobile {
-    margin-top: clamp(20px, 4vw, 32px);
-    margin-bottom: clamp(8px, 2vw, 16px);
-  }
-  @media (min-width: 990px) {
-    .theinmag-comps__missed--mobile { display: none; }
+  /* 1100 up: it fits on the row, hard right and away from the controls,
+     with a hairline instead of a card border - inside the filter bar, a
+     bordered card would read as a card floating in a card. */
+  @media (min-width: 1100px) {
+    .theinmag-comps__missed {
+      flex: 0 0 auto;
+      border-top: 0;
+      border-left: 1.5px solid rgba(42, 31, 61, 0.16);
+      padding: 2px 0 2px clamp(12px, 1.4vw, 18px);
+      margin: 0 0 0 auto;
+    }
   }
   .theinmag-comps__missed-copy {
     margin: 0;
@@ -1632,6 +1947,41 @@
     color: #FFF;
     transform: translateY(2px);
     box-shadow: 0 1px 0 #4A2D62;
+  }
+
+  /* ----- Phone: the suggest button pairs with `filters` -----
+     Specificity-prefix pattern (s3.1). Ryan's ask, looking at 333px: put the
+     suggest button next to the filters button and make the pair look
+     deliberate. Same geometry as the toggle (40px tall, 32px radius, 13px/600,
+     matching padding) so they read as a set, but NEUTRAL where filters is
+     purple. They must not carry equal weight: filtering is the primary action
+     for someone facing 60 comps, suggesting one is rare, and two identical
+     pills side by side make the eye stop and read both. Border alpha is 0.55
+     rather than something lighter so the control boundary still clears WCAG
+     2.2 non-text contrast against the cream bar. The yellow pill is desktop
+     only, where it sits alone at the end of the row with nothing to shout
+     over. */
+  @media (max-width: 989px) {
+    .theinmag-comps .theinmag-comps__missed-btn {
+      background-color: transparent;
+      color: var(--comps-cream-dark);
+      border: 1.5px solid rgba(42, 31, 61, 0.55);
+      box-shadow: none;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      padding: 10px 18px;
+      border-radius: 32px;
+      min-height: 40px;
+    }
+    .theinmag-comps .theinmag-comps__missed-btn:hover,
+    .theinmag-comps .theinmag-comps__missed-btn:focus-visible {
+      background-color: var(--comps-purple-dark);
+      border-color: var(--comps-purple-dark);
+      color: #FFF;
+      transform: none;
+      box-shadow: none;
+    }
   }
 
   /* ================================================================
@@ -1708,6 +2058,7 @@
   .theinmag-comps__modal-close:hover { opacity: 1; }
 
   .theinmag-comps__modal-character {
+    display: block;
     width: clamp(80px, 12vw, 120px);
     height: clamp(80px, 12vw, 120px);
     margin: 0 auto 14px;
@@ -1749,6 +2100,45 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+  }
+  /* The copy now lives INSIDE the form block, because only in there can
+     Liquid see form.posted_successfully? and swap it for the confirmation.
+     The flex gap already spaces it, so its own bottom margin comes off. */
+  .theinmag-comps__modal-form .theinmag-comps__modal-copy {
+    margin-bottom: 0;
+  }
+  .theinmag-comps__modal-error {
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background-color: var(--comps-coral-light);
+    color: var(--comps-coral-dark);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+  .theinmag-comps__modal-error ul {
+    margin: 4px 0 0;
+    padding-left: 18px;
+    font-weight: 500;
+  }
+  /* Honeypot: out of sight, out of the tab order, out of the a11y tree.
+     Not display:none - some bots skip hidden fields but fill positioned
+     ones, and a few browsers skip validation on display:none inputs. */
+  .theinmag-comps__modal-honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .theinmag-comps__modal-fineprint {
+    margin: 0;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--comps-cream-dark);
+    opacity: 0.6;
   }
   .theinmag-comps__modal-row {
     display: grid;
@@ -1893,22 +2283,43 @@
        (space-separated) and data-search (lowercase blob).
        ------------------------------------------------------------------ */
     var tiles = root.querySelectorAll('.theinmag-comps__tile');
+    var listEl = root.querySelector('[data-comps-list]');
     var listEmpty = root.querySelector('[data-list-empty]');
+    var closedHeading = root.querySelector('[data-closed-heading]');
+    var groupLocal = root.querySelector('[data-group-heading="local"]');
+    var groupEverywhere = root.querySelector('[data-group-heading="everywhere"]');
     var searchInput = root.querySelector('[data-comps-search]');
     var selectCategory = root.querySelector('[data-filter="category"]');
     var selectAge = root.querySelector('[data-filter="age"]');
     var selectState = root.querySelector('[data-filter="state"]');
-    var selectCost = root.querySelector('[data-filter="cost"]');
-    var selectFormat = root.querySelector('[data-filter="format"]');
+    /* Cost and format selects were removed 2026-08-16. Their tags are still
+       on every tile, so restoring either filter is a markup-only change. */
+    var filterSelects = [selectCategory, selectAge, selectState];
+
+    /* Flex order slots used when a state is picked. The list is a flex
+       column, so ordering costs nothing and the DOM stays put. */
+    var ORDER_LOCAL_HEADING = 1;
+    var ORDER_LOCAL_OPEN = 2;
+    var ORDER_LOCAL_CLOSED = 3;
+    var ORDER_EVERYWHERE_HEADING = 4;
+    var ORDER_EVERYWHERE_OPEN = 5;
+    var ORDER_EVERYWHERE_CLOSED = 6;
+    var ORDER_EMPTY_MESSAGE = 9;
 
     function applyFilters() {
       var q = (searchInput.value || '').trim().toLowerCase();
       var cat = selectCategory.value;
       var age = selectAge.value;
       var st  = selectState.value;
-      var cost = selectCost.value;
-      var fmt = selectFormat.value;
       var visible = 0;
+      var localCount = 0;
+      var everywhereCount = 0;
+      var closedVisible = 0;
+
+      /* Grouped view = a real state is picked. "any state" is the default
+         flat list, and "national" is already one single group, so neither
+         gets headings. */
+      var grouped = st !== 'all' && st !== 'national';
 
       tiles.forEach(function (tile) {
         var tags = (tile.getAttribute('data-tags') || '').split(/\s+/);
@@ -1917,25 +2328,106 @@
         if (q && blob.indexOf(q) === -1) ok = false;
         if (ok && cat !== 'all' && tags.indexOf(cat) === -1) ok = false;
         if (ok && age !== 'all' && tags.indexOf(age) === -1 && tags.indexOf('all-ages') === -1) ok = false;
-        if (ok && st  !== 'all' && tags.indexOf(st)  === -1) ok = false;
-        if (ok && cost !== 'all' && tags.indexOf(cost) === -1) ok = false;
-        if (ok && fmt !== 'all' && tags.indexOf(fmt) === -1) ok = false;
+        /* State: the tile's own state OR the national escape hatch, exactly
+           the shape the age filter uses with all-ages. 43 of the 60 comps are
+           tagged national only, so the old exact-match-only test emptied the
+           board on a state pick (NT and ACT showed nothing at all). The
+           grouping below is what keeps local comps on top rather than
+           drowning them in 43 national ones. */
+        if (ok && st !== 'all' && tags.indexOf(st) === -1 && tags.indexOf('national') === -1) ok = false;
         tile.hidden = !ok;
-        if (ok) visible++;
+
+        var isClosed = tile.getAttribute('data-state') === 'annual-again';
+        if (!grouped) {
+          tile.style.order = '';
+        } else if (ok) {
+          if (tags.indexOf(st) !== -1) {
+            tile.style.order = isClosed ? ORDER_LOCAL_CLOSED : ORDER_LOCAL_OPEN;
+            localCount++;
+          } else {
+            tile.style.order = isClosed ? ORDER_EVERYWHERE_CLOSED : ORDER_EVERYWHERE_OPEN;
+            everywhereCount++;
+          }
+        }
+
+        if (ok) {
+          visible++;
+          if (isClosed) closedVisible++;
+        }
       });
-      if (listEmpty) listEmpty.hidden = visible > 0;
+
+      if (groupLocal) {
+        if (grouped) groupLocal.textContent = 'in ' + st;
+        groupLocal.style.order = grouped ? ORDER_LOCAL_HEADING : '';
+        groupLocal.hidden = !(grouped && localCount > 0);
+      }
+      if (groupEverywhere) {
+        groupEverywhere.style.order = grouped ? ORDER_EVERYWHERE_HEADING : '';
+        groupEverywhere.hidden = !(grouped && everywhereCount > 0);
+      }
+      /* The single "already run this year" separator can only sit in one
+         place, so it stands down in the grouped view (each group keeps its
+         own open-then-already-run order, and those tiles are dimmed and
+         carry their own "opens again around March" line). Ungrouped it now
+         also hides when a filter leaves no closed tiles under it. */
+      if (closedHeading) {
+        closedHeading.hidden = grouped || closedVisible === 0;
+      }
+      if (listEmpty) {
+        listEmpty.style.order = grouped ? ORDER_EMPTY_MESSAGE : '';
+        listEmpty.hidden = visible > 0;
+      }
+    }
+
+    /* ------------------------------------------------------------------
+       Filter usage tracking. Added 2026-08-16 because we removed two
+       filters on a guess: the selects wrote no URL state and fired no
+       events, so GA4 and Clarity were blind to filter use and there was
+       no data either way. This is also the only way a silently broken
+       filter would ever surface.
+
+       The filter NAME is in the event name on purpose. GA4 will not
+       report a custom event PARAMETER until someone registers it as a
+       custom dimension in admin, but event names are queryable the
+       moment they arrive - the same reasoning behind stack_cta_click
+       using the built-in pagePath. So "does anyone touch the state
+       filter" is answerable straight away, and the value is there in
+       the parameter for later if the dimensions get registered.
+       Search fires WITHOUT the typed term: the count answers the
+       question, and free-text a stranger typed is not ours to ship.
+       Guarded and wrapped - analytics must never break the page.
+       ------------------------------------------------------------------ */
+    function trackComps(eventName, value) {
+      if (typeof window.gtag !== 'function') return;
+      try {
+        window.gtag('event', eventName, {
+          filter_value: value === undefined ? '' : String(value),
+          page_path: window.location.pathname
+        });
+      } catch (e) { /* no-op */ }
     }
 
     /* Debounced search */
     var searchTimer = null;
+    var searchTracked = false;
     if (searchInput) {
       searchInput.addEventListener('input', function () {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(applyFilters, 200);
+        searchTimer = setTimeout(function () {
+          applyFilters();
+          if (!searchTracked && (searchInput.value || '').trim()) {
+            searchTracked = true;
+            trackComps('comps_search');
+          }
+        }, 200);
       });
     }
-    [selectCategory, selectAge, selectState, selectCost, selectFormat].forEach(function (el) {
-      if (el) el.addEventListener('change', applyFilters);
+    filterSelects.forEach(function (el) {
+      if (!el) return;
+      el.addEventListener('change', function () {
+        applyFilters();
+        trackComps('comps_filter_' + el.getAttribute('data-filter'), el.value);
+      });
     });
 
     var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1995,20 +2487,24 @@
     var choiceBtns = root.querySelectorAll('[data-choice]');
     var choiceSection = root.querySelector('.theinmag-comps__choice');
 
+    // Scroll the page so the stage's filter bar lands JUST BELOW the
+    // sticky site header. Without the headerH subtraction the filter
+    // row sits behind the header and the user can't see it without
+    // scrolling up - Ryan caught this in review.
+    function scrollStageIntoView(behavior) {
+      var headerEl = document.querySelector('.theinmag-header-section');
+      var headerH = headerEl ? headerEl.offsetHeight : 0;
+      var top = root.getBoundingClientRect().top + window.pageYOffset - headerH;
+      window.scrollTo({ top: Math.max(0, top), behavior: behavior || (prefersReducedMotion ? 'auto' : 'smooth') });
+    }
+
     function commitChoice(category) {
       if (selectCategory) {
         selectCategory.value = (category === 'art' || category === 'writing') ? category : 'all';
         applyFilters();
       }
       root.dataset.choiceState = 'chosen';
-      // Scroll the page so the stage's filter bar lands JUST BELOW the
-      // sticky site header. Without the headerH subtraction the filter
-      // row sits behind the header and the user can't see it without
-      // scrolling up - Ryan caught this in review.
-      var headerEl = document.querySelector('.theinmag-header-section');
-      var headerH = headerEl ? headerEl.offsetHeight : 0;
-      var top = root.getBoundingClientRect().top + window.pageYOffset - headerH;
-      window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+      scrollStageIntoView();
     }
 
     choiceBtns.forEach(function (btn) {
@@ -2029,12 +2525,111 @@
     if (clearBtn) {
       clearBtn.addEventListener('click', function () {
         if (searchInput) searchInput.value = '';
-        [selectCategory, selectAge, selectState, selectCost, selectFormat].forEach(function (s) {
+        filterSelects.forEach(function (s) {
           if (s) s.value = 'all';
         });
         applyFilters();
+        trackComps('comps_filter_clear');
       });
     }
+
+    /* ------------------------------------------------------------------
+       Deep links - /pages/competitions#comp-<id> lands on that comp.
+       Every tile carries id="comp-<id>" and nothing visible on the tile
+       changes. The browser's own anchor jump cannot work here for three
+       reasons, so we do it ourselves:
+         1. the page opens on the choice gate with the stage display:none,
+            so at hash-resolution time the tile has no box to scroll to
+         2. a filter (or the category the gate sets) can have the tile hidden
+         3. the list scrolls INTERNALLY, so moving the page alone never
+            brings a tile deep in the list into view
+       Runs on load and on hashchange. An unknown hash is left alone, so a
+       normal visit still starts at the choice gate.
+       ------------------------------------------------------------------ */
+    /* Input modality, same heuristic the browser uses for :focus-visible.
+       A share link opened cold has had no keydown, so it counts as a pointer
+       arrival and the focus ring is suppressed in favour of the warm glow. A
+       visitor who is tabbing or pressed Enter on a link keeps the ring, because
+       for them it is the only thing telling them where they are. */
+    var lastInputWasKeyboard = false;
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab' || e.key === 'Enter' || e.key === ' ' || (e.key && e.key.indexOf('Arrow') === 0)) {
+        lastInputWasKeyboard = true;
+      }
+    }, true);
+    ['pointerdown', 'mousedown', 'touchstart'].forEach(function (evt) {
+      document.addEventListener(evt, function () { lastInputWasKeyboard = false; }, true);
+    });
+
+    var arrivalTile = null;
+    function markArrival(tile) {
+      if (arrivalTile && arrivalTile !== tile) {
+        arrivalTile.classList.remove('is-arrival', 'is-arrival-pointer');
+      }
+      arrivalTile = tile;
+      tile.classList.remove('is-arrival');
+      // Force a reflow so a second link to the same tile replays the glow.
+      void tile.offsetWidth;
+      tile.classList.add('is-arrival');
+      tile.addEventListener('animationend', function handler() {
+        tile.classList.remove('is-arrival');
+        tile.removeEventListener('animationend', handler);
+      });
+      if (!lastInputWasKeyboard) {
+        tile.classList.add('is-arrival-pointer');
+        // Once focus moves on, the tile goes back to normal focus behaviour.
+        tile.addEventListener('blur', function handler() {
+          tile.classList.remove('is-arrival-pointer');
+          tile.removeEventListener('blur', handler);
+        });
+      }
+    }
+
+    function goToHashTile() {
+      var hash = window.location.hash;
+      if (!hash || hash.length < 2) return false;
+      var id;
+      try { id = decodeURIComponent(hash.slice(1)); } catch (e) { id = hash.slice(1); }
+      if (id.indexOf('comp-') !== 0) return false;
+      var tile = document.getElementById(id);
+      if (!tile || tile.className.indexOf('theinmag-comps__tile') === -1) return false;
+
+      /* Clear every filter first so nothing can hide the target, then open
+         the stage. A share link has to land on the comp, not on a blank
+         filtered list. */
+      if (searchInput) searchInput.value = '';
+      filterSelects.forEach(function (s) {
+        if (s) s.value = 'all';
+      });
+      applyFilters();
+      root.dataset.choiceState = 'chosen';
+
+      /* Two frames: the first lets the stage lay out now it is no longer
+         display:none, the second gives the list real scroll geometry before
+         we measure the tile inside it. Rect deltas rather than offsetTop,
+         because the list's offsetParent differs between the mobile
+         display:contents flatten and the desktop grid. */
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          if (listEl) {
+            var listRect = listEl.getBoundingClientRect();
+            var tileRect = tile.getBoundingClientRect();
+            listEl.scrollTop += (tileRect.top - listRect.top) - 8;
+          }
+          scrollStageIntoView('auto');
+          /* Glow first, then focus, so the class is already on the tile when
+             the focus styles resolve and no ring can flash in between. */
+          markArrival(tile);
+          if (tile.focus) {
+            try { tile.focus({ preventScroll: true }); } catch (e) { /* older Safari */ }
+          }
+        });
+      });
+      return true;
+    }
+
+    goToHashTile();
+    window.addEventListener('hashchange', goToHashTile);
 
     /* Mobile filter drawer toggle */
     var filterBar = root.querySelector('[data-filter-bar]');
@@ -2083,7 +2678,13 @@
        Suggest-a-comp modal
        ------------------------------------------------------------------ */
     var modal = root.querySelector('[data-suggest-modal]');
-    var openBtn = root.querySelector('[data-open-suggest]');
+    /* querySelectorAll, not querySelector. There are two "suggest one"
+       buttons (the filter-bar one on desktop, the stamp card on phone) and
+       the singular version bound only the first in the DOM, which is the
+       desktop one. On a phone that button is display:none, so the visible
+       one had no handler at all and did nothing when tapped. Live bug,
+       found and fixed 2026-08-16. */
+    var openBtns = root.querySelectorAll('[data-open-suggest]');
     var closeEls = modal ? modal.querySelectorAll('[data-modal-close]') : [];
     var characterEl = modal ? modal.querySelector('[data-comps-character]') : null;
     var characterLoaded = false;
@@ -2097,12 +2698,16 @@
       characterLoaded = true;
     }
 
+    /* When the modal was opened, used by the speed trap on submit. */
+    var modalOpenedAt = 0;
+
     function openModal() {
       if (!modal) return;
       modal.hidden = false;
+      modalOpenedAt = Date.now();
       document.body.style.overflow = 'hidden';
       chooseCharacter();
-      var firstField = modal.querySelector('input, select, textarea');
+      var firstField = modal.querySelector('input:not([tabindex="-1"]), select, textarea');
       if (firstField) setTimeout(function () { firstField.focus(); }, 100);
     }
     function closeModal() {
@@ -2111,24 +2716,55 @@
       document.body.style.overflow = '';
     }
 
-    if (openBtn) openBtn.addEventListener('click', openModal);
+    openBtns.forEach(function (btn) { btn.addEventListener('click', openModal); });
     closeEls.forEach(function (el) { el.addEventListener('click', closeModal); });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && modal && !modal.hidden) closeModal();
     });
 
-    /* Form submit - if no action set, prevent default and show success */
-    var form = modal ? modal.querySelector('[data-suggest-form]') : null;
-    var success = modal ? modal.querySelector('[data-modal-success]') : null;
-    if (form && !form.getAttribute('action')) {
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (success) {
-          success.hidden = false;
-          success.textContent = "thanks! your suggestion is in the queue. we'll add it next sweep.";
+    /* ------------------------------------------------------------------
+       Suggest form. This is Shopify's native contact form now, so the
+       submit is a real POST to /contact and the browser navigates. There
+       is deliberately NO success handler here: the confirmation is
+       rendered by Liquid off form.posted_successfully? when the page
+       comes back. The old code faked a success message on a form that
+       had nowhere to post, which is the bug this replaced.
+
+       All that is left client-side is spam defence and reopening the
+       modal after the round trip.
+       ------------------------------------------------------------------ */
+    var suggestForm = modal ? modal.querySelector('form') : null;
+    if (suggestForm) {
+      suggestForm.addEventListener('submit', function (e) {
+        var pot = suggestForm.querySelector('[data-suggest-honeypot]');
+        var tooFast = modalOpenedAt && (Date.now() - modalOpenedAt) < 2000;
+        if ((pot && pot.value) || tooFast) {
+          e.preventDefault();
         }
-        setTimeout(closeModal, 2400);
       });
+    }
+
+    /* Post-submit arrival. Shopify redirects back to this page with
+       ?contact_posted=true, and the page reloads on the choice gate with
+       the modal closed, so without this the person sees nothing at all
+       and cannot tell whether it sent. Reopen the modal on the
+       confirmation, and on an error so the message is readable. Then
+       strip the query param so a refresh does not replay it. */
+    var postedMarker = modal ? modal.querySelector('[data-suggest-posted]') : null;
+    var errorMarker = modal ? modal.querySelector('[data-suggest-error]') : null;
+    if (postedMarker || errorMarker) {
+      openModal();
+      if (postedMarker) {
+        /* Success state has no fields, so openModal's focus call found
+           nothing. Put focus somewhere real. */
+        var closeBtn = modal.querySelector('.theinmag-comps__modal-close');
+        if (closeBtn) setTimeout(function () { closeBtn.focus(); }, 100);
+      }
+      if (postedMarker && window.history && window.history.replaceState) {
+        try {
+          window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+        } catch (err) { /* no-op */ }
+      }
     }
   })();
 </script>
@@ -2191,16 +2827,14 @@
       "content": "Suggest-a-comp modal"
     },
     {
+      "type": "paragraph",
+      "content": "The form posts through Shopify's own contact form, so suggestions arrive as an email at the store contact address (heyhey@theinmag.com.au). There is no endpoint to configure and no third-party form. Deliberately does not promise to list a comp: every one is checked against its official page first, and some do not survive that."
+    },
+    {
       "type": "textarea",
       "id": "modal_copy",
       "label": "Modal subtitle",
-      "default": "Adults only. Send the details and we'll verify and add it next sweep."
-    },
-    {
-      "type": "url",
-      "id": "suggest_form_action",
-      "label": "Form submit URL (optional)",
-      "info": "JotForm endpoint or similar. Leave blank to use the in-page success state."
+      "default": "Adults only. Send the details and we'll check it before it goes on the board."
     },
     {
       "type": "header",

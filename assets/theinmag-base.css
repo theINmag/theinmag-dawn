@@ -8,9 +8,11 @@
    No em dashes anywhere - hyphens only.
    ========================================================================== */
 
-/* ----- Google Fonts: Inter (body) + Caveat (rare emphasis) ----- */
-
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@400;500;600;700&display=swap');
+/* ----- Google Fonts: Inter (body) + Caveat (rare emphasis) -----
+   Moved to a single <link> in layout/theme.liquid on 2026-08-16. The @import
+   that used to live here is gone deliberately: an @import is only discovered
+   after this stylesheet has downloaded and parsed, which put Inter (used on
+   every page) behind three sequential round trips. Do not reinstate it. */
 
 /* ----- Self-hosted heading font ----- */
 
@@ -79,7 +81,14 @@
     --color-link-hover: var(--color-purple-dark);
 
     /* ----- Fonts (theINmag tokens) ----- */
-    --font-heading: 'Post Regular', 'Caveat', Georgia, serif;
+    /* Caveat removed from the HEADING fallback on 2026-08-16. If the self-hosted
+       Post Regular woff2 ever failed, every H1 and H2 sitewide fell back to
+       Caveat: a font Ryan has specifically banned, at the largest size on the
+       page, and metrically nothing like Post (condensed all-caps display vs a
+       casual script), so the layout broke as well as the brand. Georgia is the
+       intended fallback. This does NOT touch --font-emphasis below, so the nine
+       sections that deliberately use Caveat are unaffected. */
+    --font-heading: 'Post Regular', Georgia, serif;
     --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --font-emphasis: 'Caveat', cursive;
 
@@ -87,7 +96,7 @@
        Dawn applies these via .h0/.h1/.h2 class selectors and on body,
        so redefining them here makes every Dawn heading and body element
        use theINmag fonts without touching theme.liquid or settings_data.json. */
-    --font-heading-family: 'Post Regular', 'Caveat', Georgia, serif;
+    --font-heading-family: 'Post Regular', Georgia, serif;
     --font-heading-style: normal;
     --font-heading-weight: 400;
     --font-body-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
