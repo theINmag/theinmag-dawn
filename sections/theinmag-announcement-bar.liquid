@@ -52,13 +52,21 @@
   assign msg_1_state = 'hidden'
 
   if show_msg_1 and release_date_str != blank and current_number > 0
-    # Normalise both timestamps to midnight before the day-count division so
-    # the result is an exact integer. The /shop hero uses the identical
-    # midnight-normalised math - without this the two drift by a day because
-    # one floors a positive remainder and the other floors a negative one.
+    # Normalise both timestamps to midnight before the day-count division.
+    # The `plus: 43200` (half a day) turns the flooring division into a
+    # round-to-nearest. WHY it is needed: Melbourne daylight saving starts the
+    # first Sunday of October, so any countdown that spans that date (e.g. to a
+    # 15 Oct drop) has a one-hour spring-forward inside the gap. Without the
+    # half-day offset, `divided_by: 86400` floors that one-hour shortfall down a
+    # whole day and the counter reads one short for the whole pre-October window
+    # (found 2026-08-17: showed 57 on 18 Aug when the true count was 58). Half a
+    # day absorbs a +/-1h DST shift in either direction and leaves every
+    # non-DST-spanning count unchanged. NOTE: the /shop hero shows a formatted
+    # date, not a day count, so it does not share this math (an older comment
+    # here claimed it did; that is stale).
     assign release_midnight = release_date_str | date: '%Y-%m-%d' | date: '%s' | times: 1
     assign now_midnight = 'now' | date: '%Y-%m-%d' | date: '%s' | times: 1
-    assign days_until = release_midnight | minus: now_midnight | divided_by: 86400
+    assign days_until = release_midnight | minus: now_midnight | plus: 43200 | divided_by: 86400
 
     # "Mag X is here!" carries the bulk of the cycle; the next-drop
     # countdown shows only inside the final 60 days. Roll-over is automatic
