@@ -325,8 +325,18 @@
             >
               <span class="theinmag-comps__tile-cover" aria-hidden="true">
                 {%- assign comp_logo = comp_logos[idx] -%}
+                {%- comment -%}
+                  theINmag's own open-call tile carries a real photo (a kid
+                  reading an open issue), not an organiser logo, so it takes the
+                  --photo modifier: object-fit cover, edge to edge, no white pad.
+                  Keyed on the stable comp id, our one intentionally special tile.
+                {%- endcomment -%}
+                {%- assign tile_logo_class = 'theinmag-comps__tile-logo' -%}
+                {%- if comp_ids[idx] == 'theinmag-send-in' -%}
+                  {%- assign tile_logo_class = 'theinmag-comps__tile-logo theinmag-comps__tile-logo--photo' -%}
+                {%- endif -%}
                 {%- if comp_logo != blank -%}
-                  <img class="theinmag-comps__tile-logo" src="{{ comp_logo | asset_url }}" alt="{{ comp_name | escape }} logo" loading="lazy" width="120" height="120">
+                  <img class="{{ tile_logo_class }}" src="{{ comp_logo | asset_url }}" alt="{{ comp_name | escape }}" loading="lazy" width="120" height="120">
                 {%- else -%}
                   <span class="theinmag-comps__tile-letter">{{ comp_letter }}</span>
                 {%- endif -%}
@@ -686,8 +696,33 @@
           "name": {{ comp_names[idx] | json }},
           "description": {{ comp_pitches[idx] | json }},
           "url": {{ comp_websites[idx] | json }}
-          {%- if comp_closing_dates[idx] contains '-' -%}
-          ,"endDate": {{ comp_closing_dates[idx] | json }}
+          {%- comment -%}
+            startDate is REQUIRED by Google for an Event. The data source
+            (comp_start_dates, built by Compton 2026-08-17) is derived per comp:
+            a real organiser open date where stated, else the closing date, else
+            the last-verified date, chosen so startDate is always a real ISO date
+            we can source and never lands after endDate. Same ISO guard as endDate
+            below (10 chars, begins "20") so any non-date value is skipped rather
+            than shipped invalid.
+          {%- endcomment -%}
+          {%- assign comp_start = comp_start_dates[idx] -%}
+          {%- assign comp_start_year = comp_start | slice: 0, 2 -%}
+          {%- if comp_start_year == '20' and comp_start.size == 10 -%}
+          ,"startDate": {{ comp_start | json }}
+          {%- endif -%}
+          {%- comment -%}
+            endDate must be a real ISO date or Google rejects the whole Event.
+            The old test emitted endDate whenever the string merely CONTAINED a
+            hyphen, so "Year-round" and "Aug-Apr" shipped as invalid endDates
+            (found 2026-08-17). Emit it only when the value is a YYYY-MM-DD date:
+            10 chars long and beginning "20". Perennial tokens (Rolling,
+            Year-round) and month ranges (Aug-Apr) fail both tests and correctly
+            emit no endDate.
+          {%- endcomment -%}
+          {%- assign comp_end = comp_closing_dates[idx] -%}
+          {%- assign comp_end_year = comp_end | slice: 0, 2 -%}
+          {%- if comp_end_year == '20' and comp_end.size == 10 -%}
+          ,"endDate": {{ comp_end | json }}
           {%- endif -%}
           ,"location": {
             "@type": "Place",
@@ -885,6 +920,7 @@
       gap: clamp(16px, 2vw, 28px);
     }
   }
+
 
   /* Tile - portrait shape on desktop, landscape on mobile.
      Mobile: row layout, character on the side, text on the other.
@@ -1399,6 +1435,14 @@
     object-fit: contain;
     padding: clamp(6px, 0.8vw, 12px);
     background-color: #FFF;
+  }
+  /* theINmag's own open-call tile: a real photo fills the cover edge to edge
+     instead of a padded logo. Cover crops to the square without distorting;
+     no white pad or ground so the picture reads as a photo, not a mark. */
+  .theinmag-comps__tile-logo--photo {
+    object-fit: cover;
+    padding: 0;
+    background-color: transparent;
   }
 
   /* Category-coloured covers */
@@ -2326,7 +2370,13 @@
         var blob = tile.getAttribute('data-search') || '';
         var ok = true;
         if (q && blob.indexOf(q) === -1) ok = false;
-        if (ok && cat !== 'all' && tags.indexOf(cat) === -1) ok = false;
+        /* Category: the tile's own category OR the 'everything' escape hatch,
+           the same shape as all-ages and national below. theINmag's own open
+           call takes any kind of creation, so it is tagged 'everything' and
+           must surface under every category pick (a kid who filters to writing
+           should still see that they can send writing in to the magazine). Only
+           that one tile carries the tag, so no other tile is affected. */
+        if (ok && cat !== 'all' && tags.indexOf(cat) === -1 && tags.indexOf('everything') === -1) ok = false;
         if (ok && age !== 'all' && tags.indexOf(age) === -1 && tags.indexOf('all-ages') === -1) ok = false;
         /* State: the tile's own state OR the national escape hatch, exactly
            the shape the age filter uses with all-ages. 43 of the 60 comps are
