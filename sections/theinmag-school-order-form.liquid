@@ -24,6 +24,15 @@
 
   Email blocklist is a JSON array in section settings so it's editable
   without a deploy when a new public-webmail provider crops up.
+
+  Attempt logging (added 2026-08-21, the Canterbury Toy Library lesson):
+  every real submit attempt is mirrored fire-and-forget to JotForm form
+  262316381107047 ("School order attempts (website ping)"), which emails
+  heyhey@ + itsbusinesstime@ per submission. Two outcomes are logged:
+  "Submitted, sent to checkout" and "Blocked at form: personal email
+  domain". Blocklist rejections also render a prefilled mailto rescue
+  button so a non-school buyer can email the order in one tap. Without
+  this, an attempt that never completes checkout left zero trace.
 {%- endcomment -%}
 
 {%- liquid
@@ -365,12 +374,12 @@
       <div class="theinmag-school-order-form__submit-row">
         {%- comment -%} Checkout instructions - busy teachers rush, so spell out the invoice path (esp. the Shop Pay -> Check out as guest step) before they submit. {%- endcomment -%}
         <div class="theinmag-school-order-form__checkout-help">
-          <p class="theinmag-school-order-form__checkout-help-heading">Paying by invoice? Two quick steps at checkout</p>
+          <p class="theinmag-school-order-form__checkout-help-heading">Paying by invoice? No card needed. Two quick steps at checkout</p>
           <ol class="theinmag-school-order-form__checkout-help-steps">
-            <li>If you're shown a <strong>card-only screen</strong>, choose <strong>Check out as guest</strong>.</li>
-            <li>Under <strong>Payment</strong>, pick <strong>Schools & Institutions - Bank Transfer</strong>, then place your order.</li>
+            <li>If checkout shows a <strong>card or Shop Pay screen</strong>, don't enter a card. Choose <strong>Check out as guest</strong> instead (a small link on that screen).</li>
+            <li>Under <strong>Payment</strong>, pick <strong>Schools & Institutions - Bank Transfer</strong>. It's below the card option, so scroll down if you don't spot it. Then place your order.</li>
           </ol>
-          <p class="theinmag-school-order-form__checkout-help-foot">Your mags ship the same day. We email your tax invoice - with our ABN and bank details - so your office can pay within 14 days.</p>
+          <p class="theinmag-school-order-form__checkout-help-foot">Your mags ship the same day. We email your tax invoice - with our ABN and bank details - so your office can pay within 14 days. Stuck on a card screen? Email <a href="mailto:heyhey@theinmag.com.au">heyhey@theinmag.com.au</a> and we'll invoice you directly.</p>
         </div>
 
         <button
@@ -426,10 +435,50 @@
 </script>
 
 {%- comment -%} ========= Inline script: copy buttons, same-address toggle, submit + blocklist + checkout redirect ========= {%- endcomment -%}
+{%- comment -%}
+  Cart snapshot for the attempt ping + the blocklist mailto rescue.
+  Rendered server-side so the JS never has to re-fetch /cart.js.
+  sof_nl captures a literal newline (multi-line string literals inside
+  a liquid block break the parse, per the pattern library).
+{%- endcomment -%}
+{% capture sof_nl %}
+{% endcapture %}
+{%- liquid
+  capture cart_summary_text
+    for item in cart.items
+      echo item.quantity
+      echo 'x '
+      echo item.product.title | replace: 'theINmag - ', ''
+      if item.variant.title != 'Default Title'
+        echo ' ('
+        echo item.variant.title
+        echo ')'
+      endif
+      echo ' - '
+      echo item.final_line_price | money
+      unless forloop.last
+        echo sof_nl
+      endunless
+    endfor
+  endcapture
+  assign cart_total_text = cart.total_price | money_with_currency
+-%}
 <script>
   (function () {
     var form = document.getElementById('theinmag-school-order-form-element');
     if (!form) return;
+
+    /* --- Attempt-ping + rescue constants (added 2026-08-21) ---
+       Every real submit attempt is mirrored to a JotForm log so a
+       school that never completes checkout is still visible to us
+       (JotForm emails heyhey@ on each submission). Fire-and-forget:
+       it must never block or break the checkout path. */
+    var PING_URL = 'https://submit.jotform.com/submit/262316381107047';
+    var PING_FORM_ID = '262316381107047';
+    var RESCUE_EMAIL = 'heyhey@theinmag.com.au';
+    var cartSummaryText = {{ cart_summary_text | default: '(cart empty)' | json }};
+    var cartTotalText = {{ cart_total_text | json }};
+    var blockedPingSent = false;
 
     var blocklist = [];
     try {
@@ -499,7 +548,11 @@
     }
 
     /* --- Error rendering --- */
-    function showErrors(messages) {
+    /* rescueMailtoUrl (optional): when the blocklist stops a submit, we
+       still hand the customer a one-click prefilled email carrying the
+       details they just typed, so "contact heyhey@" produces a real
+       email instead of a dead end. */
+    function showErrors(messages, rescueMailtoUrl) {
       if (!errBox) return;
       errBox.innerHTML = '';
       if (!messages || !messages.length) {
@@ -518,8 +571,88 @@
         ul.appendChild(li);
       });
       errBox.appendChild(ul);
+      if (rescueMailtoUrl) {
+        var rescueWrap = document.createElement('p');
+        rescueWrap.className = 'theinmag-school-order-form__rescue';
+        var rescueLead = document.createElement('span');
+        rescueLead.className = 'theinmag-school-order-form__rescue-lead';
+        rescueLead.textContent = 'Or skip the form. This button opens an email to us with your order details already filled in:';
+        var rescueBtn = document.createElement('a');
+        rescueBtn.className = 'theinmag-btn theinmag-btn--primary theinmag-school-order-form__rescue-btn';
+        rescueBtn.href = rescueMailtoUrl;
+        rescueBtn.textContent = 'Email us your order instead';
+        rescueWrap.appendChild(rescueLead);
+        rescueWrap.appendChild(rescueBtn);
+        errBox.appendChild(rescueWrap);
+      }
       errBox.removeAttribute('hidden');
       errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    /* --- Attempt ping (fire-and-forget, never blocks the flow) --- */
+    function buildBillingLines(data) {
+      var lines = [data.bill_address1 || ''];
+      if (data.bill_address2) lines.push(data.bill_address2);
+      lines.push(((data.bill_city || '') + ' ' + (data.bill_state || '') + ' ' + (data.bill_postcode || '')).trim());
+      return lines.join('\n');
+    }
+
+    function buildDeliveryLines(data) {
+      if (data.same_address) return 'Same as billing';
+      var lines = [data.ship_address1 || ''];
+      if (data.ship_address2) lines.push(data.ship_address2);
+      lines.push(((data.ship_city || '') + ' ' + (data.ship_state || '') + ' ' + (data.ship_postcode || '')).trim());
+      return lines.join('\n');
+    }
+
+    function sendAttemptPing(data, outcome) {
+      try {
+        var body = new URLSearchParams();
+        body.append('formID', PING_FORM_ID);
+        body.append('q2_textbox0', outcome);
+        body.append('q3_textbox1', data.school_name || '');
+        body.append('q4_textbox2', ((data.first_name || '') + ' ' + (data.last_name || '')).trim());
+        body.append('q5_textbox3', data.school_email || '');
+        body.append('q6_textbox4', data.school_phone || '');
+        body.append('q7_textbox5', data.school_po || '');
+        body.append('q8_textarea6', data.school_notes || '');
+        body.append('q9_textarea7', buildBillingLines(data));
+        body.append('q10_textbox8', data.same_address ? 'yes' : 'no');
+        body.append('q11_textarea9', buildDeliveryLines(data));
+        body.append('q12_textarea10', cartSummaryText);
+        body.append('q13_textbox11', cartTotalText);
+        body.append('q14_textbox12', window.location.href);
+        fetch(PING_URL, { method: 'POST', body: body, mode: 'no-cors', keepalive: true }).catch(function () {});
+      } catch (e) { /* logging must never break the order path */ }
+    }
+
+    /* --- Prefilled rescue email for blocklist rejections --- */
+    function buildMailtoUrl(data) {
+      var subject = 'School order from ' + (data.school_name || 'our organisation');
+      var lines = [
+        'Hi theINmag team,',
+        '',
+        'I tried to place a school-style order on your website but my email address is not on a school domain, so I am sending it here instead.',
+        '',
+        'What I would like to order:',
+        cartSummaryText,
+        'Total: ' + cartTotalText,
+        '',
+        'School / organisation: ' + (data.school_name || ''),
+        'Contact: ' + ((data.first_name || '') + ' ' + (data.last_name || '')).trim(),
+        'Email: ' + (data.school_email || ''),
+        'Phone: ' + (data.school_phone || ''),
+        'PO number: ' + (data.school_po || ''),
+        'Billing address:',
+        buildBillingLines(data),
+        'Delivery: ' + buildDeliveryLines(data),
+        'Notes: ' + (data.school_notes || ''),
+        '',
+        'Thanks!'
+      ];
+      return 'mailto:' + RESCUE_EMAIL +
+        '?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(lines.join('\r\n'));
     }
 
     /* --- Validation --- */
@@ -538,7 +671,10 @@
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.school_email)) errors.push('That email address looks off - check the spelling.');
       else {
         var domain = data.school_email.split('@')[1].toLowerCase();
-        if (blocklist.indexOf(domain) !== -1) errors.push(blockedError);
+        if (blocklist.indexOf(domain) !== -1) {
+          errors.push(blockedError);
+          data._blocked_email = true;
+        }
       }
 
       if (!data.bill_address1) errors.push('Please add the school street address.');
@@ -656,11 +792,26 @@
       var data = readForm();
       var errors = validate(data);
       if (errors.length) {
-        showErrors(errors);
+        if (data._blocked_email) {
+          /* Blocklist rejection: hand them a prefilled email AND log the
+             attempt (once per page load) so it is visible to us even if
+             they never send that email. */
+          if (!blockedPingSent) {
+            blockedPingSent = true;
+            sendAttemptPing(data, 'Blocked at form: personal email domain (mailto rescue shown)');
+          }
+          showErrors(errors, buildMailtoUrl(data));
+        } else {
+          showErrors(errors);
+        }
         return;
       }
       showErrors([]);
       setBusy(true);
+
+      /* Log the attempt BEFORE the cart update so it is recorded even if
+         checkout is never completed (the silent-loss hole, 2026-08-21). */
+      sendAttemptPing(data, 'Submitted, sent to checkout');
 
       var attributes = buildAttributes(data);
       var cartNote = data.school_notes ? 'School order: ' + data.school_notes : 'School invoice order';
@@ -1223,6 +1374,26 @@
     padding-left: 18px;
     font-size: 14px;
     line-height: 1.5;
+  }
+
+  /* Blocklist rescue: prefilled mailto CTA inside the errors panel */
+  .theinmag-school-order-form__rescue {
+    margin: 12px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .theinmag-school-order-form__rescue-lead {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .theinmag-school-order-form .theinmag-btn.theinmag-school-order-form__rescue-btn {
+    font-size: 16px;
+    line-height: 1.2;
   }
 
   /* ----- Honeypot ------------------------------------------------- */
