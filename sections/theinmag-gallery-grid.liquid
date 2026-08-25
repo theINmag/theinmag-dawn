@@ -52,6 +52,63 @@
   endif
 -%}
 
+{%- comment -%}
+  AEO / classification, added 2026-08-25 after the weekly pass found this page
+  taking a lot of impressions for almost no clicks, at a position deep enough
+  that nobody was ever going to see it.
+
+  THE DIAGNOSIS: the page declared itself only as a generic WebPage, so Google
+  had no idea what it was, and matched it against random long-tail queries on
+  the strength of the hundreds of first names and town names it contains. Some
+  of those towns are small enough that even a weak match wins. Nothing
+  inappropriate is on the page; the problem was that we never said what it was.
+
+  This repo is PUBLIC, so the actual queries, the traffic figures and the
+  before/after tracking live in the private Webster repo instead, under
+  KNOWLEDGE section 4 GALLERY REFRAME WATCH and passes/2026-08-25.md.
+
+  THE FIX: say plainly what this is. CollectionPage wrapping an ImageGallery,
+  with about/audience/numberOfItems, so Google can classify it instead of guess.
+
+  DELIBERATELY OMITTED: creator names, ages and towns. They are on the page for
+  humans because named attribution is brand-defining, but putting them into
+  structured data would make the exact signal that caused the mismatching
+  machine-readable, and would publish children's details in a harvestable form.
+  Do not "complete" this schema by adding them.
+
+  ALSO DELIBERATELY ABSENT: associatedMedia and numberOfItems. Tried both, both
+  are wrong here. The image_files field is list.file_reference and its entries
+  do NOT resolve to image URLs in Liquid on this page (image_url returns
+  "invalid url input" for the item, its preview_image and its image). And a
+  `for` over shop.metaobjects caps at 50, so any count computed here reports 49
+  when the gallery actually holds well over a thousand. A wrong count is worse
+  than no count. The rendered cards already give Google real images to see.
+{%- endcomment -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "theINmag gallery of kids' art",
+  "url": "{{ shop.url }}{{ page.url }}",
+  "description": "A live gallery of art, writing and photos submitted by Australian kids and published by theINmag. Updated as new submissions come in.",
+  "inLanguage": "en-AU",
+  "isPartOf": { "@type": "WebSite", "name": "theINmag", "url": "{{ shop.url }}" },
+  "about": [
+    { "@type": "Thing", "name": "Children's art" },
+    { "@type": "Thing", "name": "Children's writing" },
+    { "@type": "Thing", "name": "Australian children's creativity" }
+  ],
+  "audience": { "@type": "Audience", "audienceType": "Parents, teachers and children", "geographicArea": { "@type": "Country", "name": "Australia" } },
+  "mainEntity": {
+    "@type": "ImageGallery",
+    "name": "Live submissions gallery",
+    "description": "Art, writing and photography sent in by creative Australian kids. Every piece is moderated before it appears, and credited to the kid who made it.",
+    "isFamilyFriendly": true,
+    "provider": { "@type": "Organization", "name": "theINmag", "url": "{{ shop.url }}" }
+  }
+}
+</script>
+
 <section
   class="theinmag-gallery-grid{% if bg_url != blank %} theinmag-gallery-grid--has-bg{% endif %}"
   data-theinmag-gallery-grid

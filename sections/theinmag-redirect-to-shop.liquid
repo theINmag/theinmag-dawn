@@ -33,7 +33,16 @@
 
 {%- if should_redirect -%}
 <meta http-equiv="refresh" content="0; url={{ destination }}">
-<link rel="canonical" href="{{ destination }}">
+{%- comment -%}
+  NOT a second canonical. layout/theme.liquid already writes Shopify's own
+  self-canonical, and Google's documented behaviour with two canonical tags on
+  one page is to IGNORE BOTH, so the consolidation this was meant to achieve
+  never happened (KNOWLEDGE item 3, root-caused 2026-08-10, fixed 2026-08-25).
+  noindex,follow does the job a canonical could not: the duplicate stops being
+  indexable while links out of it still pass through. Nothing user-facing
+  changes; the meta refresh and the JS redirect still bounce humans to the shop.
+{%- endcomment -%}
+<meta name="robots" content="noindex,follow">
 
 <div class="theinmag-redirect-to-shop" role="status" aria-live="polite">
   <p class="theinmag-redirect-to-shop__body">

@@ -1,0 +1,652 @@
+{%- comment -%}
+  theinmag-seen-in
+  The "Seen IN" page: everywhere theINmag has been covered by someone else.
+  Built 2026-08-25. Standalone design preview lived at
+  ../theinmag-docs/_preview/seen-in/index.html while the design was settled.
+
+  WHY THE ORDER IS FIXED BY BLOCK TYPE, NOT BY DRAG ORDER.
+  The page has a deliberate background rhythm (design system 3.2): photo hero,
+  dark chapter, cream, patterned field, cream. Free block ordering would let a
+  future edit put two saturated sections side by side, which is on the
+  anti-pattern list. So blocks render grouped by type, always in this order:
+    hero (section settings) -> audio_feature -> clipping -> episode -> feature
+  Reordering WITHIN a type works by dragging. That protects the rhythm while
+  still letting admin add entries with no code change, which is the whole point.
+
+  HEADINGS ARE OURS, CITATIONS ARE THEIRS (settled with Ryan 2026-08-25).
+  A card heading is furniture we built, so it uses our voice and our brand
+  casing. A quote or a cited article title is evidence, so it stays exactly as
+  the publisher wrote it, including their spelling of our name. That is why the
+  Guardian block quotes "INmag" and the Banabae block cites "The Dreamers x The
+  In Mag" unaltered.
+
+  NO RESELLERS. Never add a block for anyone who takes a cut of a mag sale
+  (Zinio, DiscountMags and the like). Press, interviews and editorial only.
+  Directories that merely list us are fine. See the memory note
+  feedback_no_resellers_on_owned_surfaces.
+
+  AUDIO. The audio_feature block hosts our own file, so it needs a Shopify Files
+  URL in audio_url. Only use it for audio we are cleared to publish. The ABC
+  cleared theirs for any use (Ryan, 2026-08-25); the three podcasts are their
+  hosts' copyright and are linked out to, never hosted.
+{%- endcomment -%}
+
+{%- liquid
+  assign audio_blocks = section.blocks | where: 'type', 'audio_feature'
+  assign clip_blocks  = section.blocks | where: 'type', 'clipping'
+  assign ep_blocks    = section.blocks | where: 'type', 'episode'
+  assign feat_blocks  = section.blocks | where: 'type', 'feature'
+  assign listen_op = section.settings.listen_bg_opacity | divided_by: 100.0
+-%}
+
+{%- comment -%} ---------- AEO: CollectionPage + ItemList + subjectOf ---------- {%- endcomment -%}
+{%- capture seen_in_items -%}
+  {%- assign idx = 0 -%}
+  {%- for b in audio_blocks -%}
+    {%- assign idx = idx | plus: 1 -%}
+    {"@type":"ListItem","position":{{ idx }},"item":{
+      "@type":"AudioObject",
+      "name":{{ b.settings.heading | strip_html | json }},
+      "description":{{ b.settings.standfirst | strip_html | json }}
+      {%- if b.settings.publisher != blank -%},"publisher":{"@type":"Organization","name":{{ b.settings.publisher | json }}}{%- endif -%}
+      {%- if b.settings.date_iso != blank -%},"uploadDate":{{ b.settings.date_iso | json }}{%- endif -%}
+      {%- if b.settings.audio_url != blank -%},"contentUrl":{{ b.settings.audio_url | json }}{%- endif -%}
+      {%- if b.settings.duration_iso != blank -%},"duration":{{ b.settings.duration_iso | json }}{%- endif -%}
+      {%- if b.settings.transcript != blank -%},"transcript":{{ b.settings.transcript | strip_html | strip_newlines | json }}{%- endif -%}
+      ,"about":{"@id":"{{ shop.url }}/#organization"}
+    }}{%- unless forloop.last and clip_blocks.size == 0 and ep_blocks.size == 0 and feat_blocks.size == 0 -%},{%- endunless -%}
+  {%- endfor -%}
+  {%- for b in clip_blocks -%}
+    {%- assign idx = idx | plus: 1 -%}
+    {"@type":"ListItem","position":{{ idx }},"item":{
+      "@type":"NewsArticle",
+      "headline":{{ b.settings.source_title | strip_html | json }},
+      "url":{{ b.settings.link | json }}
+      {%- if b.settings.publisher != blank -%},"publisher":{"@type":"Organization","name":{{ b.settings.publisher | json }}}{%- endif -%}
+      {%- if b.settings.date_iso != blank -%},"datePublished":{{ b.settings.date_iso | json }}{%- endif -%}
+      ,"about":{"@id":"{{ shop.url }}/#organization"}
+    }}{%- unless forloop.last and ep_blocks.size == 0 and feat_blocks.size == 0 -%},{%- endunless -%}
+  {%- endfor -%}
+  {%- for b in ep_blocks -%}
+    {%- assign idx = idx | plus: 1 -%}
+    {"@type":"ListItem","position":{{ idx }},"item":{
+      "@type":"PodcastEpisode",
+      "name":{{ b.settings.heading | strip_html | json }},
+      "url":{{ b.settings.spotify_url | default: b.settings.apple_url | json }}
+      {%- if b.settings.publisher != blank -%},"partOfSeries":{"@type":"PodcastSeries","name":{{ b.settings.publisher | json }}}{%- endif -%}
+      {%- if b.settings.date_iso != blank -%},"datePublished":{{ b.settings.date_iso | json }}{%- endif -%}
+      {%- if b.settings.duration_iso != blank -%},"timeRequired":{{ b.settings.duration_iso | json }}{%- endif -%}
+      ,"about":{"@id":"{{ shop.url }}/#organization"}
+    }}{%- unless forloop.last and feat_blocks.size == 0 -%},{%- endunless -%}
+  {%- endfor -%}
+  {%- for b in feat_blocks -%}
+    {%- assign idx = idx | plus: 1 -%}
+    {"@type":"ListItem","position":{{ idx }},"item":{
+      "@type":"Article",
+      "headline":{{ b.settings.source_title | strip_html | json }},
+      "url":{{ b.settings.link | json }}
+      {%- if b.settings.publisher != blank -%},"publisher":{"@type":"Organization","name":{{ b.settings.publisher | json }}}{%- endif -%}
+      {%- if b.settings.date_iso != blank -%},"datePublished":{{ b.settings.date_iso | json }}{%- endif -%}
+      ,"about":{"@id":"{{ shop.url }}/#organization"}
+    }}{%- unless forloop.last -%},{%- endunless -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": {{ page.title | default: 'Seen IN' | json }},
+  "url": "{{ shop.url }}{{ page.url }}",
+  "description": {{ section.settings.hero_text | strip_html | json }},
+  "about": { "@id": "{{ shop.url }}/#organization" },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": {{ section.blocks.size }},
+    "itemListElement": [{{ seen_in_items }}]
+  }
+}
+</script>
+
+{%- comment -%}
+  subjectOf tells Google and the answer engines that these works are ABOUT us.
+  This is the correct vocabulary for press coverage. sameAs is for our own
+  profiles and must NOT be used here.
+{%- endcomment -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "{{ shop.url }}/#organization",
+  "name": "theINmag",
+  "url": "{{ shop.url }}",
+  "subjectOf": [
+    {%- assign links = '' -%}
+    {%- for b in section.blocks -%}
+      {%- assign blink = b.settings.link | default: b.settings.spotify_url | default: b.settings.apple_url -%}
+      {%- if blink != blank -%}{%- assign links = links | append: blink | append: '|' -%}{%- endif -%}
+    {%- endfor -%}
+    {%- assign linklist = links | split: '|' -%}
+    {%- for l in linklist -%}
+      { "@type": "CreativeWork", "url": {{ l | json }} }{%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+  ]
+}
+</script>
+
+{%- comment -%} ---------------------------- HERO ---------------------------- {%- endcomment -%}
+<section class="theinmag-seenin-hero">
+  <div class="theinmag-seenin-hero__media">
+    {%- if section.settings.hero_image != blank -%}
+      {{ section.settings.hero_image | image_url: width: 2200 | image_tag:
+         alt: section.settings.hero_image_alt,
+         widths: '600,900,1200,1600,2200',
+         sizes: '100vw',
+         fetchpriority: 'high',
+         loading: 'eager' }}
+    {%- endif -%}
+  </div>
+  <span class="theinmag-seenin-hero__scrim" aria-hidden="true"></span>
+  <div class="theinmag-seenin-hero__inner">
+    <h1>{{ section.settings.hero_heading | replace: 'IN', '<span class="theinmag-in">IN</span>' }}</h1>
+    {%- if section.settings.hero_text != blank -%}
+      <p>{{ section.settings.hero_text }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- comment -%} ------------------------ AUDIO FEATURES ---------------------- {%- endcomment -%}
+{%- for block in audio_blocks -%}
+<section class="theinmag-seenin-audio" {{ block.shopify_attributes }}>
+  <div class="theinmag-seenin__wrap">
+    <div class="theinmag-seenin-audio__top">
+      {%- if block.settings.logo != blank -%}
+        <span class="theinmag-seenin-audio__logo">
+          {{ block.settings.logo | image_url: width: 260 | image_tag: alt: block.settings.publisher, loading: 'lazy' }}
+        </span>
+      {%- endif -%}
+      {%- if block.settings.meta != blank -%}
+        <span class="theinmag-seenin-audio__meta">{{ block.settings.meta }}</span>
+      {%- endif -%}
+    </div>
+
+    <div class="theinmag-seenin-audio__grid">
+      <div>
+        <h2 class="theinmag-seenin__a11y">{{ block.settings.heading }}</h2>
+        {%- if block.settings.pull_quote != blank -%}
+          <p class="theinmag-seenin-audio__quote">{{ block.settings.pull_quote }}</p>
+        {%- endif -%}
+        {%- if block.settings.standfirst != blank -%}
+          <p class="theinmag-seenin-audio__attr">{{ block.settings.standfirst }}</p>
+        {%- endif -%}
+
+        {%- if block.settings.audio_url != blank -%}
+        <div class="theinmag-seenin-player">
+          <audio controls preload="none" src="{{ block.settings.audio_url }}"></audio>
+          <div class="theinmag-seenin-player__row">
+            {%- if block.settings.duration_label != blank -%}
+              <span class="theinmag-seenin-player__dur">{{ block.settings.duration_label }}</span>
+            {%- endif -%}
+            {%- if block.settings.allow_download -%}
+              <a class="theinmag-seenin-player__dl" href="{{ block.settings.audio_url }}" download>
+                {{ block.settings.download_label | default: 'Download the audio' }}
+              </a>
+            {%- endif -%}
+          </div>
+        </div>
+        {%- endif -%}
+
+        {%- if block.settings.transcript != blank -%}
+        <details class="theinmag-seenin-tx">
+          <summary>{{ block.settings.transcript_label | default: 'Read the full transcript' }}</summary>
+          <div class="theinmag-seenin-tx__body">{{ block.settings.transcript }}</div>
+        </details>
+        {%- endif -%}
+      </div>
+
+      <div>
+        {%- if block.settings.image != blank -%}
+        <figure class="theinmag-seenin-audio__figure">
+          {{ block.settings.image | image_url: width: 1200 | image_tag:
+             alt: block.settings.image_alt, widths: '400,600,900,1200',
+             sizes: '(min-width: 900px) 32vw, 92vw', loading: 'lazy' }}
+          {%- if block.settings.image_caption != blank -%}
+            <figcaption>{{ block.settings.image_caption }}</figcaption>
+          {%- endif -%}
+        </figure>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+{%- endfor -%}
+
+{%- comment -%} -------------------------- CLIPPINGS ------------------------- {%- endcomment -%}
+{%- if clip_blocks.size > 0 -%}
+<section class="theinmag-seenin-clips">
+  <div class="theinmag-seenin__wrap">
+    {%- for block in clip_blocks -%}
+    <article class="theinmag-seenin-clip" {{ block.shopify_attributes }}>
+      <div class="theinmag-seenin-clip__body">
+        {%- if block.settings.logo != blank -%}
+          {{ block.settings.logo | image_url: width: 320 | image_tag:
+             class: 'theinmag-seenin-clip__logo', alt: block.settings.publisher, loading: 'lazy' }}
+        {%- endif -%}
+        {%- if block.settings.kicker != blank -%}
+          <p class="theinmag-seenin-clip__kicker">{{ block.settings.kicker }}</p>
+        {%- endif -%}
+        <h2 class="theinmag-seenin-clip__head">{{ block.settings.heading }}</h2>
+        {%- if block.settings.body != blank -%}
+          <div class="theinmag-seenin-clip__ctx">{{ block.settings.body }}</div>
+        {%- endif -%}
+        {%- if block.settings.link != blank -%}
+          <a class="theinmag-seenin-btn theinmag-seenin-btn--ghost" href="{{ block.settings.link }}"
+             target="_blank" rel="noopener">{{ block.settings.cta_label | default: 'Read it' }} &rarr;</a>
+        {%- endif -%}
+        {%- if block.settings.byline != blank -%}
+          <span class="theinmag-seenin-clip__rule" aria-hidden="true"></span>
+          <p class="theinmag-seenin-clip__byline">{{ block.settings.byline }}</p>
+        {%- endif -%}
+      </div>
+      {%- if block.settings.image != blank -%}
+      <div class="theinmag-seenin-clip__art">
+        {{ block.settings.image | image_url: width: 1000 | image_tag:
+           alt: block.settings.image_alt, widths: '400,600,800,1000',
+           sizes: '(min-width: 840px) 40vw, 100vw', loading: 'lazy' }}
+      </div>
+      {%- endif -%}
+    </article>
+    {%- endfor -%}
+  </div>
+</section>
+{%- endif -%}
+
+{%- comment -%} --------------------------- LISTEN --------------------------- {%- endcomment -%}
+{%- if ep_blocks.size > 0 -%}
+<section class="theinmag-seenin-listen"
+  style="--seenin-listen-field: {{ section.settings.listen_field_colour }};">
+  {%- if section.settings.listen_bg != blank -%}
+    <span class="theinmag-seenin-listen__bg" aria-hidden="true"
+      style="background-image:url('{{ section.settings.listen_bg | image_url: width: 1600 }}');opacity:{{ listen_op }};"></span>
+  {%- endif -%}
+  <div class="theinmag-seenin__wrap">
+    {%- if section.settings.listen_heading != blank -%}
+      <h2 class="theinmag-seenin-listen__head">{{ section.settings.listen_heading }}</h2>
+    {%- endif -%}
+    <div class="theinmag-seenin-eps">
+      {%- for block in ep_blocks -%}
+      <article class="theinmag-seenin-ep" style="--seenin-accent: {{ block.settings.accent }};" {{ block.shopify_attributes }}>
+        <div>
+          {%- if block.settings.logo != blank -%}
+            {{ block.settings.logo | image_url: width: 260 | image_tag:
+               class: 'theinmag-seenin-ep__logo', alt: block.settings.publisher, loading: 'lazy' }}
+          {%- endif -%}
+          <h3>{{ block.settings.heading }}</h3>
+          {%- if block.settings.meta != blank -%}
+            <p class="theinmag-seenin-ep__meta">{{ block.settings.meta }}</p>
+          {%- endif -%}
+          {%- if block.settings.body != blank -%}
+            <p>{{ block.settings.body }}</p>
+          {%- endif -%}
+        </div>
+        <div>
+          <div class="theinmag-seenin-ep__audio">
+            {%- assign play_href = block.settings.spotify_url | default: block.settings.apple_url -%}
+            {%- if play_href != blank -%}
+            <a class="theinmag-seenin-stamp" href="{{ play_href }}" target="_blank" rel="noopener"
+               aria-label="Listen to {{ block.settings.heading | escape }}{% if block.settings.duration_label != blank %}, {{ block.settings.duration_label }}{% endif %}">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z"/></svg>
+            </a>
+            {%- endif -%}
+            <div class="theinmag-seenin-wave" aria-hidden="true">
+              {%- comment -%} 48 bars, heights fixed so the shape is stable across renders {%- endcomment -%}
+              {%- assign heights = '38,62,44,80,55,71,49,88,60,74,41,66,52,84,58,77,45,69,90,63,50,81,56,72,43,86,59,68,47,79,54,64,40,75,61,83,48,70,57,87,42,65,53,78,46,73,51,82' | split: ',' -%}
+              {%- for hgt in heights -%}<span style="height:{{ hgt }}%"></span>{%- endfor -%}
+            </div>
+          </div>
+          <div class="theinmag-seenin-ep__under">
+            {%- if block.settings.duration_label != blank -%}
+              <span class="theinmag-seenin-ep__dur">{{ block.settings.duration_label }}</span>
+            {%- endif -%}
+            {%- if block.settings.apple_url != blank and block.settings.spotify_url != blank -%}
+              <a class="theinmag-seenin-alt" href="{{ block.settings.apple_url }}" target="_blank" rel="noopener">
+                {{ block.settings.alt_label | default: 'Or listen on Apple Podcasts' }}</a>
+            {%- endif -%}
+          </div>
+        </div>
+      </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+{%- endif -%}
+
+{%- comment -%} -------------------------- FEATURES -------------------------- {%- endcomment -%}
+{%- if feat_blocks.size > 0 -%}
+<section class="theinmag-seenin-featured">
+  <div class="theinmag-seenin__wrap">
+    <div class="theinmag-seenin-stack">
+      {%- for block in feat_blocks -%}
+      <article class="theinmag-seenin-feature{% cycle '', ' theinmag-seenin-feature--flip' %}"
+        style="--seenin-brand: {{ block.settings.brand }}; --seenin-panel: {{ block.settings.panel }};"
+        {{ block.shopify_attributes }}>
+        <div class="theinmag-seenin-feature__media">
+          {%- if block.settings.image != blank -%}
+            {{ block.settings.image | image_url: width: 1400 | image_tag:
+               alt: block.settings.image_alt, widths: '500,700,1000,1400',
+               sizes: '(min-width: 860px) 50vw, 100vw', loading: 'lazy' }}
+          {%- endif -%}
+        </div>
+        <div class="theinmag-seenin-feature__panel">
+          {%- if block.settings.logo != blank -%}
+            {{ block.settings.logo | image_url: width: 400 | image_tag:
+               class: 'theinmag-seenin-feature__logo', alt: block.settings.publisher, loading: 'lazy' }}
+          {%- endif -%}
+          {%- if block.settings.meta != blank -%}
+            <p class="theinmag-seenin-feature__meta">{{ block.settings.meta }}</p>
+          {%- endif -%}
+          {%- if block.settings.quote != blank -%}
+            <p class="theinmag-seenin-feature__quote">{{ block.settings.quote }}</p>
+          {%- endif -%}
+          {%- if block.settings.link != blank -%}
+            <a class="theinmag-seenin-feature__cta" href="{{ block.settings.link }}" target="_blank" rel="noopener">
+              {{ block.settings.cta_label | default: 'Read it' }} &rarr;</a>
+          {%- endif -%}
+        </div>
+      </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+{%- endif -%}
+
+{%- stylesheet -%}
+  .theinmag-seenin__wrap{max-width:1120px;margin:0 auto;padding:0 clamp(20px,5vw,48px)}
+  .theinmag-seenin__a11y{position:absolute;width:1px;height:1px;overflow:hidden;
+    clip:rect(0 0 0 0);white-space:nowrap}
+
+  .theinmag-seenin-btn{display:inline-flex;align-items:center;gap:9px;min-height:44px;
+    background:var(--color-yellow);color:var(--color-inky-purple-navy);text-decoration:none;
+    font-weight:600;font-size:16px;padding:13px 24px;border-radius:var(--radius-button);
+    box-shadow:0 3px 0 var(--color-yellow-shadow);transition:transform .12s}
+  .theinmag-seenin-btn:hover{transform:translateY(-1px)}
+  .theinmag-seenin-btn--ghost{background:transparent;box-shadow:none;
+    border:2px solid var(--color-inky-purple-navy)}
+
+  /* ---------------- hero: photo owns the height, text bottom-left ---------------- */
+  .theinmag-seenin-hero{position:relative;padding:0;min-height:clamp(420px,62vh,640px);
+    display:flex;isolation:isolate}
+  .theinmag-seenin-hero__media{position:absolute;inset:0;overflow:hidden}
+  .theinmag-seenin-hero__media img{width:100%;height:100%;object-fit:cover;object-position:58% 45%}
+  .theinmag-seenin-hero__media::after{content:"";position:absolute;inset:0;background:rgba(42,31,61,.20)}
+  .theinmag-seenin-hero__scrim{display:block;position:absolute;inset:0;background:linear-gradient(135deg,
+    rgba(42,31,61,.72) 0%,rgba(42,31,61,.42) 45%,rgba(42,31,61,0) 80%)}
+  .theinmag-seenin-hero__inner{position:relative;z-index:2;align-self:flex-end;width:100%;
+    max-width:1120px;margin:0 auto;
+    padding:clamp(28px,5vw,64px) clamp(20px,5vw,48px) clamp(32px,5vw,56px)}
+  .theinmag-seenin-hero h1{color:#fff;font-size:clamp(38px,6vw,64px);line-height:1.05;
+    max-width:18ch;margin:0;font-synthesis:none;
+    text-shadow:0 1px 2px rgba(0,0,0,.65),0 2px 8px rgba(0,0,0,.45),0 4px 24px rgba(0,0,0,.30)}
+  .theinmag-seenin-hero p{color:#fff;font-weight:600;font-size:clamp(16px,1.8vw,19px);
+    line-height:1.5;max-width:44ch;margin:16px 0 0;
+    text-shadow:0 1px 2px rgba(0,0,0,.6),0 2px 10px rgba(0,0,0,.4)}
+
+  /* ---------------- audio feature ---------------- */
+  .theinmag-seenin-audio{background:var(--color-inky-purple-navy);color:var(--color-cream);
+    padding:clamp(48px,7vw,96px) 0;position:relative;overflow:hidden}
+  .theinmag-seenin-audio::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(115% 85% at 12% 0%,rgba(201,181,219,.28),transparent 62%)}
+  .theinmag-seenin-audio .theinmag-seenin__wrap{position:relative}
+  .theinmag-seenin-audio__top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:26px}
+  .theinmag-seenin-audio__logo{background:var(--color-cream);border-radius:var(--radius-md);padding:10px 14px}
+  .theinmag-seenin-audio__logo img{height:26px;width:auto;display:block}
+  .theinmag-seenin-audio__meta{font-weight:600;font-size:13.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:rgba(251,246,234,.7)}
+  .theinmag-seenin-audio__grid{display:grid;gap:clamp(28px,4vw,56px);grid-template-columns:1fr;align-items:start}
+  .theinmag-seenin-audio__quote{font-family:var(--font-heading);font-synthesis:none;
+    font-size:clamp(27px,4.4vw,48px);line-height:1.1;margin:0 0 22px}
+  .theinmag-seenin-audio__quote em{font-style:normal;color:var(--color-yellow)}
+  .theinmag-seenin-audio__attr{font-size:17px;color:rgba(251,246,234,.82);margin:0 0 30px;max-width:52ch}
+  .theinmag-seenin-audio__figure{margin:0}
+  .theinmag-seenin-audio__figure img{width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;object-position:center 30%}
+  .theinmag-seenin-audio__figure figcaption{font-size:14.5px;line-height:1.55;
+    color:rgba(251,246,234,.66);padding-top:14px}
+  .theinmag-seenin-player{background:rgba(251,246,234,.07);border:1px solid rgba(251,246,234,.2);
+    border-radius:var(--radius-lg);padding:20px;max-width:560px}
+  .theinmag-seenin-player audio{width:100%;height:38px}
+  .theinmag-seenin-player__row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .theinmag-seenin-player__dur{font-size:14px;color:rgba(251,246,234,.66)}
+  .theinmag-seenin-player__dl{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;
+    font-size:15px;color:var(--color-cream);text-decoration:underline;text-underline-offset:3px}
+  .theinmag-seenin-tx{margin-top:28px;max-width:820px}
+  .theinmag-seenin-tx summary{cursor:pointer;display:inline-flex;align-items:center;gap:10px;
+    background:var(--color-yellow);color:var(--color-inky-purple-navy);font-weight:600;font-size:16px;
+    padding:13px 24px;border-radius:var(--radius-button);
+    box-shadow:0 3px 0 var(--color-yellow-shadow);list-style:none}
+  .theinmag-seenin-tx summary::-webkit-details-marker{display:none}
+  .theinmag-seenin-tx summary::after{content:"+";font-size:19px;line-height:1}
+  .theinmag-seenin-tx[open] summary::after{content:"\2212"}
+  .theinmag-seenin-tx__body{margin-top:20px;background:rgba(251,246,234,.06);
+    border-radius:var(--radius-lg);padding:24px;max-height:420px;overflow:auto;
+    font-size:16px;line-height:1.72}
+  .theinmag-seenin-tx__body p{margin:0 0 15px}
+  .theinmag-seenin-tx__body strong{color:var(--color-yellow)}
+
+  /* ---------------- clipping ---------------- */
+  .theinmag-seenin-clips{background:var(--color-cream);padding:clamp(48px,7vw,96px) 0}
+  .theinmag-seenin-clip{background:#fff;border-radius:var(--radius-xl);
+    box-shadow:0 12px 36px rgba(42,31,61,.22);max-width:1000px;margin:0 auto;overflow:hidden;
+    display:grid;grid-template-columns:1fr;border-top:8px solid var(--color-inky-purple-navy)}
+  .theinmag-seenin-clip + .theinmag-seenin-clip{margin-top:clamp(24px,3.4vw,40px)}
+  .theinmag-seenin-clip__body{padding:clamp(28px,4vw,48px)}
+  .theinmag-seenin-clip__logo{height:36px;width:auto;margin-bottom:10px}
+  .theinmag-seenin-clip__kicker{font-weight:600;font-size:13px;letter-spacing:.06em;
+    text-transform:uppercase;color:rgba(42,31,61,.55);margin:0 0 20px;line-height:1.5}
+  .theinmag-seenin-clip__head{margin:0 0 20px;font-synthesis:none;
+    font-size:clamp(24px,3.2vw,38px);line-height:1.14}
+  .theinmag-seenin-clip__ctx{font-size:17px;color:rgba(42,31,61,.82);margin:0 0 26px}
+  .theinmag-seenin-clip__ctx p{margin:0 0 12px}
+  .theinmag-seenin-clip__rule{display:block;height:1px;background:rgba(42,31,61,.12);margin:24px 0}
+  .theinmag-seenin-clip__byline{font-size:14px;color:rgba(42,31,61,.58);margin:0}
+  .theinmag-seenin-clip__art{position:relative;min-height:260px;background:var(--color-lavender)}
+  .theinmag-seenin-clip__art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+  /* ---------------- listen ---------------- */
+  .theinmag-seenin-listen{background:var(--seenin-listen-field,#77998B);
+    padding:clamp(48px,7vw,96px) 0;position:relative;overflow:hidden}
+  .theinmag-seenin-listen__bg{display:block;position:absolute;inset:0;pointer-events:none;
+    background-repeat:repeat;background-position:center;background-size:clamp(420px,46vw,760px) auto}
+  .theinmag-seenin-listen .theinmag-seenin__wrap{position:relative}
+  .theinmag-seenin-listen__head{margin:0 0 38px;text-align:center;color:#fff;font-synthesis:none;
+    text-shadow:0 1px 2px rgba(28,44,36,.55),0 2px 12px rgba(28,44,36,.45),
+                0 6px 32px rgba(28,44,36,.35),0 0 46px rgba(255,255,255,.28)}
+  .theinmag-seenin-eps{display:flex;flex-direction:column;gap:20px}
+  .theinmag-seenin-ep{background:#fff;border-radius:var(--radius-xl);
+    box-shadow:0 4px 14px rgba(42,31,61,.10);padding:clamp(22px,3vw,32px);
+    display:grid;gap:clamp(18px,2.5vw,36px);grid-template-columns:1fr;align-items:center}
+  .theinmag-seenin-ep__logo{height:38px;width:auto;object-fit:contain;
+    object-position:left center;margin-bottom:14px}
+  .theinmag-seenin-ep h3{font-size:clamp(20px,2.4vw,25px);margin:0 0 8px}
+  .theinmag-seenin-ep__meta{font-size:14.5px;color:rgba(42,31,61,.6);margin:0 0 18px;line-height:1.45}
+  .theinmag-seenin-ep p{font-size:16.5px;line-height:1.6;margin:0;color:rgba(42,31,61,.85)}
+  .theinmag-seenin-ep__audio{display:flex;align-items:center;gap:clamp(14px,2vw,22px)}
+  .theinmag-seenin-stamp{flex:none;width:64px;height:64px;border-radius:var(--radius-pill);
+    background:var(--color-yellow);box-shadow:0 4px 0 var(--color-yellow-shadow);
+    display:grid;place-items:center;text-decoration:none;transition:transform .14s}
+  .theinmag-seenin-stamp:hover,.theinmag-seenin-stamp:focus-visible{transform:translateY(-2px)}
+  .theinmag-seenin-stamp svg{width:22px;height:22px;margin-left:3px;fill:var(--color-inky-purple-navy)}
+  .theinmag-seenin-wave{flex:1;display:flex;align-items:center;gap:2px;height:60px;min-width:0}
+  .theinmag-seenin-wave span{flex:1;min-width:2px;border-radius:2px;
+    background:var(--seenin-accent,#5D3A7A);opacity:.30}
+  .theinmag-seenin-wave span:nth-child(-n+16){opacity:.62}
+  .theinmag-seenin-ep__under{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px}
+  .theinmag-seenin-ep__dur{font-size:14px;color:rgba(42,31,61,.6)}
+  .theinmag-seenin-alt{display:inline-flex;align-items:center;min-height:44px;font-size:14.5px;
+    color:rgba(42,31,61,.72);text-decoration:underline;text-underline-offset:3px}
+
+  /* ---------------- featured ---------------- */
+  .theinmag-seenin-featured{background:var(--color-cream);padding:clamp(48px,7vw,96px) 0}
+  .theinmag-seenin-stack{display:flex;flex-direction:column;gap:clamp(24px,3.4vw,40px)}
+  .theinmag-seenin-feature{display:grid;grid-template-columns:1fr;align-items:stretch;
+    border-radius:var(--radius-xl);overflow:hidden;box-shadow:0 4px 14px rgba(42,31,61,.10)}
+  .theinmag-seenin-feature__media{position:relative;min-height:clamp(230px,46vw,300px);
+    background:var(--seenin-panel,#F5F6F1)}
+  .theinmag-seenin-feature__media img{position:absolute;inset:0;width:100%;height:100%;
+    object-fit:cover;object-position:58% center}
+  .theinmag-seenin-feature__panel{background:var(--seenin-panel,#F5F6F1);display:flex;
+    flex-direction:column;justify-content:center;padding:clamp(28px,4vw,48px);position:relative}
+  .theinmag-seenin-feature__panel::before{content:"";position:absolute;left:0;right:0;top:0;
+    height:5px;background:var(--seenin-brand,#7D542D)}
+  .theinmag-seenin-feature__logo{height:clamp(30px,3.6vw,44px);width:auto;object-fit:contain;
+    object-position:left center;margin-bottom:16px}
+  .theinmag-seenin-feature__meta{font-weight:600;font-size:12.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--seenin-brand,#7D542D);margin:0 0 14px;line-height:1.5}
+  .theinmag-seenin-feature__quote{margin:0 0 22px;font-size:clamp(17px,1.9vw,21px);
+    line-height:1.45;color:rgba(30,26,22,.9);max-width:34ch}
+  .theinmag-seenin-feature__cta{align-self:flex-start;display:inline-flex;align-items:center;gap:9px;
+    min-height:44px;padding:12px 24px;border-radius:var(--radius-button);text-decoration:none;
+    font-weight:600;font-size:15.5px;background:var(--seenin-brand,#7D542D);color:#fff;
+    transition:transform .12s}
+  .theinmag-seenin-feature__cta:hover{transform:translateY(-1px)}
+
+  @media (min-width: 840px){
+    .theinmag-seenin-clip{grid-template-columns:1.15fr .85fr}
+  }
+  @media (min-width: 860px){
+    .theinmag-seenin-feature{grid-template-columns:1fr 1fr;min-height:clamp(340px,34vw,430px)}
+    .theinmag-seenin-feature__panel::before{left:0;right:auto;top:0;bottom:0;width:5px;height:auto}
+    .theinmag-seenin-feature--flip .theinmag-seenin-feature__media{order:2}
+    .theinmag-seenin-feature--flip .theinmag-seenin-feature__panel{order:1}
+    .theinmag-seenin-feature--flip .theinmag-seenin-feature__panel::before{left:auto;right:0}
+  }
+  @media (min-width: 900px){
+    .theinmag-seenin-audio__grid{grid-template-columns:1.3fr .7fr}
+    .theinmag-seenin-ep{grid-template-columns:1fr 1.05fr}
+  }
+  @media (max-width: 899px){
+    .theinmag-seenin-audio__figure img{height:auto;aspect-ratio:4/5;object-position:center 22%}
+    .theinmag-seenin-wave{height:48px}
+    .theinmag-seenin-stamp{width:56px;height:56px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .theinmag-seenin-btn,.theinmag-seenin-stamp,.theinmag-seenin-feature__cta{transition:none}
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag Seen IN",
+  "tag": "div",
+  "class": "theinmag-seenin-section",
+  "settings": [
+    { "type": "header", "content": "Hero" },
+    { "type": "text", "id": "hero_heading", "label": "Heading", "default": "Seen IN",
+      "info": "Any 'IN' is auto-wrapped in the brand IN styling." },
+    { "type": "textarea", "id": "hero_text", "label": "Standfirst",
+      "default": "Radio, podcasts, the paper. People whose job is noticing good things for kids keep noticing the mag. Their words, not ours." },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero photo" },
+    { "type": "text", "id": "hero_image_alt", "label": "Hero photo alt text" },
+
+    { "type": "header", "content": "Listen section",
+      "info": "Only renders when at least one Podcast episode block exists." },
+    { "type": "text", "id": "listen_heading", "label": "Heading", "default": "Have a listen" },
+    { "type": "image_picker", "id": "listen_bg", "label": "Background pattern" },
+    { "type": "range", "id": "listen_bg_opacity", "label": "Pattern opacity", "min": 10, "max": 70,
+      "step": 2, "unit": "%", "default": 34,
+      "info": "30 to 40 for a watermark behind cards. 50 to 60 only if the pattern is the point." },
+    { "type": "color", "id": "listen_field_colour", "label": "Section colour", "default": "#77998B",
+      "info": "Match this to the ground colour of the pattern image, or the two fight each other." }
+  ],
+  "blocks": [
+    {
+      "type": "audio_feature",
+      "name": "Audio feature",
+      "limit": 3,
+      "settings": [
+        { "type": "paragraph", "content": "Only for audio we are cleared to publish. Never host a podcast we do not own." },
+        { "type": "text", "id": "publisher", "label": "Publication", "default": "ABC" },
+        { "type": "image_picker", "id": "logo", "label": "Publication logo" },
+        { "type": "text", "id": "meta", "label": "Meta line", "default": "Radio interview - 22 October 2025 - 10 min" },
+        { "type": "text", "id": "heading", "label": "Hidden heading (for search and screen readers)", "default": "theINmag on ABC radio" },
+        { "type": "textarea", "id": "pull_quote", "label": "Pull quote",
+          "info": "Wrap the payoff in <em> tags to highlight it in yellow." },
+        { "type": "textarea", "id": "standfirst", "label": "Standfirst" },
+        { "type": "url", "id": "audio_url", "label": "Audio file URL", "info": "Upload the mp3 under Content, Files, then paste its URL." },
+        { "type": "text", "id": "duration_label", "label": "Duration shown", "default": "10:34" },
+        { "type": "text", "id": "duration_iso", "label": "Duration for schema", "default": "PT10M34S" },
+        { "type": "text", "id": "date_iso", "label": "Date for schema", "default": "2025-10-22" },
+        { "type": "checkbox", "id": "allow_download", "label": "Offer a download link", "default": true },
+        { "type": "text", "id": "download_label", "label": "Download label", "default": "Download the audio" },
+        { "type": "text", "id": "transcript_label", "label": "Transcript button label", "default": "Read the full transcript" },
+        { "type": "richtext", "id": "transcript", "label": "Transcript",
+          "info": "Visible in an accordion. Never hide a transcript with CSS, Google treats hidden text as spam." },
+        { "type": "image_picker", "id": "image", "label": "Side photo" },
+        { "type": "text", "id": "image_alt", "label": "Side photo alt text" },
+        { "type": "text", "id": "image_caption", "label": "Side photo caption" }
+      ]
+    },
+    {
+      "type": "clipping",
+      "name": "Press clipping",
+      "limit": 6,
+      "settings": [
+        { "type": "text", "id": "publisher", "label": "Publication", "default": "The Guardian" },
+        { "type": "image_picker", "id": "logo", "label": "Publication logo" },
+        { "type": "textarea", "id": "kicker", "label": "Kicker",
+          "info": "Use a line break to drop the date to its own line." },
+        { "type": "text", "id": "heading", "label": "Heading (our voice)" },
+        { "type": "text", "id": "source_title", "label": "Their article title (for schema)" },
+        { "type": "richtext", "id": "body", "label": "Body",
+          "info": "Quote their wording verbatim, including their spelling of our name." },
+        { "type": "url", "id": "link", "label": "Link to the article" },
+        { "type": "text", "id": "cta_label", "label": "Button label", "default": "Read it on the Guardian" },
+        { "type": "text", "id": "byline", "label": "Byline" },
+        { "type": "text", "id": "date_iso", "label": "Date for schema" },
+        { "type": "image_picker", "id": "image", "label": "Side image" },
+        { "type": "text", "id": "image_alt", "label": "Side image alt text" }
+      ]
+    },
+    {
+      "type": "episode",
+      "name": "Podcast episode",
+      "limit": 12,
+      "settings": [
+        { "type": "text", "id": "publisher", "label": "Show name" },
+        { "type": "image_picker", "id": "logo", "label": "Show logo" },
+        { "type": "text", "id": "heading", "label": "Heading (our voice, not their episode slug)" },
+        { "type": "text", "id": "meta", "label": "Meta line", "info": "Show, host, episode number and date." },
+        { "type": "textarea", "id": "body", "label": "Description" },
+        { "type": "url", "id": "spotify_url", "label": "Spotify link" },
+        { "type": "url", "id": "apple_url", "label": "Apple Podcasts link" },
+        { "type": "text", "id": "duration_label", "label": "Duration shown", "default": "45 min" },
+        { "type": "text", "id": "duration_iso", "label": "Duration for schema", "default": "PT45M" },
+        { "type": "text", "id": "date_iso", "label": "Date for schema" },
+        { "type": "text", "id": "alt_label", "label": "Secondary link label", "default": "Or listen on Apple Podcasts" },
+        { "type": "color", "id": "accent", "label": "Waveform colour", "default": "#5D3A7A",
+          "info": "Use a pair-dark from the palette. Vary it per episode." }
+      ]
+    },
+    {
+      "type": "feature",
+      "name": "Written feature",
+      "limit": 10,
+      "settings": [
+        { "type": "paragraph", "content": "Alternates left and right automatically. No resellers." },
+        { "type": "text", "id": "publisher", "label": "Publication" },
+        { "type": "image_picker", "id": "logo", "label": "Publication logo" },
+        { "type": "text", "id": "meta", "label": "Meta line" },
+        { "type": "text", "id": "source_title", "label": "Their article title (for schema)" },
+        { "type": "textarea", "id": "quote", "label": "Quote" },
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "text", "id": "cta_label", "label": "Button label", "default": "Read the feature" },
+        { "type": "text", "id": "date_iso", "label": "Date for schema" },
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "image_alt", "label": "Image alt text" },
+        { "type": "color", "id": "brand", "label": "Their brand colour", "default": "#7D542D" },
+        { "type": "color", "id": "panel", "label": "Their panel colour", "default": "#F5F6F1" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "theINmag Seen IN" }]
+}
+{% endschema %}

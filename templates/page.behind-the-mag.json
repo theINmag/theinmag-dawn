@@ -37,7 +37,7 @@
             "fallback_filename": "behind-the-mag-carousel-2-classroom.jpg",
             "image_alt": "Inside an Australian primary classroom with kids' creations on the walls.",
             "heading": "Years in the classroom",
-            "body": "Fast forward thirty years. Ryan and Tam had become teachers. Every day they watched kids make incredible things. But there was nowhere for that work to go. The classroom wall. The fridge under a magnet at home. That was it."
+            "body": "Fast forward thirty years. Ryan and Tam had become teachers. Every day they watched kids make incredible things. But there was nowhere for those creations to go. The classroom wall. The fridge under a magnet at home. That was it."
           }
         },
         "card-3": {
@@ -104,7 +104,17 @@
           }
         }
       },
-      "block_order": ["card-1", "card-2", "card-3", "card-4", "card-5", "card-6", "card-7", "card-8", "card-9"]
+      "block_order": [
+        "card-1",
+        "card-2",
+        "card-3",
+        "card-4",
+        "card-5",
+        "card-6",
+        "card-7",
+        "card-8",
+        "card-9"
+      ]
     },
     "bm_video": {
       "type": "theinmag-meet-tam",
@@ -258,7 +268,17 @@
           }
         }
       },
-      "block_order": ["ryan-tam", "lou", "dave", "dee", "nina", "adam", "chloe", "kylie", "snowy-libby"]
+      "block_order": [
+        "ryan-tam",
+        "lou",
+        "dave",
+        "dee",
+        "nina",
+        "adam",
+        "chloe",
+        "kylie",
+        "snowy-libby"
+      ]
     },
     "bm_crew": {
       "type": "theinmag-behind-the-mag-crew",
@@ -270,11 +290,36 @@
         "background_filename": "packagingcrew_bacground.jpg"
       },
       "blocks": {
-        "zanda": { "type": "portrait", "settings": { "name": "Zanda", "fallback_filename": "behind-the-mag-crew-zanda.jpg", "image_alt": "Zanda packing theINmag orders." } },
-        "ned": { "type": "portrait", "settings": { "name": "Ned", "fallback_filename": "behind-the-mag-crew-ned.jpg", "image_alt": "Ned packing theINmag orders." } },
-        "gus": { "type": "portrait", "settings": { "name": "Gus", "fallback_filename": "behind-the-mag-crew-gus.jpg", "image_alt": "Gus packing theINmag orders." } }
+        "zanda": {
+          "type": "portrait",
+          "settings": {
+            "name": "Zanda",
+            "fallback_filename": "behind-the-mag-crew-zanda.jpg",
+            "image_alt": "Zanda packing theINmag orders."
+          }
+        },
+        "ned": {
+          "type": "portrait",
+          "settings": {
+            "name": "Ned",
+            "fallback_filename": "behind-the-mag-crew-ned.jpg",
+            "image_alt": "Ned packing theINmag orders."
+          }
+        },
+        "gus": {
+          "type": "portrait",
+          "settings": {
+            "name": "Gus",
+            "fallback_filename": "behind-the-mag-crew-gus.jpg",
+            "image_alt": "Gus packing theINmag orders."
+          }
+        }
       },
-      "block_order": ["ned", "zanda", "gus"]
+      "block_order": [
+        "ned",
+        "zanda",
+        "gus"
+      ]
     },
     "bm_see_more": {
       "type": "theinmag-behind-the-mag-see-more",
@@ -311,7 +356,10 @@
           }
         }
       },
-      "block_order": ["youtube", "instagram"]
+      "block_order": [
+        "youtube",
+        "instagram"
+      ]
     },
     "bm_cta": {
       "type": "theinmag-behind-the-mag-cta",
@@ -348,12 +396,76 @@
           }
         }
       },
-      "block_order": ["send-in", "membership"]
+      "block_order": [
+        "send-in",
+        "membership"
+      ]
+    },
+    "bm_press": {
+      "type": "theinmag-press-band",
+      "blocks": {
+        "logo_1": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-1.png",
+            "alt": "The Guardian"
+          }
+        },
+        "logo_2": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-2.png",
+            "alt": "ABC"
+          }
+        },
+        "logo_3": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-3.png",
+            "alt": "Parent Teacher Interview"
+          }
+        },
+        "logo_4": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-4.png",
+            "alt": "Sisters Who Homeschool"
+          }
+        },
+        "logo_5": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-5.png",
+            "alt": "Toddcast Teacher Podcast",
+            "size": "large"
+          }
+        },
+        "logo_6": {
+          "type": "press_logo",
+          "settings": {
+            "fallback_filename": "press-6.png",
+            "alt": "The Riverine Herald"
+          }
+        }
+      },
+      "block_order": [
+        "logo_1",
+        "logo_2",
+        "logo_3",
+        "logo_4",
+        "logo_5",
+        "logo_6"
+      ],
+      "settings": {
+        "heading": "Seen IN",
+        "link": "/pages/seen-in"
+      }
     }
   },
   "order": [
     "bm_hero",
     "bm_story",
+    "bm_press",
     "bm_video",
     "bm_quiz",
     "bm_crew",

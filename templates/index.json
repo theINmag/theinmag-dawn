@@ -10,13 +10,13 @@
         "cta_primary_link": "/products/membership",
         "cta_secondary_label": "Send IN content",
         "cta_secondary_link": "/pages/send-in",
+        "image_left": "shopify://shop_images/HERO_kid-reading-mag.jpg",
+        "image_right": "shopify://shop_images/HERO_kid-creation-art.jpg",
         "show_trust_bar": false,
         "trust_1": "Printed sustainably in Australia",
         "trust_2": "100% kid-created",
         "trust_3": "Always ad-free",
-        "trust_4": "Tri-annual",
-        "image_left": "shopify://shop_images/HERO_kid-reading-mag.jpg",
-        "image_right": "shopify://shop_images/HERO_kid-creation-art.jpg"
+        "trust_4": "Tri-annual"
       }
     },
     "theinmag_mission": {
@@ -79,12 +79,12 @@
           "settings": {
             "label": "Digital Stack",
             "tagline": "Every mag we've ever made, in one download.",
-            "compare_price": "$104",
             "price": "$65",
             "link": "/products/digital-stack",
+            "compare_price": "$104",
             "image": "shopify://shop_images/digital-stack-tile-tablets-v2.jpg",
-            "hover_image": "shopify://shop_images/snackpack_2_2.jpg",
             "fallback_filename": "product-bundle.jpg",
+            "hover_image": "shopify://shop_images/snackpack_2_2.jpg",
             "fallback_hover_filename": "product-bundle-hover.jpg",
             "image_alt": "The Digital Stack: every issue of theINmag on a tablet."
           }
@@ -101,13 +101,7 @@
       ],
       "settings": {
         "default_message": "Our mission is <strong>empowering</strong> kids, and <strong>supporting</strong> parents and teachers.",
-        "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>",
-        "character_1_filename": "character-mission-1.png",
-        "character_1_alt": "A theINmag reader's drawing.",
-        "character_2_filename": "character-mission-2.png",
-        "character_2_alt": "A theINmag reader's drawing.",
-        "character_3_filename": "character-mission-3.png",
-        "character_3_alt": "A theINmag reader's drawing."
+        "social_proof_text": "<strong>20,000+</strong> magazines in Aussie kids' hands. <strong>And counting.</strong>"
       }
     },
     "theinmag_press_band": {
@@ -117,35 +111,35 @@
           "type": "press_logo",
           "settings": {
             "fallback_filename": "press-1.png",
-            "alt": "Press mention"
+            "alt": "The Guardian"
           }
         },
         "press-2": {
           "type": "press_logo",
           "settings": {
             "fallback_filename": "press-2.png",
-            "alt": "Press mention"
+            "alt": "ABC"
           }
         },
         "press-3": {
           "type": "press_logo",
           "settings": {
             "fallback_filename": "press-3.png",
-            "alt": "Press mention"
+            "alt": "Parent Teacher Interview"
           }
         },
         "press-4": {
           "type": "press_logo",
           "settings": {
             "fallback_filename": "press-4.png",
-            "alt": "Press mention"
+            "alt": "Sisters Who Homeschool"
           }
         },
         "press-5": {
           "type": "press_logo",
           "settings": {
             "fallback_filename": "press-5.png",
-            "alt": "Press mention",
+            "alt": "Toddcast Teacher Podcast",
             "size": "large"
           }
         },
@@ -153,7 +147,7 @@
           "type": "press_logo",
           "settings": {
             "fallback_filename": "press-6.png",
-            "alt": "Press mention"
+            "alt": "The Riverine Herald"
           }
         }
       },
@@ -166,7 +160,8 @@
         "press-6"
       ],
       "settings": {
-        "heading": "Seen IN"
+        "heading": "Seen IN",
+        "link": "/pages/seen-in"
       }
     },
     "theinmag_audience_tiles": {
@@ -266,13 +261,7 @@
         "founder_two_name": "Tam",
         "founder_two_role": "Co-founder, theINmag",
         "org_name": "theINmag",
-        "org_url": "https://theinmag.com.au",
-        "character_1_filename": "character-philosophy-1.png",
-        "character_1_alt": "A theINmag reader's drawing.",
-        "character_2_filename": "character-philosophy-2.png",
-        "character_2_alt": "A theINmag reader's drawing.",
-        "character_3_filename": "character-philosophy-3.png",
-        "character_3_alt": "A theINmag reader's drawing."
+        "org_url": "https://theinmag.com.au"
       }
     },
     "theinmag_meet_tam": {
@@ -336,43 +325,12 @@
         "show_cta": true,
         "cta_label": "Read all reviews",
         "cta_link": "/pages/reviews",
-        "character_1_filename": "character-reviews-1.png",
-        "character_1_alt": "A theINmag reader's drawing.",
-        "character_2_filename": "character-reviews-2.png",
-        "character_2_alt": "A theINmag reader's drawing.",
-        "character_3_filename": "character-reviews-3.png",
-        "character_3_alt": "A theINmag reader's drawing.",
         "padding_top": 0,
         "padding_bottom": 32
       }
     },
     "theinmag_blog_feed": {
       "type": "theinmag-blog-feed",
-      "settings": {
-        "heading_pre": "field",
-        "heading_emphasis": "notes",
-        "heading_post": "",
-        "heading_period": "",
-        "subhead": "",
-        "background_filename": "theinside-homepage-background.jpg",
-        "show_filters": true,
-        "active_chip": "all",
-        "chip_all_link": "/blogs/field-notes",
-        "chip_kids_link": "/blogs/field-notes?audience=kids",
-        "chip_adults_link": "/blogs/field-notes?audience=adults",
-        "show_cta": true,
-        "cta_label": "see all blogs",
-        "cta_link": "/blogs/field-notes",
-        "padding_top": 80,
-        "padding_bottom": 80,
-        "auto_pull": true,
-        "auto_blog_handle": "field-notes",
-        "auto_audience": "any",
-        "auto_rjrp_tag": "real-jobs-real-people",
-        "auto_rjrp_cap": 1,
-        "auto_pool_size": 8,
-        "auto_take": 4
-      },
       "blocks": {
         "post-1": {
           "type": "featured_post",
@@ -428,7 +386,32 @@
         "post-2",
         "post-3",
         "post-4"
-      ]
+      ],
+      "settings": {
+        "auto_pull": true,
+        "auto_blog_handle": "field-notes",
+        "auto_audience": "any",
+        "auto_rjrp_tag": "real-jobs-real-people",
+        "auto_rjrp_cap": 1,
+        "auto_pool_size": 8,
+        "auto_take": 4,
+        "heading_pre": "field",
+        "heading_emphasis": "notes",
+        "heading_post": "",
+        "heading_period": "",
+        "subhead": "",
+        "background_filename": "theinside-homepage-background.jpg",
+        "show_filters": true,
+        "active_chip": "all",
+        "chip_all_link": "/blogs/field-notes",
+        "chip_kids_link": "/blogs/field-notes?audience=kids",
+        "chip_adults_link": "/blogs/field-notes?audience=adults",
+        "show_cta": true,
+        "cta_label": "see all blogs",
+        "cta_link": "/blogs/field-notes",
+        "padding_top": 80,
+        "padding_bottom": 80
+      }
     },
     "theinmag_faq": {
       "type": "theinmag-faq",
@@ -481,12 +464,6 @@
         "show_cta": true,
         "cta_label": "More questions? Get in touch",
         "cta_link": "/pages/contact",
-        "character_1_filename": "",
-        "character_1_alt": "",
-        "character_2_filename": "",
-        "character_2_alt": "",
-        "character_3_filename": "",
-        "character_3_alt": "",
         "padding_top": 80,
         "padding_bottom": 80
       }

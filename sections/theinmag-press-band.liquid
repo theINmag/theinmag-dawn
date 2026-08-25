@@ -26,6 +26,7 @@
 {%- liquid
   assign heading = section.settings.heading | default: 'Seen IN'
   assign blocks = section.blocks | where: 'type', 'press_logo'
+  assign band_link = section.settings.link
 -%}
 
 <section
@@ -49,7 +50,12 @@
           -%}
           {%- if src != blank -%}
             {%- assign size_class = block.settings.size | default: 'regular' -%}
+            {%- if band_link != blank -%}
+            <a class="theinmag-press-band__item theinmag-press-band__item--link"
+               href="{{ band_link }}" {{ block.shopify_attributes }}>
+            {%- else -%}
             <div class="theinmag-press-band__item" {{ block.shopify_attributes }}>
+            {%- endif -%}
               <span class="theinmag-press-band__heading">{{ heading }}</span>
               <img
                 class="theinmag-press-band__logo theinmag-press-band__logo--{{ size_class }}"
@@ -59,7 +65,7 @@
                 width="200"
                 height="60"
               >
-            </div>
+            {%- if band_link != blank -%}</a>{%- else -%}</div>{%- endif -%}
           {%- endif -%}
         {%- endfor -%}
       </div>
@@ -102,6 +108,16 @@
        window through which the track scrolls. */
     width: 100%;
     overflow: hidden;
+  }
+
+  .theinmag-press-band__item--link {
+    text-decoration: none;
+    color: inherit;
+  }
+  .theinmag-press-band__item--link:focus-visible {
+    outline: 3px solid var(--color-yellow);
+    outline-offset: 6px;
+    border-radius: var(--radius-sm);
   }
 
   .theinmag-press-band__track {
@@ -211,6 +227,11 @@
     items.forEach(function (item) {
       const clone = item.cloneNode(true);
       clone.setAttribute('aria-hidden', 'true');
+      /* An aria-hidden clone that still contains a focusable link is a keyboard
+         trap: screen readers skip it but Tab still lands there. Take the whole
+         duplicate set out of the tab order. */
+      if (clone.tagName === 'A') { clone.setAttribute('tabindex', '-1'); }
+      clone.querySelectorAll('a').forEach(function (a) { a.setAttribute('tabindex', '-1'); });
       track.appendChild(clone);
     });
   })();
@@ -222,6 +243,12 @@
   "tag": "section",
   "class": "theinmag-press-band-section",
   "settings": [
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Where the logos link to",
+      "info": "Point this at the Seen IN page. Do NOT link each logo out to the publication: that sends people off the site from our highest-converting pages, and the outbound links belong on Seen IN where they have context."
+    },
     {
       "type": "text",
       "id": "heading",
