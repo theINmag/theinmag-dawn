@@ -336,6 +336,21 @@
     text-align: left;
     margin-top: 10px;
   }
+  /* Search gets its own full-width row on mobile, dropdown drops beneath it.
+     Added 2026-08-26. Before this the search shared a 319px row with the sort
+     dropdown, leaving the input only 148px of usable text width. That was too
+     narrow for the placeholder to name more than one thing you could search,
+     and it silently clipped "Try 'dogs' or 'beach'..." to "...beach.." on every
+     phone. Full width gives 268px, so the rotating placeholders can actually
+     tell a kid they may search a name, a town or a topic. Costs ~44px of height
+     on the filter card, which is worth it on a page of 1,158 items. */
+  .theinmag-gallery-filter-bar__controls {
+    flex-wrap: wrap;
+  }
+  .theinmag-gallery-filter-bar__search {
+    flex: 1 1 100%;
+  }
+
   /* Slightly more compact search + dropdown on the stacked mobile layout. */
   .theinmag-gallery-filter-bar__search-input {
     font-size: 13px;
