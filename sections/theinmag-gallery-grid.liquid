@@ -70,11 +70,19 @@
   THE FIX: say plainly what this is. CollectionPage wrapping an ImageGallery,
   with about/audience/numberOfItems, so Google can classify it instead of guess.
 
-  DELIBERATELY OMITTED: creator names, ages and towns. They are on the page for
+  HARD CONSTRAINT (Ryan, 2026-08-26): kids must be able to search for and find
+  their own creations. Do not delist this page, and do not strip the attribution
+  off it to "solve" the matching problem. That would remove the only route a kid
+  has to find themselves through Google, which is close to the point of
+  publishing a child's creation at all. If matching is bad, make it match
+  BETTER. The private Webster repo has the numbers behind this.
+
+  DELIBERATELY OMITTED FROM THE SCHEMA ONLY: creator names, ages and towns. They are on the page for
   humans because named attribution is brand-defining, but putting them into
   structured data would make the exact signal that caused the mismatching
   machine-readable, and would publish children's details in a harvestable form.
-  Do not "complete" this schema by adding them.
+  Do not "complete" this schema by adding them. They stay visible on the page for
+  humans and for search; they just do not go into JSON-LD.
 
   ALSO DELIBERATELY ABSENT: associatedMedia and numberOfItems. Tried both, both
   are wrong here. The image_files field is list.file_reference and its entries
