@@ -1,0 +1,267 @@
+{%- comment -%}
+  theinmag-blog-hub-tiles
+  Router tiles near the top of /blogs/field-notes. Each tile points at a
+  series hub page (Real Kids Voices, Real Jobs Real People, teaching and
+  home). The tile cover comes from a picked article's cover image so the
+  tiles always show real kid creations with zero extra uploads; an image
+  picker and asset fallback exist for override.
+
+  Cream surface so the rhythm oscillates against the sandy editorial
+  section above and the photo feature banner below.
+
+  Mobile: horizontal scroll-snap rail with a partial next-tile peek.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign subhead = section.settings.subhead
+-%}
+
+<section class="theinmag-hub-tiles" aria-labelledby="theinmag-hub-tiles-heading">
+  <div class="theinmag-hub-tiles__inner">
+    <header class="theinmag-hub-tiles__header">
+      {%- if heading != blank -%}
+        <h2 id="theinmag-hub-tiles-heading" class="theinmag-hub-tiles__heading">{{ heading }}</h2>
+      {%- endif -%}
+      {%- if subhead != blank -%}
+        <p class="theinmag-hub-tiles__subhead">{{ subhead }}</p>
+      {%- endif -%}
+    </header>
+
+    <div class="theinmag-hub-tiles__rail">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign tile_image = ''
+          assign tile_alt = block.settings.image_alt
+
+          if block.settings.image != blank
+            assign tile_image = block.settings.image | image_url: width: 1200
+          elsif block.settings.article != blank and block.settings.article.image != blank
+            assign tile_image = block.settings.article.image | image_url: width: 1200
+            if tile_alt == blank
+              assign tile_alt = block.settings.article.image.alt
+            endif
+          elsif block.settings.fallback_filename != blank
+            assign tile_image = block.settings.fallback_filename | asset_url
+          endif
+
+          if tile_alt == blank
+            assign tile_alt = block.settings.label
+          endif
+        -%}
+
+        <a class="theinmag-hub-tiles__tile" href="{{ block.settings.url }}" {{ block.shopify_attributes }}>
+          <span class="theinmag-hub-tiles__cover">
+            {%- if tile_image != blank -%}
+              <img
+                class="theinmag-hub-tiles__image"
+                src="{{ tile_image }}"
+                alt="{{ tile_alt | escape }}"
+                loading="lazy"
+                width="1200"
+                height="750"
+              >
+            {%- else -%}
+              <span class="theinmag-hub-tiles__placeholder" aria-hidden="true"></span>
+            {%- endif -%}
+          </span>
+          <span class="theinmag-hub-tiles__body">
+            <span class="theinmag-hub-tiles__label">{{ block.settings.label }}</span>
+            {%- if block.settings.blurb != blank -%}
+              <span class="theinmag-hub-tiles__blurb">{{ block.settings.blurb }}</span>
+            {%- endif -%}
+            <span class="theinmag-hub-tiles__go" aria-hidden="true">{{ block.settings.go_label | default: 'have a look' }} &rarr;</span>
+          </span>
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{%- stylesheet -%}
+  .theinmag-hub-tiles {
+    background-color: var(--color-cream, #FBF6EA);
+    padding: var(--space-2xl, 48px) 0 var(--space-3xl, 64px);
+  }
+
+  .theinmag-hub-tiles__inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 var(--space-md, 16px);
+  }
+
+  .theinmag-hub-tiles__header {
+    margin-bottom: var(--space-lg, 24px);
+  }
+
+  .theinmag-hub-tiles__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: clamp(24px, 3.6vw, 34px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0;
+  }
+
+  .theinmag-hub-tiles__subhead {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 15px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.75;
+    margin: var(--space-xs, 4px) 0 0;
+    max-width: 52ch;
+  }
+
+  .theinmag-hub-tiles__rail {
+    display: flex;
+    gap: var(--space-md, 16px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--space-sm, 8px);
+    scrollbar-width: none;
+  }
+
+  .theinmag-hub-tiles__rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .theinmag-hub-tiles__tile {
+    flex: 0 0 78vw;
+    max-width: 420px;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    background: #FFFFFF;
+    border-radius: var(--radius-md, 12px);
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.10);
+    text-decoration: none;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .theinmag-hub-tiles__tile:hover,
+  .theinmag-hub-tiles__tile:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(42, 31, 61, 0.16);
+  }
+
+  .theinmag-hub-tiles__cover {
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--color-lavender, #E8DEEF);
+  }
+
+  .theinmag-hub-tiles__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+
+  .theinmag-hub-tiles__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--color-lavender, #E8DEEF);
+  }
+
+  .theinmag-hub-tiles__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs, 4px);
+    padding: var(--space-md, 16px) var(--space-md, 16px) var(--space-lg, 24px);
+  }
+
+  .theinmag-hub-tiles__label {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: 22px;
+    line-height: 1.15;
+  }
+
+  .theinmag-hub-tiles__blurb {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0.8;
+  }
+
+  .theinmag-hub-tiles__go {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: var(--space-xs, 4px);
+    color: var(--color-sage-dark, #4A7C5C);
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-hub-tiles__tile {
+      flex: 0 0 44vw;
+    }
+  }
+
+  @media (min-width: 990px) {
+    .theinmag-hub-tiles__rail {
+      overflow-x: visible;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-lg, 24px);
+    }
+
+    .theinmag-hub-tiles__tile {
+      flex: none;
+      max-width: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-hub-tiles__tile {
+      transition: none;
+    }
+    .theinmag-hub-tiles__tile:hover {
+      transform: none;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Blog hub tiles",
+  "tag": "section",
+  "class": "theinmag-hub-tiles-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "pick your path."
+    },
+    {
+      "type": "text",
+      "id": "subhead",
+      "label": "Subhead"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tile",
+      "name": "Hub tile",
+      "limit": 4,
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label" },
+        { "type": "text", "id": "blurb", "label": "One-line blurb" },
+        { "type": "url", "id": "url", "label": "Link" },
+        { "type": "text", "id": "go_label", "label": "Go label", "default": "have a look" },
+        { "type": "article", "id": "article", "label": "Cover from article (kid creation)" },
+        { "type": "image_picker", "id": "image", "label": "Cover image override" },
+        { "type": "text", "id": "fallback_filename", "label": "Fallback asset filename" },
+        { "type": "text", "id": "image_alt", "label": "Cover alt text" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Blog hub tiles" }
+  ]
+}
+{% endschema %}

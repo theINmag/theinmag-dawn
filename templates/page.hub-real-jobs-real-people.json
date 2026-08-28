@@ -1,0 +1,58 @@
+{
+  "sections": {
+    "hub": {
+      "type": "theinmag-series-hub",
+      "blocks": {
+        "sib-rkv": {
+          "type": "sibling",
+          "settings": {
+            "label": "Real writing by real kids",
+            "url": "/pages/real-kids-voices"
+          }
+        },
+        "sib-teaching": {
+          "type": "sibling",
+          "settings": {
+            "label": "ideas for teaching + home",
+            "url": "/pages/teaching-and-home"
+          }
+        },
+        "sib-all": {
+          "type": "sibling",
+          "settings": {
+            "label": "all field notes",
+            "url": "/blogs/field-notes"
+          }
+        }
+      },
+      "block_order": ["sib-rkv", "sib-teaching", "sib-all"],
+      "settings": {
+        "eyebrow_label": "a field notes collection",
+        "logo_filename": "fieldnotes_logo_sage.png",
+        "heading": "Real jobs, real people.",
+        "intro": "<p>Career interviews for kids, with real people doing real jobs: detectives, zookeepers, architects, drone pilots. Kids ask the questions, the professionals answer straight.</p><p>Written for kids wondering what's out there, and just as handy for teachers and homeschoolers hunting honest info texts about careers. One new professional every issue.</p>",
+        "blog_handle": "field-notes",
+        "topic_match": "career pathways",
+        "match_mode": "include",
+        "pinned_heading": "start here.",
+        "show_search": true,
+        "search_placeholder": "search jobs, names, or interests...",
+        "empty_state_text": "Nothing matches that search yet. Try a different word.",
+        "background_color": "#FBF6EA",
+        "cta_heading": "Know someone with a brilliant job?",
+        "cta_copy": "We're always hunting the next professional for kids to grill. Tell us who they should meet.",
+        "cta_label": "suggest a professional",
+        "cta_url": "/pages/contact",
+        "siblings_label": "looking for something else?"
+      }
+    },
+    "funnel": {
+      "type": "theinmag-funnel-strip",
+      "settings": {
+        "heading": "Made for creative kids",
+        "subheading": ""
+      }
+    }
+  },
+  "order": ["hub", "funnel"]
+}

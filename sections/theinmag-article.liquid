@@ -72,6 +72,50 @@
   assign closing_cta_url = article.metafields.field_notes.closing_cta_url
 
   comment
+    Video companion (2026-08-28): field_notes.youtube_url holds the full
+    YouTube link for this post's paired video. Parsed to an id here,
+    rendered as a real iframe at the end of the body column plus a
+    VideoObject JSON-LD block, so companion posts can rank as video
+    results. Blank metafield = nothing renders.
+  endcomment
+  assign youtube_url = article.metafields.field_notes.youtube_url
+  assign youtube_id = ''
+  if youtube_url != blank
+    if youtube_url contains 'watch?v='
+      assign youtube_id = youtube_url | split: 'watch?v=' | last | split: '&' | first
+    elsif youtube_url contains 'youtu.be/'
+      assign youtube_id = youtube_url | split: 'youtu.be/' | last | split: '?' | first
+    elsif youtube_url contains '/embed/'
+      assign youtube_id = youtube_url | split: '/embed/' | last | split: '?' | first
+    endif
+  endif
+
+  comment
+    Series hub back-link (2026-08-28): maps this post's primary_topic to
+    its series hub page so every post links back up to its collection
+    (the cluster loop). Mapping lives in section settings hub_1..hub_3.
+  endcomment
+  assign series_hub_url = ''
+  assign series_hub_label = ''
+  assign pt_lc = primary_topic | downcase | strip
+  assign hub_1_topic = section.settings.hub_1_topic | downcase | strip
+  assign hub_2_topic = section.settings.hub_2_topic | downcase | strip
+  assign hub_3_topic = section.settings.hub_3_topic | downcase | strip
+  if hub_1_topic != blank and pt_lc == hub_1_topic
+    assign series_hub_url = section.settings.hub_1_url
+    assign series_hub_label = section.settings.hub_1_label
+  elsif hub_2_topic != blank and pt_lc == hub_2_topic
+    assign series_hub_url = section.settings.hub_2_url
+    assign series_hub_label = section.settings.hub_2_label
+  elsif hub_3_topic != blank and pt_lc == hub_3_topic
+    assign series_hub_url = section.settings.hub_3_url
+    assign series_hub_label = section.settings.hub_3_label
+  elsif section.settings.hub_3_match_mode == 'fallback' and section.settings.hub_3_url != blank
+    assign series_hub_url = section.settings.hub_3_url
+    assign series_hub_label = section.settings.hub_3_label
+  endif
+
+  comment
     Guest mode: triggered by guest_name presence, not a separate
     author_type value. Keeps the existing ryan/tam/kid enum simple
     while letting any post opt in to the "Meet [Name]" byline.
@@ -593,6 +637,22 @@
             <a class="theinmag-article__closing-cta-link" href="{{ closing_cta_url }}">{{ closing_cta_label }}</a>
           </div>
         {%- endif -%}
+
+        {%- if youtube_id != blank -%}
+          <aside class="theinmag-article__video" aria-label="Video version of this post">
+            <h2 class="theinmag-article__video-heading">{{ section.settings.video_heading | default: 'rather watch than read?' }}</h2>
+            <div class="theinmag-article__video-frame">
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/{{ youtube_id }}"
+                title="{{ display_title | escape }} (video)"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+              ></iframe>
+            </div>
+            <a class="theinmag-article__video-link" href="{{ youtube_url }}" target="_blank" rel="noopener">watch on YouTube</a>
+          </aside>
+        {%- endif -%}
       </div>
     </div>
   </div>
@@ -601,6 +661,12 @@
     <div class="theinmag-article__recommend-inner">
       <header class="theinmag-article__recommend-header">
         <h2 id="theinmag-article-rec-heading" class="theinmag-article__recommend-heading">{{ rec_heading }}</h2>
+        {%- if series_hub_url != blank and series_hub_label != blank -%}
+          <a class="theinmag-article__recommend-link theinmag-article__recommend-link--series" href="{{ series_hub_url }}">
+            <span>{{ series_hub_label }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>
+          </a>
+        {%- endif -%}
         <a class="theinmag-article__recommend-link" href="/blogs/field-notes" aria-label="Browse all field notes">
           <span>browse all field notes</span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>
@@ -877,6 +943,21 @@
   ]
 }
 </script>
+
+{%- if youtube_id != blank -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": {{ display_title | json }},
+  "description": {{ quick_answer | default: article.excerpt_or_content | strip_html | truncate: 300 | json }},
+  "thumbnailUrl": "https://i.ytimg.com/vi/{{ youtube_id }}/hqdefault.jpg",
+  "uploadDate": {{ article.published_at | date: '%Y-%m-%d' | json }},
+  "embedUrl": "https://www.youtube-nocookie.com/embed/{{ youtube_id }}",
+  "url": {{ youtube_url | json }}
+}
+</script>
+{%- endif -%}
 
 {%- if has_faqs -%}
 <script type="application/ld+json">
@@ -1440,6 +1521,10 @@
     padding: 0 clamp(8px, 2vw, 32px);
   }
 
+  .theinmag-article__recommend-link--series {
+    color: var(--color-sage-dark, #4A7C5C);
+  }
+
   /* Inter editorial subhead - friendly conversational sentence,
      not a display wordmark (Post Regular is reserved for brand-
      identity moments, of which the recommendation strip is not one). */
@@ -1734,6 +1819,53 @@
   }
 
   /* ================================================================
+     Video companion. Reads field_notes.youtube_url; renders a real
+     iframe (companion posts should rank as video results) at the end
+     of the body column, plus a "watch on YouTube" outlink.
+     ================================================================ */
+
+  .theinmag-article__video {
+    margin: clamp(40px, 5vw, 64px) 0 clamp(24px, 3vw, 40px);
+  }
+
+  .theinmag-article__video-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: clamp(22px, 3vw, 30px);
+    margin: 0 0 var(--space-md, 16px);
+  }
+
+  .theinmag-article__video-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-md, 12px);
+    overflow: hidden;
+    background: #000000;
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.15);
+  }
+
+  .theinmag-article__video-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .theinmag-article__video-link {
+    display: inline-block;
+    margin-top: var(--space-sm, 8px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-teal-dark, #2D6878);
+    text-decoration: none;
+  }
+
+  .theinmag-article__video-link:hover {
+    text-decoration: underline;
+  }
+
+  /* ================================================================
      FAQ block (in-post). Reads field_notes.faq_items metafield.
      Same accordion shape as theinmag-send-in-faq, scoped to the
      article so it can coexist on the same page render.
@@ -2003,6 +2135,41 @@
       "label": "FAQ heading",
       "info": "Renders above the FAQ accordion. The block only appears when the post's field_notes.faq_items metafield has entries.",
       "default": "Got questions?"
+    },
+    {
+      "type": "header",
+      "content": "Video companion"
+    },
+    {
+      "type": "text",
+      "id": "video_heading",
+      "label": "Video block heading",
+      "info": "Shown above the embedded video. The block only appears when the post's field_notes.youtube_url metafield is set.",
+      "default": "rather watch than read?"
+    },
+    {
+      "type": "header",
+      "content": "Series hub links",
+      "info": "Maps a post's primary_topic to its series hub page. The link renders in the recommendations header."
+    },
+    { "type": "text", "id": "hub_1_topic", "label": "Hub 1 topic", "default": "Real Kids Voices" },
+    { "type": "text", "id": "hub_1_label", "label": "Hub 1 link label", "default": "more Real Kids Voices" },
+    { "type": "url", "id": "hub_1_url", "label": "Hub 1 URL" },
+    { "type": "text", "id": "hub_2_topic", "label": "Hub 2 topic", "default": "Career Pathways" },
+    { "type": "text", "id": "hub_2_label", "label": "Hub 2 link label", "default": "more Real Jobs, Real People" },
+    { "type": "url", "id": "hub_2_url", "label": "Hub 2 URL" },
+    { "type": "text", "id": "hub_3_topic", "label": "Hub 3 topic" },
+    { "type": "text", "id": "hub_3_label", "label": "Hub 3 link label", "default": "more for teaching + home" },
+    { "type": "url", "id": "hub_3_url", "label": "Hub 3 URL" },
+    {
+      "type": "select",
+      "id": "hub_3_match_mode",
+      "label": "Hub 3 match",
+      "options": [
+        { "value": "topic", "label": "Match hub 3 topic only" },
+        { "value": "fallback", "label": "Fallback: any topic not matching hubs 1 and 2" }
+      ],
+      "default": "fallback"
     },
     {
       "type": "header",

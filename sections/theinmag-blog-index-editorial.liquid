@@ -324,7 +324,7 @@
 -%}
 
 <section
-  class="theinmag-editorial{% if bg_src != blank %} theinmag-editorial--has-bg{% endif %}"
+  class="theinmag-editorial{% if bg_src != blank %} theinmag-editorial--has-bg{% endif %}{% if section.settings.background_tile %} theinmag-editorial--bg-tile{% endif %}"
   data-theinmag-editorial
   aria-labelledby="theinmag-editorial-heading"
   style="{{ editorial_style }}"
@@ -333,9 +333,10 @@
 
     <header class="theinmag-editorial__intro">
       <div class="theinmag-editorial__wordmark">
+        {%- assign wordmark_logo = section.settings.logo_filename | default: 'fieldnotes_logo.png' -%}
         <h1 id="theinmag-editorial-heading" class="theinmag-editorial__heading">
           <img
-            src="{{ 'fieldnotes_logo.png' | asset_url }}"
+            src="{{ wordmark_logo | asset_url }}"
             alt="Field notes"
             class="theinmag-editorial__heading-logo"
             width="2160"
@@ -471,6 +472,13 @@
     background-position: top center;
     background-size: cover;
     background-repeat: no-repeat;
+  }
+
+  /* Tiled mode: drawn pattern assets read as texture at ~640px tiles
+     but as giant blurry shapes at cover scale. */
+  .theinmag-editorial--bg-tile {
+    background-size: 640px auto;
+    background-repeat: repeat;
   }
 
   .theinmag-editorial__inner {
@@ -1405,6 +1413,13 @@
     },
     {
       "type": "text",
+      "id": "logo_filename",
+      "label": "Wordmark logo asset filename",
+      "default": "fieldnotes_logo.png",
+      "info": "e.g. fieldnotes_logo.png (ink) or fieldnotes_logo_sage.png (deep sage green)"
+    },
+    {
+      "type": "text",
       "id": "heading_pre",
       "label": "Pre (small)",
       "default": "field"
@@ -1453,6 +1468,12 @@
       "id": "background_filename",
       "label": "Background image fallback filename",
       "info": "Used when the picker is empty. Filename of an image in /assets/."
+    },
+    {
+      "type": "checkbox",
+      "id": "background_tile",
+      "label": "Tile the background (pattern assets)",
+      "default": false
     },
     {
       "type": "header",

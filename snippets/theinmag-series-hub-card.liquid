@@ -1,0 +1,107 @@
+{%- comment -%}
+  theinmag-series-hub-card
+  One post card on a series hub page (theinmag-series-hub section).
+
+  Inputs:
+    article       - Article object (required)
+    variant       - 'grid' (default, compact) or 'pinned' (larger, with
+                    excerpt and an optional curator note)
+    pin_note      - short "why this one" line, pinned variant only
+    shopify_attrs - block.shopify_attributes passthrough (pinned blocks)
+
+  Chip priority: text_type (persuasive / informative / entertaining)
+  when set, else primary_topic, else first tag. On a hub page the text
+  type is the more useful label because every card already shares the
+  hub's series.
+
+  data-search-hay feeds the hub's live search: title, chip, topic, tags,
+  kid first name, excerpt, full body text.
+{%- endcomment -%}
+
+{%- liquid
+  assign variant = variant | default: 'grid'
+
+  assign card_title = article.title
+
+  assign text_type = article.metafields.field_notes.text_type
+  assign card_topic = article.metafields.field_notes.primary_topic
+  if card_topic == blank
+    assign card_topic = article.tags.first
+  endif
+
+  assign chip = text_type | default: card_topic
+
+  capture card_excerpt
+    render 'theinmag-card-excerpt', article: article, words: 18
+  endcapture
+  assign card_excerpt = card_excerpt | strip
+
+  assign card_image = ''
+  if article.image != blank
+    assign card_image = article.image | image_url: width: 800
+  endif
+  assign card_alt = article.image.alt | default: card_title
+
+  assign is_kid_art = false
+  if article.metafields.field_notes.kid_first_name != blank
+    assign is_kid_art = true
+  endif
+
+  assign kid_name = article.metafields.field_notes.kid_first_name
+
+  assign tag_str = article.tags | join: ' '
+  assign full_body = article.content | strip_html
+
+  capture search_hay
+    echo card_title
+    echo ' '
+    echo chip
+    echo ' '
+    echo card_topic
+    echo ' '
+    echo tag_str
+    echo ' '
+    echo kid_name
+    echo ' '
+    echo card_excerpt
+    echo ' '
+    echo full_body
+  endcapture
+-%}
+
+<a
+  class="theinmag-series-hub__card theinmag-series-hub__card--{{ variant }}"
+  data-hub-card
+  data-search-hay="{{ search_hay | escape | downcase }}"
+  href="{{ article.url }}"
+  {{ shopify_attrs }}
+>
+  <span class="theinmag-series-hub__card-cover">
+    {%- if card_image != blank -%}
+      <img
+        class="theinmag-series-hub__card-image{% if is_kid_art %} theinmag-series-hub__card-image--top{% endif %}"
+        src="{{ card_image }}"
+        alt="{{ card_alt | escape }}"
+        loading="lazy"
+        width="800"
+        height="500"
+      >
+    {%- else -%}
+      <span class="theinmag-series-hub__card-placeholder" aria-hidden="true"></span>
+    {%- endif -%}
+  </span>
+  <span class="theinmag-series-hub__card-body">
+    {%- if chip != blank -%}
+      <span class="theinmag-series-hub__card-chip">{{ chip }}</span>
+    {%- endif -%}
+    <span class="theinmag-series-hub__card-title">{{ card_title }}</span>
+    {%- if variant == 'pinned' -%}
+      {%- if card_excerpt != blank -%}
+        <span class="theinmag-series-hub__card-excerpt">{{ card_excerpt }}</span>
+      {%- endif -%}
+      {%- if pin_note != blank -%}
+        <span class="theinmag-series-hub__card-note">{{ pin_note }}</span>
+      {%- endif -%}
+    {%- endif -%}
+  </span>
+</a>

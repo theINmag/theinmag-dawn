@@ -3,6 +3,15 @@
     "main": {
       "type": "theinmag-article",
       "settings": {
+        "hub_1_topic": "Real Kids Voices",
+        "hub_1_label": "more Real Kids Voices",
+        "hub_1_url": "/pages/real-kids-voices",
+        "hub_2_topic": "Career Pathways",
+        "hub_2_label": "more Real Jobs, Real People",
+        "hub_2_url": "/pages/real-jobs-real-people",
+        "hub_3_label": "more for teaching + home",
+        "hub_3_url": "/pages/teaching-and-home",
+        "hub_3_match_mode": "fallback"
       }
     },
     "funnel": {

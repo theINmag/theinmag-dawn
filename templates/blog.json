@@ -175,9 +175,51 @@
         "heading_post": "",
         "heading_period": "",
         "subhead": "",
-        "background_color": "#c9b5db",
-        "background_filename": "section_background_topblogs.jpg",
+        "logo_filename": "fieldnotes_logo_sage.png",
+        "background_color": "#FFD99B",
+        "background_filename": "teacher_backgroundFAQ.jpg",
+        "background_tile": true,
         "show_toggle": true
+      }
+    },
+    "hub-tiles": {
+      "type": "theinmag-blog-hub-tiles",
+      "blocks": {
+        "tile-rkv": {
+          "type": "tile",
+          "settings": {
+            "label": "Real Kids Voices",
+            "blurb": "Stories, persuasive pieces and films by real Aussie kids. Read them for fun or use them in class.",
+            "url": "/pages/real-kids-voices",
+            "go_label": "read their creations",
+            "article": "field-notes/mr-bongo-by-lainey-r"
+          }
+        },
+        "tile-rjrp": {
+          "type": "tile",
+          "settings": {
+            "label": "Real Jobs, Real People",
+            "blurb": "Career interviews for kids. Real people, real jobs, questions kids actually ask.",
+            "url": "/pages/real-jobs-real-people",
+            "go_label": "meet the professionals",
+            "article": "field-notes/meet-bridget-f-artist-author"
+          }
+        },
+        "tile-teaching": {
+          "type": "tile",
+          "settings": {
+            "label": "teaching + home",
+            "blurb": "Rich open tasks, creativity and honest thinking from two classroom teachers.",
+            "url": "/pages/teaching-and-home",
+            "go_label": "steal our ideas",
+            "article": "field-notes/why-your-kid-stops-creating-around-age-8"
+          }
+        }
+      },
+      "block_order": ["tile-rkv", "tile-rjrp", "tile-teaching"],
+      "settings": {
+        "heading": "pick your path.",
+        "subhead": "field notes sorts itself into three collections. Head straight to yours."
       }
     },
     "feature-banner": {
@@ -464,6 +506,7 @@
   },
   "order": [
     "editorial",
+    "hub-tiles",
     "feature-banner",
     "archive",
     "funnel"

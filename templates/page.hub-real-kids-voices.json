@@ -1,0 +1,97 @@
+{
+  "sections": {
+    "hub": {
+      "type": "theinmag-series-hub",
+      "blocks": {
+        "group-persuasive": {
+          "type": "group",
+          "settings": {
+            "text_type": "persuasive",
+            "heading": "persuasive writing, by kids who mean it.",
+            "copy": "Real persuasive pieces at real kid level, straight from the mag. Read one with your class, argue with it, then write back. NAPLAN prep that doesn't feel like NAPLAN prep.",
+            "show_when_empty": true,
+            "empty_copy": "First pieces landing soon."
+          }
+        },
+        "group-informative": {
+          "type": "group",
+          "settings": {
+            "text_type": "informative",
+            "heading": "informative writing.",
+            "copy": "Real info texts by kids, about the things they know best.",
+            "show_when_empty": true,
+            "empty_copy": "First pieces landing soon. The next issue is full of them."
+          }
+        },
+        "group-entertaining": {
+          "type": "group",
+          "settings": {
+            "text_type": "entertaining",
+            "heading": "stories to get lost in.",
+            "copy": "Dragons, grumpy giraffes and stop motion films. Entertaining pieces told the way only kids tell them.",
+            "show_when_empty": false
+          }
+        },
+        "sib-rjrp": {
+          "type": "sibling",
+          "settings": {
+            "label": "Real Jobs, Real People",
+            "url": "/pages/real-jobs-real-people"
+          }
+        },
+        "sib-teaching": {
+          "type": "sibling",
+          "settings": {
+            "label": "ideas for teaching + home",
+            "url": "/pages/teaching-and-home"
+          }
+        },
+        "sib-all": {
+          "type": "sibling",
+          "settings": {
+            "label": "all field notes",
+            "url": "/blogs/field-notes"
+          }
+        }
+      },
+      "block_order": [
+        "group-persuasive",
+        "group-informative",
+        "group-entertaining",
+        "sib-rjrp",
+        "sib-teaching",
+        "sib-all"
+      ],
+      "settings": {
+        "eyebrow_label": "a field notes collection",
+        "logo_filename": "fieldnotes_logo_sage.png",
+        "heading": "Real writing by real kids.",
+        "intro": "<p>Every piece here was written, drawn or filmed by a real Aussie kid and published in theINmag. Nothing polished up, nothing generated, no fake bylines.</p><p>Read them for fun, or use them in your classroom as mentor texts your students can actually measure themselves against. New pieces land with every issue.</p>",
+        "blog_handle": "field-notes",
+        "topic_match": "real kids voices",
+        "match_mode": "include",
+        "pinned_heading": "start here.",
+        "ungrouped_heading": "more from real kids.",
+        "show_search": true,
+        "search_placeholder": "search by topic, text type, or first name...",
+        "empty_state_text": "Nothing matches that search yet. Try a different word.",
+        "background_color": "#FFD99B",
+        "background_filename": "teacher_backgroundFAQ.jpg",
+        "background_tile": true,
+        "cta_heading": "Got a kid who creates?",
+        "cta_copy": "theINmag publishes real kids in print, three times a year. Send IN their creation and it could be on these pages next.",
+        "cta_label": "Send IN a creation",
+        "cta_url": "/pages/send-in",
+        "siblings_label": "looking for something else?"
+      }
+    },
+    "funnel": {
+      "type": "theinmag-funnel-strip",
+      "settings": {
+        "heading": "Made for creative kids",
+        "subheading": ""
+      }
+    }
+  },
+  "order": ["hub", "funnel"]
+}
