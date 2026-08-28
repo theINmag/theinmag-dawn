@@ -116,18 +116,26 @@
       <div class="theinmag-meet-tam__media">
         <div class="theinmag-meet-tam__video-wrap" data-meet-tam-video-wrap>
         {%- if video_src != blank -%}
+          {%- comment -%}
+            No autoplay attribute and preload="none": an autoplay video
+            downloads its ENTIRE file at page load (4.8MB on the homepage,
+            the single biggest mobile-lab cost found 2026-08-29). The
+            source URL sits in data-src; the section JS attaches it when
+            the section nears the viewport and the IntersectionObserver
+            starts playback, so the autoplay FEEL is unchanged but the
+            bytes only move for visitors who scroll here.
+          {%- endcomment -%}
           <video
             class="theinmag-meet-tam__video"
             {% if poster_src != blank %}poster="{{ poster_src }}"{% endif %}
-            {% if video_autoplay %}autoplay{% endif %}
             {% if video_starts_muted %}muted{% endif %}
             loop
             playsinline
-            preload="metadata"
+            preload="none"
             data-autoplay="{{ video_autoplay }}"
             aria-label="{{ poster_alt | escape }}"
           >
-            <source src="{{ video_src }}" type="video/mp4">
+            <source data-src="{{ video_src }}" type="video/mp4">
           </video>
           {%- unless video_autoplay -%}
             <button
@@ -948,6 +956,33 @@
     const autoplayEnabled = video.dataset.autoplay !== 'false';
     const playOverlay = wrap.querySelector('[data-meet-tam-play-overlay]');
 
+    // Lazy source attach (2026-08-29): the mp4 URL ships in data-src so
+    // page load costs zero video bytes. ensureSource() is idempotent;
+    // it runs from a preload observer ~600px before the section enters
+    // view, and as a guard inside every play path.
+    let sourceAttached = false;
+    function ensureSource() {
+      if (sourceAttached) return;
+      const source = video.querySelector('source[data-src]');
+      if (!source) { sourceAttached = true; return; }
+      source.src = source.dataset.src;
+      sourceAttached = true;
+      video.load();
+    }
+    if ('IntersectionObserver' in window) {
+      const preloadIO = new IntersectionObserver(function (entries, obs) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            ensureSource();
+            obs.disconnect();
+          }
+        });
+      }, { rootMargin: '600px 0px' });
+      preloadIO.observe(wrap);
+    } else {
+      ensureSource();
+    }
+
     // Track explicit user pause separately from incidental pauses (IO
     // scrolling the video out of view) so the autoplay-on-scroll-in
     // doesn't override an intentional pause. For click-to-play
@@ -985,6 +1020,7 @@
     pauseBtn.addEventListener('click', function () {
       if (video.paused) {
         userPaused = false;
+        ensureSource();
         const p = video.play();
         if (p && typeof p.catch === 'function') p.catch(function () {});
       } else {
@@ -1008,6 +1044,7 @@
     if (playOverlay) {
       playOverlay.addEventListener('click', function () {
         userPaused = false;
+        ensureSource();
         const p = video.play();
         if (p && typeof p.catch === 'function') p.catch(function () {});
         playOverlay.classList.add('is-hidden');
@@ -1024,6 +1061,7 @@
       const io = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting && autoplayEnabled && !userPaused) {
+            ensureSource();
             const p = video.play();
             if (p && typeof p.catch === 'function') p.catch(function () {});
           } else if (!entry.isIntersecting) {
