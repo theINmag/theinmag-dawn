@@ -9,10 +9,11 @@
     pin_note      - short "why this one" line, pinned variant only
     shopify_attrs - block.shopify_attributes passthrough (pinned blocks)
 
-  Chip priority: text_type (persuasive / informative / entertaining)
-  when set, else primary_topic, else first tag. On a hub page the text
-  type is the more useful label because every card already shares the
-  hub's series.
+  Chip priority: guest_name (interview posts: the person's name, so a
+  Real Jobs card reads name + job at a glance instead of nine identical
+  series chips), else text_type (persuasive / informative /
+  entertaining), else primary_topic, else first tag. On a hub page a
+  distinct label beats restating the series every card shares.
 
   data-search-hay feeds the hub's live search: title, chip, topic, tags,
   kid first name, excerpt, full body text.
@@ -29,7 +30,8 @@
     assign card_topic = article.tags.first
   endif
 
-  assign chip = text_type | default: card_topic
+  assign guest_name = article.metafields.field_notes.guest_name
+  assign chip = guest_name | default: text_type | default: card_topic
 
   capture card_excerpt
     render 'theinmag-card-excerpt', article: article, words: 18
@@ -62,6 +64,8 @@
     echo tag_str
     echo ' '
     echo kid_name
+    echo ' '
+    echo guest_name
     echo ' '
     echo card_excerpt
     echo ' '
