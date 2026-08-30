@@ -7,29 +7,27 @@
           "type": "group",
           "settings": {
             "text_type": "persuasive",
+            "nav_label": "persuasive",
             "heading": "persuasive writing, by kids who mean it.",
-            "copy": "Real persuasive pieces at real kid level, straight from the mag. Read one with your class, argue with it, then write back. NAPLAN prep that doesn't feel like NAPLAN prep.",
-            "show_when_empty": true,
-            "empty_copy": "First pieces landing soon."
+            "copy": "Real persuasive pieces at real kid level. Read one with your class, argue with it, write back."
           }
         },
         "group-informative": {
           "type": "group",
           "settings": {
             "text_type": "informative",
+            "nav_label": "informative",
             "heading": "informative writing.",
-            "copy": "Real info texts by kids, about the things they know best.",
-            "show_when_empty": true,
-            "empty_copy": "First pieces landing soon. The next issue is full of them."
+            "copy": "Real info texts by kids, about the things they know best."
           }
         },
         "group-entertaining": {
           "type": "group",
           "settings": {
             "text_type": "entertaining",
+            "nav_label": "stories",
             "heading": "stories to get lost in.",
-            "copy": "Dragons, grumpy giraffes and stop motion films. Entertaining pieces told the way only kids tell them.",
-            "show_when_empty": false
+            "copy": "Dragons, grumpy giraffes and stop motion films, told the way only kids tell them."
           }
         },
         "sib-rjrp": {
@@ -66,11 +64,11 @@
         "eyebrow_label": "a field notes collection",
         "logo_filename": "fieldnotes_logo_sage.png",
         "heading": "Real writing by real kids.",
-        "intro": "<p>Every piece here was written, drawn or filmed by a real Aussie kid and published in theINmag. Nothing polished up, nothing generated, no fake bylines.</p><p>Read them for fun, or use them in your classroom as mentor texts your students can actually measure themselves against. New pieces land with every issue.</p>",
+        "hero_line": "Straight from the mag. Nothing polished, nothing generated.",
+        "hero_article": "field-notes/mr-bongo-by-lainey-r",
         "blog_handle": "field-notes",
         "topic_match": "real kids voices",
         "match_mode": "include",
-        "pinned_heading": "start here.",
         "ungrouped_heading": "more from real kids.",
         "show_search": true,
         "search_placeholder": "search by topic, text type, or first name...",
@@ -79,6 +77,11 @@
         "background_filename": "teacher_backgroundFAQ.jpg",
         "background_tile": true,
         "background_wash": 55,
+        "interrupt_filename": "storybook-zard-ch07-dragons-rainforest.jpg",
+        "interrupt_line": "Every piece here came out of a real kid's head.",
+        "interrupt_credit": "Artwork by Sam C., age 10, Perth WA",
+        "about_heading": "about this collection.",
+        "intro": "<p>Every piece here was written, drawn or filmed by a real Aussie kid and published in theINmag. Nothing polished up, nothing generated, no fake bylines.</p><p>Read them for fun, or use them in your classroom as mentor texts your students can actually measure themselves against. New pieces land with every issue.</p>",
         "cta_heading": "Got a kid who creates?",
         "cta_copy": "theINmag publishes real kids in print, three times a year. Send IN their creation and it could be on these pages next.",
         "cta_label": "Send IN a creation",

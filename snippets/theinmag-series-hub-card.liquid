@@ -1,26 +1,28 @@
 {%- comment -%}
   theinmag-series-hub-card
-  One post card on a series hub page (theinmag-series-hub section).
+  One piece on a series hub page (theinmag-series-hub section), v2 per
+  the 2026-08-31 premium rebuild: image plus caption, NO card chrome
+  (no box, border, shadow or button), per the Maude / Colossal /
+  Modern House research.
 
   Inputs:
     article       - Article object (required)
-    variant       - 'grid' (default, compact) or 'pinned' (larger, with
-                    excerpt and an optional curator note)
-    pin_note      - short "why this one" line, pinned variant only
-    shopify_attrs - block.shopify_attributes passthrough (pinned blocks)
+    variant       - 'lead'    large 4:3 feature (Maude's 853-wide slot)
+                    'small'   16:9 compact (the stacked pair beside a lead)
+                    'natural' masonry item, image keeps its own aspect
+                              ratio, never cropped (Colossal pattern,
+                              and the never-distort-kid-art rule)
+    shopify_attrs - block.shopify_attributes passthrough
 
-  Chip priority: guest_name (interview posts: the person's name, so a
-  Real Jobs card reads name + job at a glance instead of nine identical
-  series chips), else text_type (persuasive / informative /
-  entertaining), else primary_topic, else first tag. On a hub page a
-  distinct label beats restating the series every card shares.
+  Caption anatomy: small caps chip (guest name, else text_type, else
+  primary_topic), title, and a quiet byline for kid pieces.
 
   data-search-hay feeds the hub's live search: title, chip, topic, tags,
-  kid first name, excerpt, full body text.
+  kid first name, guest name, excerpt, full body text.
 {%- endcomment -%}
 
 {%- liquid
-  assign variant = variant | default: 'grid'
+  assign variant = variant | default: 'natural'
 
   assign card_title = article.title
 
@@ -33,23 +35,18 @@
   assign guest_name = article.metafields.field_notes.guest_name
   assign chip = guest_name | default: text_type | default: card_topic
 
+  assign kid_name = article.metafields.field_notes.kid_first_name
+  assign kid_age = article.metafields.field_notes.kid_age
+
   capture card_excerpt
     render 'theinmag-card-excerpt', article: article, words: 18
   endcapture
   assign card_excerpt = card_excerpt | strip
 
-  assign card_image = ''
-  if article.image != blank
-    assign card_image = article.image | image_url: width: 800
-  endif
-  assign card_alt = article.image.alt | default: card_title
-
   assign is_kid_art = false
-  if article.metafields.field_notes.kid_first_name != blank
+  if kid_name != blank
     assign is_kid_art = true
   endif
-
-  assign kid_name = article.metafields.field_notes.kid_first_name
 
   assign tag_str = article.tags | join: ' '
   assign full_body = article.content | strip_html
@@ -71,41 +68,70 @@
     echo ' '
     echo full_body
   endcapture
+
+  comment
+    Image sizing per variant. lead and small are deliberate editorial
+    crops (cover); natural keeps the artwork's own proportions with
+    real width/height attributes so layout reserves the right space.
+  endcomment
+  assign img_w = 1200
+  if variant == 'small'
+    assign img_w = 800
+  elsif variant == 'natural'
+    assign img_w = 900
+  endif
+
+  assign card_image = ''
+  if article.image != blank
+    assign card_image = article.image | image_url: width: img_w
+  endif
+  assign card_alt = article.image.alt | default: card_title
+
+  assign nat_w = article.image.width | default: 900
+  assign nat_h = article.image.height | default: 600
 -%}
 
 <a
-  class="theinmag-series-hub__card theinmag-series-hub__card--{{ variant }}"
+  class="theinmag-series-hub__piece theinmag-series-hub__piece--{{ variant }}"
   data-hub-card
   data-search-hay="{{ search_hay | escape | downcase }}"
   href="{{ article.url }}"
   {{ shopify_attrs }}
 >
-  <span class="theinmag-series-hub__card-cover">
-    {%- if card_image != blank -%}
+  {%- if card_image != blank -%}
+    {%- if variant == 'natural' -%}
       <img
-        class="theinmag-series-hub__card-image{% if is_kid_art %} theinmag-series-hub__card-image--top{% endif %}"
+        class="theinmag-series-hub__piece-image theinmag-series-hub__piece-image--natural"
         src="{{ card_image }}"
         alt="{{ card_alt | escape }}"
         loading="lazy"
-        width="800"
-        height="500"
+        width="{{ nat_w }}"
+        height="{{ nat_h }}"
       >
     {%- else -%}
-      <span class="theinmag-series-hub__card-placeholder" aria-hidden="true"></span>
+      <span class="theinmag-series-hub__piece-frame">
+        <img
+          class="theinmag-series-hub__piece-image{% if is_kid_art %} theinmag-series-hub__piece-image--top{% endif %}"
+          src="{{ card_image }}"
+          alt="{{ card_alt | escape }}"
+          loading="lazy"
+          width="{{ img_w }}"
+          {% if variant == 'lead' %}height="{{ img_w | times: 3 | divided_by: 4 }}"{% else %}height="{{ img_w | times: 9 | divided_by: 16 }}"{% endif %}
+        >
+      </span>
     {%- endif -%}
-  </span>
-  <span class="theinmag-series-hub__card-body">
+  {%- endif -%}
+
+  <span class="theinmag-series-hub__piece-caption">
     {%- if chip != blank -%}
-      <span class="theinmag-series-hub__card-chip">{{ chip }}</span>
+      <span class="theinmag-series-hub__piece-chip">{{ chip }}</span>
     {%- endif -%}
-    <span class="theinmag-series-hub__card-title">{{ card_title }}</span>
-    {%- if variant == 'pinned' -%}
-      {%- if card_excerpt != blank -%}
-        <span class="theinmag-series-hub__card-excerpt">{{ card_excerpt }}</span>
-      {%- endif -%}
-      {%- if pin_note != blank -%}
-        <span class="theinmag-series-hub__card-note">{{ pin_note }}</span>
-      {%- endif -%}
+    <span class="theinmag-series-hub__piece-title">{{ card_title }}</span>
+    {%- if variant == 'lead' and card_excerpt != blank -%}
+      <span class="theinmag-series-hub__piece-excerpt">{{ card_excerpt }}</span>
+    {%- endif -%}
+    {%- if is_kid_art -%}
+      <span class="theinmag-series-hub__piece-byline">by {{ kid_name }}{% if kid_age != blank %}, age {{ kid_age }}{% endif %}</span>
     {%- endif -%}
   </span>
 </a>

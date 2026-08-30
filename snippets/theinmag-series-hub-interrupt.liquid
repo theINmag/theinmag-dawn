@@ -1,0 +1,27 @@
+{%- comment -%}
+  theinmag-series-hub-interrupt
+  Full-bleed mid-page image moment on a series hub (the Maude palate
+  cleanser): one striking artwork edge to edge with an optional
+  pull-line in Post over the scrim and a small kid attribution.
+  CSS lives in the theinmag-series-hub section stylesheet.
+
+  Inputs: src (image URL), line (pull-line text), credit (attribution).
+{%- endcomment -%}
+
+<figure class="theinmag-series-hub__interrupt" aria-hidden="false">
+  <img
+    class="theinmag-series-hub__interrupt-image"
+    src="{{ src }}"
+    alt="{{ credit | default: 'Artwork from this collection' | escape }}"
+    loading="lazy"
+    width="2400"
+    height="1200"
+  >
+  <span class="theinmag-series-hub__interrupt-scrim" aria-hidden="true"></span>
+  {%- if line != blank -%}
+    <span class="theinmag-series-hub__interrupt-line">{{ line }}</span>
+  {%- endif -%}
+  {%- if credit != blank -%}
+    <figcaption class="theinmag-series-hub__interrupt-credit">{{ credit }}</figcaption>
+  {%- endif -%}
+</figure>
