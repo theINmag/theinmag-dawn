@@ -208,7 +208,7 @@
   <div class="theinmag-series-hub__hero{% if hero_mode == 'panel' %} theinmag-series-hub__hero--panel{% endif %}">
     {%- if hero_src != blank -%}
       <img
-        class="theinmag-series-hub__hero-image{% if hero_top %} theinmag-series-hub__hero-image--top{% endif %}"
+        class="theinmag-series-hub__hero-image{% if hero_top %} theinmag-series-hub__hero-image--top{% endif %}{% if section.settings.hero_focus == 'top' %} theinmag-series-hub__hero-image--focus-top{% elsif section.settings.hero_focus == 'bottom' %} theinmag-series-hub__hero-image--focus-bottom{% endif %}"
         src="{{ hero_src }}"
         alt="{{ hero_alt | escape }}"
         loading="eager"
@@ -676,6 +676,14 @@
 
   .theinmag-series-hub__hero-image--top {
     object-position: top center;
+  }
+
+  .theinmag-series-hub__hero-image--focus-top {
+    object-position: center top;
+  }
+
+  .theinmag-series-hub__hero-image--focus-bottom {
+    object-position: center bottom;
   }
 
   .theinmag-series-hub__hero-scrim {
@@ -1512,6 +1520,17 @@
     { "type": "text", "id": "heading_emphasis", "label": "Heading phrase to render larger (must appear in the heading)" },
     { "type": "text", "id": "hero_line", "label": "Hero line (one short sentence on the image)" },
     { "type": "text", "id": "hero_line_2", "label": "Hero line two (optional second line)" },
+    {
+      "type": "select",
+      "id": "hero_focus",
+      "label": "Hero crop focus (cover style)",
+      "options": [
+        { "value": "top", "label": "Top of the artwork" },
+        { "value": "center", "label": "Middle" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "center"
+    },
     {
       "type": "select",
       "id": "hero_mode",
