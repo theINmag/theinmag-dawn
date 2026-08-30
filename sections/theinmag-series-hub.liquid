@@ -208,7 +208,8 @@
   <div class="theinmag-series-hub__hero{% if hero_mode == 'panel' %} theinmag-series-hub__hero--panel{% endif %}">
     {%- if hero_src != blank -%}
       <img
-        class="theinmag-series-hub__hero-image{% if hero_top %} theinmag-series-hub__hero-image--top{% endif %}{% if section.settings.hero_focus == 'top' %} theinmag-series-hub__hero-image--focus-top{% elsif section.settings.hero_focus == 'bottom' %} theinmag-series-hub__hero-image--focus-bottom{% endif %}"
+        class="theinmag-series-hub__hero-image{% if hero_top %} theinmag-series-hub__hero-image--top{% endif %}"
+        {% if section.settings.hero_focus_y != blank %}style="object-position: 50% {{ section.settings.hero_focus_y }}%;"{% endif %}
         src="{{ hero_src }}"
         alt="{{ hero_alt | escape }}"
         loading="eager"
@@ -660,7 +661,7 @@
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    height: clamp(440px, 62vh, 720px);
+    height: clamp(440px, 66vh, 760px);
     overflow: hidden;
     background: var(--color-inky-purple-navy, #2A1F3D);
   }
@@ -676,14 +677,6 @@
 
   .theinmag-series-hub__hero-image--top {
     object-position: top center;
-  }
-
-  .theinmag-series-hub__hero-image--focus-top {
-    object-position: center top;
-  }
-
-  .theinmag-series-hub__hero-image--focus-bottom {
-    object-position: center bottom;
   }
 
   .theinmag-series-hub__hero-scrim {
@@ -1521,15 +1514,14 @@
     { "type": "text", "id": "hero_line", "label": "Hero line (one short sentence on the image)" },
     { "type": "text", "id": "hero_line_2", "label": "Hero line two (optional second line)" },
     {
-      "type": "select",
-      "id": "hero_focus",
-      "label": "Hero crop focus (cover style)",
-      "options": [
-        { "value": "top", "label": "Top of the artwork" },
-        { "value": "center", "label": "Middle" },
-        { "value": "bottom", "label": "Bottom" }
-      ],
-      "default": "center"
+      "type": "range",
+      "id": "hero_focus_y",
+      "label": "Hero crop focus (0 top, 100 bottom)",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 50
     },
     {
       "type": "select",
