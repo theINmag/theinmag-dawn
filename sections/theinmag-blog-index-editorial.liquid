@@ -311,12 +311,28 @@
 {%- endif -%}
 
 {%- liquid
+  comment
+    background_wash lays a semi-opaque cream layer over the pattern via
+    a gradient in the same background-image, softening contrast and
+    saturation. 0 = pattern at full strength.
+  endcomment
+  assign bg_wash = section.settings.background_wash | default: 0
+  assign wash_alpha = bg_wash | divided_by: 100.0
+
   capture editorial_style
     echo '--editorial-bg-color: '
     echo bg_color
     echo ';'
     if bg_src != blank
-      echo " --editorial-bg-image: url('"
+      echo ' --editorial-bg-image: '
+      if bg_wash > 0
+        echo 'linear-gradient(rgba(251, 246, 234, '
+        echo wash_alpha
+        echo '), rgba(251, 246, 234, '
+        echo wash_alpha
+        echo ')), '
+      endif
+      echo "url('"
       echo bg_src
       echo "');"
     endif
@@ -1474,6 +1490,17 @@
       "id": "background_tile",
       "label": "Tile the background (pattern assets)",
       "default": false
+    },
+    {
+      "type": "range",
+      "id": "background_wash",
+      "label": "Background wash (soften pattern)",
+      "info": "Cream layer over the pattern. 0 = full strength.",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 0
     },
     {
       "type": "header",
