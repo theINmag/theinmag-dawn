@@ -199,8 +199,13 @@
   style="{{ hub_style }}"
 >
 
-  {%- comment -%} 1. HERO, full-bleed {%- endcomment -%}
-  <div class="theinmag-series-hub__hero">
+  {%- comment -%} 1. HERO, full-bleed. Two modes: 'cover' fills the
+      band edge to edge (landscape art); 'panel' stands a portrait
+      artwork full-height and uncropped on the right with the text on
+      the patterned ground beside it (the IGNANT move, for the 4:5
+      blog covers). {%- endcomment -%}
+  {%- assign hero_mode = section.settings.hero_mode | default: 'cover' -%}
+  <div class="theinmag-series-hub__hero{% if hero_mode == 'panel' %} theinmag-series-hub__hero--panel{% endif %}">
     {%- if hero_src != blank -%}
       <img
         class="theinmag-series-hub__hero-image{% if hero_top %} theinmag-series-hub__hero-image--top{% endif %}"
@@ -247,6 +252,9 @@
       {%- endif -%}
       {%- if hero_line != blank -%}
         <p class="theinmag-series-hub__hero-line">{{ hero_line }}</p>
+      {%- endif -%}
+      {%- if section.settings.hero_line_2 != blank -%}
+        <p class="theinmag-series-hub__hero-line theinmag-series-hub__hero-line--second">{{ section.settings.hero_line_2 }}</p>
       {%- endif -%}
     </div>
     {%- if section.settings.hero_credit != blank -%}
@@ -687,7 +695,7 @@
     padding: 0 var(--space-md, 16px) clamp(28px, 4vw, 56px);
   }
 
-  /* Logo pinned top-left of the artwork, big enough to own the corner. */
+  /* Logo pinned top-right of the artwork, big enough to own the corner. */
   .theinmag-series-hub__eyebrow {
     position: absolute;
     top: clamp(20px, 3vw, 36px);
@@ -698,6 +706,7 @@
     padding: 0 var(--space-md, 16px);
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: var(--space-sm, 8px);
     text-decoration: none;
     color: #FFFFFF;
@@ -742,6 +751,83 @@
 
   .theinmag-series-hub__heading-em {
     font-size: 1.18em;
+    white-space: nowrap;
+  }
+
+  .theinmag-series-hub__hero-line--second {
+    margin-top: 2px;
+  }
+
+  /* ---- Panel mode: portrait art full height and UNCROPPED on the
+          right, text on the section's patterned ground. Ink text, no
+          scrim, logo swings back to the left in its natural colour. ---- */
+
+  .theinmag-series-hub__hero--panel {
+    background: transparent;
+  }
+
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-image {
+    left: auto;
+    right: 0;
+    width: auto;
+    height: 100%;
+    object-fit: contain;
+    object-position: right center;
+  }
+
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-scrim {
+    display: none;
+  }
+
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-content {
+    padding-right: min(46vw, 620px);
+  }
+
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__heading,
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-line {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-shadow: none;
+  }
+
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-line {
+    opacity: 0.85;
+  }
+
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__eyebrow {
+    justify-content: flex-start;
+  }
+
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__eyebrow-logo {
+    filter: none;
+  }
+
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-credit {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-shadow: none;
+    opacity: 0.65;
+  }
+
+  @media (max-width: 749px) {
+    .theinmag-series-hub__hero--panel {
+      height: auto;
+      min-height: 0;
+      padding-bottom: var(--space-lg, 24px);
+    }
+
+    .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-image {
+      position: relative;
+      display: block;
+      height: 44vh;
+      width: auto;
+      max-width: 88vw;
+      margin: 72px auto 0;
+    }
+
+    .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-content {
+      position: relative;
+      padding-right: var(--space-md, 16px);
+      margin-top: var(--space-md, 16px);
+    }
   }
 
   .theinmag-series-hub__hero-credit {
@@ -1395,6 +1481,17 @@
     { "type": "text", "id": "heading", "label": "Heading (H1, query language)" },
     { "type": "text", "id": "heading_emphasis", "label": "Heading phrase to render larger (must appear in the heading)" },
     { "type": "text", "id": "hero_line", "label": "Hero line (one short sentence on the image)" },
+    { "type": "text", "id": "hero_line_2", "label": "Hero line two (optional second line)" },
+    {
+      "type": "select",
+      "id": "hero_mode",
+      "label": "Hero style",
+      "options": [
+        { "value": "cover", "label": "Cover: art fills the band" },
+        { "value": "panel", "label": "Panel: portrait art uncropped" }
+      ],
+      "default": "cover"
+    },
     { "type": "article", "id": "hero_article", "label": "Hero artwork from article" },
     { "type": "image_picker", "id": "hero_image", "label": "Hero image override" },
     { "type": "text", "id": "hero_filename", "label": "Hero asset filename (beats the article pick)" },
