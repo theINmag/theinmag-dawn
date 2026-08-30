@@ -1,15 +1,21 @@
 {%- comment -%}
   theinmag-blog-hub-tiles
-  Router tiles near the top of /blogs/field-notes. Each tile points at a
+  Router strip near the top of /blogs/field-notes. Each pane points at a
   series hub page (Real Kids Voices, Real Jobs Real People, teaching and
-  home). The tile cover comes from a picked article's cover image so the
-  tiles always show real kid creations with zero extra uploads; an image
-  picker and asset fallback exist for override.
+  home). Redesigned 2026-08-31 after Ryan binned the v1 white-card look:
+  this is now the homepage audience-tiles language, full-bleed kid-art
+  panes running edge to edge, white Post Regular labels over a scrim
+  (white-on-scrim rule, never coloured pills), sharp corners, no card
+  chrome at all.
 
-  Cream surface so the rhythm oscillates against the sandy editorial
-  section above and the photo feature banner below.
+  The pane cover comes from a picked article's cover image so the strip
+  always shows real kid creations with zero extra uploads; an image
+  picker and asset fallback exist for override. Kid-art covers anchor to
+  the top (same rule as the editorial cards) so heads stay in frame.
 
-  Mobile: horizontal scroll-snap rail with a partial next-tile peek.
+  Desktop >=990px: three flush panes, equal thirds, viewport-wide
+  break-out. Below that: horizontal scroll-snap rail, 85vw panes with a
+  partial next-pane peek.
 {%- endcomment -%}
 
 {%- liquid
@@ -18,85 +24,80 @@
 -%}
 
 <section class="theinmag-hub-tiles" aria-labelledby="theinmag-hub-tiles-heading">
-  <div class="theinmag-hub-tiles__inner">
-    <header class="theinmag-hub-tiles__header">
-      {%- if heading != blank -%}
-        <h2 id="theinmag-hub-tiles-heading" class="theinmag-hub-tiles__heading">{{ heading }}</h2>
-      {%- endif -%}
-      {%- if subhead != blank -%}
-        <p class="theinmag-hub-tiles__subhead">{{ subhead }}</p>
-      {%- endif -%}
-    </header>
+  <header class="theinmag-hub-tiles__header">
+    {%- if heading != blank -%}
+      <h2 id="theinmag-hub-tiles-heading" class="theinmag-hub-tiles__heading">{{ heading }}</h2>
+    {%- endif -%}
+    {%- if subhead != blank -%}
+      <p class="theinmag-hub-tiles__subhead">{{ subhead }}</p>
+    {%- endif -%}
+  </header>
 
-    <div class="theinmag-hub-tiles__rail">
-      {%- for block in section.blocks -%}
-        {%- liquid
-          assign tile_image = ''
-          assign tile_alt = block.settings.image_alt
+  <div class="theinmag-hub-tiles__strip">
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign tile_image = ''
+        assign tile_alt = block.settings.image_alt
+        assign is_kid_art = false
 
-          if block.settings.image != blank
-            assign tile_image = block.settings.image | image_url: width: 1200
-          elsif block.settings.article != blank and block.settings.article.image != blank
-            assign tile_image = block.settings.article.image | image_url: width: 1200
-            if tile_alt == blank
-              assign tile_alt = block.settings.article.image.alt
-            endif
-          elsif block.settings.fallback_filename != blank
-            assign tile_image = block.settings.fallback_filename | asset_url
-          endif
-
+        if block.settings.image != blank
+          assign tile_image = block.settings.image | image_url: width: 1400
+        elsif block.settings.article != blank and block.settings.article.image != blank
+          assign tile_image = block.settings.article.image | image_url: width: 1400
           if tile_alt == blank
-            assign tile_alt = block.settings.label
+            assign tile_alt = block.settings.article.image.alt
           endif
-        -%}
+          if block.settings.article.metafields.field_notes.kid_first_name != blank
+            assign is_kid_art = true
+          endif
+        elsif block.settings.fallback_filename != blank
+          assign tile_image = block.settings.fallback_filename | asset_url
+        endif
 
-        <a class="theinmag-hub-tiles__tile" href="{{ block.settings.url }}" {{ block.shopify_attributes }}>
-          <span class="theinmag-hub-tiles__cover">
-            {%- if tile_image != blank -%}
-              <img
-                class="theinmag-hub-tiles__image"
-                src="{{ tile_image }}"
-                alt="{{ tile_alt | escape }}"
-                loading="lazy"
-                width="1200"
-                height="750"
-              >
-            {%- else -%}
-              <span class="theinmag-hub-tiles__placeholder" aria-hidden="true"></span>
-            {%- endif -%}
-          </span>
-          <span class="theinmag-hub-tiles__body">
-            <span class="theinmag-hub-tiles__label">{{ block.settings.label }}</span>
-            {%- if block.settings.blurb != blank -%}
-              <span class="theinmag-hub-tiles__blurb">{{ block.settings.blurb }}</span>
-            {%- endif -%}
-            <span class="theinmag-hub-tiles__go" aria-hidden="true">{{ block.settings.go_label | default: 'have a look' }} &rarr;</span>
-          </span>
-        </a>
-      {%- endfor -%}
-    </div>
+        if tile_alt == blank
+          assign tile_alt = block.settings.label
+        endif
+      -%}
+
+      <a class="theinmag-hub-tiles__pane" href="{{ block.settings.url }}" {{ block.shopify_attributes }}>
+        {%- if tile_image != blank -%}
+          <img
+            class="theinmag-hub-tiles__image{% if is_kid_art %} theinmag-hub-tiles__image--top{% endif %}"
+            src="{{ tile_image }}"
+            alt="{{ tile_alt | escape }}"
+            loading="lazy"
+            width="1400"
+            height="1050"
+          >
+        {%- endif -%}
+        <span class="theinmag-hub-tiles__scrim" aria-hidden="true"></span>
+        <span class="theinmag-hub-tiles__content">
+          <span class="theinmag-hub-tiles__label">{{ block.settings.label }}</span>
+          {%- if block.settings.blurb != blank -%}
+            <span class="theinmag-hub-tiles__blurb">{{ block.settings.blurb }}</span>
+          {%- endif -%}
+          <span class="theinmag-hub-tiles__go">{{ block.settings.go_label | default: 'have a look' }} &rarr;</span>
+        </span>
+      </a>
+    {%- endfor -%}
   </div>
 </section>
 
 {%- stylesheet -%}
   .theinmag-hub-tiles {
     background-color: var(--color-cream, #FBF6EA);
-    padding: var(--space-2xl, 48px) 0 var(--space-3xl, 64px);
-  }
-
-  .theinmag-hub-tiles__inner {
-    max-width: 1320px;
-    margin: 0 auto;
-    padding: 0 var(--space-md, 16px);
+    padding: var(--space-2xl, 48px) 0 0;
   }
 
   .theinmag-hub-tiles__header {
-    margin-bottom: var(--space-lg, 24px);
+    max-width: 1320px;
+    margin: 0 auto var(--space-lg, 24px);
+    padding: 0 var(--space-md, 16px);
   }
 
   .theinmag-hub-tiles__heading {
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-size: clamp(24px, 3.6vw, 34px);
+    font-size: clamp(26px, 4vw, 38px);
     color: var(--color-inky-purple-navy, #2A1F3D);
     margin: 0;
   }
@@ -110,116 +111,129 @@
     max-width: 52ch;
   }
 
-  .theinmag-hub-tiles__rail {
+  /* Full-bleed viewport break-out, the canonical move from the blog
+     feature banner. */
+  .theinmag-hub-tiles__strip {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
     display: flex;
-    gap: var(--space-md, 16px);
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: var(--space-sm, 8px);
     scrollbar-width: none;
   }
 
-  .theinmag-hub-tiles__rail::-webkit-scrollbar {
+  .theinmag-hub-tiles__strip::-webkit-scrollbar {
     display: none;
   }
 
-  .theinmag-hub-tiles__tile {
-    flex: 0 0 78vw;
-    max-width: 420px;
+  .theinmag-hub-tiles__pane {
+    position: relative;
+    flex: 0 0 85vw;
     scroll-snap-align: start;
-    display: flex;
-    flex-direction: column;
-    background: #FFFFFF;
-    border-radius: var(--radius-md, 12px);
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.10);
-    text-decoration: none;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    transition: transform 180ms ease, box-shadow 180ms ease;
-  }
-
-  .theinmag-hub-tiles__tile:hover,
-  .theinmag-hub-tiles__tile:focus-visible {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(42, 31, 61, 0.16);
-  }
-
-  .theinmag-hub-tiles__cover {
+    height: clamp(380px, 55vh, 460px);
     display: block;
-    aspect-ratio: 16 / 10;
     overflow: hidden;
-    background: var(--color-lavender, #E8DEEF);
+    text-decoration: none;
+    background: var(--color-inky-purple-navy, #2A1F3D);
   }
 
   .theinmag-hub-tiles__image {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
+    transition: transform 400ms ease;
+  }
+
+  .theinmag-hub-tiles__image--top {
     object-position: top center;
-    display: block;
   }
 
-  .theinmag-hub-tiles__placeholder {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background: var(--color-lavender, #E8DEEF);
+  .theinmag-hub-tiles__pane:hover .theinmag-hub-tiles__image,
+  .theinmag-hub-tiles__pane:focus-visible .theinmag-hub-tiles__image {
+    transform: scale(1.04);
   }
 
-  .theinmag-hub-tiles__body {
+  /* Flat darken + bottom gradient so the white type reads clean on any
+     artwork (white-on-scrim rule). */
+  .theinmag-hub-tiles__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(42, 31, 61, 0.06) 30%, rgba(42, 31, 61, 0.74) 100%);
+    pointer-events: none;
+  }
+
+  .theinmag-hub-tiles__content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: var(--space-lg, 24px) var(--space-lg, 24px) var(--space-xl, 32px);
     display: flex;
     flex-direction: column;
-    gap: var(--space-xs, 4px);
-    padding: var(--space-md, 16px) var(--space-md, 16px) var(--space-lg, 24px);
+    gap: 6px;
   }
 
   .theinmag-hub-tiles__label {
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-size: 22px;
-    line-height: 1.15;
+    font-size: clamp(24px, 2.4vw, 34px);
+    line-height: 1.1;
+    color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.45), 0 4px 24px rgba(0, 0, 0, 0.30);
   }
 
   .theinmag-hub-tiles__blurb {
     font-family: var(--font-body, 'Inter', sans-serif);
     font-size: 14px;
+    font-weight: 500;
     line-height: 1.5;
-    opacity: 0.8;
+    color: #FFFFFF;
+    opacity: 0.92;
+    max-width: 36ch;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
   }
 
   .theinmag-hub-tiles__go {
     font-family: var(--font-body, 'Inter', sans-serif);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
     margin-top: var(--space-xs, 4px);
-    color: var(--color-sage-dark, #4A7C5C);
+    width: fit-content;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.55);
+    padding-bottom: 2px;
+    transition: border-color 160ms ease;
   }
 
-  @media (min-width: 750px) {
-    .theinmag-hub-tiles__tile {
-      flex: 0 0 44vw;
-    }
+  .theinmag-hub-tiles__pane:hover .theinmag-hub-tiles__go,
+  .theinmag-hub-tiles__pane:focus-visible .theinmag-hub-tiles__go {
+    border-bottom-color: #FFFFFF;
   }
 
   @media (min-width: 990px) {
-    .theinmag-hub-tiles__rail {
+    .theinmag-hub-tiles__strip {
       overflow-x: visible;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: var(--space-lg, 24px);
     }
 
-    .theinmag-hub-tiles__tile {
-      flex: none;
-      max-width: none;
+    .theinmag-hub-tiles__pane {
+      flex: 1 1 0;
+      min-width: 0;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .theinmag-hub-tiles__tile {
+    .theinmag-hub-tiles__image {
       transition: none;
     }
-    .theinmag-hub-tiles__tile:hover {
+    .theinmag-hub-tiles__pane:hover .theinmag-hub-tiles__image {
       transform: none;
     }
   }
