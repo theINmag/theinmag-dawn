@@ -23,15 +23,24 @@
   assign subhead = section.settings.subhead
 -%}
 
-<section class="theinmag-hub-tiles" aria-labelledby="theinmag-hub-tiles-heading">
-  <header class="theinmag-hub-tiles__header">
-    {%- if heading != blank -%}
-      <h2 id="theinmag-hub-tiles-heading" class="theinmag-hub-tiles__heading">{{ heading }}</h2>
-    {%- endif -%}
-    {%- if subhead != blank -%}
-      <p class="theinmag-hub-tiles__subhead">{{ subhead }}</p>
-    {%- endif -%}
-  </header>
+{%- liquid
+  assign is_bare = false
+  if heading == blank and subhead == blank
+    assign is_bare = true
+  endif
+-%}
+
+<section class="theinmag-hub-tiles{% if is_bare %} theinmag-hub-tiles--bare{% endif %}" aria-label="field notes collections">
+  {%- unless is_bare -%}
+    <header class="theinmag-hub-tiles__header">
+      {%- if heading != blank -%}
+        <h2 id="theinmag-hub-tiles-heading" class="theinmag-hub-tiles__heading">{{ heading }}</h2>
+      {%- endif -%}
+      {%- if subhead != blank -%}
+        <p class="theinmag-hub-tiles__subhead">{{ subhead }}</p>
+      {%- endif -%}
+    </header>
+  {%- endunless -%}
 
   <div class="theinmag-hub-tiles__strip">
     {%- for block in section.blocks -%}
@@ -87,6 +96,12 @@
   .theinmag-hub-tiles {
     background-color: var(--color-cream, #FBF6EA);
     padding: var(--space-2xl, 48px) 0 0;
+  }
+
+  /* No heading or subhead set: the strip stands alone, flush against
+     the section above. */
+  .theinmag-hub-tiles--bare {
+    padding: 0;
   }
 
   .theinmag-hub-tiles__header {
