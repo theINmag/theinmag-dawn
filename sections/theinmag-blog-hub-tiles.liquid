@@ -173,13 +173,14 @@
     transform: scale(1.04);
   }
 
-  /* Flat darken + bottom gradient so the white type reads clean on any
+  /* Flat darken over the whole pane (homepage hero treatment) plus a
+     stronger bottom gradient, so the white type reads clean on any
      artwork (white-on-scrim rule). */
   .theinmag-hub-tiles__scrim {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(180deg, rgba(42, 31, 61, 0.06) 30%, rgba(42, 31, 61, 0.74) 100%);
+      linear-gradient(180deg, rgba(42, 31, 61, 0.18) 0%, rgba(42, 31, 61, 0.18) 35%, rgba(42, 31, 61, 0.82) 100%);
     pointer-events: none;
   }
 
