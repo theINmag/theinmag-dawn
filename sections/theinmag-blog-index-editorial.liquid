@@ -1087,6 +1087,15 @@
   @media (min-width: 990px) {
     .theinmag-editorial__col--right {
       overflow: hidden;
+      /* The clip window used to sit exactly on the card edges, which
+         cut every card's box-shadow off left and right. Pad the window
+         out 16px and pull it back with an equal negative margin: cards
+         render in the identical spot, but the clip boundary now sits
+         16px clear of them so the 10px shadow blur fits. The desktop
+         grid gap is 40px+ so the widened box never reaches the left
+         column. */
+      padding: 16px;
+      margin: -16px;
     }
     .theinmag-editorial__col-inner {
       will-change: transform;
