@@ -136,6 +136,9 @@
   if section.settings.hero_image != blank
     assign hero_src = section.settings.hero_image | image_url: width: 2400
     assign hero_alt = section.settings.hero_image.alt | default: heading
+  elsif section.settings.hero_filename != blank
+    assign hero_src = section.settings.hero_filename | asset_url
+    assign hero_alt = section.settings.hero_credit | default: heading
   elsif section.settings.hero_article != blank and section.settings.hero_article.image != blank
     assign hero_src = section.settings.hero_article.image | image_url: width: 2400
     assign hero_alt = section.settings.hero_article.image.alt | default: heading
@@ -231,6 +234,9 @@
         <p class="theinmag-series-hub__hero-line">{{ hero_line }}</p>
       {%- endif -%}
     </div>
+    {%- if section.settings.hero_credit != blank -%}
+      <span class="theinmag-series-hub__hero-credit">{{ section.settings.hero_credit }}</span>
+    {%- endif -%}
   </div>
 
   {%- comment -%} 2. UTILITY ROW {%- endcomment -%}
@@ -700,6 +706,19 @@
     max-width: 20ch;
     color: #FFFFFF;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.45), 0 4px 24px rgba(0, 0, 0, 0.30);
+  }
+
+  .theinmag-series-hub__hero-credit {
+    position: absolute;
+    right: var(--space-md, 16px);
+    bottom: var(--space-sm, 8px);
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #FFFFFF;
+    opacity: 0.8;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   }
 
   .theinmag-series-hub__hero-line {
@@ -1341,6 +1360,8 @@
     { "type": "text", "id": "hero_line", "label": "Hero line (one short sentence on the image)" },
     { "type": "article", "id": "hero_article", "label": "Hero artwork from article" },
     { "type": "image_picker", "id": "hero_image", "label": "Hero image override" },
+    { "type": "text", "id": "hero_filename", "label": "Hero asset filename (beats the article pick)" },
+    { "type": "text", "id": "hero_credit", "label": "Hero credit (kid attribution)" },
     { "type": "header", "content": "Which posts" },
     { "type": "text", "id": "blog_handle", "label": "Blog handle", "default": "field-notes" },
     { "type": "text", "id": "topic_match", "label": "primary_topic values (comma separated)" },
