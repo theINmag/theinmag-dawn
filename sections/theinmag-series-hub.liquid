@@ -758,19 +758,36 @@
     margin-top: 2px;
   }
 
-  /* ---- Panel mode: portrait art full height and UNCROPPED on the
-          right, text on the section's patterned ground. Ink text, no
-          scrim, logo swings back to the left in its natural colour. ---- */
+  /* ---- Panel mode: portrait art full height and UNCROPPED beside the
+          text, everything inside the normal 1320px page grid (no
+          full-bleed, no dead middle on wide screens). Ink text, no
+          scrim, logo top-left in its natural colour. ---- */
 
   .theinmag-series-hub__hero--panel {
     background: transparent;
+    width: 100%;
+    max-width: 1320px;
+    height: auto;
+    margin: 0 auto;
+    padding: clamp(20px, 3vw, 36px) var(--space-md, 16px) var(--space-xl, 32px);
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-areas:
+      "logo logo"
+      "text art";
+    column-gap: clamp(32px, 5vw, 80px);
+    row-gap: var(--space-lg, 24px);
+    align-items: center;
+    overflow: visible;
   }
 
   .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-image {
-    left: auto;
-    right: 0;
+    position: static;
+    grid-area: art;
+    justify-self: end;
     width: auto;
-    height: 100%;
+    max-width: 100%;
+    height: clamp(380px, 56vh, 600px);
     object-fit: contain;
     object-position: right center;
   }
@@ -779,8 +796,24 @@
     display: none;
   }
 
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__eyebrow {
+    position: static;
+    grid-area: logo;
+    justify-content: flex-start;
+    padding: 0;
+    margin: 0;
+  }
+
+  .theinmag-series-hub__hero--panel .theinmag-series-hub__eyebrow-logo {
+    filter: none;
+  }
+
   .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-content {
-    padding-right: min(46vw, 620px);
+    position: static;
+    grid-area: text;
+    padding: 0;
+    max-width: none;
+    margin: 0;
   }
 
   .theinmag-series-hub__hero--panel .theinmag-series-hub__heading,
@@ -793,15 +826,12 @@
     opacity: 0.85;
   }
 
-  .theinmag-series-hub__hero--panel .theinmag-series-hub__eyebrow {
-    justify-content: flex-start;
-  }
-
-  .theinmag-series-hub__hero--panel .theinmag-series-hub__eyebrow-logo {
-    filter: none;
-  }
-
   .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-credit {
+    position: static;
+    grid-area: art;
+    align-self: end;
+    justify-self: end;
+    transform: translateY(calc(100% + 6px));
     color: var(--color-inky-purple-navy, #2A1F3D);
     text-shadow: none;
     opacity: 0.65;
@@ -809,24 +839,24 @@
 
   @media (max-width: 749px) {
     .theinmag-series-hub__hero--panel {
-      height: auto;
-      min-height: 0;
-      padding-bottom: var(--space-lg, 24px);
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "logo"
+        "art"
+        "text";
+      row-gap: var(--space-md, 16px);
     }
 
     .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-image {
-      position: relative;
-      display: block;
-      height: 44vh;
-      width: auto;
-      max-width: 88vw;
-      margin: 72px auto 0;
+      justify-self: center;
+      height: auto;
+      width: 100%;
+      max-height: 52vh;
     }
 
-    .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-content {
-      position: relative;
-      padding-right: var(--space-md, 16px);
-      margin-top: var(--space-md, 16px);
+    .theinmag-series-hub__hero--panel .theinmag-series-hub__hero-credit {
+      justify-self: center;
+      transform: none;
     }
   }
 
