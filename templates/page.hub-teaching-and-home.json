@@ -9,30 +9,11 @@
             "article": "field-notes/real-kid-samples-classroom-lessons",
             "note": "the why behind this whole library."
           }
-        },
-        "sib-rkv": {
-          "type": "sibling",
-          "settings": {
-            "label": "Real writing by real kids",
-            "url": "/pages/real-kids-voices"
-          }
-        },
-        "sib-rjrp": {
-          "type": "sibling",
-          "settings": {
-            "label": "Real Jobs, Real People",
-            "url": "/pages/real-jobs-real-people"
-          }
-        },
-        "sib-all": {
-          "type": "sibling",
-          "settings": {
-            "label": "all field notes",
-            "url": "/blogs/field-notes"
-          }
         }
       },
-      "block_order": ["pin-samples", "sib-rkv", "sib-rjrp", "sib-all"],
+      "block_order": [
+        "pin-samples"
+      ],
       "settings": {
         "eyebrow_label": "",
         "logo_filename": "fieldnotes_logo_sage.png",
@@ -62,7 +43,55 @@
         "heading": "Made for creative kids",
         "subheading": ""
       }
+    },
+    "tiles": {
+      "type": "theinmag-blog-hub-tiles",
+      "blocks": {
+        "tile-rkv": {
+          "type": "tile",
+          "settings": {
+            "label": "Real Kids Voices",
+            "blurb": "Stories, persuasive pieces and films by real Aussie kids. Read them for fun or use them in class.",
+            "url": "/pages/real-kids-voices",
+            "go_label": "read their creations",
+            "article": "field-notes/why-teachers-should-give-us-more-free-time-by-quilla-r"
+          }
+        },
+        "tile-rjrp": {
+          "type": "tile",
+          "settings": {
+            "label": "Real Jobs, Real People",
+            "blurb": "Career interviews for kids. Real people, real jobs, questions kids actually ask.",
+            "url": "/pages/real-jobs-real-people",
+            "go_label": "meet the professionals",
+            "article": "field-notes/meet-bridget-f-artist-author"
+          }
+        },
+        "tile-teaching": {
+          "type": "tile",
+          "settings": {
+            "label": "teaching + home",
+            "blurb": "Rich open tasks, creativity and honest thinking from two classroom teachers.",
+            "url": "/pages/teaching-and-home",
+            "go_label": "have a dig around",
+            "article": "field-notes/why-your-kid-stops-creating-around-age-8"
+          }
+        }
+      },
+      "block_order": [
+        "tile-rkv",
+        "tile-rjrp",
+        "tile-teaching"
+      ],
+      "settings": {
+        "heading": "",
+        "subhead": ""
+      }
     }
   },
-  "order": ["hub", "funnel"]
+  "order": [
+    "hub",
+    "tiles",
+    "funnel"
+  ]
 }
