@@ -274,173 +274,51 @@
   -%}
   <div class="theinmag-series-hub__inner">
     <div class="theinmag-series-hub__utility">
-      <nav class="theinmag-series-hub__utility-nav" aria-label="Jump to a group">
-        {%- assign gi = 0 -%}
-        {%- for block in section.blocks -%}
-          {%- if block.type == 'group' -%}
-            {%- assign gi = gi | plus: 1 -%}
-            {%- liquid
-              comment
-                Only link groups that will actually render.
-              endcomment
-              assign group_value = block.settings.text_type | downcase | strip
-              assign group_has = false
-              for h in ordered_arr
-                if h == blank
-                  continue
-                endif
-                assign ga = articles[h]
-                if ga == blank
-                  continue
-                endif
-                assign a_type = ga.metafields.field_notes.text_type | downcase | strip
-                if a_type == group_value
-                  assign group_has = true
-                  break
-                endif
-              endfor
-            -%}
-            {%- if group_has -%}
-              <a class="theinmag-series-hub__utility-link" href="#hub-group-{{ gi }}">{{ block.settings.nav_label | default: block.settings.text_type }}</a>
+      {%- if has_groups -%}
+        <nav class="theinmag-series-hub__toggle" aria-label="Filter pieces by text type" data-hub-toggle>
+          <button type="button" class="theinmag-series-hub__chip is-active" data-text-type-filter="all">all</button>
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'group' -%}
+              <button type="button" class="theinmag-series-hub__chip" data-text-type-filter="{{ block.settings.text_type | downcase | strip }}">{{ block.settings.nav_label | default: block.settings.text_type }}</button>
             {%- endif -%}
-          {%- endif -%}
-        {%- endfor -%}
-      </nav>
+          {%- endfor -%}
+        </nav>
+      {%- endif -%}
       {%- if show_search -%}
-        <button type="button" class="theinmag-series-hub__utility-search" data-hub-search-toggle aria-expanded="false" aria-controls="theinmag-series-hub-searchrow">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">
-            <circle cx="11" cy="11" r="7"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <span>search</span>
-        </button>
+        <form class="theinmag-series-hub__search" role="search" onsubmit="return false;">
+          <label class="visually-hidden" for="theinmag-series-hub-input">Search this collection</label>
+          <span class="theinmag-series-hub__search-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input
+            id="theinmag-series-hub-input"
+            type="search"
+            class="theinmag-series-hub__input"
+            placeholder="{{ search_placeholder | escape }}"
+            autocomplete="off"
+            data-hub-input
+          >
+        </form>
       {%- endif -%}
     </div>
 
-    {%- if show_search -%}
-      <form id="theinmag-series-hub-searchrow" class="theinmag-series-hub__searchrow" role="search" data-hub-searchrow onsubmit="return false;" hidden>
-        <label class="visually-hidden" for="theinmag-series-hub-input">Search this collection</label>
-        <input
-          id="theinmag-series-hub-input"
-          type="search"
-          class="theinmag-series-hub__input"
-          placeholder="{{ search_placeholder | escape }}"
-          autocomplete="off"
-          data-hub-input
-        >
-      </form>
-    {%- endif -%}
-
-    {%- comment -%} 3 + 4. PIECES {%- endcomment -%}
+    {%- comment -%} 3 + 4. PIECES. Grouped hubs render ONE continuous
+        library of every piece (the flick-through), filtered live by
+        the text-type chips and the search box together. {%- endcomment -%}
     {%- if has_groups -%}
-      {%- assign grouped_handles = ',' -%}
-      {%- assign rendered_groups = 0 -%}
-      {%- assign gi = 0 -%}
-
-      {%- for block in section.blocks -%}
-        {%- if block.type == 'group' -%}
-          {%- assign gi = gi | plus: 1 -%}
-          {%- assign group_value = block.settings.text_type | downcase | strip -%}
-
-          {%- assign group_list = '' -%}
+      <div class="theinmag-series-hub__group" data-hub-group>
+        <div class="theinmag-series-hub__masonry">
           {%- for h in ordered_arr -%}
             {%- if h == blank -%}{%- continue -%}{%- endif -%}
-            {%- assign ga = articles[h] -%}
-            {%- if ga == blank -%}{%- continue -%}{%- endif -%}
-            {%- assign a_type = ga.metafields.field_notes.text_type | downcase | strip -%}
-            {%- if a_type == group_value -%}
-              {%- assign group_list = group_list | append: h | append: ',' -%}
-              {%- assign grouped_handles = grouped_handles | append: h | append: ',' -%}
-            {%- endif -%}
+            {%- assign la = articles[h] -%}
+            {%- if la == blank -%}{%- continue -%}{%- endif -%}
+            {%- render 'theinmag-series-hub-card', article: la, variant: 'natural' -%}
           {%- endfor -%}
-          {%- assign group_items = group_list | split: ',' -%}
-
-          {%- assign real_count = 0 -%}
-          {%- for h in group_items -%}
-            {%- if h != blank -%}{%- assign real_count = real_count | plus: 1 -%}{%- endif -%}
-          {%- endfor -%}
-
-          {%- if real_count > 0 -%}
-            {%- assign rendered_groups = rendered_groups | plus: 1 -%}
-            {%- assign flip = rendered_groups | modulo: 2 -%}
-
-            <div class="theinmag-series-hub__group" id="hub-group-{{ gi }}" data-hub-group {{ block.shopify_attributes }}>
-              <h2 class="theinmag-series-hub__group-heading">{{ block.settings.heading }}</h2>
-              {%- if block.settings.copy != blank -%}
-                <p class="theinmag-series-hub__group-copy">{{ block.settings.copy }}</p>
-              {%- endif -%}
-
-              <div class="theinmag-series-hub__row{% if flip == 0 %} theinmag-series-hub__row--flip{% endif %}">
-                <div class="theinmag-series-hub__row-lead">
-                  {%- assign li = 0 -%}
-                  {%- for h in group_items -%}
-                    {%- if h == blank -%}{%- continue -%}{%- endif -%}
-                    {%- assign li = li | plus: 1 -%}
-                    {%- if li == 1 -%}
-                      {%- assign la = articles[h] -%}
-                      {%- render 'theinmag-series-hub-card', article: la, variant: 'lead' -%}
-                    {%- endif -%}
-                  {%- endfor -%}
-                </div>
-                {%- if real_count > 1 -%}
-                  <div class="theinmag-series-hub__row-side">
-                    {%- assign li = 0 -%}
-                    {%- for h in group_items -%}
-                      {%- if h == blank -%}{%- continue -%}{%- endif -%}
-                      {%- assign li = li | plus: 1 -%}
-                      {%- if li == 2 or li == 3 -%}
-                        {%- assign sa = articles[h] -%}
-                        {%- render 'theinmag-series-hub-card', article: sa, variant: 'small' -%}
-                      {%- endif -%}
-                    {%- endfor -%}
-                  </div>
-                {%- endif -%}
-              </div>
-
-              {%- if real_count > 3 -%}
-                <div class="theinmag-series-hub__masonry">
-                  {%- assign li = 0 -%}
-                  {%- for h in group_items -%}
-                    {%- if h == blank -%}{%- continue -%}{%- endif -%}
-                    {%- assign li = li | plus: 1 -%}
-                    {%- if li > 3 -%}
-                      {%- assign na = articles[h] -%}
-                      {%- render 'theinmag-series-hub-card', article: na, variant: 'natural' -%}
-                    {%- endif -%}
-                  {%- endfor -%}
-                </div>
-              {%- endif -%}
-            </div>
-
-            {%- if rendered_groups == 2 and interrupt_src != blank -%}
-              {%- render 'theinmag-series-hub-interrupt', src: interrupt_src, line: section.settings.interrupt_line, credit: section.settings.interrupt_credit -%}
-            {%- endif -%}
-          {%- endif -%}
-        {%- endif -%}
-      {%- endfor -%}
-
-      {%- comment -%} Catch-all: matched pieces no group claimed. {%- endcomment -%}
-      {%- capture leftover_cards -%}
-        {%- for h in ordered_arr -%}
-          {%- if h == blank -%}{%- continue -%}{%- endif -%}
-          {%- assign needle = ',' | append: h | append: ',' -%}
-          {%- if grouped_handles contains needle -%}{%- continue -%}{%- endif -%}
-          {%- assign la = articles[h] -%}
-          {%- if la == blank -%}{%- continue -%}{%- endif -%}
-          {%- render 'theinmag-series-hub-card', article: la, variant: 'natural' -%}
-        {%- endfor -%}
-      {%- endcapture -%}
-      {%- assign leftover_stripped = leftover_cards | strip -%}
-      {%- if leftover_stripped != blank -%}
-        <div class="theinmag-series-hub__group" data-hub-group>
-          {%- if section.settings.ungrouped_heading != blank -%}
-            <h2 class="theinmag-series-hub__group-heading">{{ section.settings.ungrouped_heading }}</h2>
-          {%- endif -%}
-          <div class="theinmag-series-hub__masonry">
-            {{ leftover_cards }}
-          </div>
         </div>
-      {%- endif -%}
+      </div>
 
     {%- else -%}
       {%- comment -%} Ungrouped: featured row, optional interrupt, masonry. {%- endcomment -%}
@@ -889,64 +767,76 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
   }
 
-  /* ---- 2. Utility row: filters as typography, search collapsed ---- */
+  /* ---- 2. Utility row: the big text-type toggle (same voice as the
+          blog index's all/kids/adults chips) plus a visible search. ---- */
 
   .theinmag-series-hub__utility {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--space-lg, 24px);
-    padding: var(--space-md, 16px) 0;
+    gap: var(--space-md, 16px) var(--space-xl, 32px);
+    padding: var(--space-lg, 24px) 0 var(--space-md, 16px);
     border-bottom: 1px solid rgba(42, 31, 61, 0.16);
   }
 
-  .theinmag-series-hub__utility-nav {
+  .theinmag-series-hub__toggle {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-lg, 24px);
+    align-items: baseline;
+    gap: clamp(16px, 2.4vw, 32px);
   }
 
-  .theinmag-series-hub__utility-link {
-    font-family: var(--font-body, 'Inter', sans-serif);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-inky-purple-navy, #2A1F3D);
-    text-decoration: none;
-  }
-
-  .theinmag-series-hub__utility-link:hover,
-  .theinmag-series-hub__utility-link:focus-visible {
-    color: var(--color-sage-dark, #4A7C5C);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .theinmag-series-hub__utility-search {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  .theinmag-series-hub__chip {
     background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    font-family: var(--font-body, 'Inter', sans-serif);
-    font-size: 14px;
-    font-weight: 600;
+    border: 0;
+    padding: 4px 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(20px, 2.4vw, 28px);
+    line-height: 1;
+    letter-spacing: -0.005em;
     color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.42;
+    cursor: pointer;
+    transition: opacity 0.15s ease, font-weight 0.15s ease;
   }
 
-  .theinmag-series-hub__utility-search svg {
-    width: 15px;
-    height: 15px;
+  .theinmag-series-hub__chip:hover,
+  .theinmag-series-hub__chip:focus-visible {
+    opacity: 0.85;
+    outline: none;
   }
 
-  .theinmag-series-hub__utility-search:hover,
-  .theinmag-series-hub__utility-search:focus-visible {
-    color: var(--color-sage-dark, #4A7C5C);
+  .theinmag-series-hub__chip:focus-visible {
+    outline: 2px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 3px;
   }
 
-  .theinmag-series-hub__searchrow {
-    padding: var(--space-md, 16px) 0 0;
+  .theinmag-series-hub__chip.is-active {
+    opacity: 1;
+    font-weight: 700;
+  }
+
+  .theinmag-series-hub__search {
+    position: relative;
+    flex: 1 1 260px;
+    max-width: 420px;
+  }
+
+  .theinmag-series-hub__search-icon {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    opacity: 0.6;
+  }
+
+  .theinmag-series-hub__search-icon svg {
+    width: 100%;
+    height: 100%;
   }
 
   .theinmag-series-hub__input {
@@ -954,9 +844,9 @@
     border: none;
     border-bottom: 2px solid var(--color-inky-purple-navy, #2A1F3D);
     background: transparent;
-    padding: 10px 4px;
+    padding: 10px 4px 10px 28px;
     font-family: var(--font-body, 'Inter', sans-serif);
-    font-size: 16px;
+    font-size: 15px;
     color: inherit;
     border-radius: 0;
   }
@@ -1446,42 +1336,46 @@
     var section = document.querySelector('[data-theinmag-series-hub]');
     if (!section) return;
 
-    /* Search toggle: the input row stays collapsed until asked for. */
-    var toggle = section.querySelector('[data-hub-search-toggle]');
-    var row = section.querySelector('[data-hub-searchrow]');
+    /* Combined filtering: the text-type chips and the search box work
+       together. A piece shows when it matches the active chip AND the
+       query. */
     var input = section.querySelector('[data-hub-input]');
+    var chips = section.querySelectorAll('[data-text-type-filter]');
+    var cards = section.querySelectorAll('[data-hub-card]');
+    var groups = section.querySelectorAll('[data-hub-group]');
+    var empty = section.querySelector('[data-hub-empty]');
+    var activeType = 'all';
 
-    if (toggle && row) {
-      toggle.addEventListener('click', function () {
-        var open = row.hidden;
-        row.hidden = !open;
-        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        if (open && input) input.focus();
+    function applyFilters() {
+      var q = input ? input.value.trim().toLowerCase() : '';
+      var visible = 0;
+      cards.forEach(function (card) {
+        var hay = card.getAttribute('data-search-hay') || '';
+        var type = (card.getAttribute('data-text-type') || '').toLowerCase();
+        var typeOk = activeType === 'all' || type === activeType;
+        var queryOk = q === '' || hay.indexOf(q) !== -1;
+        var show = typeOk && queryOk;
+        card.hidden = !show;
+        if (show) visible++;
       });
+      groups.forEach(function (group) {
+        var any = group.querySelector('[data-hub-card]:not([hidden])');
+        group.hidden = !any;
+      });
+      if (empty) empty.hidden = visible > 0;
     }
 
-    /* Live search: filter pieces by data-search-hay, hide emptied groups. */
-    if (input) {
-      var cards = section.querySelectorAll('[data-hub-card]');
-      var groups = section.querySelectorAll('[data-hub-group]');
-      var empty = section.querySelector('[data-hub-empty]');
-
-      input.addEventListener('input', function () {
-        var q = input.value.trim().toLowerCase();
-        var visible = 0;
-        cards.forEach(function (card) {
-          var hay = card.getAttribute('data-search-hay') || '';
-          var show = q === '' || hay.indexOf(q) !== -1;
-          card.hidden = !show;
-          if (show) visible++;
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        activeType = (chip.getAttribute('data-text-type-filter') || 'all').toLowerCase();
+        chips.forEach(function (c) {
+          c.classList.toggle('is-active', c === chip);
         });
-        groups.forEach(function (group) {
-          var any = group.querySelector('[data-hub-card]:not([hidden])');
-          group.hidden = !any;
-        });
-        if (empty) empty.hidden = visible > 0;
+        applyFilters();
       });
-    }
+    });
+
+    if (input) input.addEventListener('input', applyFilters);
 
     /* Resource lightbox. */
     var dialog = section.querySelector('[data-hub-resource-dialog]');

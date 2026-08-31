@@ -43,6 +43,13 @@
   endcapture
   assign card_excerpt = card_excerpt | strip
 
+  comment
+    One-sentence library blurb: field_notes.hub_blurb (Fern writes it,
+    never repeating the title or the byline), falling back to the
+    excerpt when unset.
+  endcomment
+  assign card_blurb = article.metafields.field_notes.hub_blurb | default: card_excerpt
+
   assign is_kid_art = false
   if kid_name != blank
     assign is_kid_art = true
@@ -94,6 +101,7 @@
 <a
   class="theinmag-series-hub__piece theinmag-series-hub__piece--{{ variant }}"
   data-hub-card
+  data-text-type="{{ text_type | downcase | strip | escape }}"
   data-search-hay="{{ search_hay | escape | downcase }}"
   href="{{ article.url }}"
   {{ shopify_attrs }}
@@ -127,11 +135,11 @@
       <span class="theinmag-series-hub__piece-chip">{{ chip }}</span>
     {%- endif -%}
     <span class="theinmag-series-hub__piece-title">{{ card_title }}</span>
-    {%- if variant == 'lead' and card_excerpt != blank -%}
-      <span class="theinmag-series-hub__piece-excerpt">{{ card_excerpt }}</span>
-    {%- endif -%}
     {%- if is_kid_art -%}
       <span class="theinmag-series-hub__piece-byline">by {{ kid_name }}{% if kid_age != blank %}, age {{ kid_age }}{% endif %}</span>
+    {%- endif -%}
+    {%- if card_blurb != blank -%}
+      <span class="theinmag-series-hub__piece-excerpt">{{ card_blurb }}</span>
     {%- endif -%}
   </span>
 </a>
