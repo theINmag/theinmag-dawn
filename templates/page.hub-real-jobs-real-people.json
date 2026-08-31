@@ -27,13 +27,6 @@
         "siblings_label": "looking for something else?"
       }
     },
-    "funnel": {
-      "type": "theinmag-funnel-strip",
-      "settings": {
-        "heading": "Made for creative kids",
-        "subheading": ""
-      }
-    },
     "tiles": {
       "type": "theinmag-blog-hub-tiles",
       "blocks": {
@@ -77,11 +70,21 @@
         "heading": "",
         "subhead": ""
       }
+    },
+    "shelf": {
+      "type": "theinmag-issue-strip",
+      "settings": {
+        "heading": "Straight from the mag.",
+        "style": "shelf",
+        "subline": "Every piece in this library was published in one of these.",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
     }
   },
   "order": [
     "hub",
     "tiles",
-    "funnel"
+    "shelf"
   ]
 }
