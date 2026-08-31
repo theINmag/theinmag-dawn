@@ -309,8 +309,25 @@
         library of every piece (the flick-through), filtered live by
         the text-type chips and the search box together. {%- endcomment -%}
     {%- if has_groups -%}
+      {%- liquid
+        comment
+          How many of the front-of-list items are curated pins: the JS
+          shuffle (freshness on every load; crawlers still see the
+          newest-first Liquid order) leaves that many in place.
+        endcomment
+        assign pinned_matched = 0
+        for block in section.blocks
+          if block.type == 'pinned' and block.settings.article != blank
+            assign needle = ',' | append: block.settings.article.handle | append: ','
+            assign padded = ',' | append: matched_handles
+            if padded contains needle
+              assign pinned_matched = pinned_matched | plus: 1
+            endif
+          endif
+        endfor
+      -%}
       <div class="theinmag-series-hub__group" data-hub-group>
-        <div class="theinmag-series-hub__masonry">
+        <div class="theinmag-series-hub__masonry" data-shuffle data-pinned-count="{{ pinned_matched }}">
           {%- for h in ordered_arr -%}
             {%- if h == blank -%}{%- continue -%}{%- endif -%}
             {%- assign la = articles[h] -%}
@@ -362,7 +379,7 @@
 
       {%- if real_count > 3 -%}
         <div class="theinmag-series-hub__group" data-hub-group>
-          <div class="theinmag-series-hub__masonry">
+          <div class="theinmag-series-hub__masonry" data-shuffle data-pinned-count="0">
             {%- assign li = 0 -%}
             {%- for h in ordered_arr -%}
               {%- if h == blank -%}{%- continue -%}{%- endif -%}
@@ -1487,6 +1504,21 @@
   (function () {
     var section = document.querySelector('[data-theinmag-series-hub]');
     if (!section) return;
+
+    /* Freshness shuffle (same trick as the blog index archive):
+       crawlers see the newest-first server order, humans get a new
+       arrangement each load. Curated pins keep their spot up front. */
+    section.querySelectorAll('[data-shuffle]').forEach(function (m) {
+      var keep = parseInt(m.getAttribute('data-pinned-count') || '0', 10);
+      var cards = Array.prototype.slice.call(m.children);
+      var head = cards.slice(0, keep);
+      var rest = cards.slice(keep);
+      for (var i = rest.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = rest[i]; rest[i] = rest[j]; rest[j] = t;
+      }
+      head.concat(rest).forEach(function (c) { m.appendChild(c); });
+    });
 
     /* Combined filtering: the text-type chips and the search box work
        together. A piece shows when it matches the active chip AND the
