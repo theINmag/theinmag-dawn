@@ -427,6 +427,31 @@
       </aside>
     {%- endif -%}
 
+    {%- comment -%} FAQ: genuine searcher questions, native accordions so
+        every answer stays in the DOM for AI engines. {%- endcomment -%}
+    {%- assign faq_count = 0 -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'faq' -%}
+        {%- assign faq_count = faq_count | plus: 1 -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- if faq_count > 0 -%}
+      <section class="theinmag-series-hub__faq" aria-labelledby="theinmag-series-hub-faq-heading">
+        <h2 id="theinmag-series-hub-faq-heading" class="theinmag-series-hub__faq-heading">{{ section.settings.faq_heading | default: 'Questions teachers ask us.' }}</h2>
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'faq' -%}
+            <details class="theinmag-series-hub__faq-item" {{ block.shopify_attributes }}>
+              <summary class="theinmag-series-hub__faq-question">
+                <h3 class="theinmag-series-hub__faq-question-text">{{ block.settings.question }}</h3>
+                <span class="theinmag-series-hub__faq-chevron" aria-hidden="true">&#9662;</span>
+              </summary>
+              <div class="theinmag-series-hub__faq-answer">{{ block.settings.answer }}</div>
+            </details>
+          {%- endif -%}
+        {%- endfor -%}
+      </section>
+    {%- endif -%}
+
     {%- comment -%} CTA, editorial {%- endcomment -%}
     {%- if section.settings.cta_heading != blank -%}
       <aside class="theinmag-series-hub__cta">
@@ -464,6 +489,32 @@
 
   </div>
 </section>
+
+{%- if faq_count > 0 -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- assign fi = 0 -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'faq' -%}
+        {%- assign fi = fi | plus: 1 -%}
+        {%- if fi > 1 -%},{%- endif -%}
+        {
+          "@type": "Question",
+          "name": {{ block.settings.question | strip_html | strip | json }},
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": {{ block.settings.answer | strip_html | strip | json }}
+          }
+        }
+      {%- endif -%}
+    {%- endfor -%}
+  ]
+}
+</script>
+{%- endif -%}
 
 {%- comment -%} JSON-LD: BreadcrumbList + CollectionPage. No kid details. {%- endcomment -%}
 <script type="application/ld+json">
@@ -1238,6 +1289,83 @@
     margin-bottom: 0;
   }
 
+  /* ---- FAQ: native details/summary, answers always in the DOM ---- */
+
+  .theinmag-series-hub__faq {
+    margin: clamp(40px, 5vw, 64px) auto 0;
+    padding-top: var(--space-xl, 32px);
+    border-top: 1px solid rgba(42, 31, 61, 0.16);
+    max-width: 72ch;
+  }
+
+  .theinmag-series-hub__faq-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: clamp(22px, 3.2vw, 30px);
+    margin: 0 0 var(--space-md, 16px);
+    text-align: center;
+  }
+
+  .theinmag-series-hub__faq-item {
+    border-bottom: 1px solid rgba(42, 31, 61, 0.14);
+  }
+
+  .theinmag-series-hub__faq-question {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md, 16px);
+    padding: 14px 2px;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .theinmag-series-hub__faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .theinmag-series-hub__faq-question-text {
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  .theinmag-series-hub__faq-chevron {
+    flex: 0 0 auto;
+    transition: transform 180ms ease;
+  }
+
+  .theinmag-series-hub__faq-item[open] .theinmag-series-hub__faq-chevron {
+    transform: rotate(180deg);
+  }
+
+  .theinmag-series-hub__faq-answer {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 0 2px 16px;
+    opacity: 0.85;
+    max-width: 62ch;
+  }
+
+  .theinmag-series-hub__faq-answer p {
+    margin: 0 0 0.7em;
+  }
+
+  .theinmag-series-hub__faq-answer p:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-series-hub__faq-chevron {
+      transition: none;
+    }
+  }
+
   .theinmag-series-hub__cta {
     margin-top: clamp(40px, 5vw, 64px);
     padding-top: var(--space-xl, 32px);
@@ -1484,6 +1612,8 @@
     { "type": "text", "id": "resource_button_label", "label": "Open button label", "default": "have a look" },
     { "type": "url", "id": "resource_download_url", "label": "Download link" },
     { "type": "text", "id": "resource_download_label", "label": "Download label", "default": "download the poster" },
+    { "type": "header", "content": "FAQ" },
+    { "type": "text", "id": "faq_heading", "label": "FAQ heading (question form)", "default": "Questions teachers ask us." },
     { "type": "header", "content": "CTA (editorial, near the foot)" },
     { "type": "text", "id": "cta_heading", "label": "CTA heading" },
     { "type": "textarea", "id": "cta_copy", "label": "CTA copy" },
@@ -1522,6 +1652,15 @@
       "settings": [
         { "type": "text", "id": "label", "label": "Label" },
         { "type": "url", "id": "url", "label": "Link" }
+      ]
+    },
+    {
+      "type": "faq",
+      "name": "FAQ item",
+      "limit": 6,
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question (searcher's language, ends in ?)" },
+        { "type": "richtext", "id": "answer", "label": "Answer (40 to 60 words, our voice)" }
       ]
     }
   ],
