@@ -437,7 +437,7 @@
     {%- endfor -%}
     {%- if faq_count > 0 -%}
       <section class="theinmag-series-hub__faq" aria-labelledby="theinmag-series-hub-faq-heading">
-        <h2 id="theinmag-series-hub-faq-heading" class="theinmag-series-hub__faq-heading">{{ section.settings.faq_heading | default: 'Questions teachers ask us.' }}</h2>
+        <h2 id="theinmag-series-hub-faq-heading" class="theinmag-series-hub__faq-heading">{{ section.settings.faq_heading | default: 'Questions teachers ask us' }}</h2>
         {%- for block in section.blocks -%}
           {%- if block.type == 'faq' -%}
             <details class="theinmag-series-hub__faq-item" {{ block.shopify_attributes }}>
@@ -1355,7 +1355,6 @@
     line-height: 1.6;
     padding: 0 2px 16px;
     opacity: 0.85;
-    max-width: 62ch;
   }
 
   .theinmag-series-hub__faq-answer p {
@@ -1619,7 +1618,7 @@
     { "type": "url", "id": "resource_download_url", "label": "Download link" },
     { "type": "text", "id": "resource_download_label", "label": "Download label", "default": "download the poster" },
     { "type": "header", "content": "FAQ" },
-    { "type": "text", "id": "faq_heading", "label": "FAQ heading (question form)", "default": "Questions teachers ask us." },
+    { "type": "text", "id": "faq_heading", "label": "FAQ heading", "default": "Questions teachers ask us" },
     { "type": "header", "content": "CTA (editorial, near the foot)" },
     { "type": "text", "id": "cta_heading", "label": "CTA heading" },
     { "type": "textarea", "id": "cta_copy", "label": "CTA copy" },
