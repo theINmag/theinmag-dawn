@@ -1,0 +1,81 @@
+{
+  "sections": {
+    "hero": {
+      "type": "theinmag-legal-hero",
+      "settings": {
+        "heading": "Accessibility",
+        "subhead": "<p>We want every child, parent and teacher to be able to use this site, whatever device or assistive technology they are on. Accessibility is not a box we tick once. It is something we keep working at.</p>",
+        "pill_label": "Last reviewed",
+        "last_reviewed": "1 September 2026",
+        "meta_description": "How theINmag makes its website usable for everyone: our commitment to WCAG 2.2 AA, what we do, where we are still improving, and how to reach us if something is hard to use.",
+        "padding_top": 96,
+        "padding_bottom": 64
+      }
+    },
+    "accordions": {
+      "type": "theinmag-legal-accordions",
+      "settings": {
+        "padding_top": 32,
+        "padding_bottom": 64
+      },
+      "blocks": {
+        "kid-version": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "The kid version (read this first)",
+            "anchor_id": "kid-version",
+            "is_kid_version": true,
+            "content": "<p>A short version, written for kids. The grown-up version is below.</p><p>We want every kid to be able to use our website, no matter how you get online. Some kids use a mouse, some use just a keyboard, some use their voice, and some use a screen reader that reads the words out loud. Some just like nice big, clear writing. We try hard to make theINmag work for all of you.</p><p>If something on our site is tricky to use, ask a grown-up to email us at <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> and tell us what happened. That really does help us fix it for everyone.</p>"
+          }
+        },
+        "standard": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "The standard we aim for",
+            "anchor_id": "standard",
+            "is_kid_version": false,
+            "content": "<p>We aim to meet the Web Content Accessibility Guidelines (WCAG) 2.2 at Level AA, the standard adopted in Australia under the Disability Discrimination Act. Most of the site meets it today, and we treat anything that falls short as a fault to fix, not a nice to have.</p>"
+          }
+        },
+        "practice": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "What that means in practice",
+            "anchor_id": "practice",
+            "is_kid_version": false,
+            "content": "<ul><li>Colour choices are checked for contrast so text stays readable. Our founder is colourblind, so this one is personal.</li><li>Every page works with a keyboard, not just a mouse or a touch screen.</li><li>Plain language and clear headings, so a page is easy to follow and easy for a screen reader to read aloud.</li><li>Images that carry meaning have text descriptions, and purely decorative images are hidden from screen readers so they do not add noise.</li><li>Movement and animation respect a \"reduce motion\" setting if your device asks for less of it.</li><li>We design and test on phones first, because that is how most of our readers visit.</li></ul>"
+          }
+        },
+        "improving": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Where we know we can do better",
+            "anchor_id": "improving",
+            "is_kid_version": false,
+            "content": "<p>We would rather be honest than pretend the site is perfect. A few areas we are still improving:</p><ul><li>Some parts of the site use trusted outside tools, for reviews, email sign-up and digital downloads, that we do not fully control, so their accessibility can vary.</li><li>Our live gallery holds thousands of kids' creations and can be heavy to load on older phones. We keep working to make it lighter.</li><li>We are steadily improving page speed across the site, which helps everyone, including people using assistive technology.</li></ul>"
+          }
+        },
+        "contact": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Trouble using the site? Tell us",
+            "anchor_id": "contact",
+            "is_kid_version": false,
+            "content": "<p>If any part of this site is hard to use, or you need something in a different format, please tell us. We take it seriously and we will help.</p><p>Email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> and we will get back to you. A real human reads every email, and we reply within two business days. Your feedback often points us straight at something worth fixing.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "kid-version",
+        "standard",
+        "practice",
+        "improving",
+        "contact"
+      ]
+    }
+  },
+  "order": [
+    "hero",
+    "accordions"
+  ]
+}
