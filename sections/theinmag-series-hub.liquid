@@ -684,6 +684,12 @@
     white-space: nowrap;
   }
 
+  /* When the enlarged phrase leads the heading (IN the field.), pull
+     the following word in so the size change doesn't read as a gap. */
+  .theinmag-series-hub__heading-em:not(.theinmag-series-hub__heading-em--newline) {
+    margin-right: -0.09em;
+  }
+
   .theinmag-series-hub__heading-em--newline {
     display: block;
   }
