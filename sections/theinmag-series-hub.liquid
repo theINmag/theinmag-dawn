@@ -379,8 +379,25 @@
 
     <p class="theinmag-series-hub__empty" data-hub-empty hidden>{{ empty_state_text }}</p>
 
-    {%- comment -%} Resource card + lightbox (the PIE poster slot) {%- endcomment -%}
-    {%- if section.settings.resource_heading != blank and section.settings.resource_image != blank -%}
+    {%- comment -%} Resource card + lightbox (the PIE poster slot).
+        Image source: picker, else a theme asset filename. {%- endcomment -%}
+    {%- liquid
+      assign resource_small = ''
+      assign resource_large = ''
+      if section.settings.resource_image != blank
+        assign resource_small = section.settings.resource_image | image_url: width: 600
+        assign resource_large = section.settings.resource_image | image_url: width: 1800
+      elsif section.settings.resource_filename != blank
+        assign resource_small = section.settings.resource_filename | asset_url
+        assign resource_large = resource_small
+      endif
+
+      assign resource_download = section.settings.resource_download_url
+      if resource_download == blank and section.settings.resource_download_filename != blank
+        assign resource_download = section.settings.resource_download_filename | asset_url
+      endif
+    -%}
+    {%- if section.settings.resource_heading != blank and resource_small != blank -%}
       <aside class="theinmag-series-hub__resource">
         <div class="theinmag-series-hub__resource-body">
           <h2 class="theinmag-series-hub__resource-heading">{{ section.settings.resource_heading }}</h2>
@@ -393,11 +410,11 @@
         </div>
         <button type="button" class="theinmag-series-hub__resource-thumb" data-hub-resource-open aria-label="Open {{ section.settings.resource_heading | escape }}">
           <img
-            src="{{ section.settings.resource_image | image_url: width: 600 }}"
+            src="{{ resource_small }}"
             alt="{{ section.settings.resource_image_alt | default: section.settings.resource_heading | escape }}"
             loading="lazy"
             width="600"
-            height="450"
+            height="785"
           >
         </button>
       </aside>
@@ -405,12 +422,12 @@
       <dialog class="theinmag-series-hub__lightbox" data-hub-resource-dialog>
         <button type="button" class="theinmag-series-hub__lightbox-close" data-hub-resource-close aria-label="Close">&times;</button>
         <img
-          src="{{ section.settings.resource_image | image_url: width: 1800 }}"
+          src="{{ resource_large }}"
           alt="{{ section.settings.resource_image_alt | default: section.settings.resource_heading | escape }}"
           loading="lazy"
         >
-        {%- if section.settings.resource_download_url != blank -%}
-          <a class="theinmag-series-hub__lightbox-download" href="{{ section.settings.resource_download_url }}" target="_blank" rel="noopener">
+        {%- if resource_download != blank -%}
+          <a class="theinmag-series-hub__lightbox-download" href="{{ resource_download }}" target="_blank" rel="noopener">
             {{ section.settings.resource_download_label | default: 'download the poster' }}
           </a>
         {%- endif -%}
@@ -1613,7 +1630,9 @@
     { "type": "text", "id": "resource_heading", "label": "Resource heading" },
     { "type": "textarea", "id": "resource_copy", "label": "Resource copy" },
     { "type": "image_picker", "id": "resource_image", "label": "Resource image (poster)" },
+    { "type": "text", "id": "resource_filename", "label": "Resource asset filename (used when no picker image)" },
     { "type": "text", "id": "resource_image_alt", "label": "Resource image alt" },
+    { "type": "text", "id": "resource_download_filename", "label": "Download asset filename (used when no download link)" },
     { "type": "text", "id": "resource_button_label", "label": "Open button label", "default": "have a look" },
     { "type": "url", "id": "resource_download_url", "label": "Download link" },
     { "type": "text", "id": "resource_download_label", "label": "Download label", "default": "download the poster" },
