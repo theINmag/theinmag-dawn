@@ -1221,6 +1221,13 @@
     font-size: 15px;
     line-height: 1.65;
     opacity: 0.85;
+    /* No single-word last lines on the centred block; balance evens
+       the heading. Both degrade silently where unsupported. */
+    text-wrap: pretty;
+  }
+
+  .theinmag-series-hub__about-heading {
+    text-wrap: balance;
   }
 
   .theinmag-series-hub__about-body p {
