@@ -290,6 +290,33 @@
   color: rgba(42, 31, 61, 0.55);
 }
 
+/* Search scope line: tells the searcher WHICH set they are looking at (recent
+   only, all of them, or still loading). It shares a slot with the disclaimer
+   directly below it, exactly one of the two showing at a time, and deliberately
+   mirrors that line's type and alignment so the cream bar keeps its shape and
+   height whether you are browsing or searching. display:none, not visibility,
+   because the two lines swap rather than stack. */
+.theinmag-gallery-filter-bar__search-scope {
+  display: none;
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: 12px;
+  line-height: 1.3;
+  margin: 0;
+  color: var(--color-purple-dark, #5D3A7A);
+  text-align: right;
+}
+
+.theinmag-gallery-filter-bar__search-scope.is-visible {
+  display: block;
+}
+
+@media (max-width: 767px) {
+  .theinmag-gallery-filter-bar__search-scope {
+    text-align: left;
+    margin-top: 10px;
+  }
+}
+
 .theinmag-gallery-filter-bar__sort {
   position: relative;
   flex: 0 0 auto;
@@ -423,6 +450,26 @@
 .theinmag-gallery-grid__col {
   flex: 1 1 0;
   min-width: 0;
+  display: block;
+}
+
+/* KEEP EMPTY COLUMNS OCCUPYING THEIR SHARE (fixed 2026-09-04, PRE-EXISTING BUG).
+   Dawn's base.css carries a blanket `div:empty{display:none}`, so any search
+   returning fewer results than there are columns collapsed the unused columns to
+   zero width and let the surviving column, and the single card inside it, stretch
+   the full 1392px. A one-result search rendered a card roughly four times its
+   proper size.
+
+   This has been live in production the whole time, on ANY single-result search;
+   it is not new to the archive search. It only became easy to hit once search
+   started finding people reliably, which is how Ryan caught it. Reproduced on the
+   live theme's own deployed CSS before fixing: `div:empty{display:none}` is in
+   live base.css and there was no guard in live theinmag-gallery.css.
+
+   The specificity here (two classes plus the pseudo-class) beats Dawn's bare
+   `div:empty`, so the flex basis survives and every column keeps its quarter.
+   See [[feedback_dawn_empty_div_hide]]. */
+.theinmag-gallery-grid__columns.is-js-masonry .theinmag-gallery-grid__col:empty {
   display: block;
 }
 

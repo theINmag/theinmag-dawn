@@ -122,6 +122,13 @@
   data-theinmag-gallery-grid
   data-gallery-json="https://theinmag-gallery-review.heyhey-53f.workers.dev/gallery-data.json"
   data-gallery-json-fallback="{{ 'gallery-data.json' | asset_url }}"
+  {%- comment -%}
+    Everything OLDER than the feed's rolling 90-day window. Fetched lazily by the
+    search only, never on page load, so every published kid is findable by name
+    without the default view carrying 2,790 cards onto a phone. See the archive
+    block in assets/theinmag-gallery.js.
+  {%- endcomment -%}
+  data-gallery-archive="https://theinmag-gallery-review.heyhey-53f.workers.dev/gallery-archive.json"
   data-initial-batch="{{ initial_batch }}"
   data-batch-size="{{ batch_size }}"
   data-total="{{ total_published }}"

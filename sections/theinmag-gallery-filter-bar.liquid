@@ -100,8 +100,39 @@
             </div>
           </div>
 
+          {%- comment -%}
+            Search scope line. It sits HERE, as a sibling of the controls row
+            inside __controls-wrap (a flex COLUMN), and shares the slot with the
+            disclaimer below: exactly one of the two is ever visible, so the bar
+            keeps its height and shape either way.
+
+            It must NOT go inside __controls, which is a flex ROW. Putting it there
+            on 2026-09-04 made it a third flex item beside the search box and the
+            category select, stole 351px of the row, and visibly reshaped the whole
+            cream banner. Ryan caught it on desktop; I had only tested at 375px,
+            where the row wraps and the fault is invisible.
+
+            Says WHICH set is being searched, because a kid who types their name
+            and sees nothing needs to know whether that means "not here" or "still
+            loading". Filled by JS, empty and hidden until someone searches.
+            aria-live so a screen reader hears the scope change too.
+          {%- endcomment -%}
+          <p
+            class="theinmag-gallery-filter-bar__search-scope"
+            data-theinmag-gallery-search-scope
+            aria-live="polite"
+          ></p>
+
+          {%- comment -%}
+            data-theinmag-gallery-disclaimer: the JS hides this line while a search
+            is running. Its copy opens with the browse window ("Last 3 months"),
+            which stopped being true during a search on 2026-09-04, when search
+            began reaching every published creation. Two lines contradicting each
+            other, one saying 3 months and one saying all 2,790, is worse than
+            either alone, so the windowed line stands down while search is active.
+          {%- endcomment -%}
           {%- if show_disclaimer and disclaimer_text != blank -%}
-            <p class="theinmag-gallery-filter-bar__disclaimer">{{ disclaimer_text }}</p>
+            <p class="theinmag-gallery-filter-bar__disclaimer" data-theinmag-gallery-disclaimer>{{ disclaimer_text }}</p>
           {%- endif -%}
         </div>
       </div>

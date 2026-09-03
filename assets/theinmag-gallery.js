@@ -104,6 +104,28 @@
     liveEl: null,
     emptyEl: null,
     all: [],
+    // THE ARCHIVE: every published creation OLDER than the feed's rolling 90-day
+    // window (added 2026-09-04 on Ryan's call). It is NOT part of the default
+    // browse view and is never fetched on page load. It loads lazily the first
+    // time someone actually searches, and only then joins the search pool.
+    //
+    // WHY IT EXISTS: measured 2026-09-04, 2,790 creations are published but the
+    // feed carries 1,226, and this search only ever filtered what was loaded. So a
+    // kid published more than ~90 days ago could not find themselves by typing
+    // their name. That is about 1,564 kids who were told they were published. The
+    // standing rule is that kids must be able to find their own creations, so
+    // search now reaches all of them.
+    //
+    // WHY LAZY, AND WHY NOT JUST WIDEN THE FEED: the window is what stops this page
+    // building 2,790 cards on a phone, which is the class of bug that crashed iOS
+    // Safari in July 2026. Loading the archive on page load would reintroduce that
+    // weight for every visitor, and most visitors never search. Fetching it on the
+    // first keystroke keeps first paint identical and puts the ~350KB (gzipped)
+    // cost only on the person who asked for it.
+    archive: [],
+    archiveUrl: null,
+    archiveState: 'idle', // idle | loading | ready | failed
+
     filtered: [],
     rendered: 0,
     batch: 24,
@@ -134,6 +156,9 @@
       this.columns = section.querySelector('[data-theinmag-gallery-columns]');
       this.noResultsEl = section.querySelector('[data-theinmag-gallery-no-results]');
       this.liveEl = section.querySelector('[data-theinmag-gallery-live]');
+      this.scopeNoteEl = document.querySelector('[data-theinmag-gallery-search-scope]');
+      this.disclaimerEl = document.querySelector('[data-theinmag-gallery-disclaimer]');
+      this.archiveUrl = section.getAttribute('data-gallery-archive') || null;
       this.emptyEl = section.querySelector('.theinmag-gallery-grid__empty');
       // If the server rendered the empty state (Liquid's ~50-metaobject cap
       // returned nothing published), there's no columns container. Build one so
@@ -302,13 +327,21 @@
         self.applyFilter();
       });
       var input = document.querySelector('[data-theinmag-gallery-search]');
-      if (input) input.addEventListener('input', function () {
-        clearTimeout(self.searchTimer);
-        self.searchTimer = setTimeout(function () {
-          self.state.query = (input.value || '').trim().toLowerCase();
-          self.applyFilter();
-        }, 250);
-      });
+      if (input) {
+        // Start fetching the archive as soon as the box is FOCUSED, before a
+        // single character is typed. Intent to search is the signal, and the
+        // ~0.5s head start usually means the full set is ready by the time they
+        // finish typing a name, so the results do not visibly jump.
+        input.addEventListener('focus', function () { self.loadArchive(); });
+        input.addEventListener('input', function () {
+          clearTimeout(self.searchTimer);
+          self.loadArchive();
+          self.searchTimer = setTimeout(function () {
+            self.state.query = (input.value || '').trim().toLowerCase();
+            self.applyFilter();
+          }, 250);
+        });
+      }
     },
 
     bindResize: function () {
@@ -342,9 +375,74 @@
       return hay.indexOf(q) !== -1;
     },
 
+    // What a filter run searches over. With NO query this is the windowed feed
+    // alone, so the default browse view and its DOM weight are exactly as before.
+    // Only a real search widens the pool to every published creation.
+    searchPool: function () {
+      if (!this.state.query || this.archiveState !== 'ready' || !this.archive.length) return this.all;
+      return this.all.concat(this.archive);
+    },
+
+    // Fetch the archive once, on the first search. Failure is non-fatal by design:
+    // search keeps working over the windowed feed, which is exactly the behaviour
+    // that shipped before this existed, so a Worker blip degrades to the old
+    // gallery rather than to a broken one.
+    loadArchive: function () {
+      var self = this;
+      if (this.archiveState !== 'idle' || !this.archiveUrl) return;
+      this.archiveState = 'loading';
+      this.updateSearchScopeNote();
+      fetch(this.archiveUrl, { credentials: 'omit' })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (data) {
+          var list = (data && data.creations) || [];
+          // Defensive dedupe: the two sets are disjoint by construction (the
+          // Worker splits one result set on the window boundary), but an id that
+          // appeared twice would render a duplicate card, so never trust it.
+          var seen = {};
+          self.all.forEach(function (c) { seen[c.id] = true; });
+          self.archive = list.filter(function (c) {
+            if (seen[c.id]) return false;
+            seen[c.id] = true;
+            return true;
+          });
+          self.archiveState = 'ready';
+          console.log('[gallery] archive loaded:', self.archive.length, 'older creations now searchable');
+          // Only re-run if a search is still active; if they cleared the box while
+          // it loaded, re-filtering would yank the default view out from under them.
+          if (self.state.query) self.applyFilter();
+          else self.updateSearchScopeNote();
+        })
+        .catch(function (err) {
+          self.archiveState = 'failed';
+          console.warn('[gallery] archive failed (' + (err && err.message) + '), searching recent creations only');
+          self.updateSearchScopeNote();
+        });
+    },
+
+    // Tells the searcher WHICH set they are looking at, in words. A kid who
+    // searches their name and sees nothing needs to know whether that means "not
+    // here" or "still loading", otherwise the honest answer looks like a dead end.
+    updateSearchScopeNote: function () {
+      var el = this.scopeNoteEl;
+      if (!el) return;
+      var msg = '';
+      if (this.state.query) {
+        if (this.archiveState === 'loading') msg = 'Looking through every creation, one moment...';
+        else if (this.archiveState === 'ready') msg = 'Searching all ' + (this.all.length + this.archive.length) + ' creations, not just the recent ones.';
+        else if (this.archiveState === 'failed') msg = 'Searching recent creations only just now. Try again in a moment to search them all.';
+      }
+      el.textContent = msg;
+      el.classList.toggle('is-visible', msg !== '');
+      // The browse disclaimer opens with "Last 3 months", which is only true of
+      // the default windowed view. Stand it down while a search is active so it
+      // cannot contradict the scope line directly above it.
+      if (this.disclaimerEl) this.disclaimerEl.hidden = !!this.state.query;
+    },
+
     applyFilter: function () {
       var self = this;
-      this.filtered = this.all.filter(function (c) { return self.matches(c); });
+      this.filtered = this.searchPool().filter(function (c) { return self.matches(c); });
       this.buildCols(this.colCount);
       this.rendered = 0;
       this.renderNextBatch();
@@ -353,6 +451,14 @@
 
       var none = this.filtered.length === 0;
       var showNo = none && (this.state.query !== '' || this.state.category !== 'all');
+      // NEVER say "nothing found" while the archive is still in flight. Between
+      // the 250ms keystroke debounce and the fetch landing there is a moment when
+      // an archive-only name genuinely has no match in the windowed set, and
+      // flashing "no creations found" at a kid searching their own name is the
+      // one wrong answer this whole feature exists to prevent. The scope note
+      // says "looking through every creation" instead, and the real result
+      // replaces it a moment later.
+      if (this.state.query && this.archiveState === 'loading') showNo = false;
       if (this.noResultsEl) {
         this.noResultsEl.classList.toggle('is-visible', showNo);
         this.noResultsEl.classList.toggle('visually-hidden', !showNo);
@@ -360,6 +466,7 @@
       if (this.liveEl) {
         this.liveEl.textContent = this.filtered.length + ' creation' + (this.filtered.length === 1 ? '' : 's') + ' showing.';
       }
+      this.updateSearchScopeNote();
       if (this.section.scrollIntoView && (this.state.query || this.state.category !== 'all')) {
         this.section.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
       }
@@ -541,6 +648,10 @@
       var sel = document.querySelector('[data-theinmag-gallery-category]');
       if (sel) sel.value = category || 'all';
       this.state.category = category || 'all';
+      // A programmatic search (a deep link, or a "find your creation" link in an
+      // email) must reach the archive too, or the one route we point kids at would
+      // be the one route that only searches the recent set.
+      if (this.state.query) this.loadArchive();
       this.applyFilter();
     }
   };
