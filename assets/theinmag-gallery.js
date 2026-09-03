@@ -467,7 +467,21 @@
         this.liveEl.textContent = this.filtered.length + ' creation' + (this.filtered.length === 1 ? '' : 's') + ' showing.';
       }
       this.updateSearchScopeNote();
-      if (this.section.scrollIntoView && (this.state.query || this.state.category !== 'all')) {
+      // SCROLL ONLY WHEN THE RESULTS WOULD OTHERWISE BE OFF-SCREEN ABOVE.
+      //
+      // This used to scroll the grid to the top of the viewport on EVERY filter
+      // run. Typing a name fires one run per keystroke, so the page lurched
+      // downward while you were still typing and shoved the search box you were
+      // using out of view (Ryan, 2026-09-04). Nobody needs scrolling toward
+      // something they are already looking at.
+      //
+      // The distinction that matters is where the grid currently sits. If its top
+      // is above the viewport, the visitor is deep in the list and a filter change
+      // would strand them below a now-shorter set, so pull them back up. If the
+      // grid top is already on screen, which is always true when someone is typing
+      // in the search box, leave the page exactly where it is.
+      var top = this.section.getBoundingClientRect ? this.section.getBoundingClientRect().top : 0;
+      if (this.section.scrollIntoView && top < 0 && (this.state.query || this.state.category !== 'all')) {
         this.section.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
       }
     },
