@@ -145,8 +145,9 @@
 
   # Build a sortable "WEIGHT:handle" list. Weights are 4-digit zero-padded
   # so a plain string sort is also a numeric sort. Sorted descending the
-  # final grid order is: Membership, Digital Stack, Snack Pack, mags
-  # newest-first, then any other product. (Ryan promoted the stack from
+  # final grid order is: Membership, Digital Stack, Snack Pack, mags with
+  # print in stock newest-first, any other product, then mags (and the
+  # Snack Pack) whose print has sold out. See the in-stock-first note below. (Ryan promoted the stack from
   # dead last to second on 2026-08-12: the best-margin product sat behind
   # the grid's Show more fold where nobody met it.)
   #   Membership    9999
@@ -169,33 +170,59 @@
         assign is_excluded = true
       endif
     endfor
+    # Does this product have a buyable PRINT edition right now? Read from
+    # real variant availability, so it is true the moment stock lands and
+    # false the moment the last copy sells. Used by the stockist filter
+    # below AND by the in-stock-first ordering (Ryan, 2026-09-04).
+    assign has_available_print = false
+    for v in product.variants
+      if v.available
+        assign vt_dn = v.title | downcase
+        unless vt_dn contains 'digital'
+          assign has_available_print = true
+        endunless
+      endif
+    endfor
     if print_available_only and is_excluded == false
-      assign has_available_print = false
-      for v in product.variants
-        if v.available
-          assign vt_dn = v.title | downcase
-          unless vt_dn contains 'digital'
-            assign has_available_print = true
-          endunless
-        endif
-      endfor
       unless has_available_print
         assign is_excluded = true
       endunless
     endif
     unless is_excluded
+      # IN-STOCK FIRST (Ryan, 2026-09-04, for the Mag10 sell-out): a mag or
+      # Snack Pack whose print has sold out drops below every mag that
+      # still has print, so the shelf leads with what can actually be
+      # posted. Nothing is hidden: the sold-out tile keeps its Digital
+      # row and the stack bridge on its own page. Self-flipping: the
+      # weights read live availability, so Mag10 falls to the tail on
+      # its own at zero and climbs back if it were ever restocked.
+      #   Membership              9999
+      #   Digital Stack           9998
+      #   Snack Pack, print ok    9997
+      #   MagNN, print ok         3000 + NN
+      #   other                   2000
+      #   MagNN, print gone       1000 + NN
+      #   Snack Pack, print gone   900
       assign weight = '2000'
       if product.title contains membership_match
         assign weight = '9999'
       elsif product.title contains digital_stack_match
         assign weight = '9998'
       elsif product.title contains snack_pack_match
-        assign weight = '9997'
+        if has_available_print
+          assign weight = '9997'
+        else
+          assign weight = '0900'
+        endif
       else
         assign handle_prefix = product.handle | slice: 0, 3
         if handle_prefix == 'mag'
           assign mag_num = product.handle | slice: 3, 5 | times: 1
-          assign weight = 3000 | plus: mag_num | append: ''
+          if has_available_print
+            assign weight = 3000 | plus: mag_num | append: ''
+          else
+            assign weight = 1000 | plus: mag_num | append: ''
+          endif
         endif
       endif
 
