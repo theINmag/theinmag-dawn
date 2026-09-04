@@ -1016,7 +1016,8 @@
   }
   .theinmag-bundle-picker__modal-pills {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: 10px;
     margin-top: 12px;
   }
@@ -1070,6 +1071,7 @@
     top: -11px;
     left: 50%;
     transform: translateX(-50%) rotate(-2deg);
+    white-space: nowrap;
     background-color: var(--color-yellow, #F9C23C);
     color: var(--color-inky-purple-navy);
     font-weight: 700;
@@ -1101,15 +1103,16 @@
   .theinmag-bundle-picker__modal-radio input { margin: 0; accent-color: var(--color-purple-dark, #5D3A7A); }
   .theinmag-bundle-picker__modal-start-note {
     margin: 0;
-    padding: 12px 14px;
-    background: rgba(93, 58, 122, 0.07);
-    border: 1px solid rgba(93, 58, 122, 0.25);
-    border-radius: 12px;
+    padding: 0;
+    text-align: center;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-size: 13px;
+    font-weight: 500;
+    font-size: 12.5px;
     line-height: 1.45;
     color: var(--color-inky-purple-navy);
+    opacity: 0.78;
   }
+  .theinmag-bundle-picker__modal-start-note strong { font-weight: 700; }
   .theinmag-bundle-picker__modal-start-note[hidden] { display: none; }
   .theinmag-bundle-picker__modal-rolling-note {
     margin: -8px 0 var(--space-lg, 24px);
@@ -1676,8 +1679,8 @@
     function priceForPill(format, length) {
       const v = findVariant(format, length);
       if (!v) return '';
-      if (length === 'Rolling') return formatAud(v.price) + '/drop';
-      return formatAud(v.price);
+      if (length === 'Rolling') return formatAud(v.price).replace(/\.00$/, '') + '/drop';
+      return formatAud(v.price).replace(/\.00$/, '');
     }
 
     function updateModalForFormat() {
