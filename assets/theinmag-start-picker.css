@@ -1,0 +1,360 @@
+/* theinmag-start-picker
+   The "which mag arrives first?" dialog shared by the Membership PDP hero
+   and the sitewide membership popup. Tokens only. Rendered as a native
+   <dialog>; layout is the three-portrait-tile choice gate from the design
+   system (6.4 / 5.13) shrunk to a card. Mobile first. */
+
+.theinmag-start-picker {
+  padding: 0;
+  border: none;
+  background: transparent;
+  width: 100%;
+  max-width: min(600px, calc(100vw - 20px));
+  color: var(--color-inky-purple-navy);
+}
+.theinmag-start-picker::backdrop {
+  background-color: rgba(42, 31, 61, 0.58);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+/* No <dialog> support: pin it like a modal by hand. */
+.theinmag-start-picker.is-fallback-open {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  z-index: 200;
+  height: fit-content;
+  max-height: 100vh;
+}
+.theinmag-start-picker__inner {
+  position: relative;
+  background-color: var(--color-cream);
+  border: 1.5px solid var(--color-soft-pink);
+  border-radius: 22px;
+  box-shadow: 0 24px 60px rgba(42, 31, 61, 0.30), 0 6px 18px rgba(42, 31, 61, 0.14);
+  padding: clamp(18px, 4vw, 30px);
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.theinmag-start-picker__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--color-inky-purple-navy);
+  font-size: 18px;
+  line-height: 1;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.theinmag-start-picker__close:hover,
+.theinmag-start-picker__close:focus-visible {
+  background-color: rgba(42, 31, 61, 0.08);
+  outline: none;
+}
+
+.theinmag-start-picker__head {
+  text-align: center;
+  padding-right: 28px;
+  padding-left: 28px;
+}
+.theinmag-start-picker__eyebrow {
+  margin: 0 0 4px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--color-purple-dark);
+}
+.theinmag-start-picker__title {
+  margin: 0 0 6px;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(24px, 4vw, 32px);
+  line-height: 1.05;
+  color: var(--color-inky-purple-navy);
+}
+.theinmag-start-picker__title .theinmag-in { font-size: 1.12em; }
+.theinmag-start-picker__sub {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+/* ---------- Tiles ---------- */
+.theinmag-start-picker__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.theinmag-start-picker__tiles[data-count='2'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 400px;
+  margin: 0 auto;
+  width: 100%;
+}
+.theinmag-start-picker__tile {
+  appearance: none;
+  background: #ffffff;
+  border: 2px solid rgba(247, 160, 146, 0.55);
+  border-radius: var(--radius-lg);
+  padding: 8px 8px 10px;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-inky-purple-navy);
+  font-family: var(--font-body);
+  min-height: 44px;
+  transition: border-color var(--transition-standard), background var(--transition-standard), transform var(--transition-hover), box-shadow var(--transition-hover);
+}
+.theinmag-start-picker__tile[hidden] { display: none; }
+.theinmag-start-picker__tile:hover,
+.theinmag-start-picker__tile:focus-visible {
+  border-color: var(--color-purple-dark);
+  outline: none;
+}
+.theinmag-start-picker__tile[aria-pressed='true'] {
+  border-color: var(--color-purple-dark);
+  background: rgba(93, 58, 122, 0.08);
+  box-shadow: 0 8px 22px rgba(42, 31, 61, 0.14);
+  transform: translateY(-2px);
+}
+.theinmag-start-picker__tile[aria-disabled='true'] {
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.6);
+}
+.theinmag-start-picker__tile[aria-disabled='true']:hover { border-color: rgba(247, 160, 146, 0.55); }
+
+/* Cover box: locked aspect so tiles never jump when an image is late or
+   missing. Real covers are 1435 x 1875. */
+.theinmag-start-picker__cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1435 / 1875;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-lavender);
+  box-shadow: 0 2px 8px rgba(42, 31, 61, 0.14);
+}
+.theinmag-start-picker__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.theinmag-start-picker__cover img[hidden] { display: none; }
+.theinmag-start-picker__cover--blur img { filter: blur(7px) saturate(0.9); transform: scale(1.08); }
+.theinmag-start-picker__tile[aria-disabled='true'] .theinmag-start-picker__cover img {
+  filter: grayscale(0.9) contrast(0.85);
+  opacity: 0.55;
+}
+
+/* Sold-out stamp: coral-dark ink, rotated like a rubber stamp, white
+   text. Never a coloured pill on top of the cover elsewhere. */
+.theinmag-start-picker__stamp {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.theinmag-start-picker__stamp span {
+  display: inline-block;
+  transform: rotate(-14deg);
+  border: 3px solid var(--color-coral-dark);
+  color: var(--color-coral-dark);
+  background: rgba(251, 246, 234, 0.92);
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(13px, 3.6vw, 18px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+/* Coming stamp for the unreleased issue: peach pill, matches the
+   pre-order stamp on the shop hero. */
+.theinmag-start-picker__coming {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  background: var(--color-peach);
+  color: var(--color-inky-purple-navy);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  max-width: calc(100% - 8px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(42, 31, 61, 0.15);
+}
+.theinmag-start-picker__name {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(16px, 4vw, 20px);
+  line-height: 1;
+  margin-top: 2px;
+}
+.theinmag-start-picker__status {
+  font-weight: 500;
+  font-size: 11.5px;
+  line-height: 1.3;
+  opacity: 0.82;
+}
+.theinmag-start-picker__tile[aria-pressed='true'] .theinmag-start-picker__status { opacity: 1; font-weight: 600; }
+.theinmag-start-picker__status--soldout { color: var(--color-coral-dark); opacity: 1; font-weight: 700; }
+
+/* ---------- Plan (what you get) ---------- */
+.theinmag-start-picker__plan {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.theinmag-start-picker__plan-label {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+.theinmag-start-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.theinmag-start-picker__chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  background: var(--color-lavender);
+  color: var(--color-inky-purple-navy);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1;
+  padding: 7px 10px;
+  border-radius: var(--radius-pill);
+}
+.theinmag-start-picker__chip small {
+  font-weight: 500;
+  font-size: 11px;
+  opacity: 0.8;
+}
+.theinmag-start-picker__chip--first { background: var(--color-mint); }
+.theinmag-start-picker__chip--skipped {
+  background: transparent;
+  border: 1.5px dashed var(--color-coral-dark);
+  color: var(--color-coral-dark);
+  text-decoration: line-through;
+}
+.theinmag-start-picker__chip--more { background: transparent; border: 1.5px solid rgba(42, 31, 61, 0.18); font-weight: 500; }
+.theinmag-start-picker__plan-note {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.theinmag-start-picker__plan-note strong { font-weight: 700; }
+
+/* ---------- Actions ---------- */
+.theinmag-start-picker__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.theinmag-start-picker__confirm {
+  appearance: none;
+  width: 100%;
+  border: 0;
+  background: var(--color-yellow);
+  color: var(--color-inky-purple-navy);
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 14px 24px;
+  min-height: 52px;
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button-yellow);
+  cursor: pointer;
+  transition: background var(--transition-standard), color var(--transition-standard), translate var(--transition-standard), box-shadow var(--transition-standard);
+}
+.theinmag-start-picker__confirm:hover,
+.theinmag-start-picker__confirm:focus-visible {
+  background: var(--color-purple-dark);
+  color: #ffffff;
+  translate: 0 2px;
+  box-shadow: var(--shadow-button-pressed);
+  outline: none;
+}
+.theinmag-start-picker__cancel {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--color-inky-purple-navy);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 8px 12px;
+  min-height: 44px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+.theinmag-start-picker__cancel:hover,
+.theinmag-start-picker__cancel:focus-visible { opacity: 1; outline: none; }
+
+@media (max-width: 599px) {
+  .theinmag-start-picker__inner { gap: 12px; }
+  .theinmag-start-picker__plan { padding: 10px 12px; gap: 6px; }
+  .theinmag-start-picker__sub { font-size: 13.5px; }
+}
+@media (max-width: 359px) {
+  .theinmag-start-picker__inner .theinmag-start-picker__tiles { gap: 6px; }
+  .theinmag-start-picker__inner .theinmag-start-picker__tile { padding: 6px 5px 8px; }
+}
+@media (min-width: 600px) {
+  .theinmag-start-picker__inner { gap: 20px; }
+  .theinmag-start-picker__tiles { gap: 14px; }
+  .theinmag-start-picker__tile { padding: 10px 10px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .theinmag-start-picker__tile[aria-pressed='true'] { transform: none; }
+  .theinmag-start-picker__confirm:hover { translate: 0 0; box-shadow: var(--shadow-button-yellow); }
+}

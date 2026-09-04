@@ -38,11 +38,9 @@
   endif
 
   comment
-    PRE-DROP LEAD SHIFT (manual, 2026-06-09). Mirrors theinmag-membership-hero:
-    while Mag10 is dropping very soon, the popup's starting-issue choices lead
-    with Mag10 and offer Mag11 (15 Oct 2026) as next; Mag09 is retired. Keep this
-    in sync with the hero. REVERT on the 15 June drop (flip current_issue_number
-    to Mag10, delete this block) so the popup auto-rolls to current=Mag10 / next=Mag11.
+    lead = current issue, alt = next issue. The pre-drop lead shift that
+    once lived here was retired at the Mag10 drop; the sold-out safe
+    default below is the only time lead moves off the current issue.
   endcomment
   assign lead_issue = current_issue
   assign lead_release_formatted = next_release_formatted
@@ -52,7 +50,40 @@
   else
     assign alt_issue = 'Mag' | append: alt_num
   endif
-  assign alt_release_formatted = '15 October 2026'
+  assign alt_release_formatted = next_release_value | date: '%-d %B %Y' | default: '15 October 2026'
+
+  # Safe no-JS default for the hidden _starting_mag input: never the
+  # sold-out issue. The real pick happens in the start picker dialog
+  # (snippets/theinmag-start-picker) which gates every Print add.
+  assign cur_handle = current_issue | downcase
+  assign cur_prod = all_products[cur_handle]
+  assign cur_print_available = false
+  for v in cur_prod.variants
+    if v.option1 == 'Print' and v.available
+      assign cur_print_available = true
+    endif
+  endfor
+  if cur_print_available == false or print_in_stock == false
+    assign prev_num = current_num | minus: 1
+    if prev_num < 10
+      assign prev_issue = 'Mag0' | append: prev_num
+    else
+      assign prev_issue = 'Mag' | append: prev_num
+    endif
+    assign prev_handle = prev_issue | downcase
+    assign prev_prod = all_products[prev_handle]
+    assign prev_print_available = false
+    for v in prev_prod.variants
+      if v.option1 == 'Print' and v.available
+        assign prev_print_available = true
+      endif
+    endfor
+    if prev_print_available
+      assign lead_issue = prev_issue
+    else
+      assign lead_issue = alt_issue
+    endif
+  endif
 
   assign first_variant = membership_product.selected_or_first_available_variant
 -%}
@@ -106,22 +137,15 @@
         </div>
       </fieldset>
 
-      <fieldset class="theinmag-membership-popup__fieldset">
-        <legend class="theinmag-membership-popup__legend">Starting issue</legend>
-        <div class="theinmag-membership-popup__starting" role="radiogroup" data-option-name="starting" data-starting-group>
-          <button type="button" class="theinmag-membership-popup__start-tile" data-value="current" aria-pressed="true">
-            <span class="theinmag-membership-popup__start-title">Start with the current issue</span>
-            <span class="theinmag-membership-popup__start-sub">{{ lead_issue }} - in stock now</span>
-          </button>
-          <button type="button" class="theinmag-membership-popup__start-tile" data-value="next" aria-pressed="false">
-            <span class="theinmag-membership-popup__start-title">Start with the next issue</span>
-            <span class="theinmag-membership-popup__start-sub">{{ alt_issue }} - drops {{ alt_release_formatted }}</span>
-          </button>
-        </div>
-        <p class="theinmag-membership-popup__start-note" data-digital-start-note hidden>
-          Digital always starts with the <strong>current issue ({{ lead_issue }})</strong>.
-        </p>
-      </fieldset>
+      {%- comment -%}
+        The starting-issue choice lives in the start picker dialog now
+        (covers, not labels; opens on Add to cart for Print). Digital
+        always starts with the current issue and skips it.
+      {%- endcomment -%}
+      <p class="theinmag-membership-popup__start-hint" data-print-start-hint>Next, you'll pick which mag arrives first.</p>
+      <p class="theinmag-membership-popup__start-note" data-digital-start-note hidden>
+        Digital always starts with the <strong>current issue ({{ current_issue }})</strong>, in your inbox straight away.
+      </p>
 
       <button type="submit" class="theinmag-membership-popup__cta" data-membership-popup-submit>Add to cart</button>
 
@@ -133,6 +157,8 @@
 
   <script type="application/json" data-membership-popup-variants>{{ membership_product.variants | json }}</script>
 </dialog>
+
+{% render 'theinmag-start-picker' %}
 
 <style>
   .theinmag-membership-popup {
@@ -276,83 +302,18 @@
     white-space: nowrap;
     pointer-events: none;
   }
-  .theinmag-membership-popup__starting {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-  .theinmag-membership-popup__starting[hidden] { display: none; }
-  .theinmag-membership-popup__start-tile {
-    appearance: none;
-    background-color: #FFFFFF;
-    border: 1.5px solid rgba(247, 160, 146, 0.55);
-    color: var(--color-inky-purple-navy);
-    text-align: left;
-    padding: 12px 16px;
-    border-radius: 16px;
-    cursor: pointer;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto;
-    column-gap: 12px;
-    row-gap: 2px;
-    align-items: center;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-    font-family: var(--font-body);
-  }
-  .theinmag-membership-popup__start-tile::before {
-    content: '';
-    grid-column: 1;
-    grid-row: 1 / 3;
-    align-self: center;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 2px solid var(--color-soft-pink);
-    background: #ffffff;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-  }
-  .theinmag-membership-popup__start-tile:hover,
-  .theinmag-membership-popup__start-tile:focus-visible {
-    outline: none;
-    border-color: var(--color-purple-dark);
-  }
-  .theinmag-membership-popup__start-tile[aria-pressed='true'] {
-    background-color: rgba(93, 58, 122, 0.10);
-    border-color: var(--color-purple-dark);
-    border-width: 2px;
-    padding: 11.5px 15.5px;
-  }
-  .theinmag-membership-popup__start-tile[aria-pressed='true']::before {
-    border-color: var(--color-purple-dark);
-    background: var(--color-purple-dark);
-    box-shadow: inset 0 0 0 3px #ffffff;
-  }
-  .theinmag-membership-popup__start-title {
-    grid-column: 2;
-    font-weight: 700;
-    font-size: 14px;
-    line-height: 1.3;
-  }
-  .theinmag-membership-popup__start-sub {
-    grid-column: 2;
-    font-size: 12.5px;
-    opacity: 0.78;
-    line-height: 1.35;
-  }
+  .theinmag-membership-popup__start-hint,
   .theinmag-membership-popup__start-note {
-    margin: 0;
-    padding: 12px 16px;
-    background: rgba(93, 58, 122, 0.07);
-    border: 1.5px solid rgba(93, 58, 122, 0.25);
-    border-radius: 16px;
+    margin: -6px 0 0;
     font-family: var(--font-body);
-    font-size: 13px;
-    line-height: 1.45;
+    font-weight: 500;
+    font-size: 12.5px;
+    line-height: 1.4;
     color: var(--color-inky-purple-navy);
+    opacity: 0.78;
   }
+  .theinmag-membership-popup__start-note strong { font-weight: 700; }
+  .theinmag-membership-popup__start-hint[hidden],
   .theinmag-membership-popup__start-note[hidden] { display: none; }
   .theinmag-membership-popup__cta {
     appearance: none;
@@ -389,7 +350,6 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .theinmag-membership-popup__pill,
-    .theinmag-membership-popup__start-tile,
     .theinmag-membership-popup__cta {
       transition: none;
     }
@@ -427,9 +387,10 @@
     const propRemaining = form.querySelector('[data-prop-remaining]');
     const propIncluded = form.querySelector('[data-prop-mags-included]');
 
-    const currentIssue = '{{ lead_issue }}';
-    const nextIssue = '{{ alt_issue }}';
-    const printInStock = {{ print_in_stock | default: false | json }};
+    const currentIssue = '{{ current_issue }}';
+    const safeDefaultStart = '{{ lead_issue }}';
+    let chosenStart = null; /* Print pick from the start picker */
+    function picker() { return window.theinmagStartPicker || null; }
 
     function selected(optionName) {
       const tile = form.querySelector('[data-option-name="' + optionName + '"] [aria-pressed="true"]');
@@ -445,7 +406,11 @@
     function padNumber(n) { return n < 10 ? '0' + n : String(n); }
     function issueNumberOf(label) { return parseInt(String(label).replace('Mag', ''), 10); }
     function magLabelFor(n) { return 'Mag' + padNumber(n); }
-    function computeMagsIncluded(startMag, length) {
+    function computeMagsIncluded(startMag, length, skipSoldOut) {
+      const p = picker();
+      if (p && typeof p.compute === 'function') {
+        return p.compute(startMag, length, { skipSoldOut: skipSoldOut !== false }).magsIncluded;
+      }
       if (length === 'Rolling') return startMag;
       const count = length === '4-Issue' ? 4 : 8;
       const startNum = issueNumberOf(startMag);
@@ -465,33 +430,18 @@
     function update() {
       const format = selected('format');
       const length = selected('length');
-      let starting = selected('starting');
 
-      const currentTile = form.querySelector('[data-option-name="starting"] [data-value="current"]');
-      const startingGroup = form.querySelector('[data-starting-group]');
       const digitalStartNote = form.querySelector('[data-digital-start-note]');
-
+      const printStartHint = form.querySelector('[data-print-start-hint]');
+      let startMag;
       if (format === 'Digital') {
-        /* Digital always begins with the current issue (no print-stock
-           wait, no "next issue" split). Force current, hide the chooser,
-           show the note. Combo keeps the choice - it ships the print copy. */
-        starting = 'current';
-        setSelected('starting', 'current');
-        if (currentTile) currentTile.hidden = false;
-        if (startingGroup) startingGroup.hidden = true;
+        startMag = currentIssue;
         if (digitalStartNote) digitalStartNote.hidden = false;
+        if (printStartHint) printStartHint.hidden = true;
       } else {
-        if (startingGroup) startingGroup.hidden = false;
+        startMag = chosenStart || safeDefaultStart;
         if (digitalStartNote) digitalStartNote.hidden = true;
-        const needsPrintStock = format === 'Print' || format === 'Combo';
-        const hideCurrent = needsPrintStock && !printInStock;
-        if (currentTile) {
-          currentTile.hidden = hideCurrent;
-          if (hideCurrent && starting === 'current') {
-            starting = 'next';
-            setSelected('starting', 'next');
-          }
-        }
+        if (printStartHint) printStartHint.hidden = !!chosenStart;
       }
 
       const variant = findVariant(format, length);
@@ -504,10 +454,9 @@
         }
       }
 
-      const startMag = starting === 'current' ? currentIssue : nextIssue;
       if (propStarting) propStarting.value = startMag;
       if (propRemaining) propRemaining.value = computeRemainingAfterFirst(length);
-      if (propIncluded) propIncluded.value = computeMagsIncluded(startMag, length);
+      if (propIncluded) propIncluded.value = computeMagsIncluded(startMag, length, format !== 'Digital');
     }
 
     form.querySelectorAll('[data-option-name] [data-value]').forEach(function (tile) {
@@ -576,8 +525,7 @@
         .catch(function () { /* graceful degradation */ });
     }
 
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
+    function addToCart() {
       if (submitBtn && submitBtn.disabled) return;
       update();
       if (submitBtn) submitBtn.disabled = true;
@@ -617,7 +565,29 @@
         .finally(function () {
           if (submitBtn) submitBtn.disabled = false;
         });
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const format = selected('format');
+      const p = picker();
+      if (format === 'Print' && !chosenStart && p) {
+        p.open({
+          length: selected('length'),
+          confirmLabel: 'Add to cart',
+          opener: submitBtn,
+          onPick: function (result) {
+            chosenStart = result.startMag;
+            update();
+            addToCart();
+          }
+        });
+        return;
+      }
+      addToCart();
     });
+    document.addEventListener('theinmag:start-picker-ready', update);
 
     update();
   })();

@@ -12,6 +12,15 @@
                "MagXX is officially on sale". Points at the CURRENT issue.
                Primary CTA shops it; secondary CTA "See inside" jumps to the
                PDP #see-inside section.
+    sold-out - no pre-order open AND the current issue's Print variant is
+               unavailable (real Shopify inventory, so it flips itself the
+               moment the last copy sells, overnight included). Eyebrow
+               "MagXX print has sold out", headline "Hellooooo MagYY"
+               (the issue before), photo = that issue's cover, primary CTA
+               shops it, secondary CTA points at the sold-out issue's
+               digital edition. Added 2026-09-04 for the Mag10 sell-out.
+               `preview_sold_out` (section setting) forces this state on a
+               preview theme; never leave it on for live.
 
   Metafields read:
     shop.metafields.theinmag.current_issue_number  -> e.g. "Mag09" (full string)
@@ -159,6 +168,60 @@
       endif
     endfor
   endif
+  comment
+    SOLD-OUT STATE. If we are on-sale but the current issue's Print is gone
+    (or the preview override is on), re-point the whole hero at the issue
+    before it. Re-resolve the target product, cover and prices for it.
+  endcomment
+  assign preview_sold_out = section.settings.preview_sold_out | default: false
+  if hero_state == 'onsale' and target_product != blank and target_product.id != blank
+    if print_available == false or preview_sold_out
+      assign prev_num = current_num | minus: 1
+      if prev_num < 10
+        assign prev_issue = 'Mag0' | append: prev_num
+        assign prev_handle = 'mag0' | append: prev_num
+      else
+        assign prev_issue = 'Mag' | append: prev_num
+        assign prev_handle = 'mag' | append: prev_num
+      endif
+      assign prev_product = all_products[prev_handle]
+      if prev_product != blank and prev_product.id != blank
+        assign hero_state = 'soldout'
+        assign soldout_issue = hero_mag
+        assign soldout_handle = hero_handle
+        assign hero_mag = prev_issue
+        assign hero_handle = prev_handle
+        assign eyebrow = soldout_issue | append: ' print has sold out'
+        assign headline = 'Hellooooo ' | append: hero_mag
+        assign primary_label = 'Shop ' | append: hero_mag
+        assign primary_url = '/products/' | append: hero_handle
+        assign secondary_label = soldout_issue | append: ' digital'
+        assign secondary_url = '/products/' | append: soldout_handle
+        assign target_product = prev_product
+        assign metafield_cover = null
+        assign prev_media_images = target_product.metafields.single_mag.media_images.value
+        if prev_media_images != blank
+          assign metafield_cover = prev_media_images | first
+        endif
+        if metafield_cover == blank and target_product.featured_image != blank
+          assign metafield_cover = target_product.featured_image
+        endif
+        assign print_price = ''
+        assign digital_price = ''
+        assign print_available = false
+        for v in target_product.variants
+          assign vt = v.title | downcase
+          if print_price == '' and vt contains 'print'
+            assign print_price = v.price | money
+            assign print_available = v.available
+          elsif digital_price == '' and vt contains 'digital'
+            assign digital_price = v.price | money
+          endif
+        endfor
+      endif
+    endif
+  endif
+
   if print_price == ''
     assign print_price = '$23.95'
   endif
@@ -232,6 +295,9 @@
       {%- if hero_state == 'presale' -%}
         <span class="theinmag-shop-hero__preorder-stamp" aria-label="Pre-order open">Pre-order</span>
       {%- endif -%}
+      {%- if hero_state == 'soldout' -%}
+        <span class="theinmag-shop-hero__preorder-stamp theinmag-shop-hero__preorder-stamp--instock" aria-label="{{ hero_mag }} in stock">In stock now</span>
+      {%- endif -%}
     </div>
 
     {%- comment -%} RIGHT pane (desktop) / BOTTOM (mobile): copy {%- endcomment -%}
@@ -244,6 +310,9 @@
       <h1 id="theinmag-shop-hero-heading" class="theinmag-shop-hero__headline">{{ headline }}</h1>
       {%- if hero_state == 'presale' and drop_date != blank -%}
         <p class="theinmag-shop-hero__drops">Drops {{ drop_date }}. Pre-order now, ships on release day.</p>
+      {%- endif -%}
+      {%- if hero_state == 'soldout' -%}
+        <p class="theinmag-shop-hero__drops">{{ hero_mag }} is on the shelf and posts within three business days. {{ soldout_issue }} lives on in digital{% if drop_date != blank %}, and {{ next_issue }} drops {{ drop_date }}{% endif %}.</p>
       {%- endif -%}
       <p class="theinmag-shop-hero__subhead">{{ subhead }}</p>
 
@@ -385,6 +454,10 @@
     border-radius: var(--radius-pill);
     box-shadow: 0 2px 8px rgba(42, 31, 61, 0.15);
     z-index: 2;
+  }
+
+  .theinmag-shop-hero__preorder-stamp--instock {
+    background-color: var(--color-mint, #D6EAD9);
   }
 
   /* ---------- Copy pane ---------- */
@@ -556,7 +629,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Editorial latest-mag feature. Two states: pre-sale (when the NEXT issue's product has theinmag.is_pre_order = true) points at that issue and pushes the pre-order; on-sale points at the current issue (theinmag.current_issue_number). Same flag drives the shop grid badge. Photo source: section setting wins; fallback is hero-shop-{handle}.jpg in /assets/."
+      "content": "Editorial latest-mag feature. Three states: sold-out (current issue Print unavailable, hero points at the issue before it), pre-sale (when the NEXT issue's product has theinmag.is_pre_order = true) points at that issue and pushes the pre-order; on-sale points at the current issue (theinmag.current_issue_number). Same flag drives the shop grid badge. Photo source: section setting wins; fallback is hero-shop-{handle}.jpg in /assets/."
     },
     {
       "type": "header",
@@ -600,6 +673,13 @@
       "label": "Show price + Shop/See-inside buttons",
       "info": "Turn off to use this as a spotlight banner without the buy buttons (e.g. the stockist hub, where ordering happens in the picker above).",
       "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "preview_sold_out",
+      "label": "PREVIEW ONLY: force the sold-out state",
+      "info": "Shows the hero as if the current issue's print run had sold out (points at the issue before it). For checking the design on a preview theme. Never leave this on for the live theme; the real state flips itself from live inventory.",
+      "default": false
     },
     {
       "type": "checkbox",

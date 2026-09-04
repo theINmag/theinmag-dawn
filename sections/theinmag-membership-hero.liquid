@@ -60,7 +60,42 @@
   assign lead_issue = current_issue
   assign lead_release_formatted = next_release_formatted
   assign alt_issue = next_issue
-  assign alt_release_formatted = '15 October 2026'
+  assign alt_release_formatted = next_release_value | date: '%-d %B %Y' | default: '15 October 2026'
+
+  # No-JS / belt-and-braces default for the hidden _starting_mag input. The
+  # real choice is made in the start picker (snippets/theinmag-start-picker),
+  # which gates every Print submit, but the input must never carry a
+  # sold-out issue if a submit ever slips through. Sold-out is read from
+  # the current issue's Print variant (real-time) OR the shop flag.
+  assign cur_handle = current_issue | downcase
+  assign cur_prod = all_products[cur_handle]
+  assign cur_print_available = false
+  for v in cur_prod.variants
+    if v.option1 == 'Print' and v.available
+      assign cur_print_available = true
+    endif
+  endfor
+  if cur_print_available == false or print_in_stock == false
+    assign prev_num = current_num | minus: 1
+    if prev_num < 10
+      assign prev_issue = 'Mag0' | append: prev_num
+    else
+      assign prev_issue = 'Mag' | append: prev_num
+    endif
+    assign prev_handle = prev_issue | downcase
+    assign prev_prod = all_products[prev_handle]
+    assign prev_print_available = false
+    for v in prev_prod.variants
+      if v.option1 == 'Print' and v.available
+        assign prev_print_available = true
+      endif
+    endfor
+    if prev_print_available
+      assign lead_issue = prev_issue
+    else
+      assign lead_issue = next_issue
+    endif
+  endif
 
   assign first_variant = product.selected_or_first_available_variant
 
@@ -404,26 +439,30 @@
           </div>
         </fieldset>
 
-        <fieldset class="theinmag-membership-hero__fieldset">
-          <legend class="theinmag-membership-hero__legend">Starting issue</legend>
-          <div class="theinmag-membership-hero__starting" role="radiogroup" data-option-name="starting" data-starting-group>
-            <button type="button" class="theinmag-membership-hero__start-tile" data-value="current" data-requires-print-stock="true" aria-pressed="true">
-              <span class="theinmag-membership-hero__start-label"><strong>Start with the current issue</strong> - {{ lead_issue }}, in stock now</span>
-            </button>
-            <button type="button" class="theinmag-membership-hero__start-tile" data-value="next" aria-pressed="false">
-              <span class="theinmag-membership-hero__start-label"><strong>Start with the next issue</strong> - {{ alt_issue }}, drops {{ alt_release_formatted }}</span>
-            </button>
-          </div>
-          {%- comment -%}
-            Digital memberships have no print-stock wait and no "next issue"
-            split - they always begin with the current issue. JS hides the
-            chooser above and shows this note when Format = Digital (Combo
-            keeps the choice because it includes the print copy).
-          {%- endcomment -%}
-          <p class="theinmag-membership-hero__start-note" data-digital-start-note hidden>
-            Digital always starts with the <strong>current issue ({{ lead_issue }})</strong>.
-          </p>
-        </fieldset>
+        {%- comment -%}
+          FIRST MAG. The starting-issue choice moved out of the page and
+          into the start picker dialog (snippets/theinmag-start-picker),
+          which opens on Add to cart / Buy now for Print. Covers, not
+          labels, and a live "what you'll get" list, so a grandparent
+          sees exactly which mags arrive and in what order. Digital never
+          sees it (digital always starts with the current issue). This
+          row shows the pick once made, with a Change link that reopens
+          the picker; before a pick it shows a one-line hint so the
+          extra step is never a surprise.
+        {%- endcomment -%}
+        <div class="theinmag-membership-hero__first-mag" data-first-mag hidden>
+          <span class="theinmag-membership-hero__first-mag-cover" aria-hidden="true"><img data-first-mag-cover src="" alt="" width="48" height="63"></span>
+          <span class="theinmag-membership-hero__first-mag-text">
+            <span class="theinmag-membership-hero__first-mag-label">Arrives first</span>
+            <strong data-first-mag-name></strong>
+            <span class="theinmag-membership-hero__first-mag-note" data-first-mag-note></span>
+          </span>
+          <button type="button" class="theinmag-membership-hero__first-mag-change" data-first-mag-change>Change</button>
+        </div>
+        <p class="theinmag-membership-hero__start-hint" data-print-start-hint>Next, you'll pick which mag arrives first.</p>
+        <p class="theinmag-membership-hero__start-note" data-digital-start-note hidden>
+          Digital always starts with the <strong>current issue ({{ current_issue }})</strong>, in your inbox straight away.
+        </p>
 
         {%- comment -%}
           CTA row: yellow ADD TO CART + outlined BUY NOW. Same pattern
@@ -475,48 +514,48 @@
       <ul class="theinmag-membership-hero__accordions" role="list">
 
         <li class="theinmag-membership-hero__accordion" data-accordion>
-          <h3 class="theinmag-membership-hero__acc-q">
+          <h2 class="theinmag-membership-hero__acc-q">
             <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
               <span>What's included</span>
               <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
             </button>
-          </h3>
+          </h2>
           <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
             <p>Your chosen format (Print or Digital) of every issue across the Membership length. First-dibs on each and every mag drop. Oh yeah - and endless inspiration.</p>
           </div>
         </li>
 
         <li class="theinmag-membership-hero__accordion" data-accordion>
-          <h3 class="theinmag-membership-hero__acc-q">
+          <h2 class="theinmag-membership-hero__acc-q">
             <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
               <span>What ages is this magazine for?</span>
               <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
             </button>
-          </h3>
+          </h2>
           <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
             <p>Designed for kids aged 5-13, though we've published creators from age 3 to 16. How exciting. Literally enjoyed by the whole family - the puzzles, jokes, art, and short comics pull in younger siblings, the longer reads and creator interviews keep older kids hooked, and parents usually end up reading along too.</p>
           </div>
         </li>
 
         <li class="theinmag-membership-hero__accordion" data-accordion>
-          <h3 class="theinmag-membership-hero__acc-q">
+          <h2 class="theinmag-membership-hero__acc-q">
             <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
               <span>Shipping and delivery</span>
               <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
             </button>
-          </h3>
+          </h2>
           <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
             <p>Print mags ship within three business days from order. Free shipping over $40 - not a problem for members. Digital lands in your inbox the day each issue drops. Releases hit mid February, mid June, and mid October.</p>
           </div>
         </li>
 
         <li class="theinmag-membership-hero__accordion" data-accordion data-rolling-only hidden>
-          <h3 class="theinmag-membership-hero__acc-q">
+          <h2 class="theinmag-membership-hero__acc-q">
             <button type="button" class="theinmag-membership-hero__acc-trigger" data-acc-trigger aria-expanded="false">
               <span>Can I cancel anytime?</span>
               <span class="theinmag-membership-hero__acc-caret" aria-hidden="true"></span>
             </button>
-          </h3>
+          </h2>
           <div class="theinmag-membership-hero__acc-panel" data-acc-panel data-open="false">
             <p>Yes - two-click cancel from your account on theinmag.com.au. No emails, no phone calls, no "90-day notice" nonsense. Any issue already charged still ships; renewals stop from the next drop.</p>
           </div>
@@ -580,6 +619,8 @@
     </button>
   </div>
 </aside>
+
+{% render 'theinmag-start-picker' %}
 
 <script src="{{ 'theinmag-membership-form.js' | asset_url }}" defer></script>
 
@@ -1189,69 +1230,79 @@
     pointer-events: none;
   }
 
-  /* Starting issue tiles - stacked vertically per Ryan's preference (side-by-side
-     was tried and rejected). Card-shape (not pill) so the two-line content has
-     room to breathe; tiles stretch to fill the column so the longer subline
-     ("drops 15 June 2026") doesn't push its tile wider than the other.
-     Active state is a soft pink tint + 2px pink border rather than a solid
-     fill - reads as "selected card" instead of "button being pressed." */
-  .theinmag-membership-hero__starting {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-  /* Class specificity beats the UA [hidden] rule, so the chooser needs an
-     explicit override to actually disappear when JS hides it (Digital). */
-  .theinmag-membership-hero__starting[hidden] { display: none; }
-  /* Slim single-line radio rows (circle + bold lead + normal detail) that
-     run the full widget width - mirrors the build-a-bundle modal's rows. */
-  .theinmag-membership-hero__start-tile {
-    background: #ffffff;
-    border: 1.5px solid rgba(247, 160, 146, 0.55);
-    border-radius: 14px;
-    padding: 12px 16px;
-    cursor: pointer;
-    text-align: left;
+  /* First-mag row: the pick made in the start picker, shown as a mini
+     cover + name + one-line note, with a Change link. Same card register
+     as the old starting-issue tiles (white on cream, soft-pink border). */
+  .theinmag-membership-hero__first-mag {
     display: flex;
     align-items: center;
     gap: 12px;
-    color: var(--color-inky-purple-navy);
-    font-family: var(--font-body);
-    font-size: 13.5px;
-    line-height: 1.35;
-    transition: background var(--transition-standard), border-color var(--transition-standard);
-  }
-  .theinmag-membership-hero__start-tile::before {
-    content: '';
-    flex: 0 0 auto;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 2px solid var(--color-soft-pink);
     background: #ffffff;
-    box-sizing: border-box;
-    transition: border-color var(--transition-standard), background var(--transition-standard), box-shadow var(--transition-standard);
+    border: 2px solid var(--color-purple-dark);
+    border-radius: 14px;
+    padding: 10px 12px;
+    margin-bottom: var(--space-md);
   }
-  .theinmag-membership-hero__start-tile:hover,
-  .theinmag-membership-hero__start-tile:focus-visible {
-    border-color: var(--color-purple-dark);
+  .theinmag-membership-hero__first-mag[hidden] { display: none; }
+  .theinmag-membership-hero__first-mag-cover {
+    flex: 0 0 auto;
+    width: 44px;
+    aspect-ratio: 1435 / 1875;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--color-lavender);
+    box-shadow: 0 1px 4px rgba(42, 31, 61, 0.18);
+  }
+  .theinmag-membership-hero__first-mag-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .theinmag-membership-hero__first-mag-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    font-family: var(--font-body);
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__first-mag-label {
+    font-weight: 600;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.72;
+  }
+  .theinmag-membership-hero__first-mag-text strong { font-weight: 700; font-size: 15px; line-height: 1.2; }
+  .theinmag-membership-hero__first-mag-note { font-weight: 500; font-size: 12.5px; line-height: 1.35; opacity: 0.85; }
+  .theinmag-membership-hero__first-mag-change {
+    flex: 0 0 auto;
+    appearance: none;
+    background: transparent;
+    border: 1.5px solid var(--color-purple-dark);
+    color: var(--color-purple-dark);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 12px;
+    padding: 7px 12px;
+    min-height: 36px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: background var(--transition-standard), color var(--transition-standard);
+  }
+  .theinmag-membership-hero__first-mag-change:hover,
+  .theinmag-membership-hero__first-mag-change:focus-visible {
+    background: var(--color-purple-dark);
+    color: #ffffff;
     outline: none;
   }
-  .theinmag-membership-hero__start-tile[aria-pressed='true'] {
-    background: rgba(93, 58, 122, 0.10);
-    border-color: var(--color-purple-dark);
-    border-width: 2px;
-    padding: 11.5px 15.5px;
+  .theinmag-membership-hero__start-hint {
+    margin: -4px 0 var(--space-md);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.72;
   }
-  .theinmag-membership-hero__start-tile[aria-pressed='true']::before {
-    border-color: var(--color-purple-dark);
-    background: var(--color-purple-dark);
-    box-shadow: inset 0 0 0 3px #ffffff;
-  }
-  .theinmag-membership-hero__start-tile[hidden] { display: none; }
-  .theinmag-membership-hero__start-label { font-weight: 400; }
-  .theinmag-membership-hero__start-label strong { font-weight: 700; }
+  .theinmag-membership-hero__start-hint[hidden] { display: none; }
 
   /* Digital-only note that replaces the chooser when Format = Digital. */
   .theinmag-membership-hero__start-note {

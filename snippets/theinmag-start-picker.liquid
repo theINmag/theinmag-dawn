@@ -1,0 +1,177 @@
+{%- comment -%}
+  theinmag-start-picker
+  The "which mag arrives first?" dialog for Print memberships. Shared by
+  the Membership PDP hero and the sitewide membership popup: render it
+  from any surface that adds a membership; the JS binds ONCE per page
+  (window.__theinmagStartPickerInit) and uses the first dialog in the DOM,
+  so a second render is inert.
+
+  Three portrait tiles, covers not labels (Ryan, 2026-09-04: "visuals are
+  our friend"):
+    prev     the issue before the current one. Only shown once the
+             current print run has sold out. "Ready to post now."
+    current  the current issue. In stock: "In stock, posts this week".
+             Sold out: coral SOLD OUT stamp, not selectable, still shown
+             so the customer sees WHY it is missing from their list.
+    next     the unreleased issue. Uses the real cover if its product
+             exists, else /assets/next-issue-teaser.jpg (Ryan supplies a
+             blurred cover), else a CSS-blurred current cover.
+
+  Sold-out is read TWO ways and either one wins: the current issue's Print
+  variant availability (real-time Shopify inventory) OR the
+  theinmag.current_issue_print_in_stock shop metafield (flipped by
+  theinmag-inventory-worker at zero). So the flip is automatic, overnight
+  included, with no theme edit and no admin click.
+
+  Under the tiles a live "what you'll get" row lists the exact mags in
+  order, with a struck chip for any sold-out issue the membership skips.
+  That is the write-up Ryan asked to make really clear.
+
+  Behaviour, API and the ?soldout=1 preview override: assets/theinmag-start-picker.js
+  Styles: assets/theinmag-start-picker.css
+{%- endcomment -%}
+
+{%- liquid
+  assign sp_current = shop.metafields.theinmag.current_issue_number.value | default: 'Mag10'
+  assign sp_flag = shop.metafields.theinmag.current_issue_print_in_stock.value
+  assign sp_num = sp_current | remove: 'Mag' | times: 1
+  assign sp_prev_num = sp_num | minus: 1
+  assign sp_next_num = sp_num | plus: 1
+
+  if sp_prev_num < 10
+    assign sp_prev = 'Mag0' | append: sp_prev_num
+  else
+    assign sp_prev = 'Mag' | append: sp_prev_num
+  endif
+  if sp_next_num < 10
+    assign sp_next = 'Mag0' | append: sp_next_num
+  else
+    assign sp_next = 'Mag' | append: sp_next_num
+  endif
+
+  assign sp_cur_handle = sp_current | downcase
+  assign sp_prev_handle = sp_prev | downcase
+  assign sp_next_handle = sp_next | downcase
+  assign sp_cur_prod = all_products[sp_cur_handle]
+  assign sp_prev_prod = all_products[sp_prev_handle]
+  assign sp_next_prod = all_products[sp_next_handle]
+
+  assign sp_cur_print_available = false
+  for v in sp_cur_prod.variants
+    if v.option1 == 'Print' and v.available
+      assign sp_cur_print_available = true
+    endif
+  endfor
+  assign sp_cur_sold_out = false
+  if sp_cur_print_available == false
+    assign sp_cur_sold_out = true
+  endif
+  if sp_flag == false
+    assign sp_cur_sold_out = true
+  endif
+
+  assign sp_prev_available = false
+  for v in sp_prev_prod.variants
+    if v.option1 == 'Print' and v.available
+      assign sp_prev_available = true
+    endif
+  endfor
+
+  assign sp_release_iso = shop.metafields.theinmag.next_release_date.value
+  assign sp_release_text = sp_release_iso | date: '%-d %B'
+  assign sp_release_short = sp_release_iso | date: '%-d %b'
+  if sp_release_text == blank
+    assign sp_release_text = 'drop day'
+    assign sp_release_short = 'soon'
+  endif
+
+  assign sp_cur_cover = sp_cur_prod.featured_image
+  assign sp_prev_cover = sp_prev_prod.featured_image
+  assign sp_next_cover = sp_next_prod.featured_image
+  assign sp_teaser = 'next-issue-teaser.jpg' | asset_url
+-%}
+
+{{ 'theinmag-start-picker.css' | asset_url | stylesheet_tag }}
+
+<dialog
+  class="theinmag-start-picker"
+  data-theinmag-start-picker
+  data-current="{{ sp_current }}"
+  data-prev="{{ sp_prev }}"
+  data-next="{{ sp_next }}"
+  data-current-sold-out="{% if sp_cur_sold_out %}true{% else %}false{% endif %}"
+  data-prev-available="{% if sp_prev_available %}true{% else %}false{% endif %}"
+  data-release="{{ sp_release_text | escape }}"
+  data-release-iso="{{ sp_release_iso }}"
+  aria-labelledby="theinmag-start-picker-title"
+>
+  <div class="theinmag-start-picker__inner">
+    <button type="button" class="theinmag-start-picker__close" data-close aria-label="Close">&#10005;</button>
+
+    <header class="theinmag-start-picker__head">
+      <p class="theinmag-start-picker__eyebrow">Your membership</p>
+      <h2 id="theinmag-start-picker-title" class="theinmag-start-picker__title">Which mag arrives first?</h2>
+      <p class="theinmag-start-picker__sub" data-sub>Start with the mag on the shelf now, or wait for the new one.</p>
+    </header>
+
+    <div class="theinmag-start-picker__tiles" role="radiogroup" aria-label="First mag" data-tiles data-count="2">
+
+      {%- comment -%} PREV: only shown by JS once the current print run is gone. {%- endcomment -%}
+      <button type="button" class="theinmag-start-picker__tile" data-tile data-issue="{{ sp_prev }}" aria-pressed="false" hidden>
+        <span class="theinmag-start-picker__cover">
+          {%- if sp_prev_cover != blank -%}
+            <img src="{{ sp_prev_cover | image_url: width: 480 }}" width="480" height="627" alt="{{ sp_prev }} cover" loading="eager" fetchpriority="low">
+          {%- endif -%}
+        </span>
+        <span class="theinmag-start-picker__name">{{ sp_prev }}</span>
+        <span class="theinmag-start-picker__status" data-status>Ready to post now</span>
+      </button>
+
+      {%- comment -%} CURRENT: selectable while in stock, stamped when gone. {%- endcomment -%}
+      <button type="button" class="theinmag-start-picker__tile" data-tile data-issue="{{ sp_current }}" aria-pressed="false" aria-disabled="{% if sp_cur_sold_out %}true{% else %}false{% endif %}">
+        <span class="theinmag-start-picker__cover">
+          {%- if sp_cur_cover != blank -%}
+            <img src="{{ sp_cur_cover | image_url: width: 480 }}" width="480" height="627" alt="{{ sp_current }} cover" loading="eager" fetchpriority="low">
+          {%- endif -%}
+          <span class="theinmag-start-picker__stamp" data-stamp aria-hidden="true"{% unless sp_cur_sold_out %} hidden{% endunless %}><span>Sold out</span></span>
+        </span>
+        <span class="theinmag-start-picker__name">{{ sp_current }}</span>
+        <span class="theinmag-start-picker__status{% if sp_cur_sold_out %} theinmag-start-picker__status--soldout{% endif %}" data-status>{% if sp_cur_sold_out %}Print sold out{% else %}In stock, posts this week{% endif %}</span>
+      </button>
+
+      {%- comment -%}
+        NEXT: real cover once the product exists, otherwise the teaser
+        asset, otherwise a blurred current cover. The teaser <img> hides
+        itself on a 404 so the blurred fallback underneath shows.
+      {%- endcomment -%}
+      <button type="button" class="theinmag-start-picker__tile" data-tile data-issue="{{ sp_next }}" aria-pressed="false">
+        <span class="theinmag-start-picker__cover{% if sp_next_cover == blank %} theinmag-start-picker__cover--blur{% endif %}">
+          {%- if sp_next_cover != blank -%}
+            <img src="{{ sp_next_cover | image_url: width: 480 }}" width="480" height="627" alt="{{ sp_next }} cover" loading="eager" fetchpriority="low">
+          {%- else -%}
+            <img src="{{ sp_teaser }}" width="480" height="627" alt="" loading="eager" fetchpriority="low" onerror="this.hidden=true;this.onerror=null;" style="position:absolute;inset:0;filter:none;transform:none;z-index:1;">
+            {%- if sp_cur_cover != blank -%}
+              <img src="{{ sp_cur_cover | image_url: width: 480 }}" width="480" height="627" alt="" loading="eager" fetchpriority="low" aria-hidden="true">
+            {%- endif -%}
+          {%- endif -%}
+          <span class="theinmag-start-picker__coming" aria-hidden="true">{{ sp_release_short }}</span>
+        </span>
+        <span class="theinmag-start-picker__name">{{ sp_next }}</span>
+        <span class="theinmag-start-picker__status" data-status>Drops {{ sp_release_text }}</span>
+      </button>
+    </div>
+
+    <div class="theinmag-start-picker__plan" data-plan>
+      <p class="theinmag-start-picker__plan-label">What you'll get</p>
+      <ul class="theinmag-start-picker__chips" data-chips role="list"></ul>
+      <p class="theinmag-start-picker__plan-note" data-plan-note></p>
+    </div>
+
+    <div class="theinmag-start-picker__actions">
+      <button type="button" class="theinmag-start-picker__confirm" data-confirm>Add to cart</button>
+      <button type="button" class="theinmag-start-picker__cancel" data-cancel>Back</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="{{ 'theinmag-start-picker.js' | asset_url }}" defer></script>

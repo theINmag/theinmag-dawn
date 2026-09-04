@@ -47,6 +47,22 @@
   const nextIssue = section.dataset.nextIssue;
   const printInStock = section.dataset.printInStock === 'true';
 
+  /* First-mag step. For Print the starting issue is picked in the shared
+     start picker dialog (assets/theinmag-start-picker.js), which opens on
+     the first Add to cart / Buy now and gates the submit. Digital always
+     starts with the current issue and never sees it. */
+  const firstMagRow = section.querySelector('[data-first-mag]');
+  const firstMagCover = section.querySelector('[data-first-mag-cover]');
+  const firstMagName = section.querySelector('[data-first-mag-name]');
+  const firstMagNote = section.querySelector('[data-first-mag-note]');
+  const firstMagChange = section.querySelector('[data-first-mag-change]');
+  const printStartHint = section.querySelector('[data-print-start-hint]');
+  let chosenStart = null;      /* e.g. "Mag09" once picked for Print */
+  let pendingSubmitter = null; /* the button that started the gated submit */
+
+  function picker() { return window.theinmagStartPicker || null; }
+  function needsPick(format) { return format === 'Print' && !chosenStart; }
+
   function selectedTile(optionName) {
     return form.querySelector(
       '[data-option-name="' + optionName + '"] [aria-pressed="true"]'
@@ -70,7 +86,14 @@
   function issueNumberOf(label) { return parseInt(String(label).replace('Mag', ''), 10); }
   function magLabelFor(n) { return 'Mag' + padNumber(n); }
 
-  function computeMagsIncluded(startMag, length) {
+  function computeMagsIncluded(startMag, length, skipSoldOut) {
+    /* The picker knows which issues are sold out and skips them for Print.
+       Digital never skips (digital is never sold out). Falls back to the
+       plain consecutive list if the picker script has not loaded. */
+    const p = picker();
+    if (p && typeof p.compute === 'function') {
+      return p.compute(startMag, length, { skipSoldOut: skipSoldOut !== false }).magsIncluded;
+    }
     if (length === 'Rolling') return startMag;
     const count = length === '4-Issue' ? 4 : 8;
     const startNum = issueNumberOf(startMag);
@@ -113,33 +136,48 @@
   function update() {
     const format = selected('format');
     const length = selected('length');
-    let starting = selected('starting');
 
-    const currentTile = form.querySelector('[data-option-name="starting"] [data-value="current"]');
-    const startingGroup = form.querySelector('[data-starting-group]');
+    /* Starting issue. Digital: always the current issue, say so, hide the
+       first-mag row. Print: show the picked mag (cover + name + note) once
+       chosen, otherwise the one-line hint that the pick comes next. */
     const digitalStartNote = form.querySelector('[data-digital-start-note]');
-
+    let startMag;
     if (format === 'Digital') {
-      /* Digital has no print-stock wait and no "next issue" split - it
-         always begins with the current issue. Force current, hide the
-         chooser, and show the explanatory note. (Combo keeps the choice
-         because it ships the print copy.) */
-      starting = 'current';
-      setSelected('starting', 'current');
-      if (currentTile) currentTile.hidden = false;
-      if (startingGroup) startingGroup.hidden = true;
+      startMag = currentIssue;
       if (digitalStartNote) digitalStartNote.hidden = false;
+      if (firstMagRow) firstMagRow.hidden = true;
+      if (printStartHint) printStartHint.hidden = true;
     } else {
-      if (startingGroup) startingGroup.hidden = false;
       if (digitalStartNote) digitalStartNote.hidden = true;
-      const needsPrintStock = format === 'Print' || format === 'Combo';
-      const hideCurrent = needsPrintStock && !printInStock;
-      if (currentTile) {
-        currentTile.hidden = hideCurrent;
-        if (hideCurrent && starting === 'current') {
-          starting = 'next';
-          setSelected('starting', 'next');
+      if (chosenStart) {
+        startMag = chosenStart;
+        if (firstMagRow) firstMagRow.hidden = false;
+        if (printStartHint) printStartHint.hidden = true;
+        if (firstMagName) firstMagName.textContent = chosenStart;
+        if (firstMagNote) {
+          const p = picker();
+          const st = p ? p.state() : null;
+          const chosenNum = issueNumberOf(chosenStart);
+          const curNum = issueNumberOf(currentIssue);
+          if (chosenNum > curNum) {
+            firstMagNote.textContent = 'Ships on drop day' + (st && st.releaseText ? ', ' + st.releaseText : '') + '.';
+          } else if (st && st.currentSoldOut && chosenNum < curNum) {
+            firstMagNote.textContent = 'Posts within 3 business days. ' + currentIssue + ' is sold out, so it is skipped.';
+          } else {
+            firstMagNote.textContent = 'Posts within 3 business days.';
+          }
         }
+        if (firstMagCover) {
+          const p2 = picker();
+          const src = p2 ? p2.state().coverFor(chosenStart) : '';
+          if (src) { firstMagCover.src = src; firstMagCover.hidden = false; } else { firstMagCover.hidden = true; }
+        }
+      } else {
+        /* Not picked yet: the hidden input carries the Liquid safe default
+           (never a sold-out issue) purely as a no-JS fallback. */
+        startMag = propStarting ? propStarting.value : currentIssue;
+        if (firstMagRow) firstMagRow.hidden = true;
+        if (printStartHint) printStartHint.hidden = false;
       }
     }
 
@@ -191,15 +229,16 @@
       floatingSummary.textContent = length + ' ' + format;
     }
     if (floatingIssue) {
-      const startMagForCard = starting === 'current' ? currentIssue : nextIssue;
-      const startLabel = starting === 'current' ? 'Start with ' : 'Starts with ';
-      floatingIssue.textContent = startLabel + startMagForCard;
+      if (format === 'Digital') floatingIssue.textContent = 'Starts with ' + currentIssue;
+      else if (chosenStart) floatingIssue.textContent = 'Starts with ' + chosenStart;
+      else floatingIssue.textContent = 'Pick your first mag next';
     }
 
-    const startMag = starting === 'current' ? currentIssue : nextIssue;
-    if (propStarting) propStarting.value = startMag;
+    if (format === 'Digital' || chosenStart) {
+      if (propStarting) propStarting.value = startMag;
+    }
     if (propRemaining) propRemaining.value = computeRemainingAfterFirst(length);
-    if (propIncluded) propIncluded.value = computeMagsIncluded(startMag, length);
+    if (propIncluded) propIncluded.value = computeMagsIncluded(startMag, length, format !== 'Digital');
 
     /* Variant image swap on Format selection - both the main hero photo
        (top of the left column) and the first thumbnail in the strip. */
@@ -326,6 +365,63 @@
   if (floatingTap) {
     floatingTap.addEventListener('click', scrollBackToWidget);
   }
+
+  /* Gate every Print submit behind the start picker. Runs on the form
+     itself, so it fires BEFORE the document-level cart intercepts. After
+     the pick we re-submit with the SAME button (Add to cart or Buy now,
+     whose name="checkout" must survive), and the guard lets it through. */
+  function resubmit(submitter) {
+    if (typeof form.requestSubmit === 'function') {
+      try { form.requestSubmit(submitter || undefined); return; } catch (e) { /* fall through */ }
+    }
+    if (submitter && submitter.name === 'checkout') {
+      const h = document.createElement('input');
+      h.type = 'hidden'; h.name = 'checkout'; h.value = '';
+      form.appendChild(h);
+    }
+    form.submit();
+  }
+  function openPickerThen(submitter, confirmLabel) {
+    const p = picker();
+    if (!p) return false;
+    pendingSubmitter = submitter || null;
+    p.open({
+      length: selected('length'),
+      preselect: chosenStart,
+      confirmLabel: confirmLabel,
+      opener: submitter || primaryCta,
+      onPick: function (result) {
+        chosenStart = result.startMag;
+        update();
+        if (pendingSubmitter !== undefined && confirmLabel !== 'Save') {
+          const btn = pendingSubmitter;
+          pendingSubmitter = null;
+          resubmit(btn);
+        }
+      },
+      onCancel: function () { pendingSubmitter = null; }
+    });
+    return true;
+  }
+  form.addEventListener('submit', function (evt) {
+    const format = selected('format');
+    if (!needsPick(format)) return;
+    const submitter = evt.submitter || null;
+    const isBuyNow = !!(submitter && submitter.name === 'checkout');
+    if (!openPickerThen(submitter, isBuyNow ? 'Buy now' : 'Add to cart')) return; /* no picker: let it through with the safe default */
+    evt.preventDefault();
+    evt.stopImmediatePropagation();
+  });
+  if (firstMagChange) {
+    firstMagChange.addEventListener('click', function () {
+      openPickerThen(firstMagChange, 'Save');
+    });
+  }
+  /* If the picker script lands after this one, nothing above breaks:
+     the first submit simply opens it once it exists. Re-run update() so
+     the sold-out skip is reflected in _mags_included once compute() is
+     available. */
+  document.addEventListener('theinmag:start-picker-ready', update);
 
   if (floatingCta && form) {
     floatingCta.addEventListener('click', function (evt) {
