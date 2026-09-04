@@ -18,7 +18,8 @@
                "MagXX print has sold out", headline "Hellooooo MagYY"
                (the issue before), photo = that issue's cover, primary CTA
                shops it, secondary CTA points at the sold-out issue's
-               digital edition. Added 2026-09-04 for the Mag10 sell-out.
+               digital edition. No line under the headline (too much
+               writing, Ryan). Added 2026-09-04 for the Mag10 sell-out.
                `preview_sold_out` (section setting) forces this state on a
                preview theme; never leave it on for live.
 
@@ -306,13 +307,10 @@
         {% render 'theinmag-character-pool' %}
         <span class="theinmag-shop-hero__character" data-theinmag-pool-character></span>
       {%- endif -%}
-      <p class="theinmag-shop-hero__eyebrow">{{ eyebrow }}</p>
+      <p class="theinmag-shop-hero__eyebrow{% if hero_state == 'soldout' %} theinmag-shop-hero__eyebrow--bold{% endif %}">{{ eyebrow }}</p>
       <h1 id="theinmag-shop-hero-heading" class="theinmag-shop-hero__headline">{{ headline }}</h1>
       {%- if hero_state == 'presale' and drop_date != blank -%}
         <p class="theinmag-shop-hero__drops">Drops {{ drop_date }}. Pre-order now, ships on release day.</p>
-      {%- endif -%}
-      {%- if hero_state == 'soldout' -%}
-        <p class="theinmag-shop-hero__drops">{{ hero_mag }} is on the shelf and posts within three business days. {{ soldout_issue }} lives on in digital{% if drop_date != blank %}, and {{ next_issue }} drops {{ drop_date }}{% endif %}.</p>
       {%- endif -%}
       <p class="theinmag-shop-hero__subhead">{{ subhead }}</p>
 
@@ -495,6 +493,12 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-coral-dark, #C9543E);
+  }
+  /* Sold-out state: the eyebrow carries the news, so it reads bold (Ryan,
+     2026-09-04) and the explanatory line under the headline is gone. Sits
+     AFTER the base rule on purpose: equal specificity, source order wins. */
+  .theinmag-shop-hero__eyebrow--bold {
+    font-weight: 700;
   }
 
   /* Pre-sale drop-date line - sits under the headline so the release date is
