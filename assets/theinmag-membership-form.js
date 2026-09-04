@@ -173,9 +173,13 @@
           if (src) { firstMagCover.src = src; firstMagCover.hidden = false; } else { firstMagCover.hidden = true; }
         }
       } else {
-        /* Not picked yet: the hidden input carries the Liquid safe default
-           (never a sold-out issue) purely as a no-JS fallback. */
-        startMag = propStarting ? propStarting.value : currentIssue;
+        /* Not picked yet: mirror the picker's own default so the hidden
+           inputs are consistent with each other even before the pick
+           (the gate guarantees a pick before any Print submit anyway). */
+        const p0 = picker();
+        const st0 = p0 ? p0.state() : null;
+        if (st0) startMag = st0.currentSoldOut ? (st0.prevAvailable ? st0.prevIssue : st0.nextIssue) : st0.currentIssue;
+        else startMag = propStarting ? propStarting.value : currentIssue;
         if (firstMagRow) firstMagRow.hidden = true;
         if (printStartHint) printStartHint.hidden = false;
       }
@@ -234,9 +238,7 @@
       else floatingIssue.textContent = 'Pick your first mag next';
     }
 
-    if (format === 'Digital' || chosenStart) {
-      if (propStarting) propStarting.value = startMag;
-    }
+    if (propStarting) propStarting.value = startMag;
     if (propRemaining) propRemaining.value = computeRemainingAfterFirst(length);
     if (propIncluded) propIncluded.value = computeMagsIncluded(startMag, length, format !== 'Digital');
 

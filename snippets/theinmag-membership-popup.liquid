@@ -439,7 +439,9 @@
         if (digitalStartNote) digitalStartNote.hidden = false;
         if (printStartHint) printStartHint.hidden = true;
       } else {
-        startMag = chosenStart || safeDefaultStart;
+        const st0 = picker() ? picker().state() : null;
+        const pickerDefault = st0 ? (st0.currentSoldOut ? (st0.prevAvailable ? st0.prevIssue : st0.nextIssue) : st0.currentIssue) : safeDefaultStart;
+        startMag = chosenStart || pickerDefault;
         if (digitalStartNote) digitalStartNote.hidden = true;
         if (printStartHint) printStartHint.hidden = !!chosenStart;
       }
