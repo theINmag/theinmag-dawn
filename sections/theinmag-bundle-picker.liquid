@@ -316,28 +316,24 @@
         </div>
       </fieldset>
 
-      <fieldset class="theinmag-bundle-picker__modal-fieldset">
-        <legend class="theinmag-bundle-picker__modal-legend">Where would you like to start?</legend>
-        <div class="theinmag-bundle-picker__modal-radios" role="radiogroup" aria-label="Starting issue" data-modal-start-group>
-          <label class="theinmag-bundle-picker__modal-radio" data-modal-start-current{% unless print_in_stock %} hidden{% endunless %}>
-            <input type="radio" name="bundle-start" value="current" {% if print_in_stock %}checked{% endif %}>
-            <span>Start with {{ current_issue }} (in stock now)</span>
-          </label>
-          <label class="theinmag-bundle-picker__modal-radio">
-            <input type="radio" name="bundle-start" value="next" {% unless print_in_stock %}checked{% endunless %}>
-            <span>Start with {{ next_issue }} (drops {{ next_release_formatted }})</span>
-          </label>
-        </div>
-        <p class="theinmag-bundle-picker__modal-start-note" data-modal-start-note hidden>
-          Digital always starts with the <strong>current issue ({{ current_issue }})</strong>.
-        </p>
-      </fieldset>
+      {%- comment -%}
+        The starting-issue choice lives in the shared start picker dialog
+        (snippets/theinmag-start-picker): covers, not radios, and it knows
+        which issues have sold out. Opens on "Add to bundle" for Print.
+        Digital always starts with the current issue and skips it.
+      {%- endcomment -%}
+      <p class="theinmag-bundle-picker__modal-start-note" data-modal-start-hint>Next, you'll pick which mag arrives first.</p>
+      <p class="theinmag-bundle-picker__modal-start-note" data-modal-start-note hidden>
+        Digital always starts with the <strong>current issue ({{ current_issue }})</strong>.
+      </p>
 
       <button type="button" class="theinmag-bundle-picker__modal-cta" data-modal-submit>
         Add to bundle - <span data-modal-cta-price>$89</span>
       </button>
     </form>
   </dialog>
+
+  {% render 'theinmag-start-picker' %}
 
   {%- if membership_product != blank and membership_product != empty -%}
     <script type="application/json" data-bundle-membership-variants>
@@ -1649,7 +1645,6 @@
     const modalTitle = root.querySelector('[data-modal-title]');
     const modalRollingNote = root.querySelector('[data-modal-rolling-note]');
     const modalLengthGroup = root.querySelector('[data-modal-length-group]');
-    const modalStartGroup = root.querySelector('[data-modal-start-group]');
     const modalCtaPrice = root.querySelector('[data-modal-cta-price]');
     const modalSubmit = root.querySelector('[data-modal-submit]');
 
@@ -1702,41 +1697,13 @@
           p.setAttribute('aria-checked', isActive ? 'true' : 'false');
         });
       }
-      /* Reset starting radios - default to current if available, else next. */
+      /* Starting issue: Digital says so and skips the picker; Print gets
+         the one-line hint and picks from covers on "Add to bundle". */
       const modalStartNote = root.querySelector('[data-modal-start-note]');
-      if (modalStartGroup) {
-        const radios = modalStartGroup.querySelectorAll('input[type="radio"]');
-        radios.forEach(function (r) {
-          if (printInStock || format === 'Digital') {
-            r.checked = r.value === 'current';
-          } else {
-            r.checked = r.value === 'next';
-          }
-        });
-        const currentLabel = modalStartGroup.querySelector('[data-modal-start-current]');
-        if (format === 'Digital') {
-          /* Digital always begins with the current issue - no print-stock
-             wait, no "next issue" split. Force current, hide the chooser,
-             show the note. (No Combo tile exists in the bundle modal.) */
-          radios.forEach(function (r) { r.checked = r.value === 'current'; });
-          if (currentLabel) currentLabel.hidden = false;
-          modalStartGroup.hidden = true;
-          if (modalStartNote) modalStartNote.hidden = false;
-        } else {
-          modalStartGroup.hidden = false;
-          if (modalStartNote) modalStartNote.hidden = true;
-          /* Hide "current" only when format=Print AND print not in stock. */
-          if (currentLabel) {
-            if (!printInStock) {
-              currentLabel.hidden = true;
-              const nextRadio = modalStartGroup.querySelector('input[value="next"]');
-              if (nextRadio) nextRadio.checked = true;
-            } else {
-              currentLabel.hidden = false;
-            }
-          }
-        }
-      }
+      const modalStartHint = root.querySelector('[data-modal-start-hint]');
+      if (modalStartNote) modalStartNote.hidden = format !== 'Digital';
+      if (modalStartHint) modalStartHint.hidden = format === 'Digital';
+      bundleChosenStart = null;
       updateModalForFormat();
 
       if (modal && typeof modal.showModal === 'function') {
@@ -1787,7 +1754,11 @@
       return 'Mag' + num;
     }
 
-    function buildMagsIncluded(startingMag, length) {
+    function buildMagsIncluded(startingMag, length, skipSoldOut) {
+      const sp = window.theinmagStartPicker;
+      if (sp && typeof sp.compute === 'function') {
+        return sp.compute(startingMag, length, { skipSoldOut: skipSoldOut !== false }).magsIncluded;
+      }
       const startNum = parseInt(startingMag.replace('Mag', ''), 10) || 1;
       if (length === 'Rolling') return startingMag;
       const count = length === '8-Issue' ? 8 : 4;
@@ -1804,25 +1775,43 @@
       return '3';
     }
 
+    let bundleChosenStart = null;
+    function addMembershipWithStart(v, startingMag, skipSoldOut) {
+      const properties = {
+        _starting_mag: startingMag,
+        _remaining_after_first: remainingAfterFirst(activeLength),
+        _mags_included: buildMagsIncluded(startingMag, activeLength, skipSoldOut)
+      };
+      addToCart(v.id, properties).then(function () {
+        closeModal();
+      });
+    }
     if (modalSubmit) {
       modalSubmit.addEventListener('click', function () {
         const v = findVariant(activeFormat, activeLength);
         if (!v) return;
-        const startingValue = (function () {
-          const checked = modalStartGroup ? modalStartGroup.querySelector('input[type="radio"]:checked') : null;
-          return checked ? checked.value : 'next';
-        })();
-        const startingMag = startingValue === 'current' ? currentIssue : nextIssue;
-
-        const properties = {
-          _starting_mag: startingMag,
-          _remaining_after_first: remainingAfterFirst(activeLength),
-          _mags_included: buildMagsIncluded(startingMag, activeLength)
-        };
-
-        addToCart(v.id, properties).then(function () {
-          closeModal();
-        });
+        if (activeFormat === 'Digital') {
+          addMembershipWithStart(v, currentIssue, false);
+          return;
+        }
+        const sp = window.theinmagStartPicker;
+        if (sp && typeof sp.open === 'function') {
+          sp.open({
+            length: activeLength,
+            confirmLabel: 'Add to bundle',
+            preselect: bundleChosenStart,
+            opener: modalSubmit,
+            onPick: function (result) {
+              bundleChosenStart = result.startMag;
+              addMembershipWithStart(v, result.startMag, true);
+            }
+          });
+          return;
+        }
+        /* No picker script (should not happen): safe default, never the sold-out issue. */
+        const st = sp ? sp.state() : null;
+        const fallback = printInStock ? currentIssue : nextIssue;
+        addMembershipWithStart(v, st ? (st.currentSoldOut ? (st.prevAvailable ? st.prevIssue : st.nextIssue) : st.currentIssue) : fallback, true);
       });
     }
 
