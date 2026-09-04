@@ -124,7 +124,8 @@
     // cost only on the person who asked for it.
     archive: [],
     archiveUrl: null,
-    archiveState: 'idle', // idle | loading | ready | failed
+    archiveState: 'idle', // idle | loading | building | ready | failed
+    archiveRetried: false,
 
     filtered: [],
     rendered: 0,
@@ -395,6 +396,27 @@
       fetch(this.archiveUrl, { credentials: 'omit' })
         .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(function (data) {
+          // The Worker answers `building` when its cache was cold: it has kicked
+          // the rebuild off-path rather than making this visitor wait ~20s for
+          // Shopify to be paged (measured 23.8s on the first live search). Search
+          // keeps working over the windowed feed meanwhile, and we come back for
+          // the real thing shortly. ONE retry only, so a persistently failing
+          // build degrades to "recent only" instead of becoming a poll loop.
+          if (data && data.building) {
+            if (self.archiveRetried) {
+              self.archiveState = 'failed';
+              self.updateSearchScopeNote();
+              return;
+            }
+            self.archiveRetried = true;
+            self.archiveState = 'building';
+            self.updateSearchScopeNote();
+            setTimeout(function () {
+              self.archiveState = 'idle';
+              self.loadArchive();
+            }, 9000);
+            return;
+          }
           var list = (data && data.creations) || [];
           // Defensive dedupe: the two sets are disjoint by construction (the
           // Worker splits one result set on the window boundary), but an id that
@@ -429,6 +451,7 @@
       var msg = '';
       if (this.state.query) {
         if (this.archiveState === 'loading') msg = 'Looking through every creation, one moment...';
+        else if (this.archiveState === 'building') msg = 'Opening up the older creations, one moment. Showing the recent ones so far.';
         else if (this.archiveState === 'ready') msg = 'Searching all ' + (this.all.length + this.archive.length) + ' creations, not just the recent ones.';
         else if (this.archiveState === 'failed') msg = 'Searching recent creations only just now. Try again in a moment to search them all.';
       }
