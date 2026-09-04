@@ -997,52 +997,66 @@
     padding: 0;
     margin: 0 0 var(--space-lg, 24px);
   }
+  /* Same choice-tile language as the sitewide membership popup and the
+     PDP (Ryan, 2026-09-04): centred legend, equal-width white tiles that
+     fill the row at every width, bold labels, lift on the active one. */
   .theinmag-bundle-picker__modal-legend {
+    display: block;
+    width: 100%;
+    text-align: center;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 500;
-    font-size: 13px;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--color-inky-purple-navy);
+    opacity: 0.72;
     margin-bottom: 10px;
     padding: 0;
   }
   .theinmag-bundle-picker__modal-pills {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-  }
-  @media (max-width: 480px) {
-    .theinmag-bundle-picker__modal-pills {
-      grid-template-columns: 1fr;
-    }
+    gap: 10px;
+    margin-top: 12px;
   }
   .theinmag-bundle-picker__modal-pill {
     position: relative;
-    background-color: var(--color-cream, #FBF6EA);
-    border: 1px solid var(--color-soft-pink, #F7A092);
-    border-radius: var(--radius-pill, 9999px);
-    padding: 12px 16px;
+    background-color: #ffffff;
+    border: 2px solid var(--color-soft-pink, #F7A092);
+    border-radius: 18px;
+    padding: 12px 8px;
     text-align: center;
     cursor: pointer;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
     color: var(--color-inky-purple-navy);
-    min-height: 44px;
+    min-height: 54px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 2px;
-    transition: background-color var(--transition-standard, 0.15s ease), border-color var(--transition-standard, 0.15s ease), color var(--transition-standard, 0.15s ease);
+    transition: background-color var(--transition-standard, 0.15s ease), border-color var(--transition-standard, 0.15s ease), color var(--transition-standard, 0.15s ease), transform var(--transition-hover, 0.2s ease), box-shadow var(--transition-hover, 0.2s ease);
+  }
+  .theinmag-bundle-picker__modal-pill:hover,
+  .theinmag-bundle-picker__modal-pill:focus-visible {
+    border-color: var(--color-purple-dark, #5D3A7A);
+    outline: none;
   }
   .theinmag-bundle-picker__modal-pill.is-active {
     background-color: rgba(93, 58, 122, 0.10);
     border-color: var(--color-purple-dark, #5D3A7A);
-    border-width: 2px;
     color: var(--color-purple-dark, #5D3A7A);
-    padding: 11px 15px;
+    box-shadow: 0 6px 16px rgba(42, 31, 61, 0.12);
+    transform: translateY(-1px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-bundle-picker__modal-pill.is-active { transform: none; }
   }
   .theinmag-bundle-picker__modal-pill-title {
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 1.2;
+    font-weight: 700;
+    font-size: 15.5px;
+    line-height: 1.15;
   }
   .theinmag-bundle-picker__modal-pill-price {
     font-weight: 500;
@@ -1053,8 +1067,9 @@
   }
   .theinmag-bundle-picker__modal-pill-chip {
     position: absolute;
-    top: -8px;
-    right: 12px;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
     background-color: var(--color-yellow, #F9C23C);
     color: var(--color-inky-purple-navy);
     font-weight: 700;

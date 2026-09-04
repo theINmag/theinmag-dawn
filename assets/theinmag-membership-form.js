@@ -42,6 +42,11 @@
   const rollingOnlyEls = section.querySelectorAll('[data-rolling-only]');
   const shippingNote = section.querySelector('[data-shipping-note]');
   const postAddTile = section.querySelector('[data-post-add-tile]');
+  const valuePriceEl = section.querySelector('[data-value-price]');
+  const perMagEl = section.querySelector('[data-per-mag]');
+  const saveEl = section.querySelector('[data-save]');
+  const singlePrint = parseInt(section.dataset.singlePrint || '0', 10) || 0;
+  const singleDigital = parseInt(section.dataset.singleDigital || '0', 10) || 0;
 
   const currentIssue = section.dataset.currentIssue;
   const nextIssue = section.dataset.nextIssue;
@@ -192,6 +197,18 @@
         let priceStr = formatMoney(variant.price);
         if (length === 'Rolling') priceStr += ' per drop';
         priceDisplay.textContent = priceStr;
+      }
+      /* Value row: price, per-mag and the saving vs single issues, computed
+         live from the current issue's single prices. Rolling has no bundle
+         maths so it reads "cancel anytime". */
+      const count = length === '4-Issue' ? 4 : (length === '8-Issue' ? 8 : 0);
+      const single = format === 'Digital' ? singleDigital : singlePrint;
+      if (valuePriceEl) valuePriceEl.textContent = formatMoney(variant.price) + (length === 'Rolling' ? ' per drop' : '');
+      if (perMagEl) perMagEl.textContent = count ? 'that\'s ' + formatMoney(Math.round(variant.price / count)) + ' a mag' : 'cancel anytime';
+      if (saveEl) {
+        const saving = count && single ? single * count - variant.price : 0;
+        if (saving > 0) { saveEl.textContent = 'Save ' + formatMoney(saving) + ' vs single mags'; saveEl.hidden = false; }
+        else saveEl.hidden = true;
       }
       /* Mirror the price onto the floating cart CTA. Rolling still
          reads "$X per drop" so the user sees what they will be charged

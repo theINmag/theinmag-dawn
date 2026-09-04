@@ -75,6 +75,15 @@
       assign cur_print_available = true
     endif
   endfor
+  assign single_print_cents = 0
+  assign single_digital_cents = 0
+  for v in cur_prod.variants
+    if v.option1 == 'Print'
+      assign single_print_cents = v.price
+    elsif v.option1 == 'Digital'
+      assign single_digital_cents = v.price
+    endif
+  endfor
   if cur_print_available == false or print_in_stock == false
     assign prev_num = current_num | minus: 1
     if prev_num < 10
@@ -187,6 +196,8 @@
   data-current-issue="{{ lead_issue }}"
   data-next-issue="{{ alt_issue }}"
   data-print-in-stock="{{ print_stock_attr }}"
+  data-single-print="{{ single_print_cents }}"
+  data-single-digital="{{ single_digital_cents }}"
   data-hero-print="{{ hero_print }}"
   data-hero-digital="{{ hero_digital }}"
   data-hero-combo="{{ hero_combo }}"
@@ -411,6 +422,18 @@
           plan straight off the variant, no hardcoded ids.
         {%- endcomment -%}
         <input type="hidden" name="selling_plan" data-selling-plan-input disabled>
+
+        {%- comment -%}
+          Value row (matches the sitewide popup, Ryan 2026-09-04): the
+          price, what that is per mag, and a yellow stamp for the saving
+          against buying single issues. All filled by the form JS from the
+          current issue's single prices on the section data attributes.
+        {%- endcomment -%}
+        <div class="theinmag-membership-hero__value">
+          <span class="theinmag-membership-hero__value-price" data-value-price></span>
+          <span class="theinmag-membership-hero__value-per" data-per-mag></span>
+          <span class="theinmag-membership-hero__value-save" data-save hidden></span>
+        </div>
 
         <fieldset class="theinmag-membership-hero__fieldset">
           <legend class="theinmag-membership-hero__legend">Format</legend>
@@ -1142,16 +1165,59 @@
   }
 
   .theinmag-membership-hero__legend {
+    display: block;
+    width: 100%;
+    text-align: center;
     font-family: var(--font-body);
-    font-weight: 600;
+    font-weight: 700;
     font-size: 11px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     color: var(--color-inky-purple-navy);
     text-transform: uppercase;
     padding: 0;
-    margin: 0 0 var(--space-xs);
-    opacity: 0.78;
+    margin: 0 0 6px;
+    opacity: 0.72;
   }
+  /* Value row: price, per-mag, save stamp (same as the sitewide popup). */
+  .theinmag-membership-hero__value {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px 10px;
+    margin: 0 0 var(--space-md);
+    text-align: center;
+  }
+  .theinmag-membership-hero__value-price {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-membership-hero__value-per {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.8;
+  }
+  .theinmag-membership-hero__value-per:empty { display: none; }
+  .theinmag-membership-hero__value-save {
+    display: inline-block;
+    background: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    transform: rotate(-2deg);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow);
+  }
+  .theinmag-membership-hero__value-save[hidden] { display: none; }
 
   /* Soft-pink pill toggles - white default, pink border, pink fill on
      selection. The pink (--color-soft-pink, sampled from the header wordmark
@@ -1164,7 +1230,8 @@
     gap: 8px;
     /* Headroom so the "Best value" chip on the 8-Issue pill clears the
        legend above. */
-    margin-top: 7px;
+    margin-top: 12px;
+    gap: 10px;
   }
   .theinmag-membership-hero__pills[data-option-name="format"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1180,20 +1247,20 @@
     align-items: center;
     justify-content: center;
     gap: 2px;
-    min-height: 52px;
-    padding: 8px 10px;
+    min-height: 54px;
+    padding: 12px 8px;
     background: #ffffff;
     border: 2px solid var(--color-soft-pink);
-    border-radius: var(--radius-lg);
+    border-radius: 18px;
     color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
     cursor: pointer;
-    transition: background var(--transition-standard), color var(--transition-standard), border-color var(--transition-standard);
+    transition: background var(--transition-standard), color var(--transition-standard), border-color var(--transition-standard), transform var(--transition-hover), box-shadow var(--transition-hover);
   }
   .theinmag-membership-hero__pill-title {
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 1.2;
+    font-weight: 700;
+    font-size: 15.5px;
+    line-height: 1.15;
   }
   .theinmag-membership-hero__pill-price {
     font-weight: 500;
@@ -1211,14 +1278,20 @@
     background: rgba(93, 58, 122, 0.10);
     border-color: var(--color-purple-dark);
     color: var(--color-purple-dark);
+    box-shadow: 0 6px 16px rgba(42, 31, 61, 0.12);
+    transform: translateY(-1px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-membership-hero__pill[aria-pressed='true'] { transform: none; }
   }
   .theinmag-membership-hero__pill[hidden] { display: none; }
 
   /* "Best value" chip on the 8-Issue length pill (matches the modal). */
   .theinmag-membership-hero__pill-chip {
     position: absolute;
-    top: -8px;
-    right: 8px;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
     background: var(--color-yellow);
     color: var(--color-inky-purple-navy);
     font-weight: 700;
