@@ -475,8 +475,8 @@
           -%}
           <li class="theinmag-shop-grid__note">
             <span class="theinmag-shop-grid__note-arrow" aria-hidden="true">
-              <svg viewBox="0 0 40 16" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                <path d="M39 8H2M2 8l6-6M2 8l6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg viewBox="0 0 96 40" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                <path d="M93 21c-16-9-32-3-46 3S20 30 6 20M6 20l13-10M6 20l12 11" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
             {%- if section.settings.scarcity_heading != blank -%}
@@ -1262,29 +1262,29 @@
     width: 100%;
   }
 
-  /* Scarcity note: a card in the grid, not a product. Peach ground with a
-     dashed edge so it reads as a note at a glance and is never mistaken for
-     something buyable. The arrow points back at the covers on desktop, where
-     the note sits beside them, and turns to point up on a phone, where the
-     grid is one column and the covers are above it. */
+  /* Scarcity note: NOT a card. A first cut boxed it in peach with a dashed
+     edge, and because grid items stretch to the row it became a tall empty
+     rectangle that read as a placeholder (Ryan: "yuck", 2026-09-05). It is
+     an annotation beside the shelf: a drawn arrow pointing at the covers,
+     a few words in Post, one line under. No ground, no border, centred on
+     the covers' midline. On a phone the grid is one column, so it sits
+     under the covers and the arrow turns to point up at them. */
   .theinmag-shop-grid__note {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 10px;
-    padding: 24px 20px;
-    border: 2px dashed var(--color-inky-purple-navy);
-    border-radius: var(--radius-card, 16px);
-    background: var(--color-peach);
+    align-self: center;
+    gap: 12px;
+    padding: 0 8px 0 4px;
     color: var(--color-inky-purple-navy);
     text-align: left;
   }
 
   .theinmag-shop-grid__note-arrow {
     display: block;
-    width: 40px;
+    width: 96px;
+    margin-bottom: 4px;
     color: var(--color-inky-purple-navy);
-    opacity: 0.85;
   }
 
   .theinmag-shop-grid__note-arrow svg {
@@ -1299,25 +1299,28 @@
     font-weight: 400;
     /* Post renders all-caps whatever the source case, so this stays
        sentence case in the setting and never gets a text-transform. */
-    font-size: clamp(19px, 2.1vw, 24px);
-    line-height: 1.15;
+    font-size: clamp(22px, 2.2vw, 28px);
+    line-height: 1.12;
   }
 
   .theinmag-shop-grid__note-line {
     margin: 0;
     font-family: var(--font-body);
     font-weight: 500;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.45;
     opacity: 0.82;
   }
 
-  /* One column: the note lands under the covers, so the arrow points up at
-     them rather than off the side of the screen. */
   @media (max-width: 599px) {
+    .theinmag-shop-grid__note {
+      padding: 8px 4px 0;
+    }
     .theinmag-shop-grid__note-arrow {
+      width: 56px;
       transform: rotate(90deg);
-      transform-origin: center;
+      transform-origin: 28px 28px;
+      margin-bottom: 24px;
     }
   }
 
