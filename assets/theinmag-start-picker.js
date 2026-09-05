@@ -214,7 +214,7 @@
       var count = length === '8-Issue' ? 8 : (length === '4-Issue' ? 4 : 0);
       var html = '';
       if (picked > S.currentNum) {
-        html = 'Nothing posts until <strong>' + S.releaseText + '</strong>. ' + label(picked) + ' ships on drop day.';
+        html = '<strong>' + label(picked) + ' drops on ' + S.releaseText + '.</strong> Watch out for the postie.';
       } else if (skipped.length) {
         html = '<strong>' + label(picked) + ' posts within three business days.</strong> ' + skipped.map(function (i) { return label(i.n); }).join(' and ') + ' print has sold out, so your membership skips it' + (count ? ' and you still get all ' + count + ' mags' : '') + '.';
       } else {
