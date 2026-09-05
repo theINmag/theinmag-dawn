@@ -218,7 +218,7 @@
       } else if (skipped.length) {
         html = '<strong>' + label(picked) + ' posts within three business days.</strong> ' + skipped.map(function (i) { return label(i.n); }).join(' and ') + ' print has sold out, so your membership skips it' + (count ? ' and you still get all ' + count + ' mags' : '') + '.';
       } else {
-        html = '<strong>' + label(picked) + ' posts within three business days.</strong>' + (count ? ' Then one new mag every drop until you have all ' + count + '.' : ' Then every new mag as it drops.');
+        html = '<strong>' + label(picked) + ' posts within three business days.</strong>';
       }
       noteEl.innerHTML = html;
     }
