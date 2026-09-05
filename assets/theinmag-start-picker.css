@@ -176,6 +176,11 @@
   justify-content: center;
   pointer-events: none;
 }
+/* The display above beats the browser's own [hidden] rule on specificity,
+   so without this guard the stamp shows on an IN STOCK issue and reads
+   "Sold out" directly over "In stock, posts this week" (live defect,
+   caught by Ryan 2026-09-05). Same guard as the tile and the cover img. */
+.theinmag-start-picker__stamp[hidden] { display: none; }
 .theinmag-start-picker__stamp span {
   display: inline-block;
   transform: rotate(-14deg);

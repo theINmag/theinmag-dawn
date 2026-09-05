@@ -42,6 +42,9 @@
   assign heading = section.settings.heading | default: 'Shop everything'
   assign empty_text = section.settings.empty_text | default: 'No mags available right now. Check back soon.'
 
+  # Scarcity note tile (see the render block below the product loop).
+  assign show_scarcity_note = section.settings.show_scarcity_note | default: false
+
   # Print-available-only filter (stockist hub). When on, a product is only
   # rendered if it has at least one AVAILABLE variant whose title is NOT
   # "digital". This single rule drops digital-only mags, print-sold-out
@@ -162,6 +165,7 @@
   # and Mag08 (30080), i.e. just under the current + pre-sale issues.
   assign sort_keys = ''
   assign print_sort_keys = ''
+  assign grid_has_presale = false
   for product in target_collection.products
     assign is_excluded = false
     for h in exclude_handles
@@ -189,6 +193,12 @@
       endunless
     endif
     unless is_excluded
+      # Does anything actually IN this grid sit on pre-sale right now? Drives
+      # the scarcity note's second line, so the typed "pre-orders open on X"
+      # retires itself the day the pre-order it names goes live.
+      if product.metafields.theinmag.is_pre_order
+        assign grid_has_presale = true
+      endif
       # IN-STOCK FIRST (Ryan, 2026-09-04, for the Mag10 sell-out): a mag or
       # Snack Pack whose print has sold out drops below every mag that
       # still has print, so the shelf leads with what can actually be
@@ -441,6 +451,42 @@
             {% render 'theinmag-bundle-tile', product: product, context: 'shop', cover_filename: tile_cover, digital_cover_filename: tile_digital_cover, print_only: hide_digital, peek: cover_opens_lightbox, stockist_pricing: stockist_pricing, blurb: tile_blurb %}
           </li>
         {%- endfor -%}
+
+        {%- comment -%}
+          Scarcity note (Ryan, 2026-09-05). On the stockist page the grid is
+          filtered to print that actually exists, so two mags left reads as an
+          empty page when the truth is the opposite. This fills the trailing
+          grid cells with the point.
+
+          It carries its OWN class, never theinmag-shop-grid__item, because the
+          filter, the count line and the show-more button all select
+          .theinmag-shop-grid__item. A note wearing that class would be counted
+          as a product and "Showing 2 of 2" would start lying.
+
+          The second line switches itself off the live pre-sale state, so the
+          typed date disappears the moment the pre-order it names is real.
+        {%- endcomment -%}
+        {%- if show_scarcity_note -%}
+          {%- liquid
+            assign note_line = section.settings.scarcity_line_pre
+            if grid_has_presale
+              assign note_line = section.settings.scarcity_line_live
+            endif
+          -%}
+          <li class="theinmag-shop-grid__note">
+            <span class="theinmag-shop-grid__note-arrow" aria-hidden="true">
+              <svg viewBox="0 0 40 16" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                <path d="M39 8H2M2 8l6-6M2 8l6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            {%- if section.settings.scarcity_heading != blank -%}
+              <p class="theinmag-shop-grid__note-heading">{{ section.settings.scarcity_heading }}</p>
+            {%- endif -%}
+            {%- if note_line != blank -%}
+              <p class="theinmag-shop-grid__note-line">{{ note_line }}</p>
+            {%- endif -%}
+          </li>
+        {%- endif -%}
       </ul>
 
       {%- if render_count > products_per_page -%}
@@ -1214,6 +1260,65 @@
   .theinmag-shop-grid__item > .theinmag-bundle-tile {
     flex: 1;
     width: 100%;
+  }
+
+  /* Scarcity note: a card in the grid, not a product. Peach ground with a
+     dashed edge so it reads as a note at a glance and is never mistaken for
+     something buyable. The arrow points back at the covers on desktop, where
+     the note sits beside them, and turns to point up on a phone, where the
+     grid is one column and the covers are above it. */
+  .theinmag-shop-grid__note {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px 20px;
+    border: 2px dashed var(--color-inky-purple-navy);
+    border-radius: var(--radius-card, 16px);
+    background: var(--color-peach);
+    color: var(--color-inky-purple-navy);
+    text-align: left;
+  }
+
+  .theinmag-shop-grid__note-arrow {
+    display: block;
+    width: 40px;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.85;
+  }
+
+  .theinmag-shop-grid__note-arrow svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .theinmag-shop-grid__note-heading {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    /* Post renders all-caps whatever the source case, so this stays
+       sentence case in the setting and never gets a text-transform. */
+    font-size: clamp(19px, 2.1vw, 24px);
+    line-height: 1.15;
+  }
+
+  .theinmag-shop-grid__note-line {
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.45;
+    opacity: 0.82;
+  }
+
+  /* One column: the note lands under the covers, so the arrow points up at
+     them rather than off the side of the screen. */
+  @media (max-width: 599px) {
+    .theinmag-shop-grid__note-arrow {
+      transform: rotate(90deg);
+      transform-origin: center;
+    }
   }
 
   /* Empty state */
@@ -2399,6 +2504,36 @@
       "id": "empty_text",
       "label": "Empty state text",
       "default": "No mags available right now. Check back soon."
+    },
+    {
+      "type": "header",
+      "content": "Scarcity note",
+      "info": "A note card that sits after the covers in the grid. Built for the stockist page, where the grid only shows what is actually in print, so a short shelf reads as 'nothing here' instead of 'almost everything has gone'."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scarcity_note",
+      "label": "Show the scarcity note",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "scarcity_heading",
+      "label": "Note heading",
+      "default": "This is all we have left in print."
+    },
+    {
+      "type": "text",
+      "id": "scarcity_line_pre",
+      "label": "Second line, before the next issue opens for pre-order",
+      "info": "Swaps itself for the line below the moment any issue in this grid goes to pre-sale, so a date here cannot go stale.",
+      "default": "Mag11 pre-orders open 15 September."
+    },
+    {
+      "type": "text",
+      "id": "scarcity_line_live",
+      "label": "Second line, once pre-orders are open",
+      "default": "In stock ships now. Mag11 follows on drop week."
     },
     {
       "type": "header",
