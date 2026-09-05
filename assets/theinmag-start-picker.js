@@ -173,7 +173,7 @@
     if (subEl) {
       subEl.textContent = soldOut
         ? S.currentIssue + ' print has sold out. Start with ' + S.prevIssue + ' today, or wait for ' + S.nextIssue + '.'
-        : 'Start with the mag on the shelf now, or wait for the new one.';
+        : 'Start with a current mag, or wait for the next issue!';
     }
   }
 
