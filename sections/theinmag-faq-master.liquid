@@ -1,0 +1,252 @@
+{%- comment -%}
+  theinmag-faq-master
+  The master FAQ page (/pages/faq). Magic Spoon's FAQ layout in our brand:
+    - warm peach field (teachers_background1.jpg), dark text
+    - big display headline (Post)
+    - a neat little row of POLICY links up top (shipping, refunds, privacy, terms)
+    - NO category jump-nav: you simply scroll to the topic you want
+    - category labels set in Post (our display face)
+    - every question is a collapsed ACCORDION (click to expand; chevron flips)
+    - thin dividers between questions
+
+  Blocks are a flat, ordered list of two types:
+    - category  {name}             -> a Post section label
+    - qa        {question, answer}  -> an accordion inside the current category
+
+  Native <details>/<summary> means the accordions work without JS. No script.
+
+  AEO: FAQPage JSON-LD generated from the qa blocks. Answers still lead with a
+  self-contained 40-60 word block. "creation" not "work". No em or en dashes.
+{%- endcomment -%}
+
+{%- liquid
+  assign policy_links = ''
+  for i in (1..4)
+    assign lbl = 'policy_' | append: i | append: '_label'
+    assign url = 'policy_' | append: i | append: '_link'
+    assign lbl_v = section.settings[lbl]
+    assign url_v = section.settings[url]
+    if lbl_v != blank and url_v != blank
+      assign policy_links = policy_links | append: '1'
+    endif
+  endfor
+-%}
+
+<section class="theinmag-faqm" data-theinmag-faqm aria-labelledby="theinmag-faqm-heading">
+  <div class="theinmag-faqm__inner">
+
+    <header class="theinmag-faqm__head">
+      <h1 id="theinmag-faqm-heading" class="theinmag-faqm__title">{{ section.settings.headline }}</h1>
+
+      {%- if policy_links != blank -%}
+        <nav class="theinmag-faqm__policies" aria-label="Policies">
+          {%- for i in (1..4) -%}
+            {%- liquid
+              assign lbl = 'policy_' | append: i | append: '_label'
+              assign url = 'policy_' | append: i | append: '_link'
+              assign lbl_v = section.settings[lbl]
+              assign url_v = section.settings[url]
+            -%}
+            {%- if lbl_v != blank and url_v != blank -%}
+              <a class="theinmag-faqm__policy" href="{{ url_v }}">{{ lbl_v }}</a>
+            {%- endif -%}
+          {%- endfor -%}
+        </nav>
+      {%- endif -%}
+    </header>
+
+    {%- comment -%} Category sections + accordions (scroll to find) {%- endcomment -%}
+    <div class="theinmag-faqm__groups">
+      {%- assign group_open = false -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'category' -%}
+          {%- if group_open -%}</div></section>{%- endif -%}
+          <section class="theinmag-faqm__group" aria-label="{{ block.settings.name | escape }}">
+            <h2 class="theinmag-faqm__group-title">{{ block.settings.name }}</h2>
+            <div class="theinmag-faqm__list">
+          {%- assign group_open = true -%}
+        {%- elsif block.type == 'qa' -%}
+          <details class="theinmag-faqm__qa" {{ block.shopify_attributes }}>
+            <summary class="theinmag-faqm__q">
+              <span class="theinmag-faqm__q-text">{{ block.settings.question }}</span>
+              <svg class="theinmag-faqm__chev" width="14" height="8" viewBox="0 0 13 6" fill="none" aria-hidden="true"><path d="M0 1.67551L2.054 0L6.5 3.15445L10.946 0L13 1.67551L6.5 6L0 1.67551Z" fill="currentColor"/></svg>
+            </summary>
+            <div class="theinmag-faqm__a">{{ block.settings.answer }}</div>
+          </details>
+        {%- endif -%}
+      {%- endfor -%}
+      {%- if group_open -%}</div></section>{%- endif -%}
+    </div>
+
+    {%- if section.settings.contact_label != blank -%}
+      <div class="theinmag-faqm__closer">
+        {%- if section.settings.closer_text != blank -%}<p class="theinmag-faqm__closer-text">{{ section.settings.closer_text }}</p>{%- endif -%}
+        <a class="theinmag-btn theinmag-btn--primary theinmag-faqm__closer-cta" href="{{ section.settings.contact_link }}">{{ section.settings.contact_label }}</a>
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{%- comment -%} FAQPage JSON-LD from the qa blocks {%- endcomment -%}
+{%- capture faq_ld -%}
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- assign first = true -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'qa' and block.settings.question != blank -%}
+        {%- unless first -%},{%- endunless -%}
+        {
+          "@type": "Question",
+          "name": {{ block.settings.question | strip_html | json }},
+          "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.answer | strip_html | strip_newlines | json }} }
+        }
+        {%- assign first = false -%}
+      {%- endif -%}
+    {%- endfor -%}
+  ]
+}
+{%- endcapture -%}
+<script type="application/ld+json">{{ faq_ld }}</script>
+
+{%- stylesheet -%}
+  .theinmag-faqm {
+    position: relative;
+    background-color: #FDDEC2;
+    background-image: var(--faqm-bg);
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(40px, 6vw, 80px) clamp(16px, 4vw, 48px) clamp(64px, 9vw, 104px);
+  }
+  .theinmag-faqm__inner { position: relative; z-index: 1; width: 100%; max-width: 780px; margin: 0 auto; }
+
+  .theinmag-faqm__head { text-align: center; margin-bottom: clamp(30px, 4.5vw, 52px); }
+  .theinmag-faqm__title {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400; font-size: clamp(40px, 7.5vw, 76px); line-height: 1;
+    text-transform: uppercase; color: var(--color-inky-purple-navy, #2A1F3D); text-wrap: balance;
+  }
+
+  /* Neat policy links row */
+  .theinmag-faqm__policies {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+    gap: 10px clamp(14px, 2vw, 22px);
+    margin-top: clamp(14px, 2vw, 20px);
+  }
+  .theinmag-faqm__policy {
+    position: relative;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600; font-size: clamp(12px, 1.4vw, 14px);
+    color: var(--color-inky-purple-navy, #2A1F3D); opacity: 0.68;
+    text-decoration: none; transition: opacity 0.16s ease;
+  }
+  .theinmag-faqm__policy:hover { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+  .theinmag-faqm__policy:not(:last-child)::after {
+    content: "\00B7"; position: absolute; right: clamp(-9px, -1vw, -13px);
+    opacity: 0.5; font-weight: 700;
+  }
+
+  /* Category sections */
+  .theinmag-faqm__group { scroll-margin-top: 80px; }
+  .theinmag-faqm__group + .theinmag-faqm__group { margin-top: clamp(40px, 6vw, 64px); }
+  .theinmag-faqm__group-title {
+    margin: 0 0 clamp(8px, 1.2vw, 14px);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400; font-size: clamp(26px, 4vw, 40px); line-height: 1.02;
+    text-transform: uppercase; color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  /* Accordions */
+  .theinmag-faqm__qa { border-top: 1px solid rgba(42, 31, 61, 0.16); }
+  .theinmag-faqm__q {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    padding: clamp(16px, 2.2vw, 22px) 0; cursor: pointer;
+    list-style: none;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600; font-size: clamp(16px, 1.9vw, 19px); line-height: 1.35;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-faqm__q::-webkit-details-marker { display: none; }
+  .theinmag-faqm__q:focus-visible { outline: 2px solid var(--color-purple-dark, #5D3A7A); outline-offset: 4px; }
+  .theinmag-faqm__chev { flex: 0 0 auto; color: var(--color-purple-dark, #5D3A7A); transition: transform 0.2s ease; }
+  .theinmag-faqm__qa[open] .theinmag-faqm__chev { transform: rotate(180deg); }
+  .theinmag-faqm__a {
+    padding: 0 0 clamp(18px, 2.4vw, 24px);
+    max-width: 62ch;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.7vw, 17px); line-height: 1.6;
+    color: rgba(42, 31, 61, 0.9);
+  }
+  .theinmag-faqm__a p { margin: 0 0 0.8em; }
+  .theinmag-faqm__a p:last-child { margin-bottom: 0; }
+  .theinmag-faqm__a a { color: var(--color-purple-dark, #5D3A7A); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* Closer */
+  .theinmag-faqm__closer {
+    margin-top: clamp(48px, 7vw, 80px); text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2vw, 20px);
+  }
+  .theinmag-faqm__closer-text {
+    margin: 0; font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400; font-size: clamp(26px, 3.6vw, 38px); line-height: 1.05;
+    text-transform: uppercase; color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  /* Closer button uses the site's signature .theinmag-btn--primary (yellow,
+     Post font, press-shadow on hover). Nudge it a touch bigger here so it
+     carries the bottom of the page. */
+  .theinmag-faqm__closer-cta { font-size: clamp(16px, 1.9vw, 20px); padding: 15px 34px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-faqm__chev, .theinmag-faqm__policy { transition: none; }
+  }
+{%- endstylesheet -%}
+
+<style>
+  .theinmag-faqm { --faqm-bg: url("{{ 'teachers_background1.jpg' | asset_url }}"); }
+</style>
+
+{% schema %}
+{
+  "name": "FAQ master",
+  "tag": "section",
+  "class": "theinmag-faq-master-section",
+  "settings": [
+    { "type": "text", "id": "headline", "label": "Headline", "default": "We got answers" },
+    { "type": "header", "content": "Policy links (top row)" },
+    { "type": "text", "id": "policy_1_label", "label": "Link 1 label", "default": "Shipping & refunds" },
+    { "type": "text", "id": "policy_1_link", "label": "Link 1 URL", "default": "/pages/shipping-refunds" },
+    { "type": "text", "id": "policy_2_label", "label": "Link 2 label", "default": "Child safety, terms & privacy" },
+    { "type": "text", "id": "policy_2_link", "label": "Link 2 URL", "default": "/pages/child-safety-terms-conditions-privacy-policy" },
+    { "type": "text", "id": "policy_3_label", "label": "Link 3 label (optional)", "default": "" },
+    { "type": "text", "id": "policy_3_link", "label": "Link 3 URL (optional)", "default": "" },
+    { "type": "text", "id": "policy_4_label", "label": "Link 4 label (optional)", "default": "" },
+    { "type": "text", "id": "policy_4_link", "label": "Link 4 URL (optional)", "default": "" },
+    { "type": "header", "content": "Closer" },
+    { "type": "text", "id": "closer_text", "label": "Closer heading", "default": "More questions?" },
+    { "type": "text", "id": "contact_label", "label": "Contact button label", "default": "Ask us anything" },
+    { "type": "text", "id": "contact_link", "label": "Contact button link", "default": "/pages/contact" }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [
+        { "type": "text", "id": "name", "label": "Category name", "default": "Category" }
+      ]
+    },
+    {
+      "type": "qa",
+      "name": "Question + answer",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "Your question?" },
+        { "type": "richtext", "id": "answer", "label": "Answer", "default": "<p>Your answer.</p>" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,274 @@
+{% comment %}
+  theinmag-storybook.liquid - picture-storybook article layout.
+  Wired via templates/article.storybook.json. All per-book content comes from
+  the article metafield field_notes.storybook (JSON):
+
+  {
+    "kicker": "chapter one featured in Mag11",
+    "cover": "storybook-zard-00-cover-zard-trimmed.jpg",
+    "byline_name": "Sam C.",
+    "byline_meta": "age 10, Perth WA",
+    "note_heading": "A note from Sam",
+    "note": "\"I wrote ...\" Sam",
+    "credit_1": "Story and artwork by Sam C. | Perth WA, age 10",
+    "credit_2": "Sam submitted this to theINmag. ...",
+    "pages": [
+      { "art": "<asset filename>", "alt": "...", "mode": "pan|fit|static",
+        "chnum": "Chapter 1", "heading": "The beginning of the end",
+        "contd": false, "paragraphs": ["...", "..."],
+        "overlay": ["optional lines set over the artwork in blackletter"],
+        "the_end": false }
+    ]
+  }
+
+  Desktop: sticky left art column, crossfade per page, landscape art pans
+  left to right in step with reading progress. Phone/tablet: sticky top art
+  band. mode "fit" = portrait art shown whole, no pan. mode "static" =
+  landscape art centred, no pan (used when text is overlaid, e.g. a
+  prophecy scroll). Reduced motion: no pan.
+{% endcomment %}
+
+{%- assign sb = article.metafields.field_notes.storybook.value -%}
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=UnifrakturMaguntia&display=swap">
+
+{%- if sb -%}
+<div class="sb">
+
+  <header class="sb-hero">
+    <div class="sb-hero-inner">
+      {%- if sb.kicker != blank -%}<p class="sb-kicker">{{ sb.kicker }}</p>{%- endif -%}
+      <div class="sb-cover">
+        <img src="{{ sb.cover | asset_url }}" alt="{{ sb.cover_alt | default: article.title }}" loading="eager">
+        <div class="sb-cover-title">
+          <h1>{{ article.title }}</h1>
+          <p class="sb-byline"><strong>By {{ sb.byline_name }}</strong> <span>{{ sb.byline_meta }}</span></p>
+        </div>
+      </div>
+      {%- if sb.note != blank -%}
+      <section class="sb-note">
+        {%- if sb.note_heading != blank -%}<h2>{{ sb.note_heading }}</h2>{%- endif -%}
+        <p>{{ sb.note }}</p>
+      </section>
+      {%- endif -%}
+    </div>
+  </header>
+
+  <div class="sb-book">
+    <div class="sb-layout">
+
+      <div class="sb-artcol">
+        {%- for p in sb.pages -%}
+          <figure data-art="p{{ forloop.index }}" class="{% if p.mode == 'fit' %}sb-fit{% elsif p.mode == 'static' %}sb-static{% endif %}">
+            <img src="{{ p.art | asset_url }}" alt="{{ p.alt }}" loading="{% if forloop.index < 3 %}eager{% else %}lazy{% endif %}">
+            {%- if p.overlay -%}
+            <div class="sb-overlay-wrap">
+              <div class="sb-overlay">
+                {%- for line in p.overlay -%}<p>{{ line }}</p>{%- endfor -%}
+              </div>
+            </div>
+            {%- endif -%}
+          </figure>
+        {%- endfor -%}
+      </div>
+
+      <div class="sb-textcol">
+        {%- for p in sb.pages -%}
+        <section class="sb-page {% if p.contd %}sb-contd{% endif %}" data-art="p{{ forloop.index }}">
+          {%- if p.heading != blank -%}
+            {%- if p.contd -%}
+              <h2>{{ p.heading }}</h2>
+            {%- else -%}
+              <h2>{%- if p.chnum != blank -%}<span class="sb-chnum">{{ p.chnum }}</span>{%- endif -%}{{ p.heading }}</h2>
+            {%- endif -%}
+          {%- endif -%}
+          {%- for para in p.paragraphs -%}<p>{{ para }}</p>{%- endfor -%}
+          {%- if p.the_end -%}<p class="sb-the-end">THE END</p>{%- endif -%}
+        </section>
+        {%- endfor -%}
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="sb-credit">
+    <div class="sb-credit-inner">
+      {%- if sb.credit_1 != blank -%}<p><strong>{{ sb.credit_1 }}</strong></p>{%- endif -%}
+      {%- if sb.credit_2 != blank -%}<p>{{ sb.credit_2 }}</p>{%- endif -%}
+    </div>
+  </footer>
+
+  {%- if sb.teachers -%}
+  <aside class="sb-teachers">
+    <div class="sb-teachers-inner">
+      <h2>{{ sb.teachers.heading | default: 'For teachers' }}</h2>
+      {%- for para in sb.teachers.paragraphs -%}<p>{{ para }}</p>{%- endfor -%}
+      {%- if sb.teachers.link_url != blank -%}
+        <a class="sb-teachers-link" href="{{ sb.teachers.link_url }}">{{ sb.teachers.link_label | default: 'Send IN your stories' }}</a>
+      {%- endif -%}
+    </div>
+  </aside>
+  {%- endif -%}
+
+</div>
+
+{% style %}
+  .sb { background: #fdfbf7; color: #1d1d1b; font-family: Inter, system-ui, sans-serif; }
+  .sb img { max-width: 100%; display: block; }
+
+  .sb-hero { background: #fff; border-bottom: 1px solid #eee7da; }
+  .sb-hero-inner { max-width: 1060px; margin: 0 auto; padding: 40px 24px 56px; text-align: center; }
+  .sb-kicker { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #6b6b66; margin: 0 0 36px; }
+  .sb-cover img { width: min(100%, 880px); margin: 0 auto; }
+  .sb-cover-title { margin-top: 26px; }
+  .sb-cover-title h1 { font-family: 'Post Regular', Inter, sans-serif; font-size: clamp(30px, 5.8vw, 66px); font-weight: 400; margin: 0; }
+  .sb-byline { margin: 10px 0 0; font-size: clamp(13px, 1.8vw, 18px); color: #1d1d1b; }
+  .sb-byline span { color: #6b6b66; }
+
+  .sb-note { max-width: 640px; margin: 0 auto; padding: 44px 24px 0; text-align: left; }
+  .sb-note h2 { font-size: 15px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6b6b66; margin: 0 0 14px; }
+  .sb-note p { font-size: 17px; line-height: 1.65; margin: 0 0 1.1em; }
+
+  .sb-layout { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+  /* --sb-header-offset is set by JS to the sticky site header's height so
+     the art column sits below it instead of sliding underneath */
+  .sb-artcol { position: sticky; top: var(--sb-header-offset, 0px); height: calc(100vh - var(--sb-header-offset, 0px)); overflow: hidden; background: #fdfbf7; }
+  .sb-artcol figure { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity .55s ease; display: flex; align-items: center; justify-content: flex-start; }
+  .sb-artcol figure.sb-fit, .sb-artcol figure.sb-static { justify-content: center; }
+  .sb-artcol figure.sb-active { opacity: 1; }
+  .sb-artcol figure img { height: 100%; width: auto; max-width: none; will-change: transform; }
+  .sb-artcol figure.sb-fit img { height: 94%; }
+
+  .sb-textcol { background: #fdfbf7; }
+  .sb-page { min-height: 92vh; display: flex; flex-direction: column; justify-content: center; padding: 12vh clamp(28px, 6vw, 88px); max-width: 660px; box-sizing: border-box; }
+  .sb-page h2 { font-family: 'Post Regular', Inter, sans-serif; font-size: clamp(24px, 2.8vw, 34px); font-weight: 400; margin: 0 0 22px; }
+  .sb-chnum { display: block; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #6b6b66; margin-bottom: 8px; }
+  .sb-page p { font-size: 17.5px; line-height: 1.7; margin: 0 0 1.15em; }
+  .sb-contd h2 { font-family: Inter, sans-serif; font-size: 15px; font-weight: 700; color: #6b6b66; }
+
+  .sb-overlay-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .sb-overlay { font-family: 'UnifrakturMaguntia', cursive; color: #4a2418; text-align: center; width: 44%; font-size: clamp(14px, 1.55vw, 22px); line-height: 1.5; transform: translateX(-6%); }
+  .sb-overlay p { margin: 0 0 1em; }
+
+  .sb-the-end { font-family: 'Post Regular', Inter, sans-serif; font-size: 28px; letter-spacing: .04em; margin-top: 8px; }
+
+  .sb-teachers { background: #fdfbf7; border-top: 1px solid #eee7da; }
+  .sb-teachers-inner { max-width: 640px; margin: 0 auto; padding: 44px 24px 56px; text-align: left; }
+  .sb-teachers-inner h2 { font-size: 15px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6b6b66; margin: 0 0 14px; }
+  .sb-teachers-inner p { font-size: 16px; line-height: 1.65; color: #1d1d1b; margin: 0 0 1.1em; }
+  .sb-teachers-link { display: inline-block; background: #ffd234; color: #1d1d1b; font-weight: 600; font-size: 15px; padding: 12px 22px; border-radius: 999px; text-decoration: none; margin-top: 6px; }
+
+  .sb-credit { background: #fff; border-top: 1px solid #eee7da; }
+  .sb-credit-inner { max-width: 640px; margin: 0 auto; padding: 44px 24px 64px; text-align: center; }
+  .sb-credit-inner p { font-size: 15px; line-height: 1.6; color: #6b6b66; margin: 0 0 8px; }
+  .sb-credit-inner p strong { color: #1d1d1b; }
+
+  @media (max-width: 900px) {
+    .sb-layout { display: block; }
+    .sb-artcol { position: sticky; top: var(--sb-header-offset, 0px); height: 62vw; max-height: 54vh; z-index: 2; border-bottom: 1px solid #eee7da; }
+    .sb-artcol figure { justify-content: center; }
+    .sb-artcol figure.sb-fit img { height: 94%; }
+    .sb-page { min-height: 70vh; padding: 48px 24px; }
+    .sb-overlay { width: 46%; font-size: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sb-artcol figure { transition: none; }
+  }
+{% endstyle %}
+
+<script>
+(function () {
+  var root = document.currentScript.previousElementSibling ? document : document;
+  var figures = {};
+  document.querySelectorAll('.sb-artcol figure').forEach(function (f) {
+    figures[f.dataset.art] = f;
+  });
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.sb-page'));
+  if (!pages.length) return;
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var active = null;
+
+  var sbRoot = document.querySelector('.sb');
+  function setHeaderOffset() {
+    var header = document.querySelector('.shopify-section.theinmag-header-section');
+    var h = header ? Math.round(header.getBoundingClientRect().height) : 0;
+    if (sbRoot) sbRoot.style.setProperty('--sb-header-offset', h + 'px');
+  }
+  setHeaderOffset();
+  window.addEventListener('resize', setHeaderOffset);
+
+  function setActive(key) {
+    if (key === active) return;
+    active = key;
+    Object.keys(figures).forEach(function (k) {
+      figures[k].classList.toggle('sb-active', k === key);
+    });
+  }
+
+  function currentPage() {
+    var mid = window.innerHeight * 0.5;
+    for (var i = 0; i < pages.length; i++) {
+      var r = pages[i].getBoundingClientRect();
+      if (r.top <= mid && r.bottom > mid) return pages[i];
+    }
+    return (pages[0].getBoundingClientRect().top > mid) ? pages[0] : pages[pages.length - 1];
+  }
+
+  function tick() {
+    var page = currentPage();
+    setActive(page.dataset.art);
+
+    if (reduced || window.innerWidth <= 900) return;
+    var fig = figures[page.dataset.art];
+    if (!fig || fig.classList.contains('sb-fit') || fig.classList.contains('sb-static')) return;
+    var img = fig.querySelector('img');
+    var pan = img.offsetWidth - fig.offsetWidth;
+    if (pan <= 0) return;
+    var r = page.getBoundingClientRect();
+    var p = (window.innerHeight - r.top) / (window.innerHeight + r.height);
+    p = (p - 0.22) / 0.56;
+    p = Math.max(0, Math.min(1, p));
+    img.style.transform = 'translateX(' + (-p * pan) + 'px)';
+  }
+
+  window.addEventListener('scroll', tick, { passive: true });
+  window.addEventListener('resize', tick);
+  tick();
+})();
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": {{ article.title | json }},
+  "author": { "@type": "Person", "name": {{ sb.byline_name | json }} },
+  "datePublished": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+  "dateModified": {{ article.updated_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+  "publisher": { "@type": "Organization", "name": "theINmag", "url": {{ shop.url | json }} },
+  "description": {{ article.metafields.field_notes.quick_answer | default: article.excerpt_or_content | strip_html | truncate: 300 | json }},
+  "learningResourceType": "Shared reading text",
+  "educationalUse": "shared reading",
+  "audience": [
+    { "@type": "PeopleAudience", "suggestedMinAge": 5, "suggestedMaxAge": 13 },
+    { "@type": "EducationalAudience", "educationalRole": "teacher" }
+  ]
+}
+</script>
+
+{%- else -%}
+  <div style="max-width:640px;margin:60px auto;padding:0 24px;font-family:Inter,sans-serif;">
+    <h1>{{ article.title }}</h1>
+    {{ article.content }}
+    <p style="color:#6b6b66;font-size:14px;">(Storybook layout needs the field_notes.storybook metafield.)</p>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "theINmag storybook",
+  "settings": [],
+  "presets": []
+}
+{% endschema %}

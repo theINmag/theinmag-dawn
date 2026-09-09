@@ -1,0 +1,874 @@
+{%- comment -%}
+  theinmag-submitted
+  The Send IN celebration page (/pages/submitted). A kid lands here after
+  submitting via the JotForm on /pages/send-in (JotForm success redirect points
+  here; its own thank-you screen is retired).
+
+  Descended from the 404 (sections/main-404.liquid): same cream ground, same
+  randomised kid mINion + Switch button. Here it is COMPACT and shifted up so
+  the top of the first page-tile peeks above the fold and pulls a kid to scroll.
+
+  Beat 1 - celebration hero: small mINion + Post heading + one line naming the
+    mag the submission is in the running for + a single button back to the form.
+  Beat 2 - page-tiles running down: each tile wears its destination page's own
+    skin (nail-one-first: the GALLERY tile is built first - dark inky-purple like
+    /pages/gallery, carrying a few live latest submissions from the ANCHOR feed).
+    Competitions + Membership tiles follow, each echoing their page.
+
+  Copy rules: celebrates the ACT of sending, NOT publication. "creation" not
+    "work". No mention of emailing the grown-up (optional). The mag is a single
+    setting (considered_for_mag); the submission WINDOW drives the flip (1 Aug /
+    1 Dec / 1 Apr), not the drop date. Kaiden owns pinging Webster to change it;
+    source of truth kaiden/cycle-state.json -> submission_windows. "IN" via
+    .theinmag-in. No em dashes.
+{%- endcomment -%}
+
+{% render 'theinmag-character-pool' %}
+
+{%- comment -%} Parallel comp arrays (comp_names, comp_logos, comp_when_text, comp_tile_states ...) for the competitions tile. Same include the competitions page uses. {%- endcomment -%}
+{%- include 'theinmag-competitions-data' -%}
+
+{%- comment -%}
+  The mag the submission is in the running for. Reads the shop metafield
+  theinmag.submission_open_mag first (Kaiden's drop system keeps it current, so
+  it flips itself on 1 Aug / 1 Dec / 1 Apr with no theme edit), and falls back to
+  the section setting if the metafield is empty.
+{%- endcomment -%}
+{%- assign meta_mag = shop.metafields.theinmag.submission_open_mag.value -%}
+{%- if meta_mag != blank -%}
+  {%- assign mag = meta_mag | strip -%}
+{%- else -%}
+  {%- assign mag = section.settings.considered_for_mag | strip -%}
+{%- endif -%}
+
+<section class="theinmag-submitted" data-theinmag-submitted aria-labelledby="theinmag-submitted-heading">
+
+  <div class="theinmag-submitted__hero">
+    <div class="theinmag-submitted__hero-inner">
+
+      <div class="theinmag-submitted__character-col">
+        <div class="theinmag-submitted__character-stage" data-theinmag-submitted-stage>
+          <span class="theinmag-submitted__character" data-theinmag-pool-character data-theinmag-submitted-character></span>
+        </div>
+        <button
+          type="button"
+          class="theinmag-submitted__switch"
+          data-theinmag-submitted-switch
+          aria-label="Switch to a different character"
+        >
+          <svg class="theinmag-submitted__switch-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3 12a9 9 0 0 1 15.5-6.3M21 6v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 12a9 9 0 0 1-15.5 6.3M3 18v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Switch mINion</span>
+        </button>
+      </div>
+
+      <div class="theinmag-submitted__copy-col">
+        <h1 id="theinmag-submitted-heading" class="theinmag-submitted__heading">
+          {{ section.settings.heading_lead }} <span class="theinmag-in">IN</span>!
+        </h1>
+        <p class="theinmag-submitted__sub">
+          {{ section.settings.sub_prefix }}{% if mag != blank %} <strong>{{ mag }}</strong>{% endif %}. {{ section.settings.sub_suffix }}
+        </p>
+        {%- if section.settings.cta_label != blank -%}
+          <a href="{{ section.settings.cta_link }}" class="theinmag-submitted__cta button">
+            {{ section.settings.cta_label }}
+          </a>
+        {%- endif -%}
+      </div>
+
+    </div>
+  </div>
+
+  <div class="theinmag-submitted__tiles">
+
+    {%- comment -%} COMPETITIONS tile - bright like /pages/competitions, sharing the current live comps {%- endcomment -%}
+    <a class="theinmag-submitted__ptile theinmag-submitted__ptile--comps" href="{{ section.settings.comps_link }}">
+      <span class="theinmag-submitted__ptile-bar theinmag-submitted__ptile-bar--comps">
+        <span class="theinmag-submitted__ptile-barname">{{ section.settings.comps_name }}</span>
+        <span class="theinmag-submitted__ptile-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </span>
+      <span class="theinmag-submitted__ptile-feed theinmag-submitted__ptile-feed--comps">
+        {%- assign comps_shown = 0 -%}
+        {%- for state in comp_tile_states -%}
+          {%- assign ci = forloop.index0 -%}
+          {%- if state == 'live-now' and comps_shown < section.settings.comps_count -%}
+            {%- assign clogo = comp_logos[ci] -%}
+            <span class="theinmag-submitted__ccard">
+              <span class="theinmag-submitted__ccard-logo">
+                {%- if clogo != blank -%}<img src="{{ clogo | asset_url }}" alt="" loading="lazy">{%- endif -%}
+              </span>
+              <span class="theinmag-submitted__ccard-text">
+                <span class="theinmag-submitted__ccard-name">{{ comp_names[ci] }}</span>
+                {%- if comp_when_text[ci] != blank -%}<span class="theinmag-submitted__ccard-when">{{ comp_when_text[ci] }}</span>{%- endif -%}
+              </span>
+            </span>
+            {%- assign comps_shown = comps_shown | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </span>
+      <span class="theinmag-submitted__ptile-fade theinmag-submitted__ptile-fade--comps" aria-hidden="true"></span>
+    </a>
+
+    {%- comment -%} GALLERY tile - mirrors the mobile gallery: a single column of live submissions, each with its real attribution, under a simple "Live gallery" bar {%- endcomment -%}
+    <a
+      class="theinmag-submitted__ptile theinmag-submitted__ptile--gallery"
+      href="{{ section.settings.gallery_link }}"
+      data-theinmag-submitted-gallery
+      data-gallery-json="{{ section.settings.gallery_feed_url }}"
+      data-gallery-json-fallback="{{ 'gallery-data.json' | asset_url }}"
+      data-gallery-count="{{ section.settings.gallery_count }}"
+    >
+      <span class="theinmag-submitted__ptile-bar">
+        <span class="theinmag-submitted__ptile-barname">{{ section.settings.gallery_name }}</span>
+        <span class="theinmag-submitted__ptile-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </span>
+      <span class="theinmag-submitted__ptile-feed" data-theinmag-submitted-strip aria-hidden="true">
+        {%- for i in (1..section.settings.gallery_count) -%}
+          <span class="theinmag-submitted__gcard theinmag-submitted__gcard--skeleton">
+            <span class="theinmag-submitted__gcard-img"></span>
+            <span class="theinmag-submitted__gcard-cap"></span>
+          </span>
+        {%- endfor -%}
+      </span>
+      <span class="theinmag-submitted__ptile-fade" aria-hidden="true"></span>
+    </a>
+
+    {%- comment -%} MEMBERSHIP tile - image + hover swap, from-price headline, features {%- endcomment -%}
+    {%- liquid
+      assign m_main = ''
+      if section.settings.membership_image
+        assign m_main = section.settings.membership_image | image_url: width: 900
+      elsif section.settings.membership_image_fallback != blank
+        assign m_main = section.settings.membership_image_fallback | asset_url
+      endif
+      assign m_hover = ''
+      if section.settings.membership_hover
+        assign m_hover = section.settings.membership_hover | image_url: width: 900
+      elsif section.settings.membership_hover_fallback != blank
+        assign m_hover = section.settings.membership_hover_fallback | asset_url
+      endif
+    -%}
+    <a class="theinmag-submitted__ptile theinmag-submitted__ptile--membership" href="{{ section.settings.membership_link }}">
+      <span class="theinmag-submitted__ptile-bar theinmag-submitted__ptile-bar--membership">
+        <span class="theinmag-submitted__ptile-barname">{{ section.settings.membership_name }}</span>
+        <span class="theinmag-submitted__ptile-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </span>
+      <span class="theinmag-submitted__mbody">
+        <span class="theinmag-submitted__mmedia">
+          {%- if m_main != blank -%}<img class="theinmag-submitted__mimg theinmag-submitted__mimg--main" src="{{ m_main }}" alt="{{ section.settings.membership_image_alt | escape }}" loading="lazy">{%- endif -%}
+          {%- if m_hover != blank -%}<img class="theinmag-submitted__mimg theinmag-submitted__mimg--hover" src="{{ m_hover }}" alt="" aria-hidden="true" loading="lazy">{%- endif -%}
+        </span>
+        <span class="theinmag-submitted__mheadline">{{ section.settings.membership_headline }}</span>
+        <span class="theinmag-submitted__mfeatures">
+          {%- for n in (1..4) -%}
+            {%- assign fkey = 'membership_feature_' | append: n -%}
+            {%- assign feat = section.settings[fkey] -%}
+            {%- if feat != blank -%}
+              <span class="theinmag-submitted__mfeature">
+                <svg class="theinmag-submitted__mtick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 10.5l3.5 3.5L16 5.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>{{ feat }}</span>
+              </span>
+            {%- endif -%}
+          {%- endfor -%}
+        </span>
+        {%- comment -%} Real reviews, straight from Judge.me {%- endcomment -%}
+        {%- assign jm_reviews = shop.metafields.judgeme.reviews_grid.value.all_reviews.reviews -%}
+        {%- if jm_reviews and section.settings.membership_review_count > 0 -%}
+          <span class="theinmag-submitted__mreviews">
+            {%- assign rev_shown = 0 -%}
+            {%- for rev in jm_reviews -%}
+              {%- if rev_shown >= section.settings.membership_review_count -%}{%- break -%}{%- endif -%}
+              {%- assign rbody = rev.body | strip -%}
+              {%- if rev.rating == 5 and rbody != blank and rbody.size < 150 -%}
+                <span class="theinmag-submitted__mreview">
+                  <span class="theinmag-submitted__mstars" aria-hidden="true">★★★★★</span>
+                  <span class="theinmag-submitted__mquote">{{ rbody }}</span>
+                  <span class="theinmag-submitted__mauthor">{%- if rev.reviewer_name != blank and rev.is_anonymous_reviewer != true -%}{{ rev.reviewer_name }}{%- else -%}A happy reader{%- endif -%}</span>
+                </span>
+                {%- assign rev_shown = rev_shown | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </span>
+        {%- endif -%}
+        <span class="theinmag-submitted__mchar" aria-hidden="true">
+          <span class="theinmag-submitted__mchar-slot" data-theinmag-pool-character></span>
+        </span>
+      </span>
+    </a>
+
+  </div>
+
+</section>
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-submitted
+     ================================================================ */
+
+  .theinmag-submitted {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* ---- Beat 1: compact hero ---- */
+
+  .theinmag-submitted__hero {
+    padding: clamp(32px, 5vw, 60px) clamp(16px, 4vw, 48px) clamp(40px, 6vw, 68px);
+  }
+
+  .theinmag-submitted__hero-inner {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 3vw, 32px);
+    align-items: center;
+    text-align: center;
+  }
+
+  @media (min-width: 750px) {
+    .theinmag-submitted__hero-inner {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      text-align: left;
+      gap: clamp(32px, 5vw, 64px);
+    }
+  }
+
+  .theinmag-submitted__character-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(14px, 2vw, 20px);
+  }
+
+  .theinmag-submitted__character-stage {
+    width: clamp(120px, 22vw, 208px);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center bottom;
+    transition: transform 0.32s cubic-bezier(0.55, 0, 0.7, 0.2);
+  }
+
+  .theinmag-submitted__character-stage.is-switching-out { transform: scale(0) rotate(-18deg); }
+  .theinmag-submitted__character-stage.is-switching-in { animation: theinmag-submitted-pop-in 0.5s cubic-bezier(0.34, 1.7, 0.64, 1) both; }
+
+  @keyframes theinmag-submitted-pop-in {
+    0% { transform: scale(0) rotate(12deg); }
+    60% { transform: scale(1.08) rotate(-4deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+
+  .theinmag-submitted__character { display: block; width: 100%; opacity: 1; transform: none; }
+  .theinmag-submitted__character-stage.is-switching-out .theinmag-pool-character__img,
+  .theinmag-submitted__character-stage.is-switching-in .theinmag-pool-character__img { animation: none; }
+
+  .theinmag-submitted__switch {
+    appearance: none; border: 0; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border-radius: 999px;
+    background-color: var(--color-peach, #FCDDB8);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600; font-size: 13px; line-height: 1;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+  }
+
+  .theinmag-submitted__switch:hover,
+  .theinmag-submitted__switch:focus-visible { background-color: #F8C99E; outline: none; transform: translateY(-1px); }
+  .theinmag-submitted__switch:focus-visible { box-shadow: 0 0 0 3px var(--color-sandy-orange-dark, #D9783A); }
+  .theinmag-submitted__switch:active { transform: translateY(0); }
+  .theinmag-submitted__switch:disabled { opacity: 0.6; cursor: wait; }
+
+  .theinmag-submitted__switch-icon { width: 15px; height: 15px; transition: transform 0.4s ease; }
+  .theinmag-submitted__switch:hover .theinmag-submitted__switch-icon,
+  .theinmag-submitted__switch:focus-visible .theinmag-submitted__switch-icon { transform: rotate(180deg); }
+
+  .theinmag-submitted__copy-col {
+    display: flex; flex-direction: column; align-items: center;
+    gap: clamp(10px, 1.4vw, 14px);
+  }
+
+  @media (min-width: 750px) { .theinmag-submitted__copy-col { align-items: flex-start; } }
+
+  .theinmag-submitted__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 1.1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-submitted__sub {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.7vw, 18px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.82;
+    max-width: 44ch;
+  }
+
+  .theinmag-submitted__sub strong { font-weight: 700; opacity: 1; }
+  .theinmag-submitted__cta { margin-top: clamp(8px, 1.4vw, 14px); }
+
+  /* ---- Beat 2: portrait "phone view" page-tiles ---- */
+
+  .theinmag-submitted__tiles {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(16px, 3vw, 28px);
+    padding: clamp(18px, 3vw, 26px) clamp(16px, 4vw, 48px) clamp(40px, 6vw, 72px);
+  }
+
+  /* On narrow screens the tiles become a swipeable row of phone previews.
+     The row scrolls, which would clip each tile's drop shadow, so the
+     padding here (and scroll-padding for snap) gives the shadow room. */
+  @media (max-width: 900px) {
+    .theinmag-submitted__tiles {
+      justify-content: flex-start;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: clamp(26px, 7vw, 36px);
+      padding-left: clamp(26px, 7vw, 36px);
+      padding-right: clamp(26px, 7vw, 36px);
+      scrollbar-width: none;
+    }
+    .theinmag-submitted__tiles::-webkit-scrollbar { display: none; }
+    .theinmag-submitted__ptile { scroll-snap-align: center; }
+  }
+
+  /* A portrait card that reads like the page opened on a phone. */
+  .theinmag-submitted__ptile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    width: clamp(240px, 62vw, 320px);
+    aspect-ratio: 10 / 37;
+    border-radius: var(--radius-xl, 28px);
+    overflow: hidden;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(42, 31, 61, 0.2);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .theinmag-submitted__ptile:hover,
+  .theinmag-submitted__ptile:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(42, 31, 61, 0.26);
+    outline: none;
+  }
+
+  .theinmag-submitted__ptile:focus-visible { outline: 3px solid var(--color-yellow, #F9C23C); outline-offset: 3px; }
+
+  /* Gallery variant - dark inky-purple, echoing /pages/gallery. */
+  .theinmag-submitted__ptile--gallery {
+    background-color: var(--color-inky-purple-navy, #2A1F3D);
+    color: #fff;
+  }
+
+  /* Cream banner, matching the gallery page's own header box. */
+  .theinmag-submitted__ptile-bar {
+    flex: 0 0 auto;
+    margin: clamp(12px, 2vw, 16px) clamp(12px, 2vw, 16px) clamp(8px, 1.4vw, 12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: clamp(9px, 1.6vw, 12px) clamp(10px, 1.8vw, 14px) clamp(9px, 1.6vw, 12px) clamp(14px, 2.4vw, 18px);
+    background-color: var(--color-cream, #FBF6EA);
+    border-radius: var(--radius-lg, 20px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  }
+
+  .theinmag-submitted__ptile-barname {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(21px, 2.7vw, 27px);
+    line-height: 1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-submitted__ptile-arrow {
+    flex: 0 0 auto;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 999px;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    transition: transform 0.18s ease;
+  }
+  .theinmag-submitted__ptile-arrow svg { width: 16px; height: 16px; }
+  .theinmag-submitted__ptile:hover .theinmag-submitted__ptile-arrow,
+  .theinmag-submitted__ptile:focus-visible .theinmag-submitted__ptile-arrow { transform: translateX(3px); }
+
+  /* Single column of live submissions, clipped at the bottom so it reads as
+     a scrollable feed - exactly like the gallery on a phone. */
+  .theinmag-submitted__ptile-feed {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.6vw, 14px);
+    padding: 0 clamp(12px, 2vw, 16px) clamp(14px, 2vw, 18px);
+    overflow-y: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .theinmag-submitted__ptile-feed::-webkit-scrollbar { display: none; }
+
+  .theinmag-submitted__gcard { display: flex; flex-direction: column; gap: 5px; flex: 0 0 auto; }
+
+  /* Natural shape, like the real gallery - the whole creation, uncropped. */
+  .theinmag-submitted__gcard-img {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius-sm, 6px);
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  .theinmag-submitted__gcard-img img { width: 100%; height: auto; display: block; }
+
+  .theinmag-submitted__gcard-cap {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(11px, 1.3vw, 13px);
+    line-height: 1.3;
+    color: #fff;
+    opacity: 0.92;
+  }
+
+  .theinmag-submitted__gcard-writeup {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(11px, 1.3vw, 13px);
+    line-height: 1.4;
+    color: #fff;
+    opacity: 0.66;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .theinmag-submitted__gcard--skeleton .theinmag-submitted__gcard-img {
+    min-height: 190px;
+    background-image: linear-gradient(100deg, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 70%);
+    background-size: 200% 100%;
+    animation: theinmag-submitted-shimmer 1.4s ease-in-out infinite;
+  }
+  .theinmag-submitted__gcard--skeleton .theinmag-submitted__gcard-cap {
+    height: 12px; width: 70%; border-radius: 3px; background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  @keyframes theinmag-submitted-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Bottom fade hints there is more to scroll, like a real feed. */
+  .theinmag-submitted__ptile-fade {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: clamp(40px, 8vw, 56px);
+    background: linear-gradient(to top, var(--color-inky-purple-navy, #2A1F3D), rgba(42, 31, 61, 0));
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ---- Competitions tile - bright, echoing /pages/competitions ---- */
+  .theinmag-submitted__ptile--comps {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-submitted__ptile-bar--comps { background-color: var(--color-peach, #FCDDB8); }
+  .theinmag-submitted__ptile-fade--comps {
+    background: linear-gradient(to top, var(--color-cream, #FBF6EA), rgba(251, 246, 234, 0));
+  }
+  .theinmag-submitted__ptile-feed--comps { gap: clamp(9px, 1.4vw, 12px); }
+
+  .theinmag-submitted__ccard {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 1.6vw, 14px);
+    flex: 0 0 auto;
+    padding: clamp(9px, 1.5vw, 12px);
+    background-color: #fff;
+    border-radius: var(--radius-md, 12px);
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.08);
+  }
+  .theinmag-submitted__ccard-logo {
+    flex: 0 0 auto;
+    width: clamp(42px, 11vw, 54px);
+    height: clamp(42px, 11vw, 54px);
+    border-radius: var(--radius-sm, 6px);
+    background-color: var(--color-cream, #FBF6EA);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .theinmag-submitted__ccard-logo img { width: 100%; height: 100%; object-fit: contain; }
+  .theinmag-submitted__ccard-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .theinmag-submitted__ccard-name {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(13px, 1.5vw, 15px);
+    line-height: 1.25;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .theinmag-submitted__ccard-when {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(11px, 1.3vw, 12px);
+    line-height: 1.3;
+    color: var(--color-text-muted, #6b6b6b);
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  /* ---- Membership tile - image + hover swap, from-price, features ---- */
+  /* Membership sizes to its own content (image + features + mINion), so there
+     is no awkward gap. It top-aligns with the two taller scrollable feeds. */
+  .theinmag-submitted__ptile--membership {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    aspect-ratio: auto;
+  }
+  .theinmag-submitted__ptile-bar--membership { background-color: var(--color-sky, #C9E5E8); }
+
+  .theinmag-submitted__mbody {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 2vw, 18px);
+    padding: 0 clamp(12px, 2vw, 16px) clamp(16px, 2.4vw, 22px);
+    overflow: hidden;
+  }
+
+  .theinmag-submitted__mmedia {
+    position: relative;
+    flex: 0 0 auto;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    background-color: #fff;
+  }
+
+  /* Fills whatever space is left below the features with a random kid mINion. */
+  .theinmag-submitted__mchar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-top: clamp(14px, 2.6vw, 24px);
+  }
+  .theinmag-submitted__mchar-slot { display: block; width: clamp(130px, 36vw, 200px); }
+  .theinmag-submitted__mchar-slot .theinmag-pool-character__img {
+    width: 100%;
+    height: auto;
+    display: block;
+    opacity: 1;
+    transform: none;
+  }
+
+  .theinmag-submitted__mimg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-submitted__mimg--hover { opacity: 0; transition: opacity 0.35s ease; }
+  .theinmag-submitted__ptile--membership:hover .theinmag-submitted__mimg--hover,
+  .theinmag-submitted__ptile--membership:focus-visible .theinmag-submitted__mimg--hover { opacity: 1; }
+
+  .theinmag-submitted__mheadline {
+    flex: 0 0 auto;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(21px, 2.6vw, 28px);
+    line-height: 1.08;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-submitted__mfeatures {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1vw, 10px);
+  }
+
+  .theinmag-submitted__mfeature {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(13px, 1.5vw, 15px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-submitted__mtick {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    color: var(--color-sage-dark, #4A7C5C);
+  }
+
+  .theinmag-submitted__mreviews {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(9px, 1.5vw, 13px);
+    margin-top: clamp(2px, 0.6vw, 6px);
+  }
+  .theinmag-submitted__mreview {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: clamp(10px, 1.6vw, 13px);
+    background-color: #fff;
+    border-radius: var(--radius-md, 12px);
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.07);
+  }
+  .theinmag-submitted__mstars {
+    color: var(--color-yellow, #F9C23C);
+    font-size: 13px;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .theinmag-submitted__mquote {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(12px, 1.4vw, 14px);
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-submitted__mauthor {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(11px, 1.3vw, 12px);
+    color: var(--color-text-muted, #6b6b6b);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-submitted__character-stage,
+    .theinmag-submitted__switch,
+    .theinmag-submitted__switch-icon,
+    .theinmag-submitted__ptile,
+    .theinmag-submitted__ptile-arrow,
+    .theinmag-submitted__gthumb--skeleton { transition: none; animation: none; }
+    .theinmag-submitted__character-stage.is-switching-out,
+    .theinmag-submitted__character-stage.is-switching-in { transform: none; animation: none; }
+  }
+{%- endstylesheet -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-theinmag-submitted]');
+    if (!root) return;
+
+    /* ---- character switch (from the 404) ---- */
+    var stage = root.querySelector('[data-theinmag-submitted-stage]');
+    var slot = root.querySelector('[data-theinmag-submitted-character]');
+    var btn = root.querySelector('[data-theinmag-submitted-switch]');
+    if (stage && slot && btn) {
+      var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var cacheKey = 'theinmagCharacterPool';
+      var validIndices = [];
+      var isSwapping = false;
+
+      btn.disabled = true;
+      waitForReady(function () {
+        validIndices = readCache() || [];
+        if (validIndices.length < 2) return;
+        btn.disabled = false;
+      });
+
+      btn.addEventListener('click', function () { if (!isSwapping && !btn.disabled) switchCharacter(); });
+
+      function switchCharacter() {
+        var img = slot.querySelector('img');
+        if (!img) return;
+        var nextIdx = pickDifferent(parseIndex(img.src));
+        if (nextIdx == null) return;
+        isSwapping = true; btn.disabled = true;
+        if (reduced) { replaceImg(nextIdx); finish(); return; }
+        stage.classList.add('is-switching-out');
+        onceTransitionEnd(stage, 'transform', function () {
+          replaceImg(nextIdx);
+          stage.classList.remove('is-switching-out');
+          void stage.offsetWidth;
+          stage.classList.add('is-switching-in');
+          onceAnimationEnd(stage, function () { stage.classList.remove('is-switching-in'); finish(); });
+        });
+      }
+      function finish() { isSwapping = false; btn.disabled = false; }
+      function replaceImg(n) { var img = slot.querySelector('img'); if (img) img.src = img.src.replace(/character-\d+\.png/, 'character-' + n + '.png'); }
+      function pickDifferent(cur) {
+        if (!validIndices.length) return null;
+        if (validIndices.length === 1) return validIndices[0] === cur ? null : validIndices[0];
+        var next, a = 0;
+        do { next = validIndices[Math.floor(Math.random() * validIndices.length)]; a++; } while (next === cur && a < 20);
+        return next === cur ? null : next;
+      }
+      function parseIndex(src) { var m = src.match(/character-(\d+)\.png/); return m ? parseInt(m[1], 10) : null; }
+      function readCache() {
+        try { var raw = sessionStorage.getItem(cacheKey); if (!raw) return null; var p = JSON.parse(raw); return (p && p.indices) ? p.indices.slice() : null; } catch (e) { return null; }
+      }
+      function waitForReady(cb) {
+        var a = 0;
+        (function tick() { if (slot.querySelector('img') && readCache()) { cb(); return; } if (++a >= 100) return; setTimeout(tick, 100); })();
+      }
+      function onceTransitionEnd(el, prop, cb) {
+        var h = function (e) { if (e.propertyName && e.propertyName !== prop) return; el.removeEventListener('transitionend', h); clearTimeout(f); cb(); };
+        el.addEventListener('transitionend', h);
+        var f = setTimeout(function () { el.removeEventListener('transitionend', h); cb(); }, 600);
+      }
+      function onceAnimationEnd(el, cb) {
+        var h = function () { el.removeEventListener('animationend', h); clearTimeout(f); cb(); };
+        el.addEventListener('animationend', h);
+        var f = setTimeout(function () { el.removeEventListener('animationend', h); cb(); }, 800);
+      }
+    }
+
+    /* ---- gallery tile: live submissions, mirroring the mobile gallery ---- */
+    var gtile = root.querySelector('[data-theinmag-submitted-gallery]');
+    var strip = root.querySelector('[data-theinmag-submitted-strip]');
+    if (gtile && strip) {
+      var count = parseInt(gtile.getAttribute('data-gallery-count'), 10) || 4;
+      var sources = [gtile.getAttribute('data-gallery-json'), gtile.getAttribute('data-gallery-json-fallback')].filter(Boolean);
+
+      function sized(url, w) { return url ? url + (url.indexOf('?') >= 0 ? '&' : '?') + 'width=' + w : ''; }
+      function titleCase(s) { return (s || '').replace(/\w\S*/g, function (t) { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); }); }
+      function attribution(c) {
+        var name = titleCase(c.first_name || '');
+        if (c.last_initial) name += ' ' + String(c.last_initial).toUpperCase() + '.';
+        var loc = titleCase(c.town || '');
+        if (c.state) loc += ' ' + String(c.state).toUpperCase();
+        var out = name;
+        if (loc) out += (out ? ' | ' : '') + loc;
+        if (c.age) out += ', age ' + c.age;
+        return out;
+      }
+
+      function tryNext(i) {
+        if (i >= sources.length) { strip.innerHTML = ''; return; }
+        fetch(sources[i], { credentials: 'omit' })
+          .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+          .then(function (data) {
+            var list = ((data && data.creations) || []).filter(function (c) { return !c.is_text_only && c.images && c.images.length; });
+            if (!list.length) throw 0;
+            list.sort(function (a, b) { return (b.submitted_at || '').localeCompare(a.submitted_at || ''); });
+            renderCards(list.slice(0, count));
+          })
+          .catch(function () { tryNext(i + 1); });
+      }
+
+      function renderCards(items) {
+        strip.innerHTML = '';
+        items.forEach(function (c) {
+          var card = document.createElement('span');
+          card.className = 'theinmag-submitted__gcard';
+          var imgWrap = document.createElement('span');
+          imgWrap.className = 'theinmag-submitted__gcard-img';
+          var img = document.createElement('img');
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          img.src = sized(c.images[0], 480);
+          img.alt = '';
+          imgWrap.appendChild(img);
+          var cap = document.createElement('span');
+          cap.className = 'theinmag-submitted__gcard-cap';
+          cap.textContent = attribution(c);
+          card.appendChild(imgWrap);
+          card.appendChild(cap);
+          if (c.write_up) {
+            var wu = document.createElement('span');
+            wu.className = 'theinmag-submitted__gcard-writeup';
+            wu.textContent = c.write_up;
+            card.appendChild(wu);
+          }
+          strip.appendChild(card);
+        });
+      }
+
+      tryNext(0);
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Send IN celebration",
+  "tag": "section",
+  "class": "theinmag-submitted-section",
+  "settings": [
+    { "type": "header", "content": "Celebration hero" },
+    {
+      "type": "text",
+      "id": "heading_lead",
+      "label": "Heading (the words before IN!)",
+      "info": "Renders as: [your text] IN!  - the IN is styled in the brand way.",
+      "default": "You sent it"
+    },
+    { "type": "text", "id": "sub_prefix", "label": "Message - before the mag number", "default": "Your creation is now in the running for" },
+    {
+      "type": "text",
+      "id": "considered_for_mag",
+      "label": "Mag it is considered for",
+      "info": "Submission window, not drop date. Flips 1 Aug / 1 Dec / 1 Apr. Kaiden owns pinging Webster; source of truth kaiden/cycle-state.json.",
+      "default": "Mag12"
+    },
+    { "type": "text", "id": "sub_suffix", "label": "Message - after the mag number", "default": "Fingers crossed! Our team can't wait to see it." },
+    { "type": "text", "id": "cta_label", "label": "Button label", "default": "Send IN more!" },
+    { "type": "text", "id": "cta_link", "label": "Button link", "default": "/pages/send-in" },
+    { "type": "header", "content": "Gallery tile (portrait, live submissions)" },
+    { "type": "text", "id": "gallery_name", "label": "Tile name (top bar)", "default": "Live gallery" },
+    { "type": "text", "id": "gallery_link", "label": "Link", "default": "/pages/gallery" },
+    { "type": "range", "id": "gallery_count", "label": "How many submissions", "min": 4, "max": 14, "step": 1, "default": 10 },
+    { "type": "text", "id": "gallery_feed_url", "label": "Gallery feed URL (advanced)", "default": "https://theinmag-gallery-review.heyhey-53f.workers.dev/gallery-data.json" },
+    { "type": "header", "content": "Competitions tile (portrait, live comps)" },
+    { "type": "text", "id": "comps_name", "label": "Tile name (top bar)", "default": "Competitions" },
+    { "type": "text", "id": "comps_link", "label": "Link", "default": "/pages/competitions" },
+    { "type": "range", "id": "comps_count", "label": "How many live comps", "min": 4, "max": 14, "step": 1, "default": 10 },
+    { "type": "header", "content": "Membership tile (right)" },
+    { "type": "text", "id": "membership_name", "label": "Tile name (top bar)", "default": "Membership" },
+    { "type": "text", "id": "membership_headline", "label": "Headline", "default": "Grab a membership from $28.90" },
+    { "type": "text", "id": "membership_link", "label": "Link", "default": "/products/membership" },
+    { "type": "image_picker", "id": "membership_image", "label": "Image" },
+    { "type": "text", "id": "membership_image_fallback", "label": "Fallback image filename (theme asset)", "default": "product-membership.jpg" },
+    { "type": "text", "id": "membership_image_alt", "label": "Image alt text", "default": "A theINmag membership, posted to your door" },
+    { "type": "image_picker", "id": "membership_hover", "label": "Hover image" },
+    { "type": "text", "id": "membership_hover_fallback", "label": "Fallback hover image filename (theme asset)", "default": "product-membership-hover.jpg" },
+    { "type": "text", "id": "membership_feature_1", "label": "Feature 1", "default": "Every issue posted to your door" },
+    { "type": "text", "id": "membership_feature_2", "label": "Feature 2", "default": "Made by kids, always ad-free" },
+    { "type": "text", "id": "membership_feature_3", "label": "Feature 3", "default": "Your creations could be published" },
+    { "type": "text", "id": "membership_feature_4", "label": "Feature 4", "default": "Pause or cancel anytime" },
+    { "type": "range", "id": "membership_review_count", "label": "How many reviews to show", "min": 0, "max": 4, "step": 1, "default": 2 }
+  ],
+  "presets": [
+    { "name": "Send IN celebration" }
+  ]
+}
+{% endschema %}

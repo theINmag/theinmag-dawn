@@ -1,0 +1,115 @@
+{% comment %}
+  theinmag-video-showcase.liquid - a kid's film as a field notes post.
+  Wired via templates/article.video-showcase.json. Sibling of
+  theinmag-storybook.liquid; per-post content comes from the article
+  metafield field_notes.video_showcase (JSON):
+
+  {
+    "kicker": "featured in Mag11",
+    "video": "video-daniel-stopmotion.mp4",     (theme asset, mp4)
+    "poster": "video-daniel-stopmotion-poster.jpg",
+    "byline_name": "Daniel G.",
+    "byline_meta": "age 8, Australia NSW",
+    "note_heading": "A note from Daniel",
+    "note": "\"Here's a stop motion film...\" Daniel",
+    "credit_1": "Film by Daniel G. | Australia NSW, age 8",
+    "credit_2": "Daniel submitted this to theINmag. ...",
+    "cta_label": "Send IN your creation",
+    "cta_url": "/pages/send-in",
+    "duration_iso": "PT44S"                     (for VideoObject schema)
+  }
+
+  Video is self-hosted (theme asset): kids land on OUR page, no ads, no
+  autoplay rabbit hole. Keep files ~under 20MB (720p H.264 + AAC).
+{% endcomment %}
+
+{%- assign vs = article.metafields.field_notes.video_showcase.value -%}
+
+{%- if vs -%}
+<div class="vsc">
+
+  <header class="vsc-hero">
+    <div class="vsc-hero-inner">
+      {%- if vs.kicker != blank -%}<p class="vsc-kicker">{{ vs.kicker }}</p>{%- endif -%}
+      <h1>{{ article.title }}</h1>
+      <p class="vsc-byline"><strong>By {{ vs.byline_name }}</strong> <span>{{ vs.byline_meta }}</span></p>
+      {%- if vs.description != blank -%}<p class="vsc-desc">{{ vs.description }}</p>{%- endif -%}
+
+      {%- if vs.note != blank -%}
+      <section class="vsc-note">
+        {%- if vs.note_heading != blank -%}<h2>{{ vs.note_heading }}</h2>{%- endif -%}
+        <p>{{ vs.note }}</p>
+      </section>
+      {%- endif -%}
+
+      <div class="vsc-player">
+        <video controls playsinline preload="metadata" poster="{{ vs.poster | asset_url }}">
+          <source src="{{ vs.video | asset_url }}" type="video/mp4">
+          Sorry, your browser can't play this video. You can <a href="{{ vs.video | asset_url }}">download it instead</a>.
+        </video>
+      </div>
+    </div>
+  </header>
+
+  <footer class="vsc-credit">
+    <div class="vsc-credit-inner">
+      {%- if vs.credit_1 != blank -%}<p><strong>{{ vs.credit_1 }}</strong></p>{%- endif -%}
+      {%- if vs.credit_2 != blank -%}<p>{{ vs.credit_2 }}</p>{%- endif -%}
+      {%- if vs.cta_url != blank -%}
+        <a class="vsc-cta" href="{{ vs.cta_url }}">{{ vs.cta_label | default: 'Send IN your creation' }}</a>
+      {%- endif -%}
+    </div>
+  </footer>
+
+</div>
+
+{% style %}
+  .vsc { background: #fdfbf7; color: #1d1d1b; font-family: Inter, system-ui, sans-serif; }
+  .vsc-hero { background: #fff; border-bottom: 1px solid #eee7da; }
+  .vsc-hero-inner { max-width: 1020px; margin: 0 auto; padding: 40px 24px 56px; text-align: center; }
+  .vsc-kicker { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #6b6b66; margin: 0 0 28px; }
+  .vsc-hero h1 { font-family: 'Post Regular', Inter, sans-serif; font-size: clamp(28px, 5vw, 56px); font-weight: 400; margin: 0; }
+  .vsc-byline { margin: 10px 0 30px; font-size: clamp(13px, 1.8vw, 18px); }
+  .vsc-byline span { color: #6b6b66; }
+  .vsc-desc { max-width: 560px; margin: -14px auto 30px; font-size: 17px; line-height: 1.6; color: #1d1d1b; }
+  .vsc-player video { width: 100%; display: block; border-radius: 14px; background: #000; }
+  .vsc-note { max-width: 640px; margin: 0 auto; padding: 0 24px 34px; text-align: left; }
+  .vsc-note h2 { font-size: 15px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6b6b66; margin: 0 0 14px; }
+  .vsc-note p { font-size: 17px; line-height: 1.65; margin: 0 0 1.1em; }
+  .vsc-credit { background: #fdfbf7; }
+  .vsc-credit-inner { max-width: 640px; margin: 0 auto; padding: 40px 24px 64px; text-align: center; }
+  .vsc-credit-inner p { font-size: 15px; line-height: 1.6; color: #6b6b66; margin: 0 0 8px; }
+  .vsc-credit-inner p strong { color: #1d1d1b; }
+  .vsc-cta { display: inline-block; background: #ffd234; color: #1d1d1b; font-weight: 600; font-size: 15px; padding: 12px 22px; border-radius: 999px; text-decoration: none; margin-top: 14px; }
+{% endstyle %}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": {{ article.title | json }},
+  "description": {{ article.metafields.field_notes.quick_answer | default: article.excerpt_or_content | strip_html | truncate: 300 | json }},
+  "thumbnailUrl": {{ vs.poster | asset_url | prepend: 'https:' | json }},
+  "contentUrl": {{ vs.video | asset_url | prepend: 'https:' | json }},
+  "uploadDate": {{ article.published_at | default: article.created_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+  {%- if vs.duration_iso != blank -%}"duration": {{ vs.duration_iso | json }},{%- endif -%}
+  "creator": { "@type": "Person", "name": {{ vs.byline_name | json }} },
+  "publisher": { "@type": "Organization", "name": "theINmag", "url": {{ shop.url | json }} }
+}
+</script>
+
+{%- else -%}
+  <div style="max-width:640px;margin:60px auto;padding:0 24px;font-family:Inter,sans-serif;">
+    <h1>{{ article.title }}</h1>
+    {{ article.content }}
+    <p style="color:#6b6b66;font-size:14px;">(Video showcase layout needs the field_notes.video_showcase metafield.)</p>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "theINmag video showcase",
+  "settings": [],
+  "presets": []
+}
+{% endschema %}
