@@ -499,3 +499,79 @@ main#MainContent > .shopify-section:first-of-type > .theinmag-hero,
     font-weight: 500;
     color: rgba(42, 31, 61, 0.7);
 }
+/* ---------- Flip callout (snippets/theinmag-flip-callout.liquid) ----------
+   "We printed it upside down on purpose" card, for issues where the PRINT
+   edition does something a buyer could mistake for a manufacturing fault.
+   Built for Mag09 (printed pages 62 to 67 run upside down deliberately).
+
+   Lives here, not in a section, because it renders on two surfaces: the
+   single-mag PDP buy widget (theinmag-single-mags-hero) and the membership
+   start picker (theinmag-start-picker). Each surface owns only its own
+   placement and gating; the card itself is defined once, here.
+
+   Switched on per issue by the single_mag.flip_note metafield, so a normal
+   issue renders nothing at all. */
+.theinmag-flip-callout {
+    position: relative;
+    margin: var(--space-md) 0 0;
+    padding: var(--space-md) var(--space-md) calc(var(--space-md) - 2px);
+    background: var(--color-mint);
+    border-radius: var(--radius-md);
+}
+
+/* The rotate-arrow sits top right, mirroring the turn the reader makes. */
+.theinmag-flip-callout__stamp {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    color: var(--color-sage-dark);
+    opacity: 0.55;
+}
+
+/* Rotated 180deg on purpose, so the card demonstrates the joke rather than
+   describing it. Presentation only: DOM order is untouched, so screen
+   readers and crawlers get it the right way round. Hover un-rotates it as a
+   desktop flourish. */
+.theinmag-flip-callout__heading {
+    margin: 0 0 6px;
+    font-family: var(--font-heading);
+    font-size: 19px;
+    line-height: 1.15;
+    /* NOT sage-dark. Measured 2026-09-07: #4A7C5C on mint #D6EAD9 is
+       3.84:1, which fails WCAG AA (4.5:1) for text under 24px. Body copy in
+       this card already uses inky-purple-navy, the universal text colour,
+       which comes in at 12.21:1. The heading stays distinct by font, size
+       and rotation without needing colour to carry it. */
+    color: var(--color-inky-purple-navy);
+    transform: rotate(180deg);
+    transform-origin: center;
+    display: inline-block;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.theinmag-flip-callout:hover .theinmag-flip-callout__heading {
+    transform: rotate(0deg);
+}
+
+.theinmag-flip-callout__body {
+    font-family: var(--font-body);
+    /* 14px: a secondary note sitting just above a CTA on both surfaces, so
+       it should read as an aside rather than compete with the buying copy,
+       and every pixel saved here lifts the button. */
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--color-inky-purple-navy);
+}
+.theinmag-flip-callout__body p { margin: 0 0 var(--space-sm); }
+.theinmag-flip-callout__body p:last-child { margin-bottom: 0; }
+
+.theinmag-flip-callout__figure { margin: var(--space-md) 0 0; }
+.theinmag-flip-callout__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .theinmag-flip-callout__heading { transition: none; }
+}

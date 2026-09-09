@@ -18,10 +18,13 @@
   evergreen YES/NO landings reached only via a private Klaviyo link, not
   meant to be discoverable. noindex,follow so any links still pass through.
 {%- endcomment -%}
-{%- assign noindex_handles = 'address-confirmed,update-address' | split: ',' -%}
+{%- assign noindex_handles = 'address-confirmed,update-address,submitted' | split: ',' -%}
 {%- if request.page_type == 'page' and noindex_handles contains page.handle -%}
   <meta name="robots" content="noindex,follow">
 {%- endif -%}
+
+{%- comment -%} theINmag - Meta (Facebook) Business domain verification for theinmag.com.au. Static, server-rendered in <head> (Meta rejects JS-injected tags). Added 2026-08-31. {%- endcomment -%}
+<meta name="facebook-domain-verification" content="v7l3wm2et7n9ga53u5wxbqrks2snfe">
 
 <meta property="og:site_name" content="{{ shop.name }}">
 <meta property="og:url" content="{{ og_url }}">

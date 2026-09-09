@@ -1,0 +1,543 @@
+{%- comment -%}
+  theinmag-workshop-booking
+  Hidden page: the Caloundra creative workshops. Image-led hero in the
+  lavender world (Post headings, character pool peeking, section-bg
+  texture), then a booking form that talks to the theinmag-workshop-booking
+  Cloudflare Worker. The Worker owns the hard 25-per-session cap; this page
+  reads live spots and posts bookings. Consent copy is hardcoded here so it
+  is version-controlled and matches the Worker's CONSENT_VERSION.
+
+  Assets: hero image is an image_picker (default HERO_kid-creation-art.jpg).
+  JS: assets/theinmag-workshop-booking.js.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading | default: 'Come and create with us'
+  assign eyebrow = section.settings.eyebrow | default: 'Free kids workshops'
+  assign subhead = section.settings.subhead
+  assign worker_url = section.settings.worker_url | default: 'https://theinmag-workshop-booking.heyhey-53f.workers.dev'
+
+  assign hero_image = section.settings.hero_image
+-%}
+
+{% render 'theinmag-character-pool' %}
+
+<section
+  class="theinmag-wsb"
+  data-wsb-root
+  data-worker-url="{{ worker_url }}"
+  aria-labelledby="theinmag-wsb-heading"
+>
+  {% render 'theinmag-section-bg', opacity: 0.20 %}
+
+  <div class="theinmag-wsb__inner">
+
+    {%- comment -%} ---- Image-led hero ---- {%- endcomment -%}
+    <div class="theinmag-wsb__hero">
+      <div class="theinmag-wsb__media">
+        {%- if hero_image != blank -%}
+          <img
+            class="theinmag-wsb__photo"
+            src="{{ hero_image | image_url: width: 760 }}"
+            srcset="{{ hero_image | image_url: width: 380 }} 380w, {{ hero_image | image_url: width: 760 }} 760w"
+            sizes="(min-width: 750px) 42vw, 90vw"
+            alt="{{ hero_image.alt | default: 'Aussie kids making creations at a theINmag workshop' | escape }}"
+            width="760"
+            height="600"
+            loading="eager"
+            fetchpriority="high"
+          >
+        {%- else -%}
+          <img
+            class="theinmag-wsb__photo"
+            src="{{ 'HERO_audiences-kids.jpg' | asset_url }}"
+            alt="A young child giving a thumbs up over their colourful creation at a theINmag workshop"
+            width="760"
+            height="600"
+            loading="eager"
+            fetchpriority="high"
+          >
+        {%- endif -%}
+        <span class="theinmag-wsb__sticker" aria-hidden="true">It's free</span>
+        <span class="theinmag-wsb__character" data-theinmag-pool-character aria-hidden="true"></span>
+      </div>
+
+      <div class="theinmag-wsb__hero-copy">
+        {%- if eyebrow != blank -%}<span class="theinmag-wsb__eyebrow">{{ eyebrow }}</span>{%- endif -%}
+        <h1 id="theinmag-wsb-heading" class="theinmag-wsb__heading">{{ heading }}</h1>
+        {%- if subhead != blank -%}<p class="theinmag-wsb__sub">{{ subhead }}</p>{%- endif -%}
+
+        <ul class="theinmag-wsb__facts">
+          <li><span>Sat 19 Sep</span></li>
+          <li><span>Caloundra Library</span></li>
+          <li><span>9:00am &amp; 10:15am</span></li>
+          <li><span>Ages 5 to 13</span></li>
+        </ul>
+
+        <a class="theinmag-btn theinmag-btn--primary theinmag-wsb__hero-cta" href="#theinmag-wsb-book">Scroll down to book &darr;</a>
+      </div>
+    </div>
+
+    {%- comment -%} ---- Good to know: three tiny items ---- {%- endcomment -%}
+    <ul class="theinmag-wsb__know">
+      <li><b>Stay and play.</b> Not a drop-off. Stay and join in.</li>
+      <li><b>Coffee downstairs.</b> A cafe on the ground floor.</li>
+      <li><b>A mag to take home.</b> One for every family.</li>
+    </ul>
+
+    {%- comment -%} ---- Booking form ---- {%- endcomment -%}
+    <div class="theinmag-wsb__card" id="theinmag-wsb-book">
+      <form class="theinmag-wsb__form" data-wsb-form novalidate>
+        <h2 class="theinmag-wsb__card-heading">Book your spot</h2>
+        <p class="theinmag-wsb__card-hint">25 spots per session. We count each child, so a family of three takes three spots.</p>
+
+        <fieldset class="theinmag-wsb__fieldset">
+          <legend class="theinmag-wsb__label">Choose a session</legend>
+          <div class="theinmag-wsb__sessions" data-wsb-sessions>
+            <p class="theinmag-wsb__loading" data-wsb-loading>Checking spots...</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="theinmag-wsb__fieldset">
+          <legend class="theinmag-wsb__label">Who is coming?</legend>
+          <div data-wsb-children></div>
+          <button type="button" class="theinmag-wsb__add" data-wsb-add>
+            <span class="theinmag-wsb__plus" aria-hidden="true">+</span> Add another child
+          </button>
+        </fieldset>
+
+        <fieldset class="theinmag-wsb__fieldset">
+          <legend class="theinmag-wsb__label">Your details</legend>
+          <input class="theinmag-wsb__in" type="text" data-wsb-pname placeholder="Your name" autocomplete="name">
+          <div class="theinmag-wsb__two">
+            <input class="theinmag-wsb__in" type="email" data-wsb-pemail placeholder="Your email" autocomplete="email">
+            <input class="theinmag-wsb__in" type="tel" data-wsb-pphone placeholder="Your phone" autocomplete="tel">
+          </div>
+        </fieldset>
+
+        <fieldset class="theinmag-wsb__fieldset">
+          <p class="theinmag-wsb__consent-head">Please read before you book</p>
+          <div class="theinmag-wsb__consent" data-wsb-consent tabindex="0" aria-label="Workshop consent, scroll to the end to agree">
+            <p class="theinmag-wsb__promise">You might know that we never show kids' faces. Not on our website, not on our socials, not in the magazine. That is a promise we mean. This day is our one exception, and only because you have said yes to it right here.</p>
+            <p>By booking, you confirm you are the parent or legal guardian of each child you book, and you agree that:</p>
+            <ul>
+              <li>your child can take part in the workshop;</li>
+              <li>a videographer and photographer from Tide Productions will be there for the whole session, filming and taking photos;</li>
+              <li>theINmag can use any footage and photos that show your child, whether they are front and centre, in the background, or just passing through the shot, along with anything they make on the day;</li>
+              <li>theINmag can use them on our website, our social media and our paid advertising, including ads on Instagram, Facebook and Google;</li>
+              <li>Tide Productions can use some of the footage and photos on their own website and social media;</li>
+              <li>this is without payment, has no end date, and applies anywhere in the world.</li>
+            </ul>
+            <p>This also covers you, and anyone you bring along, if you end up in shot. We do not put names on general footage. If your child is filmed up close we will ask you to sign a short slip on the day, and even then we only ever use a first name. If your child would rather not be filmed, just tell us on the day and we will keep them out of the close-up shots.</p>
+            <p>Once you give this consent it stays in place, because the footage may already be out in the world, on our channels or Tide Productions', where it cannot always be pulled back. So please only tick the box if you are truly comfortable. That is the honest version, and we would rather be honest.</p>
+          </div>
+          <p class="theinmag-wsb__scroll-hint" data-wsb-scrollhint>Scroll to the end of the consent to continue</p>
+
+          <div class="theinmag-wsb__tick" data-wsb-tick>
+            <input type="checkbox" data-wsb-consent-box id="theinmag-wsb-consent-box">
+            <label for="theinmag-wsb-consent-box">I am this child's parent or legal guardian, and I agree to the consent above, including theINmag using photos and video of my child, without payment and with no end date, on our website, social media and paid advertising, and Tide Productions using some of it on their own channels.</label>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="theinmag-btn theinmag-btn--primary theinmag-wsb__submit" data-wsb-submit disabled>Book my spot</button>
+        <p class="theinmag-wsb__error" data-wsb-error hidden></p>
+        <p class="theinmag-wsb__privacy">We use your details to hold the spot, send you the details for the day, and reach you if anything changes. We never sell them or hand them on. Questions? Email <a href="mailto:heyhey@theinmag.com.au">heyhey@theinmag.com.au</a></p>
+      </form>
+
+      <div class="theinmag-wsb__success" data-wsb-success hidden aria-live="polite">
+        <span class="theinmag-wsb__success-badge" aria-hidden="true"></span>
+        <h2 class="theinmag-wsb__success-heading">You are booked in</h2>
+        <p class="theinmag-wsb__success-body">We have held your spot. Keep an eye on your inbox for the details for the day. See you on the 19th.</p>
+        <div class="theinmag-wsb__recap" data-wsb-recap></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script src="{{ 'theinmag-workshop-booking.js' | asset_url }}" defer></script>
+
+{%- stylesheet -%}
+  /* =================================================================
+     theinmag-workshop-booking
+     Lavender world, image-led hero, booking form card.
+     ================================================================= */
+  .theinmag-wsb {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-lavender, #E8DEEF);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 32px) clamp(56px, 7vw, 104px);
+  }
+  .theinmag-wsb__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+
+  /* ---- Hero ---- */
+  .theinmag-wsb__hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 4vw, 48px);
+    align-items: center;
+  }
+  @media (min-width: 750px) {
+    .theinmag-wsb__hero { grid-template-columns: minmax(0, 46%) 1fr; }
+  }
+
+  .theinmag-wsb__media {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .theinmag-wsb__photo {
+    width: 100%;
+    max-width: 460px;
+    height: auto;
+    aspect-ratio: 5 / 4;
+    object-fit: cover;
+    border-radius: 14px;
+    transform: rotate(-2.5deg);
+    box-shadow: 0 20px 48px rgba(42, 31, 61, 0.20), 0 6px 14px rgba(42, 31, 61, 0.12);
+    background: #fff;
+  }
+  /* Yellow hand-stamp sticker, Post font. Yellow is a stamp colour only. */
+  .theinmag-wsb__sticker {
+    position: absolute;
+    top: -14px;
+    left: -6px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: clamp(15px, 2vw, 20px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    background: var(--color-sunny-yellow, #F9C23C);
+    padding: 8px 16px;
+    border-radius: 999px;
+    transform: rotate(-8deg);
+    box-shadow: 0 6px 14px rgba(42, 31, 61, 0.18);
+  }
+  .theinmag-wsb__character {
+    position: absolute;
+    right: -4px;
+    bottom: -18px;
+    width: clamp(72px, 10vw, 118px);
+    height: auto;
+    display: block;
+    pointer-events: none;
+  }
+  @media (max-width: 749px) {
+    .theinmag-wsb__character { display: none; }
+  }
+
+  .theinmag-wsb__hero-copy { text-align: center; }
+  @media (min-width: 750px) { .theinmag-wsb__hero-copy { text-align: left; } }
+
+  .theinmag-wsb__eyebrow {
+    display: inline-block;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-weight: 600;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--color-purple-dark, #5D3A7A);
+    background: rgba(93, 58, 122, 0.10);
+    padding: 6px 13px;
+    border-radius: 999px;
+  }
+  .theinmag-wsb__heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(36px, 6.4vw, 60px);
+    line-height: 1.02;
+    margin: 16px 0 12px;
+    color: var(--color-purple-dark, #5D3A7A);
+    text-wrap: balance;
+  }
+  .theinmag-wsb__sub {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-weight: 500;
+    font-size: clamp(16px, 1.7vw, 19px);
+    line-height: 1.45;
+    margin: 0 0 20px;
+    max-width: 42ch;
+  }
+  @media (max-width: 749px) { .theinmag-wsb__sub { margin-inline: auto; } }
+
+  .theinmag-wsb__facts {
+    list-style: none;
+    margin: 0 0 24px;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  @media (min-width: 750px) { .theinmag-wsb__facts { justify-content: flex-start; } }
+  .theinmag-wsb__facts li {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    background: #fff;
+    border: 1px solid rgba(93, 58, 122, 0.16);
+    padding: 7px 13px;
+    border-radius: 999px;
+  }
+  .theinmag-wsb__hero-cta { display: inline-block; }
+
+  /* ---- Good to know ---- */
+  .theinmag-wsb__know {
+    list-style: none;
+    margin: clamp(32px, 5vw, 56px) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  @media (min-width: 620px) { .theinmag-wsb__know { grid-template-columns: repeat(3, 1fr); } }
+  .theinmag-wsb__know li {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(93, 58, 122, 0.14);
+    border-radius: 12px;
+    padding: 13px 15px;
+  }
+  .theinmag-wsb__know b {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    color: var(--color-purple-dark, #5D3A7A);
+  }
+
+  /* ---- Booking card ---- */
+  .theinmag-wsb__card {
+    background: #fff;
+    border: 1px solid rgba(93, 58, 122, 0.14);
+    border-radius: 22px;
+    box-shadow: 0 20px 48px rgba(42, 31, 61, 0.10);
+    padding: clamp(22px, 4vw, 38px);
+    margin-top: clamp(28px, 4vw, 44px);
+    max-width: 620px;
+    margin-inline: auto;
+    scroll-margin-top: 24px;
+  }
+  .theinmag-wsb__card-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(26px, 3.6vw, 34px);
+    color: var(--color-purple-dark, #5D3A7A);
+    margin: 0 0 4px;
+  }
+  .theinmag-wsb__card-hint {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 13.5px;
+    color: var(--color-slate-muted, #6B5B7E);
+    margin: 0 0 24px;
+  }
+
+  .theinmag-wsb__fieldset { border: 0; padding: 0; margin: 0 0 22px; }
+  .theinmag-wsb__label {
+    display: block;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0 0 10px;
+    padding: 0;
+  }
+
+  /* Sessions */
+  .theinmag-wsb__sessions { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 480px) { .theinmag-wsb__sessions { grid-template-columns: 1fr 1fr; } }
+  .theinmag-wsb__loading { grid-column: 1 / -1; margin: 0; font-size: 14px; color: var(--color-slate-muted, #6B5B7E); }
+  .theinmag-wsb__session {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    border: 1.5px solid rgba(93, 58, 122, 0.18);
+    border-radius: 14px;
+    padding: 15px 16px;
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .theinmag-wsb__session:hover { border-color: rgba(93, 58, 122, 0.45); }
+  .theinmag-wsb__session input { position: absolute; opacity: 0; pointer-events: none; }
+  .theinmag-wsb__session-time {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: 20px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-wsb__session-left { display: block; font-size: 13px; margin-top: 3px; font-weight: 600; color: #2E7D5B; }
+  .theinmag-wsb__session-left.is-low { color: var(--color-coral-warm, #E9836F); }
+  .theinmag-wsb__session-left.is-full { color: var(--color-slate-muted, #6B5B7E); }
+  .theinmag-wsb__session.is-selected {
+    border-color: var(--color-purple-dark, #5D3A7A);
+    background: var(--color-lavender-soft, #F3EEF8);
+    box-shadow: 0 0 0 3px rgba(93, 58, 122, 0.14);
+  }
+  .theinmag-wsb__session.is-full { opacity: 0.55; cursor: not-allowed; }
+
+  /* Inputs */
+  .theinmag-wsb__in {
+    width: 100%;
+    padding: 12px 14px;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 16px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    background: #fff;
+    border: 1.5px solid rgba(93, 58, 122, 0.20);
+    border-radius: 11px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .theinmag-wsb__in + .theinmag-wsb__in,
+  .theinmag-wsb__in + .theinmag-wsb__two { margin-top: 12px; }
+  .theinmag-wsb__in:focus {
+    outline: none;
+    border-color: var(--color-purple-dark, #5D3A7A);
+    box-shadow: 0 0 0 3px rgba(93, 58, 122, 0.15);
+  }
+  .theinmag-wsb__in[aria-invalid="true"] { border-color: #B33A3A; }
+  .theinmag-wsb__two { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 480px) { .theinmag-wsb__two { grid-template-columns: 1fr 1fr; } }
+
+  .theinmag-wsb__child-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .theinmag-wsb__child-row .theinmag-wsb__in { flex: 1; margin-top: 0; }
+  .theinmag-wsb__child-remove {
+    flex: none;
+    width: 44px; height: 44px;
+    border-radius: 11px;
+    border: 1.5px solid rgba(93, 58, 122, 0.20);
+    background: #fff;
+    color: var(--color-slate-muted, #6B5B7E);
+    font-size: 22px; line-height: 1;
+    cursor: pointer;
+  }
+  .theinmag-wsb__child-remove:hover { border-color: var(--color-coral-warm, #E9836F); color: var(--color-coral-warm, #E9836F); }
+  .theinmag-wsb__add {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 2px;
+    background: none; border: 0;
+    color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-weight: 600; font-size: 14px; cursor: pointer;
+    padding: 6px 0;
+  }
+  .theinmag-wsb__plus {
+    display: grid; place-items: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--color-lavender, #E8DEEF);
+    color: var(--color-purple-dark, #5D3A7A);
+    font-size: 17px; line-height: 1;
+  }
+  .theinmag-wsb__add:hover { text-decoration: underline; }
+
+  /* Consent */
+  .theinmag-wsb__consent-head {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-weight: 600; font-size: 14px; margin: 0 0 8px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-wsb__consent {
+    max-height: 210px;
+    overflow-y: auto;
+    border: 1.5px solid rgba(93, 58, 122, 0.20);
+    border-radius: 12px;
+    padding: 16px 18px;
+    background: var(--color-lavender-soft, #F3EEF8);
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 13.5px; line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    scroll-behavior: smooth;
+  }
+  .theinmag-wsb__consent p { margin: 0 0 11px; }
+  .theinmag-wsb__consent ul { margin: 0 0 11px; padding-left: 18px; }
+  .theinmag-wsb__consent li { margin-bottom: 5px; }
+  .theinmag-wsb__promise {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: 15px; color: var(--color-purple-dark, #5D3A7A);
+  }
+  .theinmag-wsb__scroll-hint {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 12.5px; font-weight: 600;
+    color: var(--color-purple-dark, #5D3A7A);
+    margin: 8px 0 0;
+  }
+  .theinmag-wsb__scroll-hint.is-done { color: #2E7D5B; }
+  .theinmag-wsb__tick {
+    display: flex; gap: 11px; align-items: flex-start;
+    margin-top: 14px; padding: 14px;
+    border-radius: 12px; background: var(--color-lavender-soft, #F3EEF8);
+    opacity: 0.5; pointer-events: none; transition: opacity 0.2s;
+  }
+  .theinmag-wsb__tick.is-unlocked { opacity: 1; pointer-events: auto; }
+  .theinmag-wsb__tick input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--color-purple-dark, #5D3A7A); flex: none; }
+  .theinmag-wsb__tick label { font-family: var(--font-body, 'Inter', sans-serif); font-size: 13.5px; color: var(--color-inky-purple-navy, #2A1F3D); }
+
+  /* Submit + states */
+  .theinmag-wsb__submit { width: 100%; margin-top: 6px; }
+  .theinmag-wsb__submit:disabled { opacity: 0.45; cursor: not-allowed; }
+  .theinmag-wsb__error { color: #B33A3A; font-family: var(--font-body, 'Inter', sans-serif); font-size: 13.5px; margin: 12px 0 0; font-weight: 500; }
+  .theinmag-wsb__privacy {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 12.5px; color: var(--color-slate-muted, #6B5B7E);
+    margin: 16px 0 0; line-height: 1.5;
+  }
+  .theinmag-wsb__privacy a { color: var(--color-purple-dark, #5D3A7A); }
+
+  .theinmag-wsb__success { text-align: center; padding: 14px 4px; }
+  .theinmag-wsb__success-badge {
+    display: grid; place-items: center;
+    width: 62px; height: 62px; border-radius: 50%;
+    background: var(--color-sunny-yellow, #F9C23C);
+    margin: 0 auto 16px;
+    box-shadow: 0 8px 20px rgba(249, 194, 60, 0.35);
+  }
+  .theinmag-wsb__success-badge::after {
+    content: ""; width: 20px; height: 11px;
+    border-left: 3px solid var(--color-inky-purple-navy, #2A1F3D);
+    border-bottom: 3px solid var(--color-inky-purple-navy, #2A1F3D);
+    transform: rotate(-45deg) translateY(-3px);
+  }
+  .theinmag-wsb__success-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400; font-size: clamp(26px, 4vw, 34px);
+    color: var(--color-purple-dark, #5D3A7A); margin: 0 0 8px;
+  }
+  .theinmag-wsb__success-body { font-family: var(--font-body, 'Inter', sans-serif); color: var(--color-inky-purple-navy, #2A1F3D); margin: 0 auto; max-width: 40ch; }
+  .theinmag-wsb__recap {
+    margin-top: 18px; display: inline-block;
+    font-family: var(--font-body, 'Inter', sans-serif); font-size: 14px;
+    color: var(--color-slate-muted, #6B5B7E);
+    background: var(--color-lavender-soft, #F3EEF8);
+    border-radius: 12px; padding: 14px 18px;
+  }
+  .theinmag-wsb__recap b { color: var(--color-inky-purple-navy, #2A1F3D); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-wsb__photo { transform: none; }
+    .theinmag-wsb__consent { scroll-behavior: auto; }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag Workshop booking",
+  "tag": "section",
+  "class": "theinmag-workshop-booking-section",
+  "settings": [
+    { "type": "header", "content": "Hero" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Free kids workshops" },
+    { "type": "text", "id": "heading", "label": "Headline", "default": "Come and create with us" },
+    { "type": "textarea", "id": "subhead", "label": "Subhead", "default": "Two free creative workshops for Aussie kids. Bring an idea, or find one when you get there." },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero image", "info": "Lead with a real photo or kid creation. Defaults to HERO_kid-creation-art.jpg." },
+    { "type": "header", "content": "Booking engine" },
+    { "type": "text", "id": "worker_url", "label": "Worker URL", "default": "https://theinmag-workshop-booking.heyhey-53f.workers.dev", "info": "The theinmag-workshop-booking Cloudflare Worker base URL." }
+  ],
+  "presets": [
+    { "name": "theINmag Workshop booking" }
+  ]
+}
+{% endschema %}

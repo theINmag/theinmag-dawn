@@ -1,0 +1,107 @@
+{%- comment -%}
+  ------------------------------------------------------------------
+  theinmag-flip-callout
+  ------------------------------------------------------------------
+  A "we did that on purpose" card for issues where the PRINT edition
+  does something a buyer could mistake for a manufacturing fault.
+
+  Built for Mag09, where printed pages 62 to 67 (the jokes, puzzles
+  and riddles section, three double page spreads) are printed upside
+  down deliberately so kids turn the magazine around. Customers were
+  reporting it as a printing error, so we say it before they buy.
+
+  The card is print-only by nature: the digital edition of Mag09 was
+  corrected and reads the right way up. Do not reword this into
+  something that implies the PDF is flipped too.
+
+  WHY THE HEADING IS UPSIDE DOWN
+  The heading is rotated 180deg in CSS so the card demonstrates the
+  joke instead of describing it. The rotation is presentation only:
+  DOM order is untouched, so screen readers and crawlers read it
+  normally. Hovering un-rotates it as a desktop flourish; under
+  prefers-reduced-motion the TRANSITION is removed but the flip still
+  happens, which is correct (the rotation is the content, not an
+  animation).
+
+  There is deliberately NO tabindex here. An earlier version put
+  tabindex="0" on the aside so keyboard users could un-rotate three
+  words, which bought almost nothing and inserted a tab stop between
+  the Format radiogroup and Add to cart. It also did not help the
+  mobile majority, since :focus-visible does not match touch focus.
+  The body copy underneath states the whole message the right way up,
+  so the rotated heading is emphasis, not information.
+
+  Keep the heading to three or four words. A rotated paragraph is a
+  gag that stops being funny at line two.
+
+  USAGE
+    {% render 'theinmag-flip-callout', issue: issue %}
+
+  Renders nothing unless the issue carries single_mag.flip_note, so
+  it is safe to call for every issue in the picker loop.
+
+  METAFIELDS (namespace: single_mag)
+    flip_note     rich_text_field         REQUIRED, gates the card
+    flip_heading  single_line_text_field  optional, defaults below
+    flip_image    file_reference          optional photo of the real
+                                          printed spread
+
+  Spec: theinmag-docs/theinmag-design-system.md section 6 (callout
+  archetype). Colour is the mint pair, chosen because it echoes the
+  green ground of the actual printed section and because this is a
+  kid-facing gag, not a warning. It is a light ground on a card
+  surface, so it does not trip the adjacent-saturation rule.
+{%- endcomment -%}
+
+{%- liquid
+  assign flip_note = issue.metafields.single_mag.flip_note
+  assign flip_heading = issue.metafields.single_mag.flip_heading | default: 'upside down on purpose'
+  assign flip_image = issue.metafields.single_mag.flip_image.value
+-%}
+
+{%- if flip_note != blank -%}
+  <aside
+    class="theinmag-flip-callout"
+    data-flip-callout
+    role="note"
+    aria-label="A note about how this issue is printed"
+  >
+    <div class="theinmag-flip-callout__stamp" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+        <path d="M3 12a9 9 0 1 0 3-6.7"/>
+        <polyline points="3 4 3 9 8 9"/>
+      </svg>
+    </div>
+
+    <p class="theinmag-flip-callout__heading">{{ flip_heading }}</p>
+
+    <div class="theinmag-flip-callout__body">
+      {{ flip_note | metafield_tag }}
+    </div>
+
+    {%- if flip_image != blank -%}
+      {%- liquid
+        assign flip_img_src = flip_image
+        if flip_image.preview_image
+          assign flip_img_src = flip_image.preview_image
+        endif
+        # Alt text follows the issue, not a hardcoded Mag09, because this
+        # snippet is meant to be reused on any issue that pulls a stunt.
+        assign flip_issue_name = issue.title | split: ' - ' | last | default: 'this issue'
+        assign flip_img_alt = 'A copy of ' | append: flip_issue_name | append: ' open at the pages that are printed upside down on purpose'
+      -%}
+      <figure class="theinmag-flip-callout__figure">
+        {{
+          flip_img_src
+          | image_url: width: 900
+          | image_tag:
+            loading: 'lazy',
+            widths: '300, 450, 600, 900',
+            sizes: '(min-width: 750px) 380px, 90vw',
+            alt: flip_img_alt,
+            class: 'theinmag-flip-callout__img'
+        }}
+      </figure>
+    {%- endif -%}
+  </aside>
+{%- endif -%}

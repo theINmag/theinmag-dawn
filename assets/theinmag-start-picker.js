@@ -224,6 +224,22 @@
     }
   }
 
+  /* Show the "printed upside down on purpose" card for the picked issue, if
+     that issue has one. Wrappers are rendered by the Liquid snippet, one per
+     selectable issue, and self-gate on the single_mag.flip_note metafield, so
+     an issue with no stunt has an empty wrapper and nothing appears. A
+     membership buyer never sees the single-mag PDP, so without this they
+     would meet the upside-down pages for the first time in the letterbox. */
+  var flipWraps = Array.prototype.slice.call(dialog.querySelectorAll('[data-flip-for]'));
+  function renderFlipNote() {
+    var lbl = label(picked);
+    flipWraps.forEach(function (w) {
+      var mine = w.getAttribute('data-flip-for') === lbl;
+      // Hide empty wrappers too, so a matched issue with no note adds no gap.
+      w.hidden = !mine || !w.querySelector('.theinmag-flip-callout');
+    });
+  }
+
   function select(n, focus) {
     var t = tileFor(n);
     if (!t || t.hidden || t.getAttribute('aria-disabled') === 'true') return;
@@ -231,6 +247,7 @@
     tiles.forEach(function (tile) { tile.setAttribute('aria-pressed', tile === t ? 'true' : 'false'); });
     if (focus) t.focus();
     renderPlan();
+    renderFlipNote();
   }
 
   function defaultPick() {

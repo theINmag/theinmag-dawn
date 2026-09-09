@@ -363,3 +363,13 @@
   .theinmag-start-picker__tile[aria-pressed='true'] { transform: none; }
   .theinmag-start-picker__confirm:hover { translate: 0 0; box-shadow: var(--shadow-button-yellow); }
 }
+
+/* Flip note. The card itself is styled in theinmag-base.css (shared with the
+   single-mag PDP); this only spaces it inside the dialog, between the
+   "what you'll get" plan and the Add to cart button. */
+.theinmag-start-picker__flip {
+    margin: var(--space-md) 0 0;
+}
+.theinmag-start-picker__flip .theinmag-flip-callout {
+    margin-top: 0;
+}

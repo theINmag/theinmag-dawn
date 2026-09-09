@@ -167,6 +167,25 @@
       <p class="theinmag-start-picker__plan-note" data-plan-note></p>
     </div>
 
+    {%- comment -%}
+      FLIP NOTE. Added 2026-09-07. A membership buyer never visits the
+      single-mag PDP, so the "printed upside down on purpose" card that
+      lives there never reaches them. With Mag10 print nearly gone, new
+      memberships are about to start landing on Mag09, so this is the
+      surface where they choose it and the moment to tell them.
+
+      One wrapper per selectable issue, hidden until the JS matches it to
+      the picked tile. The snippet self-gates on single_mag.flip_note, so
+      an issue with no stunt renders an empty wrapper and nothing shows.
+      Print only by nature: this dialog only ever runs for Print
+      memberships.
+    {%- endcomment -%}
+    <div class="theinmag-start-picker__flip" data-flip-wrap>
+      <div data-flip-for="{{ sp_prev }}" hidden>{% render 'theinmag-flip-callout', issue: sp_prev_prod %}</div>
+      <div data-flip-for="{{ sp_current }}" hidden>{% render 'theinmag-flip-callout', issue: sp_cur_prod %}</div>
+      <div data-flip-for="{{ sp_next }}" hidden>{% render 'theinmag-flip-callout', issue: sp_next_prod %}</div>
+    </div>
+
     <div class="theinmag-start-picker__actions">
       <button type="button" class="theinmag-start-picker__confirm" data-confirm>Add to cart</button>
       <button type="button" class="theinmag-start-picker__cancel" data-cancel>Back</button>
