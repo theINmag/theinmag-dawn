@@ -495,14 +495,15 @@
     "funnel": {
       "type": "theinmag-funnel-strip",
       "settings": {
-        "heading": "Made for creative kids",
-        "subheading": ""
+        "heading": "The magazine for creative kids",
+        "subheading": "",
+        "show_background": true
       }
     }
   },
   "order": [
-    "editorial",
     "hub-tiles",
+    "editorial",
     "feature-banner",
     "archive",
     "funnel"

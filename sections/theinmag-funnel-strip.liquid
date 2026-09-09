@@ -7,13 +7,18 @@
   "Add" experience without leaving the page.
 
   Tiles, in order:
-    1. Membership  - renders the "Join the club" CTA (opens the picker
+    1. Membership   - renders the "Join the club" CTA (opens the picker
        popup) exactly like /shop, since membership has 3 selector axes.
-    2. Snack Pack  - resolved by an explicit handle setting, else by
-       scanning the configured collection for a title match.
-    3. Current issue - resolved from the shop.metafields.theinmag.
-       current_issue_number metafield (e.g. "Mag09" -> handle "mag09"),
-       so it follows each drop with no theme edit.
+    2. Digital Stack - every issue as instant PDFs. Resolved by the
+       'digital-stack' handle. Carries its own live "Save" value ribbon.
+    3. Current issue - AUTO-ADVANCING. Resolved by scanning the single
+       issues and picking the highest-numbered issue whose PRINT variant
+       is in stock and which is NOT a pre-order. So it follows each drop
+       and each sell-out with no metafield edit, and it NEVER headlines a
+       sold-out print issue. Today that is Mag09 (Mag10 print is gone);
+       it flips to Mag11 on its own once Mag11 print is in stock.
+       Deliberately independent of shop.metafields.theinmag.
+       current_issue_number, which can point at a sold-out print issue.
 
   Carries its own copy of the bundle-tile CSS (the canonical copy lives
   in theinmag-shop-grid.liquid, which only loads on /shop) plus the
@@ -34,36 +39,68 @@
   assign membership_product = all_products[membership_handle]
   assign membership_cover = section.settings.membership_cover | default: 'membershipimage.jpg'
 
-  # Current issue from the shop metafield. Stored like "Mag09" -> handle "mag09".
-  assign ci_raw = shop.metafields.theinmag.current_issue_number.value
-  assign current_product = null
-  if ci_raw != blank
-    assign ci_handle = ci_raw | downcase
-    assign current_product = all_products[ci_handle]
-  endif
+  # Digital Stack: fixed handle (overridable). Every issue as instant PDFs.
+  assign stack_handle = section.settings.stack_handle | default: 'digital-stack'
+  assign stack_product = all_products[stack_handle]
 
-  # Snack Pack: explicit handle wins; otherwise scan the configured
-  # collection for the first product whose title matches (mirrors the
-  # /shop grid's title-anchor approach - handles are set inconsistently).
-  assign snack_handle = section.settings.snack_pack_handle | strip
-  assign snack_product = null
-  if snack_handle != blank
-    assign snack_product = all_products[snack_handle]
-  else
-    assign snack_match = section.settings.snack_pack_match | default: 'Snack Pack'
-    assign coll_handle = section.settings.collection_handle | default: 'all'
-    assign coll = collections[coll_handle]
-    for p in coll.products
-      if snack_product == null and p.title contains snack_match
-        assign snack_product = p
+  # Current single issue - AUTO-ADVANCING, no metafield edit needed.
+  # Rule: the highest-numbered single issue whose PRINT variant is in
+  # stock (variant.available) and which is NOT a pre-order. This follows
+  # each drop and each sell-out on its own and never headlines a sold-out
+  # print issue. Digital-only issues (no available print variant) are
+  # skipped - the Digital Stack tile covers digital. If every issue's
+  # print is gone, the tile simply drops (two tiles render) rather than
+  # ever showing a sold-out headline.
+  assign issues_collection = section.settings.issues_collection | default: 'single-issues'
+  assign current_product = null
+  assign current_best_num = 0
+  for p in collections[issues_collection].products
+    assign p_num = p.metafields.single_mag.issue_number.value | plus: 0
+    assign p_pre = p.metafields.theinmag.is_pre_order | default: false
+    if p_num > 0 and p_pre == false and p_num > current_best_num
+      assign p_print_available = false
+      for v in p.variants
+        assign vt = v.title | downcase
+        if vt contains 'print' and v.available
+          assign p_print_available = true
+          break
+        endif
+      endfor
+      if p_print_available
+        assign current_product = p
+        assign current_best_num = p_num
       endif
-    endfor
-  endif
+    endif
+  endfor
 
   assign cta_label = section.settings.cta_label
   assign cta_link = section.settings.cta_link | default: '/pages/shop'
 
+  # Background: FIELD-NOTES SURFACES ONLY. A guard setting (show_background)
+  # is switched on only in article.json + blog.json, and we additionally
+  # require blog.handle == 'field-notes'. So the faded texture appears on the
+  # field-notes blog index and its article posts, and NEVER on the
+  # competitions or freebies strips (page templates, no blog object) nor on
+  # any other blog. On those surfaces the strip stays plain cream with a dark
+  # heading, exactly as it looked before this restyle.
+  assign show_bg = false
+  if section.settings.show_background and blog.handle == 'field-notes'
+    assign show_bg = true
+  endif
+
+  # Randomised soft texture. Three kid-pattern assets; the inline script below
+  # picks one at random per page load and sets it as --tfs-bg. The pick is done
+  # CLIENT-SIDE (not in Liquid) so full-page caching cannot freeze the choice.
+  # A server-side default is still set here so the cached HTML always carries a
+  # valid texture with no first-paint flash; the script then re-randomises it.
+  assign bg1 = 'section_background_competitions1.jpg' | asset_url
+  assign bg2 = 'section_background_competitions2.jpg' | asset_url
+  assign bg3 = 'section_background_competitions3.jpg' | asset_url
+
   assign section_style = '--tfs-pt: ' | append: section.settings.padding_top | append: 'px; --tfs-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  if show_bg
+    assign section_style = section_style | append: ' --tfs-bg: url(' | append: bg1 | append: ');'
+  endif
 
   # Count how many tiles we'll actually render so we can hide the whole
   # strip if the store has none of the three products.
@@ -71,7 +108,7 @@
   if membership_product != blank and membership_product.id != blank
     assign tile_count = tile_count | plus: 1
   endif
-  if snack_product != blank and snack_product.id != blank
+  if stack_product != blank and stack_product.id != blank
     assign tile_count = tile_count | plus: 1
   endif
   if current_product != blank and current_product.id != blank
@@ -81,7 +118,7 @@
 
 {%- if tile_count > 0 -%}
 <section
-  class="theinmag-funnel-strip"
+  class="theinmag-funnel-strip{% if show_bg %} theinmag-funnel-strip--bg{% endif %}"
   data-theinmag-funnel-strip
   {%- if heading != blank %} aria-labelledby="theinmag-funnel-strip-heading-{{ section.id }}"{%- else %} aria-label="Shop theINmag"{%- endif %}
   style="{{ section_style }}"
@@ -104,9 +141,9 @@
           {% render 'theinmag-bundle-tile', product: membership_product, context: 'shop', cover_filename: membership_cover %}
         </li>
       {%- endif -%}
-      {%- if snack_product != blank and snack_product.id != blank -%}
+      {%- if stack_product != blank and stack_product.id != blank -%}
         <li class="theinmag-funnel-strip__item">
-          {% render 'theinmag-bundle-tile', product: snack_product, context: 'shop' %}
+          {% render 'theinmag-bundle-tile', product: stack_product, context: 'shop' %}
         </li>
       {%- endif -%}
       {%- if current_product != blank and current_product.id != blank -%}
@@ -131,6 +168,16 @@
   (function () {
     var root = document.querySelector('[data-theinmag-funnel-strip]');
     if (!root) return;
+
+    // Randomise the soft background texture per page load (field-notes only).
+    // Done here in JS, not in Liquid, so full-page caching cannot freeze the
+    // pick. The Liquid default on --tfs-bg holds until this runs.
+    var bgUrls = [{% if show_bg %}"{{ bg1 }}","{{ bg2 }}","{{ bg3 }}"{% endif %}];
+    if (root.classList.contains('theinmag-funnel-strip--bg') && bgUrls.length) {
+      var pick = bgUrls[Math.floor(Math.random() * bgUrls.length)];
+      root.style.setProperty('--tfs-bg', "url('" + pick + "')");
+    }
+
     var list = root.querySelector('[data-funnel-list]');
     var feedback = root.querySelector('[data-shop-feedback]');
     if (!list) return;
@@ -230,35 +277,63 @@
 
 {%- stylesheet -%}
   .theinmag-funnel-strip {
+    /* Plain cream by default. The strip only carries a background texture on
+       the field-notes surfaces (the --bg modifier below); on competitions and
+       freebies it stays flat cream with a dark heading. */
     background-color: var(--color-cream, #FBF6EA);
     color: var(--color-inky-purple-navy, #2A1F3D);
-    padding: var(--tfs-pt, 56px) clamp(20px, 5vw, 40px) var(--tfs-pb, 64px);
+    padding: var(--tfs-pt, 8px) clamp(20px, 5vw, 40px) var(--tfs-pb, 64px);
     overflow-x: clip;
   }
 
+  /* Field-notes only: a soft, subtle kid-pattern texture faded right down so
+     it reads as a light, airy ground over the cream, not a bold busy photo. A
+     heavy cream wash (~0.86) sits over the image, leaving roughly 14% of the
+     texture visible. Cream stays as the fallback colour behind it. The image
+     url is a random pick set by the inline script (see --tfs-bg). */
+  .theinmag-funnel-strip--bg {
+    background-image:
+      linear-gradient(rgba(251, 246, 234, 0.86), rgba(251, 246, 234, 0.86)),
+      var(--tfs-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* Field-notes only: extra breathing room above the heading so it does
+       not sit tight against the top of the band. Overrides the shared
+       --tfs-pt top padding for the --bg surface ONLY; the plain
+       competitions/freebies strips keep their own --tfs-pt spacing. */
+    padding-top: clamp(34px, 5vw, 54px);
+  }
+
   .theinmag-funnel-strip__inner {
-    /* Tighter cap so the three tiles read smaller / less overwhelming
-       (per Ryan). Each tile lands ~230px on desktop. */
-    max-width: 760px;
+    /* Clean shop-style tiles, capped a little wider than the original
+       760 so the three cards read slightly larger. Not the wow pass. */
+    max-width: 820px;
     margin: 0 auto;
   }
 
   .theinmag-funnel-strip__head {
     text-align: center;
-    margin-bottom: clamp(20px, 3vw, 32px);
+    margin-bottom: clamp(22px, 3.4vw, 38px);
     display: flex;
     flex-direction: column;
     gap: clamp(6px, 1vw, 10px);
     align-items: center;
+    /* No scrim. The background is now a very light faded texture, so the dark
+       navy heading reads directly on it (and on plain cream elsewhere). */
   }
 
   .theinmag-funnel-strip__heading {
     margin: 0;
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: clamp(24px, 3.4vw, 34px);
-    line-height: 1.15;
-    letter-spacing: -0.01em;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.005em;
+    /* Dark navy on every surface. Ryan chose dark over white for the
+       field-notes --bg strip, so there is no white override; the navy
+       heading reads directly on the very pale faded texture and on the
+       plain cream competitions/freebies strips alike. Kept sized up. */
     color: var(--color-inky-purple-navy, #2A1F3D);
     text-wrap: balance;
   }
@@ -270,7 +345,8 @@
     font-weight: 400;
     font-size: clamp(14px, 1.5vw, 16px);
     line-height: 1.55;
-    color: rgba(42, 31, 61, 0.78);
+    /* Normal dark treatment on the light ground. */
+    color: rgba(42, 31, 61, 0.82);
     text-wrap: pretty;
   }
 
@@ -281,7 +357,7 @@
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: minmax(0, 300px);
+    grid-template-columns: minmax(0, 320px);
     justify-content: center;
     gap: 18px;
   }
@@ -333,6 +409,15 @@
     height: 100%;
   }
   .theinmag-bundle-tile--shop { background-color: #FFFFFF; }
+
+  /* Clean shop-style tile, no hover. The Round 2 "wow" treatment (warm-
+     white card, lavender mat, rounded floating cover frame, deep shadow,
+     hover lift + cover-image crossfade) was reverted on Ryan's call. The
+     tiles fall back to the base bundle-tile above: a plain white card
+     with the cover shown simply, filling its 3:4 box. The base
+     .theinmag-bundle-tile__cover-img--digital stays at opacity 0 with no
+     hover rule, so the second (digital) view never swaps in. The value
+     ribbon (Digital Stack "Save") keeps its own scoped styling below. */
 
   .theinmag-bundle-tile__cover {
     position: relative;
@@ -387,6 +472,50 @@
     z-index: 2;
   }
   .theinmag-bundle-tile__badge--current { background-color: var(--color-mint, #D6EAD9); }
+
+  /* Ribbon (canonical copy in theinmag-shop-grid.liquid). Ported here so
+     the Digital Stack "Save" value sticker - and any current-issue or
+     pre-sale ribbon a future drop surfaces - renders as a real stamp on
+     the shelf, not unstyled floating text. Sits bottom-right, on the
+     shelf floor beside the standing cover. Scoped to the funnel strip. */
+  .theinmag-funnel-strip .theinmag-bundle-tile__ribbon {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 3;
+    pointer-events: none;
+    background-color: rgba(42, 31, 61, 0.9);
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 11px;
+    border-radius: 6px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(42, 31, 61, 0.28);
+  }
+  .theinmag-funnel-strip .theinmag-bundle-tile__ribbon--presale,
+  .theinmag-funnel-strip .theinmag-bundle-tile__ribbon--value {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: right;
+  }
+  .theinmag-funnel-strip .theinmag-bundle-tile__ribbon--value {
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow, #D4A02E);
+  }
+  .theinmag-funnel-strip .theinmag-bundle-tile__ribbon-sub {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
 
   .theinmag-bundle-tile__title {
     margin: 10px 12px 6px;
@@ -538,7 +667,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Compact 3-product conversion strip (Membership, Snack Pack, current issue) using the /shop tile style. Drop it above the footer on cold-traffic pages (competitions, field notes, freebies). Current issue follows the shop's current_issue_number metafield automatically."
+      "content": "Compact 3-product conversion strip (Membership, Digital Stack, current in-stock single issue) using the /shop tile style. Drop it above the footer on cold-traffic pages (competitions, field notes, freebies). The single-issue tile auto-advances: it shows the highest-numbered issue whose print is in stock and never headlines a sold-out print issue, so it needs no metafield edit each drop."
     },
     {
       "type": "header",
@@ -548,7 +677,7 @@
       "type": "text",
       "id": "heading",
       "label": "Heading",
-      "default": "New to theINmag?"
+      "default": "The magazine for creative kids"
     },
     {
       "type": "textarea",
@@ -559,12 +688,6 @@
     {
       "type": "header",
       "content": "Products"
-    },
-    {
-      "type": "collection",
-      "id": "collection_handle",
-      "label": "Collection to search for the Snack Pack",
-      "info": "Used only when no Snack Pack handle is set below. Defaults to the 'all' collection."
     },
     {
       "type": "text",
@@ -581,15 +704,28 @@
     },
     {
       "type": "text",
-      "id": "snack_pack_handle",
-      "label": "Snack Pack product handle (optional)",
-      "info": "Set this to pin the exact product. Leave blank to auto-find it by title in the collection above."
+      "id": "stack_handle",
+      "label": "Digital Stack product handle",
+      "info": "The all-issues digital bundle tile. Defaults to 'digital-stack'.",
+      "default": "digital-stack"
     },
     {
       "type": "text",
-      "id": "snack_pack_match",
-      "label": "Snack Pack - title contains",
-      "default": "Snack Pack"
+      "id": "issues_collection",
+      "label": "Single issues collection handle",
+      "info": "Scanned to auto-pick the current in-stock single issue (highest-numbered issue whose print is in stock, never a pre-order). Defaults to 'single-issues'.",
+      "default": "single-issues"
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_background",
+      "label": "Show faded background texture (field notes only)",
+      "info": "When on, the strip shows a soft, very transparent kid-pattern texture randomised per page load. It only renders on the field notes blog (index + articles); on any other surface the strip stays plain cream. Leave OFF on competitions and freebies.",
+      "default": false
     },
     {
       "type": "header",
@@ -618,7 +754,7 @@
       "min": 0,
       "max": 128,
       "step": 4,
-      "default": 56,
+      "default": 8,
       "unit": "px"
     },
     {

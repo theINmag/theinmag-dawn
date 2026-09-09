@@ -205,7 +205,11 @@
       the patterned ground beside it (the IGNANT move, for the 4:5
       blog covers). {%- endcomment -%}
   {%- assign hero_mode = section.settings.hero_mode | default: 'cover' -%}
-  <div class="theinmag-series-hub__hero{% if hero_mode == 'panel' %} theinmag-series-hub__hero--panel{% endif %}">
+  {%- assign hero_fit = false -%}
+  {%- if section.settings.hero_fit and hero_mode != 'panel' -%}{%- assign hero_fit = true -%}{%- endif -%}
+  {%- assign hero_compact = false -%}
+  {%- if section.settings.hero_compact and hero_mode != 'panel' and hero_fit == false -%}{%- assign hero_compact = true -%}{%- endif -%}
+  <div class="theinmag-series-hub__hero{% if hero_mode == 'panel' %} theinmag-series-hub__hero--panel{% endif %}{% if hero_fit %} theinmag-series-hub__hero--fit{% endif %}{% if hero_compact %} theinmag-series-hub__hero--compact{% endif %}"{% if hero_fit and section.settings.hero_fit_ratio != blank %} style="aspect-ratio: {{ section.settings.hero_fit_ratio }};"{% endif %}>
     {%- if hero_src != blank -%}
       <img
         class="theinmag-series-hub__hero-image{% if hero_top %} theinmag-series-hub__hero-image--top{% endif %}"
@@ -621,6 +625,30 @@
     height: clamp(480px, 74vh, 840px);
     overflow: hidden;
     background: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* Page-scoped 'fit' hero (opt in via hero_fit). The base 74vh band is
+     taller than a landscape photo like the climbing hero (1.55:1), so
+     cover crops it hard: sides on mobile, top and bottom on desktop.
+     Letting the band track the image aspect (inline aspect-ratio) between
+     a floor and a ceiling reveals the whole composition on phones and mid
+     widths and most of it on wide desktop, without letterboxing. Only
+     pages that set hero_fit get this; other hubs keep the base band. */
+  .theinmag-series-hub__hero--fit {
+    height: auto;
+    min-height: 420px;
+    max-height: 780px;
+  }
+
+  /* Page-scoped compact band (opt in via hero_compact, and never with
+     hero_fit). A touch shorter than the base band, for wide landscape
+     heroes (the climbing hero, 1.55:1) where the base 74vh band crops the
+     composition tight around the subject. On the portrait mobile band cover
+     is height-driven, so a shorter band scales the photo down: the subject
+     reads smaller and more of the surrounding scene shows. Only pages that
+     set hero_compact get this; other hubs keep the base band. */
+  .theinmag-series-hub__hero--compact {
+    height: clamp(420px, 58vh, 600px);
   }
 
   .theinmag-series-hub__hero-image {
@@ -1606,6 +1634,9 @@
       "unit": "%",
       "default": 50
     },
+    { "type": "checkbox", "id": "hero_fit", "label": "Hero fit: band tracks image aspect to show whole photo", "default": false },
+    { "type": "text", "id": "hero_fit_ratio", "label": "Hero fit aspect ratio (e.g. 836/538)" },
+    { "type": "checkbox", "id": "hero_compact", "label": "Hero compact: a touch shorter band (wide landscape heroes)", "default": false },
     {
       "type": "select",
       "id": "hero_mode",

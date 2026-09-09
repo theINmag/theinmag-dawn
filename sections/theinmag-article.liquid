@@ -72,6 +72,28 @@
   assign closing_cta_url = article.metafields.field_notes.closing_cta_url
 
   comment
+    Guest website link element (2026-09-08). Optional per-guest links to
+    the guest's own site (guest_website) and YouTube channel (guest_youtube).
+    Rendered as a small editorial line BEFORE the interview questions (see
+    the body-injection block below). Blank = nothing shows, so every other
+    post is unaffected.
+  endcomment
+  assign guest_website = article.metafields.field_notes.guest_website
+  assign guest_youtube = article.metafields.field_notes.guest_youtube
+
+  comment
+    Photo mosaic strip (2026-09-08). field_notes.gallery is a JSON metafield:
+    an ordered array of { file, caption, alt } where file is a theme asset
+    filename staged flat in assets/ (e.g. rjrp-rachael-01.jpg). Populated =
+    the strip renders full-width under the article body, above the
+    recommendations. Empty/absent = no strip, so every existing post is
+    untouched. NEVER put the post's cover (article.image) or the hero
+    portrait in this array; it is the guest's OTHER photos only. The mosaic
+    renders with NO heading (removed 2026-09-08): just the tiles.
+  endcomment
+  assign gallery_photos = article.metafields.field_notes.gallery.value
+
+  comment
     Video companion (2026-08-28): field_notes.youtube_url holds the full
     YouTube link for this post's paired video. Parsed to an id here,
     rendered as a real iframe at the end of the body column plus a
@@ -124,6 +146,25 @@
   if guest_name != blank
     assign is_guest = true
     assign guest_first_name = guest_name | split: ' ' | first
+
+    comment
+      Guest display name: the friendly name used in the advice label and the
+      guest website link. Strips a trailing initial token so "Bridget F."
+      reads as "Bridget", while a multi-word name with no initial (e.g.
+      "Flying the Nest") is kept whole. guest_first_name alone would wrongly
+      cut "Flying the Nest" down to "Flying".
+    endcomment
+    assign guest_display_name = guest_name | strip
+    assign gdn_words = guest_display_name | split: ' '
+    assign gdn_last = gdn_words | last
+    assign gdn_last_bare = gdn_last | replace: '.', '' | strip
+    assign gdn_last_len = gdn_last_bare | size
+    if gdn_last_len == 1 and gdn_words.size > 1
+      assign gdn_name_len = guest_display_name | size
+      assign gdn_last_len_full = gdn_last | size
+      assign gdn_keep = gdn_name_len | minus: gdn_last_len_full | minus: 1
+      assign guest_display_name = guest_display_name | slice: 0, gdn_keep | strip
+    endif
   endif
 
   assign author_type = article.metafields.field_notes.author_type | downcase
@@ -297,6 +338,45 @@
     assign byline_overlay = 'Meet ' | append: trimmed_guest | append: '.'
   else
     assign byline_overlay = 'By ' | append: author_name
+  endif
+
+  comment
+    Build the guest website link element HTML (rendered before the questions,
+    injected into the body below). Only for guest posts with guest_website set.
+    Site + YouTube handle are shown as clean labels; links open in a new tab
+    with rel noopener noreferrer (external editorial links).
+  endcomment
+  assign guest_link_html = ''
+  if is_guest and guest_website != blank
+    assign gl_site = guest_website | remove_first: 'https://' | remove_first: 'http://' | remove_first: 'www.' | split: '/' | first
+    capture guest_link_html
+      echo '<aside class="theinmag-article__guest-link" aria-label="Where to find '
+      echo guest_display_name
+      echo ' online"><h2 class="theinmag-article__guest-link-heading">Come find '
+      echo guest_display_name
+      echo '.</h2><p class="theinmag-article__guest-link-sub">Here'
+      echo "'"
+      echo 's where to follow along with their adventures.</p><ul class="theinmag-article__guest-link-list" role="list"><li class="theinmag-article__guest-link-item"><a class="theinmag-article__guest-link-pill" href="'
+      echo guest_website
+      echo '" target="_blank" rel="noopener noreferrer"><svg class="theinmag-article__guest-link-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="3.6" ry="9"/><path d="M3 12h18M4.6 7.5h14.8M4.6 16.5h14.8"/></svg><span class="theinmag-article__guest-link-stack"><span class="theinmag-article__guest-link-platform">Website</span><span class="theinmag-article__guest-link-url">'
+      echo gl_site
+      echo '</span></span><svg class="theinmag-article__guest-link-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M9 7h8v8"/></svg></a></li>'
+      if guest_youtube != blank
+        assign gl_yt = guest_youtube | remove_first: 'https://' | remove_first: 'http://' | remove_first: 'www.'
+        if gl_yt contains '/@'
+          assign gl_handle_raw = gl_yt | split: '/@' | last | split: '/' | first | split: '?' | first
+          assign gl_handle = '@' | append: gl_handle_raw
+        else
+          assign gl_handle = gl_yt | split: '/' | first
+        endif
+        echo '<li class="theinmag-article__guest-link-item"><a class="theinmag-article__guest-link-pill" href="'
+        echo guest_youtube
+        echo '" target="_blank" rel="noopener noreferrer"><svg class="theinmag-article__guest-link-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9v6l5-3z" fill="currentColor" stroke="none"/></svg><span class="theinmag-article__guest-link-stack"><span class="theinmag-article__guest-link-platform">YouTube</span><span class="theinmag-article__guest-link-url">'
+        echo gl_handle
+        echo '</span></span><svg class="theinmag-article__guest-link-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M9 7h8v8"/></svg></a></li>'
+      endif
+      echo '</ul></aside>'
+    endcapture
   endif
 
   assign rec_heading = section.settings.rec_heading | default: "here's some more we thought you might enjoy"
@@ -492,13 +572,19 @@
           endif
         -%}
         <div class="theinmag-article__body rte">
+          {%- comment -%}
+            The guest "come find them" signpost (guest_link_html) was
+            RELOCATED 2026-09-08 out of the body to the foot of the guest
+            column (after the advice block, before the series-info card).
+            The body now renders exactly as authored.
+          {%- endcomment -%}
           {{ body_content }}
         </div>
 
         {%- if advice_block_text != blank -%}
           <aside class="theinmag-article__advice" aria-label="Advice">
-            {%- if is_guest and guest_first_name != blank -%}
-              <span class="theinmag-article__advice-label">{{ guest_first_name }}'s advice.</span>
+            {%- if is_guest and guest_display_name != blank -%}
+              <span class="theinmag-article__advice-label">{{ guest_display_name }}'s advice.</span>
             {%- else -%}
               <span class="theinmag-article__advice-label">A bit of advice.</span>
             {%- endif -%}
@@ -548,16 +634,40 @@
         {%- endif -%}
 
         {%- comment -%}
+          Guest "come find them" signpost, RELOCATED here 2026-09-08 to the
+          foot of the guest column: after the advice block, before the
+          series-info card. Renders only for guest posts with guest_website
+          set (guest_link_html non-blank). Sits as a body-inner sibling; the
+          lavender pill card carries its own background and spacing.
+        {%- endcomment -%}
+        {%- if guest_link_html != blank -%}
+          {{ guest_link_html }}
+        {%- endif -%}
+
+        {%- comment -%}
           Series strip — sign-off below FAQ on republished-series posts.
           Sits between the FAQ block and the about-author / closing CTA
           stack so it reads as "this was Real Jobs, Real People" rather
           than introducing the post.
         {%- endcomment -%}
         {%- if series_name != blank -%}
+          {%- comment -%}
+            Real Jobs default (2026-09-08): when series_strip_text is left
+            blank on a "Real Jobs, Real People" post, fall back to the
+            standard two-sentence blurb so every current and future Real
+            Jobs post carries it with no manual metafield step. The guard is
+            the exact series_name string, so no other series or post type
+            (kid posts, Real Kids Voices, storybooks, standard posts) is
+            affected: their strip still shows only what their metafield holds.
+          {%- endcomment -%}
+          {%- assign series_strip_effective = series_strip_text -%}
+          {%- if series_strip_effective == blank and series_name == 'Real Jobs, Real People' -%}
+            {%- assign series_strip_effective = 'Every few months we sit down with someone whose work we think kids should know about. In the mag, we call this section Meet the Professional.' -%}
+          {%- endif -%}
           <aside class="theinmag-article__series-strip" aria-label="About this series">
             <span class="theinmag-article__series-name">{{ series_name }}</span>
-            {%- if series_strip_text != blank -%}
-              <p class="theinmag-article__series-text">{{ series_strip_text | newline_to_br }}</p>
+            {%- if series_strip_effective != blank -%}
+              <p class="theinmag-article__series-text">{{ series_strip_effective | newline_to_br }}</p>
             {%- endif -%}
           </aside>
         {%- endif -%}
@@ -637,25 +747,162 @@
             <a class="theinmag-article__closing-cta-link" href="{{ closing_cta_url }}">{{ closing_cta_label }}</a>
           </div>
         {%- endif -%}
-
-        {%- if youtube_id != blank -%}
-          <aside class="theinmag-article__video" aria-label="Video version of this post">
-            <h2 class="theinmag-article__video-heading">{{ section.settings.video_heading | default: 'rather watch than read?' }}</h2>
-            <div class="theinmag-article__video-frame">
-              <iframe
-                src="https://www.youtube-nocookie.com/embed/{{ youtube_id }}"
-                title="{{ display_title | escape }} (video)"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowfullscreen
-              ></iframe>
-            </div>
-            <a class="theinmag-article__video-link" href="{{ youtube_url }}" target="_blank" rel="noopener">watch on YouTube</a>
-          </aside>
-        {%- endif -%}
       </div>
     </div>
   </div>
+
+  {%- comment -%}
+    Photo mosaic strip (STYLE UPDATE 2026-09-08, Ryan approved). Justified
+    rows, Flickr / Google Photos style: every row fills the full viewport
+    width, each image keeps its TRUE aspect ratio and the row height varies
+    to justify. No cropping, no distortion (protects the book covers and
+    their text). The strip is FULL-BLEED (100vw, breaking out of the article
+    column), tiles have sharp corners (radius 0) and a thin ~6px cream gutter
+    between every image, horizontal and vertical. Renders only when
+    field_notes.gallery has entries. Each tile is a button that opens the
+    shared lightbox; captions live in the lightbox only. Alt is required on
+    every tile. The row geometry (greedy justified rows) is computed in the
+    section script below and recomputed on resize; smaller target row height
+    on mobile. If a photo object carries numeric `w` and `h` the aspect ratio
+    is emitted as data-ar so the layout is correct before the images load;
+    otherwise the script probes each image's natural dimensions and lays out
+    as they resolve.
+  {%- endcomment -%}
+  {%- comment -%}
+    Feature-mosaic opt-in (2026-09-09). A gallery item may carry
+    "feature": true. Its PRESENCE flips this post to the feature layout:
+    that tile renders as a large block on the RIGHT spanning N rows, the
+    other tiles flow to its left in N justified rows (geometry solved in
+    the mosaic script below). The feature item is placed FIRST in the
+    array so it leads DOM, lightbox and focus order. No feature flag on
+    any item = the post renders as plain justified rows, exactly as
+    before, so every other post is untouched.
+  {%- endcomment -%}
+  {%- assign has_feature = false -%}
+  {%- for photo in gallery_photos -%}
+    {%- if photo.feature == true or photo.feature == 'true' -%}
+      {%- assign has_feature = true -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- if gallery_photos.size > 0 -%}
+    <section class="theinmag-article__gallery" aria-label="Photo gallery">
+      <div
+        class="theinmag-article__gallery-grid"
+        data-theinmag-gallery
+        {% if has_feature %}data-has-feature="true"{% endif %}
+      >
+        {%- for photo in gallery_photos -%}
+          {%- if photo.file == blank -%}{%- continue -%}{%- endif -%}
+          {%- assign photo_src = photo.file | asset_url -%}
+          {%- assign photo_alt = photo.alt | default: photo.caption -%}
+          {%- assign photo_ar = '' -%}
+          {%- if photo.w != blank and photo.h != blank and photo.h != 0 -%}
+            {%- assign photo_ar = photo.w | times: 1.0 | divided_by: photo.h -%}
+          {%- endif -%}
+          {%- assign photo_is_feature = false -%}
+          {%- if photo.feature == true or photo.feature == 'true' -%}
+            {%- assign photo_is_feature = true -%}
+          {%- endif -%}
+          <button
+            type="button"
+            class="theinmag-article__gallery-tile{% if photo_is_feature %} theinmag-article__gallery-tile--feature{% endif %}"
+            data-theinmag-gallery-tile
+            {% if photo_is_feature %}data-feature="true"{% endif %}
+            data-full="{{ photo_src }}"
+            data-caption="{{ photo.caption | escape }}"
+            {% if photo_ar != blank %}data-ar="{{ photo_ar }}"{% endif %}
+            aria-label="View photo: {{ photo_alt | escape }}"
+          >
+            <img
+              class="theinmag-article__gallery-img"
+              src="{{ photo_src }}"
+              alt="{{ photo_alt | escape }}"
+              loading="lazy"
+              decoding="async"
+            >
+            <span class="theinmag-article__gallery-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+            </span>
+          </button>
+        {%- endfor -%}
+      </div>
+    </section>
+
+    <div class="theinmag-article__gallery-lightbox" data-theinmag-gallery-lightbox role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
+      <p class="theinmag-article__gallery-lb-count" data-theinmag-gallery-count></p>
+      <button type="button" class="theinmag-article__gallery-lb-btn theinmag-article__gallery-lb-close" data-theinmag-gallery-close aria-label="Close photo viewer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>
+      </button>
+      <button type="button" class="theinmag-article__gallery-lb-btn theinmag-article__gallery-lb-prev" data-theinmag-gallery-prev aria-label="Previous photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><polyline points="15 6 9 12 15 18"></polyline></svg>
+      </button>
+      <button type="button" class="theinmag-article__gallery-lb-btn theinmag-article__gallery-lb-next" data-theinmag-gallery-next aria-label="Next photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><polyline points="9 6 15 12 9 18"></polyline></svg>
+      </button>
+      <div class="theinmag-article__gallery-lb-stage" data-theinmag-gallery-stage>
+        <figure class="theinmag-article__gallery-lb-fig">
+          <img class="theinmag-article__gallery-lb-img" data-theinmag-gallery-image alt="">
+          <figcaption class="theinmag-article__gallery-lb-cap" data-theinmag-gallery-caption></figcaption>
+        </figure>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%}
+    Video companion, relocated 2026-09-08 to sit UNDER the photo mosaic (at
+    the very bottom of the post, before the recommendations) per Ryan's call.
+    Centred in its own container so it does not go full-bleed like the mosaic.
+    Renders only when field_notes.youtube_url is set. A VideoObject JSON-LD
+    block is emitted alongside so the paired video can rank as a video result.
+  {%- endcomment -%}
+  {%- if youtube_id != blank -%}
+    <div class="theinmag-article__video-standalone">
+      <div class="theinmag-article__video-standalone-inner">
+        <aside class="theinmag-article__video" aria-label="Video version of this post">
+          <h2 class="theinmag-article__video-heading">{{ section.settings.video_heading | default: 'rather watch than read?' }}</h2>
+          <div class="theinmag-article__video-frame">
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/{{ youtube_id }}"
+              title="{{ display_title | escape }} (video)"
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <a class="theinmag-article__video-link" href="{{ youtube_url }}" target="_blank" rel="noopener">watch on YouTube</a>
+        </aside>
+      </div>
+    </div>
+
+    {%- liquid
+      assign video_desc = article.metafields.global.description_tag
+      if video_desc == blank
+        assign video_desc = quick_answer | strip_html | strip
+      endif
+      if video_desc == blank
+        assign video_desc = display_title
+      endif
+      assign video_upload = article.published_at | default: article.created_at
+    -%}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      "name": {{ display_title | strip_html | strip | json }},
+      "description": {{ video_desc | json }},
+      "thumbnailUrl": ["https://i.ytimg.com/vi/{{ youtube_id }}/hqdefault.jpg"],
+      "uploadDate": {{ video_upload | date: '%Y-%m-%d' | json }},
+      "embedUrl": "https://www.youtube-nocookie.com/embed/{{ youtube_id }}",
+      "contentUrl": {{ youtube_url | json }},
+      "publisher": {
+        "@type": "Organization",
+        "name": "theINmag",
+        "url": {{ root_url | json }}
+      }
+    }
+    </script>
+  {%- endif -%}
 
   <section class="theinmag-article__recommend" aria-labelledby="theinmag-article-rec-heading">
     <div class="theinmag-article__recommend-inner">
@@ -1506,6 +1753,14 @@
     border-top: 1px solid var(--color-rule);
   }
 
+  /* On posts with a photo mosaic the lightbox div (only present when the
+     mosaic renders) is the recommend section's previous sibling, so this
+     suppresses the divider line between mosaic and recommendations without
+     touching the body-to-recommendations rule on non-gallery posts. */
+  .theinmag-article__gallery-lightbox + .theinmag-article__recommend {
+    border-top: none;
+  }
+
   .theinmag-article__recommend-inner {
     max-width: 1320px;
     margin: 0 auto;
@@ -1865,6 +2120,201 @@
     text-decoration: underline;
   }
 
+  /* Video companion relocated below the mosaic: keep it centred and
+     column-width rather than full-bleed. */
+  .theinmag-article__video-standalone {
+    padding: 0 clamp(16px, 5vw, 24px);
+  }
+
+  .theinmag-article__video-standalone-inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  /* ================================================================
+     Guest website link element. Small editorial line rendered after the
+     intro and above the first question on guest posts that set
+     field_notes.guest_website. Subtle cream card, purple links, yellow
+     accent rule. Colourblind-safe: links carry an underline, not colour
+     alone.
+     ================================================================ */
+  .theinmag-article__guest-link {
+    margin: clamp(24px, 3.4vw, 36px) 0;
+    padding: clamp(18px, 3vw, 26px) clamp(18px, 3.2vw, 28px) clamp(20px, 3vw, 26px);
+    background: var(--color-lavender, #E8DEEF);
+    border-radius: var(--radius-md, 12px);
+  }
+
+  .theinmag-article__guest-link-heading {
+    margin: 0 0 4px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-synthesis: none;
+    font-size: clamp(26px, 3.6vw, 34px);
+    line-height: 1.12;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
+  }
+
+  .theinmag-article__guest-link-sub {
+    margin: 0 0 clamp(14px, 2vw, 18px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(15px, 1.8vw, 16px);
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-article__guest-link-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+
+  .theinmag-article__guest-link-item {
+    margin: 0;
+    flex: 1 1 240px;
+    max-width: 340px;
+  }
+
+  .theinmag-article__guest-link-pill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 10px 14px;
+    background: #FDFAF5;
+    border: 1.5px solid var(--color-purple-dark, #5D3A7A);
+    border-radius: 999px;
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration: none;
+    transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .theinmag-article__guest-link-icon,
+  .theinmag-article__guest-link-arrow {
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .theinmag-article__guest-link-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .theinmag-article__guest-link-arrow {
+    width: 18px;
+    height: 18px;
+    margin-left: auto;
+    opacity: 0.85;
+  }
+
+  .theinmag-article__guest-link-stack {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  }
+
+  .theinmag-article__guest-link-platform {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    opacity: 0.85;
+  }
+
+  .theinmag-article__guest-link-url {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  .theinmag-article__guest-link-pill:hover {
+    background: var(--color-purple-dark, #5D3A7A);
+    color: #FDFAF5;
+    transform: translateY(-1px);
+  }
+
+  .theinmag-article__guest-link-pill:focus-visible {
+    outline: 3px solid var(--color-yellow, #F9C23C);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-article__guest-link-pill {
+      transition: none;
+    }
+    .theinmag-article__guest-link-pill:hover {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .theinmag-article__guest-link-item {
+      flex-basis: 100%;
+      max-width: none;
+    }
+  }
+
+  /* ================================================================
+     Meet the crew: family-member intros inside the body of a guest
+     family post (e.g. Flying the Nest). Each name is set in Post Regular
+     like the mag, the description in Inter after it.
+     ================================================================ */
+  .theinmag-article__body .theinmag-article__crew {
+    margin: clamp(16px, 2.6vw, 28px) 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(14px, 2vw, 20px) clamp(18px, 3vw, 28px);
+  }
+
+  @media (min-width: 640px) {
+    .theinmag-article__body .theinmag-article__crew {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .theinmag-article__body .theinmag-article__crew p {
+    margin: 0;
+    font-size: clamp(15px, 1.8vw, 16px);
+    line-height: 1.5;
+  }
+
+  .theinmag-article__crew-desc {
+    display: block;
+  }
+
+  .theinmag-article__crew-name {
+    display: inline-block;
+    margin: 0 0 6px;
+    padding: 2px 12px 4px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-synthesis: none;
+    font-size: clamp(24px, 3vw, 28px);
+    line-height: 1.15;
+    color: var(--color-purple-dark, #5D3A7A);
+    background: var(--color-lavender, #E8DEEF);
+    border-radius: 6px;
+    transform: rotate(-1.2deg);
+  }
+
+  .theinmag-article__body .theinmag-article__crew p:nth-child(even) .theinmag-article__crew-name {
+    transform: rotate(1.2deg);
+  }
+
   /* ================================================================
      FAQ block (in-post). Reads field_notes.faq_items metafield.
      Same accordion shape as theinmag-send-in-faq, scoped to the
@@ -2023,6 +2473,243 @@
       transition: none;
     }
   }
+
+  /* ------------------------------------------------------------------ *
+   * Photo mosaic strip (guest's other photos) + lightbox.              *
+   * Justified rows (Flickr / Google Photos): every row fills the full  *
+   * viewport width, each image keeps its true aspect ratio, row height *
+   * varies to justify. Full-bleed (100vw), sharp corners, thin ~6px    *
+   * cream gutter. Row geometry is computed in JS and recomputed on     *
+   * resize; the tile width/height are set inline per image so no crop  *
+   * or distortion ever happens (the box matches the image's own ratio).*
+   * ------------------------------------------------------------------ */
+  .theinmag-article__gallery {
+    margin: 0;
+    /* Top gap only: a 6px cream band above the first row, matching the GAP
+       between tiles, so the mosaic is separated from the article by the same
+       fine line that runs between all the images. Left/right stay full-bleed
+       (no side padding), so the tiles remain edge to edge. */
+    padding: 6px 0 0;
+    /* Full-bleed breakout: span the whole viewport width, out of the
+       article column. Sitewide html/body overflow-x: clip absorbs any
+       scrollbar-width overflow, so this cannot introduce horizontal
+       scroll. */
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    background: var(--color-cream);
+  }
+
+  .theinmag-article__gallery-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 0;
+    line-height: 0;
+    /* Hidden until the first justified layout is computed, so no
+       square/unsized flash. Revealed by data-ready in the script. */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .theinmag-article__gallery-grid[data-ready='true'] {
+    opacity: 1;
+  }
+
+  .theinmag-article__gallery-tile {
+    display: block;
+    flex: 0 0 auto;
+    /* width + height set inline by the layout script (px). */
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--color-cream);
+    overflow: hidden;
+    cursor: zoom-in;
+    line-height: 0;
+    position: relative;
+  }
+
+  .theinmag-article__gallery-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* The tile box is sized to this image's own aspect ratio, so the
+       fill scales proportionally: no crop, no distortion. */
+  }
+
+  .theinmag-article__gallery-tile:hover .theinmag-article__gallery-img,
+  .theinmag-article__gallery-tile:focus-visible .theinmag-article__gallery-img {
+    filter: brightness(0.9);
+    transition: filter 0.18s ease;
+  }
+
+  .theinmag-article__gallery-tile:focus-visible {
+    outline: 3px solid var(--color-yellow);
+    outline-offset: -3px;
+    z-index: 2;
+  }
+
+  .theinmag-article__gallery-glyph {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(42, 31, 61, 0.72);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  .theinmag-article__gallery-glyph svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .theinmag-article__gallery-tile:hover .theinmag-article__gallery-glyph,
+  .theinmag-article__gallery-tile:focus-visible .theinmag-article__gallery-glyph {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Lightbox */
+  .theinmag-article__gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    background: rgba(20, 15, 30, 0.94);
+  }
+
+  .theinmag-article__gallery-lightbox[hidden] {
+    display: none !important;
+  }
+
+  .theinmag-article__gallery-lb-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5vh 6vw;
+  }
+
+  .theinmag-article__gallery-lb-fig {
+    margin: 0;
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .theinmag-article__gallery-lb-img {
+    max-width: min(92vw, 1300px);
+    max-height: 82vh;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .theinmag-article__gallery-lb-cap {
+    margin: 0;
+    max-width: 60ch;
+    color: #f3ecdd;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 1.6rem;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .theinmag-article__gallery-lb-count {
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    z-index: 4;
+    margin: 0;
+    color: #cfc7d6;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: 1.4rem;
+    letter-spacing: 0.06em;
+  }
+
+  .theinmag-article__gallery-lb-btn {
+    position: absolute;
+    z-index: 4;
+    border: 0;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+  }
+
+  .theinmag-article__gallery-lb-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .theinmag-article__gallery-lb-btn:hover,
+  .theinmag-article__gallery-lb-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.24);
+    outline: none;
+  }
+
+  .theinmag-article__gallery-lb-btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-yellow);
+  }
+
+  .theinmag-article__gallery-lb-close {
+    top: 16px;
+    right: 20px;
+  }
+
+  .theinmag-article__gallery-lb-prev {
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .theinmag-article__gallery-lb-next {
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  @media (max-width: 680px) {
+    .theinmag-article__gallery-lb-prev {
+      left: 8px;
+    }
+    .theinmag-article__gallery-lb-next {
+      right: 8px;
+    }
+    .theinmag-article__gallery-lb-img {
+      max-height: 74vh;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-article__gallery-grid,
+    .theinmag-article__gallery-img,
+    .theinmag-article__gallery-tile,
+    .theinmag-article__gallery-glyph,
+    .theinmag-article__gallery-lb-btn {
+      transition: none;
+    }
+  }
 {%- endstylesheet -%}
 
 <script>
@@ -2101,6 +2788,491 @@
         answer.setAttribute('data-open', expanded ? 'false' : 'true');
       });
     });
+  })();
+</script>
+
+<script>
+  /* Photo mosaic — justified rows (greedy, Flickr / Google Photos style).
+     Ported from the reference algorithm Ryan signed off: fill each row at a
+     nominal base height, close the row when its natural width reaches the
+     container width, then set the row height so the row fills the width
+     exactly. Each tile's width/height are written inline so the image box
+     always matches the image's own aspect ratio — no crop, no distortion.
+     Every row fills the full width, including the last: when the final row
+     under-fills (a lone leftover, or one that would have to grow past a sane
+     height to fill), tiles are borrowed from the end of the previous row into
+     the last row and both are re-justified, so there is never a cream gap on
+     the right. Recomputed on resize; smaller base height on mobile. Aspect
+     ratios come from data-ar when present (correct before load), otherwise
+     from each image's natural dimensions probed on the fly. Does nothing when
+     the strip is absent. */
+  (function () {
+    var grid = document.querySelector('[data-theinmag-gallery]');
+    if (!grid) return;
+    var tiles = Array.prototype.slice.call(grid.querySelectorAll('[data-theinmag-gallery-tile]'));
+    if (!tiles.length) return;
+
+    var GAP = 6;
+    var ars = new Array(tiles.length);
+    var pending = 0;
+
+    /* Feature mosaic opt-in: the tile carrying data-feature becomes a tall
+       block on the right with the rest justified beside it. -1 = no feature
+       tile, so this post lays out as plain justified rows exactly as before. */
+    var featureIdx = -1;
+    for (var fscan = 0; fscan < tiles.length; fscan++) {
+      if (tiles[fscan].getAttribute('data-feature') === 'true') { featureIdx = fscan; break; }
+    }
+
+    function baseHeight() {
+      var w = window.innerWidth || document.documentElement.clientWidth;
+      if (w <= 680) return 200;
+      if (w <= 989) return 280;
+      return 360;
+    }
+
+    function containerWidth() {
+      /* Lay out to the visible content width (excludes the scrollbar), so
+         no tile is hidden under it. The section is 100vw; clip handles the
+         rest. */
+      return Math.min(grid.clientWidth, document.documentElement.clientWidth);
+    }
+
+    /* Plain justified-rows layout (the original engine, unchanged). Used for
+       every post with no feature tile, and as the fallback when a feature
+       block cannot fit (narrow viewports). */
+    function layoutPlain() {
+      var cw = containerWidth();
+      if (!cw) return;
+      var base = baseHeight();
+
+      /* Greedy row packing at the nominal base height: fill a row until its
+         natural width reaches the container, then close it. */
+      var rows = [], row = [], sumAr = 0;
+      for (var i = 0; i < tiles.length; i++) {
+        var ar = ars[i] || 1;
+        row.push(i);
+        sumAr += ar;
+        var naturalW = sumAr * base + GAP * (row.length - 1);
+        if (naturalW >= cw) { rows.push(row); row = []; sumAr = 0; }
+      }
+      if (row.length) rows.push(row);
+
+      /* maxH is the target row height: rows aim to sit at or below it, and a
+         last row taller than this triggers borrowing. */
+      var maxH = base * 1.5;
+      function justifiedHeight(idxs) {
+        var s = 0;
+        for (var j = 0; j < idxs.length; j++) s += (ars[idxs[j]] || 1);
+        return (cw - GAP * (idxs.length - 1)) / s;
+      }
+
+      /* Last-row balancing. A leftover final row (often a lone image)
+         justified to full width would blow up far past a sane height. Rather
+         than cap it and leave a big cream gap on the right, borrow tiles from
+         the END of the previous row into the FRONT of the last row and
+         re-justify, until the last row sits at a reasonable height. A borrow
+         is only taken when it would NOT push the previous row past maxH, so
+         moving photos down a row can never leave an upper row lopsidedly tall.
+         Effect: a couple of photos drop down and both rows fill and balance. */
+      while (rows.length >= 2 && justifiedHeight(rows[rows.length - 1]) > maxH) {
+        var prevRow = rows[rows.length - 2];
+        if (prevRow.length <= 1) break;
+        var trialPrev = prevRow.slice(0, prevRow.length - 1);
+        if (justifiedHeight(trialPrev) > maxH) break;
+        rows[rows.length - 1].unshift(prevRow.pop());
+      }
+
+      for (var r = 0; r < rows.length; r++) {
+        var idxs = rows[r];
+        var rowAr = 0;
+        for (var k = 0; k < idxs.length; k++) rowAr += (ars[idxs[k]] || 1);
+        var avail = cw - GAP * (idxs.length - 1);
+        var isLast = (r === rows.length - 1);
+        /* Every row of two or more images fills the full width, so there is
+           never a cream gap on the right, even when the last row ends a
+           little taller than the rest. The ONLY thing that ever leaves a gap
+           is a gallery of a SINGLE image: stretched to full width it would be
+           grotesquely tall, so a lone image is capped and sits left. Any
+           multi-image leftover has already been rehomed by the borrowing
+           above, so it never reaches this. */
+        var fillWidth = true;
+        var H = avail / rowAr;
+        if (isLast && idxs.length === 1 && H > maxH) { H = maxH; fillWidth = false; }
+        H = Math.round(H);
+
+        var wsum = 0;
+        for (var k2 = 0; k2 < idxs.length; k2++) {
+          var ti = idxs[k2];
+          var w = Math.round((ars[ti] || 1) * H);
+          /* Full-width rows: the last tile absorbs rounding so the tile
+             widths sum to exactly avail (cw minus the flex gaps) and the
+             row never wraps early or falls short. Track widths only; the
+             6px gaps are added by flex, not counted here. The capped
+             fallback row is left-aligned, so it skips this. */
+          if (fillWidth && k2 === idxs.length - 1) { w = avail - wsum; }
+          wsum += w;
+          tiles[ti].style.width = w + 'px';
+          tiles[ti].style.height = H + 'px';
+        }
+      }
+
+      if (pending === 0) grid.setAttribute('data-ready', 'true');
+    }
+
+    /* ---- Feature-block engine (ported from the reference solve). A feature
+       tile spans N justified rows on the RIGHT; the other tiles fill N rows to
+       its LEFT. Closed form: every left row and the feature meet the same total
+       height, and each row fills (containerWidth - GAP - featureWidth) exactly,
+       so edges meet with no cropping (every box keeps its image's own ratio).
+       N is 3 on desktop/tablet, 2 on phone, and falls back N -> N-1 -> ... when
+       the block cannot fit, ending at plain rows (feature just the first tile)
+       so a phone never gets an absurdly tall feature. ---- */
+
+    function arSum(idxs) {
+      var s = 0;
+      for (var j = 0; j < idxs.length; j++) s += (ars[idxs[j]] || 1);
+      return s;
+    }
+
+    /* Per-breakpoint params: base = plain-row target height, cb = companion
+       target height beside the feature, rows = rows beside, share = max
+       fraction of the width the feature may take before a row is dropped. */
+    function bpParams(cw) {
+      if (cw <= 680) return { base: 200, cb: 170, rows: 2, share: 1.0 };
+      if (cw <= 989) return { base: 280, cb: 200, rows: 3, share: 0.55 };
+      return { base: 360, cb: 260, rows: 3, share: 0.55 };
+    }
+
+    /* Greedy row fill at nominal height h (for the plain rows under a block). */
+    function packRow(idxs, width, h) {
+      var out = [], s = 0;
+      for (var k = 0; k < idxs.length; k++) {
+        var i = idxs[k];
+        out.push(i);
+        s += (ars[i] || 1);
+        if (s * h + GAP * (out.length - 1) >= width) break;
+      }
+      return out;
+    }
+
+    function jhf(idxs, cw) {
+      return (cw - GAP * (idxs.length - 1)) / arSum(idxs);
+    }
+
+    /* Closed-form solve for a block of N left rows beside the feature.
+       Returns { Hf, fw, H:[per-row heights] } as floats. */
+    function solveBlock(arF, rowsArr, cw) {
+      var K = cw - GAP, n = rowsArr.length, A = [], g = [];
+      for (var j = 0; j < n; j++) { A.push(arSum(rowsArr[j])); g.push(GAP * (rowsArr[j].length - 1)); }
+      var num = GAP * (n - 1), den = 1;
+      for (var j2 = 0; j2 < n; j2++) { num += (K - g[j2]) / A[j2]; den += arF * (1 / A[j2]); }
+      var Hf = num / den, fw = arF * Hf, H = [];
+      for (var j3 = 0; j3 < n; j3++) H.push((K - fw - g[j3]) / A[j3]);
+      return { Hf: Hf, fw: fw, H: H };
+    }
+
+    /* Split idxs (order kept) into n contiguous rows with sum-of-ratios as even
+       as possible, always leaving at least one tile per remaining row. */
+    function partition(idxs, n) {
+      var total = arSum(idxs), target = total / n;
+      var rowsP = [], row = [], s = 0;
+      for (var k = 0; k < idxs.length; k++) {
+        var i = idxs[k];
+        var leftTiles = idxs.length - k;
+        var leftRows = n - rowsP.length;
+        if (row.length && leftRows > 1 &&
+            (Math.abs(s + (ars[i] || 1) - target) > Math.abs(s - target) || leftTiles <= leftRows - 1)) {
+          rowsP.push(row); row = []; s = 0;
+        }
+        row.push(i); s += (ars[i] || 1);
+      }
+      rowsP.push(row);
+      return rowsP;
+    }
+
+    /* Choose how many companions sit beside the feature and split them into n
+       rows. Returns { rows, rest } or null when a block of n rows is not viable
+       (feature would hog the width, or no room for even a narrow companion). */
+    function planBlock(arF, others, cw, cb, n, share) {
+      if (others.length < n) return null;
+      var fw0 = arF * (n * cb + GAP * (n - 1));
+      var rem = cw - GAP - fw0;
+      if (fw0 > share * cw) return null;
+      if (rem < 0.4 * cb) return null;
+      var want = n * rem;
+      var m = 0, W = 0;
+      while (m < others.length && W < want) { W += (ars[others[m]] || 1) * cb + GAP; m++; }
+      var candsSet = {};
+      candsSet[Math.max(n, m - 1)] = 1;
+      candsSet[Math.max(n, m)] = 1;
+      var cands = Object.keys(candsSet).map(Number).sort(function (a, b) { return a - b; });
+      var best = null;
+      for (var c = 0; c < cands.length; c++) {
+        var mc = Math.min(cands[c], others.length);
+        var rws = partition(others.slice(0, mc), n);
+        var sol = solveBlock(arF, rws, cw);
+        var mn = Infinity, mx = -Infinity;
+        for (var q = 0; q < sol.H.length; q++) { var hv = sol.H[q]; if (hv < mn) mn = hv; if (hv > mx) mx = hv; }
+        var evenness = (mn > 0) ? mx / mn : Infinity;
+        var Wmc = 0;
+        for (var q2 = 0; q2 < mc; q2++) Wmc += (ars[others[q2]] || 1) * cb;
+        Wmc += GAP * (mc - n);
+        var s0 = Math.round(evenness * 1000) / 1000, s1 = Math.abs(Wmc - want);
+        if (best === null || s0 < best.s0 || (s0 === best.s0 && s1 < best.s1)) {
+          best = { s0: s0, s1: s1, rows: rws, rest: others.slice(mc) };
+        }
+      }
+      return best ? { rows: best.rows, rest: best.rest } : null;
+    }
+
+    /* Full feature layout: returns { boxes:[{idx,x,y,w,h}], total } in px, or
+       null when even a 2-row block will not fit (caller falls back to plain). */
+    function layoutFeature(cw) {
+      var p = bpParams(cw), base = p.base, cb = p.cb, maxH = base * 1.5;
+      var others = [];
+      for (var i = 0; i < tiles.length; i++) { if (i !== featureIdx) others.push(i); }
+      var arF = ars[featureIdx] || 1;
+
+      var n = p.rows, plan = null;
+      while (n >= 2 && plan === null) { plan = planBlock(arF, others, cw, cb, n, p.share); if (plan === null) n--; }
+      if (plan === null) return null;
+
+      var brows = plan.rows, rest = plan.rest.slice();
+
+      /* Plain rows for the remainder (if any) at the normal base height. */
+      var rows = [];
+      while (rest.length) { var rr = packRow(rest, cw, base); rows.push(rr); rest = rest.slice(rr.length); }
+
+      /* Last-row balancing, borrowing from block row N when the previous row IS
+         block row N (re-solved so the block never goes past maxH). */
+      var lastBlock = brows[brows.length - 1];
+      function prevOf(k) { return k > 0 ? rows[k - 1] : lastBlock; }
+      while (rows.length && jhf(rows[rows.length - 1], cw) > maxH) {
+        var prev = prevOf(rows.length - 1);
+        if (prev.length <= 1) break;
+        var trial = prev.slice(0, prev.length - 1);
+        if (prev === lastBlock) {
+          var tb = brows.slice(0, brows.length - 1); tb.push(trial);
+          var solT = solveBlock(arF, tb, cw);
+          if (solT.H[solT.H.length - 1] > maxH) break;
+        } else if (jhf(trial, cw) > maxH) {
+          break;
+        }
+        rows[rows.length - 1].unshift(prev.pop());
+      }
+
+      /* Emit the block: feature on the right, left rows justified to fill the
+         remaining width; the last tile in each row absorbs rounding so edges
+         meet exactly. */
+      var boxes = [], y = 0;
+      var sol = solveBlock(arF, brows, cw);
+      var H = sol.H.map(function (h) { return Math.round(h); });
+      var Hf = 0;
+      for (var a = 0; a < H.length; a++) Hf += H[a];
+      Hf += GAP * (H.length - 1);
+      var fw = Math.round(arF * Hf);
+      var fx = cw - fw, x0 = 0;              /* feature on the RIGHT */
+      boxes.push({ idx: featureIdx, x: fx, y: y, w: fw, h: Hf });
+      var rowW = cw - fw - GAP, yy = y;
+      for (var b = 0; b < brows.length; b++) {
+        var r = brows[b], Hr = H[b], x = x0;
+        for (var k = 0; k < r.length; k++) {
+          var ti = r[k], w = Math.round((ars[ti] || 1) * Hr);
+          if (k === r.length - 1) w = x0 + rowW - x;   /* absorb rounding */
+          boxes.push({ idx: ti, x: x, y: yy, w: w, h: Hr });
+          x += w + GAP;
+        }
+        yy += Hr + GAP;
+      }
+      y += Hf + GAP;
+
+      /* Plain rows below the block (only when there was a remainder). */
+      for (var rr2 = 0; rr2 < rows.length; rr2++) {
+        var r2 = rows[rr2], avail = cw - GAP * (r2.length - 1), Hr2 = avail / arSum(r2), fill = true;
+        if (r2.length === 1 && Hr2 > maxH) { Hr2 = maxH; fill = false; }
+        Hr2 = Math.round(Hr2);
+        var x2 = 0;
+        for (var k2 = 0; k2 < r2.length; k2++) {
+          var ti2 = r2[k2], w2 = Math.round((ars[ti2] || 1) * Hr2);
+          if (fill && k2 === r2.length - 1) w2 = cw - x2;
+          boxes.push({ idx: ti2, x: x2, y: y, w: w2, h: Hr2 });
+          x2 += w2 + GAP;
+        }
+        y += Hr2 + GAP;
+      }
+
+      return { boxes: boxes, total: y - GAP };
+    }
+
+    /* Reset any absolute positioning left by a prior feature-mode pass, so a
+       resize down into the plain fallback returns tiles to normal flex flow. */
+    function clearAbsolute() {
+      grid.style.position = '';
+      grid.style.height = '';
+      for (var i = 0; i < tiles.length; i++) {
+        var s = tiles[i].style;
+        s.position = ''; s.left = ''; s.top = '';
+      }
+    }
+
+    /* Dispatcher: feature post -> try the feature block, else plain rows. A
+       post with no feature tile goes straight to the untouched plain engine. */
+    function layout() {
+      var cw = containerWidth();
+      if (!cw) return;
+      if (featureIdx >= 0) {
+        var res = layoutFeature(cw);
+        if (res) {
+          grid.style.position = 'relative';
+          grid.style.height = res.total + 'px';
+          for (var b = 0; b < res.boxes.length; b++) {
+            var bx = res.boxes[b], st = tiles[bx.idx].style;
+            st.position = 'absolute';
+            st.left = bx.x + 'px';
+            st.top = bx.y + 'px';
+            st.width = bx.w + 'px';
+            st.height = bx.h + 'px';
+          }
+          if (pending === 0) grid.setAttribute('data-ready', 'true');
+          return;
+        }
+        clearAbsolute();   /* block would not fit: fall back to plain rows */
+      }
+      layoutPlain();
+    }
+
+    /* Resolve aspect ratios: data-ar first (correct before load), else the
+       image's natural size, probed via a detached Image so the layout is
+       not blocked by lazy loading. */
+    tiles.forEach(function (tile, i) {
+      var d = parseFloat(tile.getAttribute('data-ar'));
+      if (d && d > 0) { ars[i] = d; return; }
+      var img = tile.querySelector('img');
+      if (img && img.naturalWidth && img.naturalHeight) {
+        ars[i] = img.naturalWidth / img.naturalHeight;
+        return;
+      }
+      pending++;
+      var probe = new Image();
+      probe.onload = probe.onerror = function () {
+        ars[i] = (probe.naturalWidth && probe.naturalHeight)
+          ? probe.naturalWidth / probe.naturalHeight
+          : 1;
+        pending--;
+        layout();
+      };
+      probe.src = tile.getAttribute('data-full')
+        || (img && (img.currentSrc || img.src));
+    });
+
+    /* First paint with whatever is known; probes refine it as they land. */
+    layout();
+    /* Safety reveal in case a probe never fires. */
+    window.setTimeout(function () { grid.setAttribute('data-ready', 'true'); }, 1500);
+
+    var rt;
+    window.addEventListener('resize', function () {
+      window.clearTimeout(rt);
+      rt = window.setTimeout(layout, 120);
+    }, { passive: true });
+  })();
+</script>
+
+<script>
+  /* Photo mosaic lightbox. Reads photo data straight off the rendered
+     tiles (data-full + data-caption), so it needs no server-injected JS
+     array and simply does nothing when the strip is absent. Mechanics
+     ported from the approved prototype: prev/next/close, counter, Esc +
+     arrow keys, click-scrim close, basic touch swipe, focus moved on open
+     and restored on close. Controls sit above the backdrop (z-index 4 vs
+     stage 1) so a control click never falls through and closes it. */
+  (function () {
+    var grid = document.querySelector('[data-theinmag-gallery]');
+    var lb = document.querySelector('[data-theinmag-gallery-lightbox]');
+    if (!grid || !lb) return;
+
+    var tiles = Array.prototype.slice.call(grid.querySelectorAll('[data-theinmag-gallery-tile]'));
+    if (!tiles.length) return;
+
+    var lbImg = lb.querySelector('[data-theinmag-gallery-image]');
+    var lbCap = lb.querySelector('[data-theinmag-gallery-caption]');
+    var lbCount = lb.querySelector('[data-theinmag-gallery-count]');
+    var btnClose = lb.querySelector('[data-theinmag-gallery-close]');
+    var btnPrev = lb.querySelector('[data-theinmag-gallery-prev]');
+    var btnNext = lb.querySelector('[data-theinmag-gallery-next]');
+    var stage = lb.querySelector('[data-theinmag-gallery-stage]');
+
+    var photos = tiles.map(function (tile) {
+      return {
+        src: tile.getAttribute('data-full'),
+        cap: tile.getAttribute('data-caption') || ''
+      };
+    });
+
+    var idx = 0;
+    var lastFocus = null;
+    var single = photos.length < 2;
+    if (single) {
+      if (btnPrev) btnPrev.hidden = true;
+      if (btnNext) btnNext.hidden = true;
+    }
+
+    function render() {
+      var p = photos[idx];
+      lbImg.src = p.src;
+      lbImg.alt = p.cap;
+      lbCap.textContent = p.cap;
+      lbCap.hidden = p.cap === '';
+      lbCount.textContent = (idx + 1) + ' / ' + photos.length;
+    }
+
+    function open(i) {
+      idx = i;
+      lastFocus = document.activeElement;
+      render();
+      lb.hidden = false;
+      document.body.style.overflow = 'hidden';
+      btnClose.focus();
+    }
+
+    function close() {
+      lb.hidden = true;
+      document.body.style.overflow = '';
+      if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+    }
+
+    function next() { idx = (idx + 1) % photos.length; render(); }
+    function prev() { idx = (idx - 1 + photos.length) % photos.length; render(); }
+
+    tiles.forEach(function (tile, i) {
+      tile.addEventListener('click', function () { open(i); });
+    });
+
+    btnClose.addEventListener('click', close);
+    if (btnNext) btnNext.addEventListener('click', next);
+    if (btnPrev) btnPrev.addEventListener('click', prev);
+
+    lb.addEventListener('click', function (e) {
+      if (e.target === lb || e.target === stage) close();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (lb.hidden) return;
+      if (e.key === 'Escape') close();
+      else if (!single && e.key === 'ArrowRight') next();
+      else if (!single && e.key === 'ArrowLeft') prev();
+    });
+
+    var touchX = 0;
+    lb.addEventListener('touchstart', function (e) {
+      touchX = e.changedTouches[0].clientX;
+    }, { passive: true });
+    lb.addEventListener('touchend', function (e) {
+      if (single) return;
+      var dx = e.changedTouches[0].clientX - touchX;
+      if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+    }, { passive: true });
   })();
 </script>
 

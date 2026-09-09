@@ -200,6 +200,13 @@
         "body_override": "Every issue we have ever made as instant PDFs, over 1,000 pages of kid-made everything. On the iPad, the big screen, or printed at home.",
         "bg": "peach"
       }
+    },
+    "funnel": {
+      "type": "theinmag-funnel-strip",
+      "settings": {
+        "heading": "The magazine for creative kids",
+        "subheading": ""
+      }
     }
   },
   "order": [
@@ -209,6 +216,7 @@
     "lightbox",
     "stack-module",
     "mission",
-    "press"
+    "press",
+    "funnel"
   ]
 }
