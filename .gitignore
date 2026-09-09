@@ -8,3 +8,12 @@
 ehthumbs.db
 Thumbs.db
 .shopify
+
+# Secrets guard, added 2026-09-09. Nothing sensitive was tracked here, but
+# neither repo had any protection, and theinmag-dawn is a PUBLIC repo.
+.env
+.env.*
+*.env
+credentials/
+*service-account*.json
+token-*.json
