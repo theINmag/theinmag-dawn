@@ -398,9 +398,25 @@
         {%- endif -%}
       </div>
 
-      <p class="theinmag-membership-hero__trust-line">Cancel Rolling anytime &middot; Gifting? Every mag arrives addressed to them</p>
+      {%- comment -%}
+        "Cancel Rolling anytime" was removed 2026-09-09 (Ryan). It answered a
+        question about an option the visitor has not reached yet (the default is
+        4-Issue), it used the word "Rolling" before the picker explains it, and it
+        was already said twice more: the value row prints "cancel anytime" when
+        Rolling is selected, and the FAQ accordion says it again.
+      {%- endcomment -%}
+      <p class="theinmag-membership-hero__trust-line">Gifting? Every mag arrives addressed to them</p>
 
-      <p class="theinmag-membership-hero__shipping-note" data-shipping-note hidden>Shipping included</p>
+      {%- comment -%}
+        "Shipping included" used to live HERE, as its own paragraph above the form,
+        which meant Rolling grew an extra row and the whole block shifted down
+        relative to 4-Issue and 8-Issue. Moved into the value row's third slot
+        2026-09-09 (Ryan: "where it says shipping included, that should go where the
+        little pill that has the saving goes, next to cancel anytime"), so every
+        length now has the same three-part shape: price, then a qualifier, then one
+        pill. The element kept its data-shipping-note hook, so the JS that toggles
+        it is unchanged.
+      {%- endcomment -%}
 
       <form
         action="{{ routes.cart_add_url }}"
@@ -433,6 +449,12 @@
           <span class="theinmag-membership-hero__value-price" data-value-price></span>
           <span class="theinmag-membership-hero__value-per" data-per-mag></span>
           <span class="theinmag-membership-hero__value-save" data-save hidden></span>
+          {%- comment -%}
+            Rolling Print has shipping baked into the price, so it shows this in the
+            same slot the saving pill uses on 4-Issue and 8-Issue. Never both: a
+            length either has a bundle saving or it has shipping included.
+          {%- endcomment -%}
+          <span class="theinmag-membership-hero__value-shipping" data-shipping-note hidden>Shipping included</span>
         </div>
 
         <fieldset class="theinmag-membership-hero__fieldset">
@@ -1146,15 +1168,24 @@
   /* Shipping-included note appears under the price for Rolling Print + Rolling
      Combo - the spec bakes shipping into the Rolling variant price, so flag it
      up-front before the customer hits checkout. JS toggles `hidden`. */
-  .theinmag-membership-hero__shipping-note {
+  /* Shipping-included pill. Same geometry as the saving pill so the three
+     lengths line up, but deliberately SAGE rather than yellow and with no
+     rotation: this is a fact about what you get, not a discount being sold at
+     you. Making a plain fact wear the shouty stamp costume is what tips a page
+     from informative into pushy, which is the thing we were cutting back on. */
+  .theinmag-membership-hero__value-shipping {
+    display: inline-block;
+    background: var(--color-mint, #D6EAD9);
+    color: var(--color-sage-dark, #4A7C5C);
     font-family: var(--font-body);
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 1.4;
-    color: var(--color-sage-dark);
-    margin: 0 0 var(--space-md);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
   }
-  .theinmag-membership-hero__shipping-note[hidden] { display: none; }
+  .theinmag-membership-hero__value-shipping[hidden] { display: none; }
 
   .theinmag-membership-hero__form { display: block; }
 
@@ -1457,7 +1488,12 @@
      widget's desktop width; it may wrap to two on narrow phones, which
      is fine. */
   .theinmag-membership-hero__trust-line {
-    margin: 4px 0 0;
+    /* Bottom margin added 2026-09-09 (Ryan: "a little bit more space between that
+       and the $89"). It was 0, and the form below carries no top margin either, so
+       the trust line and the price row were touching. That crowding is what made
+       the whole block read as cluttered: six separate messages with no air between
+       any of them. */
+    margin: 4px 0 var(--space-lg);
     font-family: var(--font-body);
     font-size: 11px;
     line-height: 1.5;
@@ -1814,7 +1850,12 @@
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--color-soft-pink);
+    /* WAS var(--color-soft-pink) #F7A092, which measured 1.87 to 1 on this cream
+       card at 10px and was effectively invisible. Coral-dark is an EXISTING brand
+       token in the same warm family and measures 4.04. Overridden here rather than
+       changing --color-soft-pink, because that token is used sitewide and only this
+       tiny uppercase label is the problem. (2026-09-08) */
+    color: var(--color-coral-dark, #C9543E);
     line-height: 1;
   }
   .theinmag-membership-hero__floating-cart-summary {

@@ -237,25 +237,48 @@
     font-size: clamp(17px, 2vw, 24px);
     line-height: 1.2;
     letter-spacing: -0.01em;
-    /* Inactive: 30% purple. */
-    color: rgba(123, 79, 158, 0.3);
+    /* Inactive: muted INK at 40%, matching .theinmag-philosophy__anchor on the
+       homepage exactly (2026-09-08, Ryan's call: "adjust thing one to be in line
+       with this philosophies section, I like that it's faded until clicked on").
+
+       WAS: rgba(123, 79, 158, 0.3), the brand purple at 30%, which measured 1.55
+       to 1 against this cream and was close to unreadable for anyone who did not
+       already know what it said. The fix is NOT more opacity: purple at full
+       strength only reaches 5.84, so passing 4.5 would have needed ~88%, at which
+       point the selected item is indistinguishable from the rest and the fade
+       stops meaning anything.
+
+       Switching the HUE to ink is what actually helps, and it helps both states at
+       once. Measured on this cream background:
+         inactive  purple 30%  1.55  ->  ink 40%   2.38
+         active    purple     5.84   ->  ink      14.81
+       The active jump is the important one: it is what makes the selected line
+       obvious without relying on colour, which matters on a site whose owner is
+       red-green colourblind.
+
+       HONEST NOTE, so nobody "fixes" this later thinking it was missed: 2.38 does
+       NOT meet WCAG 2.2 AA's 4.5 for normal text. Keeping the fade is a deliberate
+       design decision Ryan made after looking at it, and it is consistent with the
+       homepage. If that decision is ever revisited, the answer is to stop signalling
+       selection by fade (add weight or a marker), not to nudge the alpha. */
+    color: rgba(42, 31, 61, 0.4);
     transition: color var(--transition-hover, 0.2s ease), transform var(--transition-hover, 0.2s ease);
   }
 
   .theinmag-pillars__nav-btn:hover,
   .theinmag-pillars__nav-btn:focus-visible {
-    color: rgba(123, 79, 158, 0.7);
+    color: rgba(42, 31, 61, 0.75);
     outline: none;
   }
 
   .theinmag-pillars__nav-btn:focus-visible {
-    outline: 2px dashed #7B4F9E;
+    outline: 2px dashed var(--color-inky-purple-navy, #2A1F3D);
     outline-offset: 6px;
     border-radius: 2px;
   }
 
   .theinmag-pillars__nav-btn.is-active {
-    color: #7B4F9E;
+    color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
   /* First-anchor pulse hint matching the homepage philosophy pattern.
