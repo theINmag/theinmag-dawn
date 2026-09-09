@@ -427,6 +427,34 @@
         media_images (list.file_reference). Featured image is fallback
         when both metafields are empty.
       {%- endcomment -%}
+      {%- comment -%}
+        LEFT COLUMN. Wraps media-col + desc-col so the left side is ONE
+        normal flow: cover, thumbs, then description directly underneath.
+
+        KNOWN TRADE, accepted 2026-09-07. Moving desc-col next to
+        media-col means the mobile DOM order (headline, media, desc,
+        widget) no longer matches the mobile VISUAL order (headline,
+        media, widget, desc), which `order` produces below. Tab order is
+        unaffected today because the description holds no focusables,
+        but a screen reader reads it before the buy widget. If
+        description_block ever gains links or buttons, this needs
+        revisiting rather than leaving as is.
+
+        Why the wrapper exists (2026-09-07). The old layout gave each of
+        the four blocks its own grid area across three rows, with the
+        widget spanning rows 2 and 3. CSS grid pushes a spanning item's
+        height into the rows it spans, so the tall widget inflated row 2
+        to 795px while the media column only needed 543px. The
+        description could not start until row 3 opened, leaving 330px of
+        dead space under the cover. Ryan spotted it; measured, not
+        guessed. Wrapping removes the row negotiation entirely.
+
+        On mobile this wrapper is dissolved with display:contents and the
+        four blocks are re-sequenced with order, so the spec stack
+        (title, media, widget, description) is preserved. See the mobile
+        block near the end of this stylesheet.
+      {%- endcomment -%}
+      <div class="theinmag-single-mags-hero__left-col">
       <div class="theinmag-single-mags-hero__media-col">
         {%- for issue in sorted_issues -%}
           {%- liquid
@@ -777,6 +805,33 @@
       </div>
 
       {%- comment -%}
+        DESCRIPTION BLOCK. Sits directly under the thumb strip as the
+        second child of the left column, so it follows the cover in
+        normal flow with no grid rows involved.
+      {%- endcomment -%}
+      <div class="theinmag-single-mags-hero__desc-col" data-desc-col>
+        {%- for issue in sorted_issues -%}
+          {%- liquid
+            assign desc_body = issue.metafields.single_mag.description_block
+            assign is_active_issue = false
+            if issue.handle == initial_issue.handle
+              assign is_active_issue = true
+            endif
+          -%}
+          <div
+            class="theinmag-single-mags-hero__desc"
+            data-issue-handle="{{ issue.handle }}"
+            data-desc
+            {% unless is_active_issue %}hidden{% endunless %}
+          >
+            {% if desc_body != blank %}{{ desc_body | metafield_tag }}{% endif %}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      </div>{%- comment -%} /__left-col {%- endcomment -%}
+
+      {%- comment -%}
         SALES WIDGET RIGHT. Sticky desktop. Title and subtagline slots
         update from picker selection. Variant tiles drive the cart.
       {%- endcomment -%}
@@ -867,6 +922,37 @@
               </button>
             </div>
           </fieldset>
+
+          {%- comment -%}
+            FLIP CALLOUT. Directly under the format toggle and directly above
+            Add to cart: the buyer has just chosen Print, which is the only
+            format this applies to, and this is the last thing they read
+            before committing. Its job is to stop a "this is a misprint"
+            complaint BEFORE the sale, not after.
+
+            It used to sit under the description. Tam found the flaw: on
+            phones the stack is media, widget, description, so down there it
+            landed well after Add to cart and nobody scrolled that far. Ryan
+            scrolled straight past it too (2026-09-07). First move put it
+            above the price, which split the rating from the price, so it
+            landed here instead.
+
+            One container per issue, hidden unless active, mirroring the
+            desc-col pattern; the picker JS toggles them by handle. Print
+            only, gated in CSS off data-active-format, because the digital
+            edition reads the right way up.
+          {%- endcomment -%}
+          <div class="theinmag-single-mags-hero__flip-col">
+            {%- for issue in sorted_issues -%}
+              <div
+                data-flip-for-issue
+                data-issue-handle="{{ issue.handle }}"
+                {% unless issue.handle == initial_issue.handle %}hidden{% endunless %}
+              >
+                {% render 'theinmag-flip-callout', issue: issue %}
+              </div>
+            {%- endfor -%}
+          </div>
 
           <p class="theinmag-single-mags-hero__preorder" data-preorder-note{% unless initial_is_pre_order %} hidden{% endunless %} role="note">
             <span class="theinmag-single-mags-hero__preorder-icon" aria-hidden="true">&#128197;</span>
@@ -966,32 +1052,6 @@
 
       </div>
 
-      {%- comment -%}
-        DESCRIPTION BLOCK. Now lives INSIDE the row grid in row 2, col 1
-        (under media-col only - widget spans both rows). This way the
-        description nestles directly under the thumb strip regardless
-        of how tall the widget grows with accordions / mini-reviews /
-        cross-sell tile underneath.
-      {%- endcomment -%}
-      <div class="theinmag-single-mags-hero__desc-col" data-desc-col>
-        {%- for issue in sorted_issues -%}
-          {%- liquid
-            assign desc_body = issue.metafields.single_mag.description_block
-            assign is_active_issue = false
-            if issue.handle == initial_issue.handle
-              assign is_active_issue = true
-            endif
-          -%}
-          <div
-            class="theinmag-single-mags-hero__desc"
-            data-issue-handle="{{ issue.handle }}"
-            data-desc
-            {% unless is_active_issue %}hidden{% endunless %}
-          >
-            {% if desc_body != blank %}{{ desc_body | metafield_tag }}{% endif %}
-          </div>
-        {%- endfor -%}
-      </div>
     </div>
 
     </div>{%- comment -%} /__card {%- endcomment -%}
@@ -1117,6 +1177,10 @@
     const pickerItems = Array.from(root.querySelectorAll('[data-picker-item]'));
     const mediaContainers = Array.from(root.querySelectorAll('[data-media]'));
     const descContainers = Array.from(root.querySelectorAll('[data-desc]'));
+    /* Flip callouts live in the widget, one per issue, same show/hide
+       contract as descContainers. Only Mag09 has one today, so most of
+       these wrappers are empty; hiding an empty div costs nothing. */
+    const flipContainers = Array.from(root.querySelectorAll('[data-flip-for-issue]'));
     const titleEl = root.querySelector('[data-issue-title]');
     const subtagEl = root.querySelector('[data-issue-subtagline]');
     const priceDisplay = root.querySelector('[data-price-display]');
@@ -1240,6 +1304,9 @@
 
       showActiveMedia();
       descContainers.forEach(function (c) {
+        c.hidden = c.dataset.issueHandle !== handle;
+      });
+      flipContainers.forEach(function (c) {
         c.hidden = c.dataset.issueHandle !== handle;
       });
 
@@ -1944,19 +2011,42 @@
          Headline (title + tagline + stars) tops the right column,
          mirroring the membership hero (2026-08-12). */
       grid-template-columns: minmax(0, clamp(320px, 46%, 540px)) minmax(0, 1fr);
-      grid-template-rows: auto auto auto;
+      /* TWO rows, not three. The left column is now a single wrapper
+         spanning both, so the cover and the description flow into each
+         other with no grid row deciding where the description may start.
+         The old three-row version let the tall widget (spanning rows 2
+         and 3) inflate row 2 and strand 330px of dead space under the
+         cover. */
+      grid-template-rows: auto auto;
       grid-template-areas:
-        "media headline"
-        "media widget"
-        "desc widget";
+        "left headline"
+        "left widget";
       column-gap: var(--space-2xl);
       row-gap: var(--space-md);
       align-items: start;
     }
-    .theinmag-single-mags-hero__media-col { grid-area: media; }
-    .theinmag-single-mags-hero__headline { grid-area: headline; }
+    .theinmag-single-mags-hero__left-col {
+      grid-area: left;
+      min-width: 0;
+    }
+    /* Separator that used to sit on desc-col now spaces it from the
+       thumb strip inside the left column's own flow. */
+    .theinmag-single-mags-hero__left-col .theinmag-single-mags-hero__desc-col {
+      margin-top: var(--space-lg);
+    }
+    .theinmag-single-mags-hero__headline {
+      grid-area: headline;
+      /* Match __widget's left padding. Headline is a SIBLING of the widget,
+         not a child, so without this the title hangs 16px left of the
+         subtagline, price and format toggle that sit inside the widget's
+         padding box. Ryan spotted the misalignment 2026-09-07. Desktop only:
+         below 750px the widget's padding flips to top-only, so both already
+         share the same left edge. */
+      padding-left: var(--space-md);
+    }
     .theinmag-single-mags-hero__widget { grid-area: widget; }
-    .theinmag-single-mags-hero__desc-col { grid-area: desc; }
+    /* desc-col no longer takes a grid area: it is a child of __left-col
+       and sits in that column's normal flow, under the thumb strip. */
   }
 
   @media (max-width: 749px) {
@@ -2209,6 +2299,16 @@
     opacity: 0.78;
     margin: 0;
     text-align: left;
+    /* Subtaglines name a kid at the end, so a ragged break can strand
+       "age 10." on a line of its own.
+
+       pretty, NOT balance. balance evens every line length, which on a
+       three-line phone wrap pulls all the lines well short of the right
+       edge and reads like a mistake (Ryan flagged it 2026-09-07). pretty
+       fills each line normally and only protects the last one. Where
+       pretty is unsupported it degrades to normal wrapping, which is the
+       full-width behaviour we want anyway. */
+    text-wrap: pretty;
   }
   .theinmag-single-mags-hero__rating-link {
     display: inline-flex;
@@ -2747,15 +2847,31 @@
   .theinmag-single-mags-hero__desc p { margin: 0 0 var(--space-md); }
   .theinmag-single-mags-hero__desc p:last-child { margin-bottom: 0; }
 
+  /* ---------- Flip callout ----------
+     The card's own styles moved to assets/theinmag-base.css on 2026-09-07
+     when the start picker became a second surface for it. Only the
+     hero-specific gate stays here.
+
+     PRINT ONLY. The digital edition of Mag09 was corrected and reads the
+     right way up, so showing this to a digital buyer would manufacture the
+     exact confusion it exists to prevent. Same data-active-format hook the
+     picker cover swap already uses. */
+  .theinmag-single-mags-hero[data-active-format='Digital'] .theinmag-single-mags-hero__flip-col {
+    display: none;
+  }
+
   /* ---------- Mobile order ---------- */
   /* Spec stack order on mobile:
        1 picker
        2 media (main + thumbs)
        3 sales widget
        4 description
-     The picker is already at the top of __inner. Below 750px the row
-     stacks naturally (1fr grid), media first because it's the first
-     child of __row. Description sits at the bottom of __inner. */
+     The picker is already at the top of __inner. Since 2026-09-07 this
+     order is NOT the natural DOM order: media-col and desc-col are
+     wrapped in __left-col for the desktop layout, so below 750px that
+     wrapper is dissolved with display:contents and the four blocks are
+     re-sequenced with `order` in the media query below. Change the
+     markup order and you must change those order values too. */
 
   @media (max-width: 749px) {
     .theinmag-single-mags-hero {
@@ -2767,6 +2883,21 @@
     .theinmag-single-mags-hero__variants {
       grid-template-columns: 1fr 1fr;
     }
+
+    /* The desktop-only left column is dissolved here so its two children
+       become direct children of __row again. Without this the wrapper
+       would drag the description up the page with the cover and land it
+       ABOVE the buy widget. display:contents does exactly that and is
+       safe on a plain presentational div with no role or aria.
+
+       Order then restores the spec stack, which DOM order alone can no
+       longer give us now that desc-col sits next to media-col in the
+       markup: title, media, widget, description. */
+    .theinmag-single-mags-hero__left-col { display: contents; }
+    .theinmag-single-mags-hero__headline { order: 1; }
+    .theinmag-single-mags-hero__media-col { order: 2; }
+    .theinmag-single-mags-hero__widget { order: 3; }
+    .theinmag-single-mags-hero__desc-col { order: 4; margin-top: 0; }
   }
 
   /* ---------- Floating cart ---------- */
@@ -2861,7 +2992,12 @@
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--color-soft-pink);
+    /* WAS var(--color-soft-pink) #F7A092, which measured 1.87 to 1 on this cream
+       card at 10px and was effectively invisible. Coral-dark is an EXISTING brand
+       token in the same warm family and measures 4.04. Overridden here rather than
+       changing --color-soft-pink, because that token is used sitewide and only this
+       tiny uppercase label is the problem. (2026-09-08) */
+    color: var(--color-coral-dark, #C9543E);
     line-height: 1;
   }
   .theinmag-single-mags-hero__floating-cart-summary {
