@@ -25,10 +25,16 @@
   snippet `theinmag-competitions-data`. Migration path to Option A
   (Shopify metaobjects) is documented in the spec.
 
-  Spotlight: admin-curated. Pool is the three competitions curated in
-  the build script's SPOTLIGHT_ORDER (first = the pinned top pick,
-  currently Banabae). Does NOT auto-rotate: the top pick holds until a
-  visitor taps the manual prev/next arrows (crossfade between cards).
+  Spotlight: admin-curated. Pool is the competitions curated in the
+  build script's SPOTLIGHT_ORDER, capped at SPOTLIGHT_MAX (first = the
+  card that shows on load). Cards crossfade. AUTO-ADVANCES on a timer
+  set by the "Top picks rotation" schema setting (default 6s, set 0 to
+  turn it off), with the manual prev/next arrows always available. The
+  timer yields to the visitor in every direction: it never runs for
+  prefers-reduced-motion, it stops while the pointer or keyboard focus
+  is in the card, it stops while the tab is hidden or the panel is
+  scrolled out of view, and one tap of an arrow ends it for the rest of
+  the session. See the JS block for the full rules.
 
   Static-stage technique: section 2 of the stage uses an internal
   scroll container on desktop (overflow-y: auto on .theinmag-comps__list
@@ -61,6 +67,53 @@
 
 {%- liquid
   assign comp_size = comp_ids.size
+
+  comment
+    RENDER-TIME BADGE EXPIRY (added 2026-08-25, Compton + Webster, on Ryan's go).
+
+    WHY: comp_tile_states is computed by build-competitions-data.py at BUILD
+    time, so a tile was only ever as fresh as the last rebuild AND push. Between
+    Compton's Tuesday runs a closing date could pass and the tile would keep
+    telling a family "live now" about a competition that had shut. Measured over
+    120 days that was about 20 tile-days in the damaging direction, worst case
+    six (a Wednesday close waiting until the following Tuesday). Pushing weekly
+    was a mitigation, not a fix.
+
+    WHAT THIS DOES: comp_expiry_dates carries each row's real ISO closing date
+    ('' for perennial and TBC rows). Here we compare it to the RENDER date and
+    downgrade any tile whose close has passed to annual-again, so the drift is
+    zero with no rebuild involved. comp_live_states is what every render site
+    below reads instead of comp_tile_states.
+
+    SCOPE, deliberately: only the DAMAGING direction is handled. The opposite
+    flip (an opening date arriving, so "opens soon" should read "live now") is
+    harmless to a family and stays on the weekly rebuild. Do not describe this
+    as covering every badge flip.
+
+    THE OFF-BY-ONE THAT MATTERS: compare midnight to midnight. today_stamp is
+    built from the DATE string, not from 'now', so a comp closing today is still
+    open all day and only expires tomorrow. Using 'now' directly would close it
+    at 00:00 on its own closing day.
+
+    The pill text and meta line stay in the build script (label_for /
+    meta_line_for and their expired_* twins), so this Liquid only ever picks
+    between two pre-built strings and never composes wording of its own.
+  endcomment
+  assign today_stamp = 'now' | date: '%Y-%m-%d' | date: '%s' | times: 1
+  assign live_states_str = ''
+  for id in comp_ids
+    assign li = forloop.index0
+    assign lstate = comp_tile_states[li]
+    assign lexpiry = comp_expiry_dates[li]
+    if lexpiry != blank and lstate != 'annual-again'
+      assign lexpiry_stamp = lexpiry | date: '%s' | times: 1
+      if lexpiry_stamp < today_stamp
+        assign lstate = 'annual-again'
+      endif
+    endif
+    assign live_states_str = live_states_str | append: lstate | append: ','
+  endfor
+  assign comp_live_states = live_states_str | split: ','
 
   assign bg_pool_str = section.settings.bg_filename_1
   assign bg_pool_str = bg_pool_str | append: '|' | append: section.settings.bg_filename_2
@@ -289,8 +342,18 @@
           {%- comment -%} ---------- Live / opening / TBC tiles, top stack ---------- {%- endcomment -%}
           {%- for id in comp_ids -%}
             {%- assign idx = forloop.index0 -%}
-            {%- assign tile_state = comp_tile_states[idx] -%}
+            {%- comment -%}
+              comp_live_states, not comp_tile_states: a comp whose closing date
+              has passed since the last build drops out of this stack and into
+              the annual-again stack below, as the page renders. See the
+              render-time badge expiry note at the top of this file.
+            {%- endcomment -%}
+            {%- assign tile_state = comp_live_states[idx] -%}
             {%- if tile_state == 'annual-again' -%}{%- continue -%}{%- endif -%}
+            {%- comment -%}
+              Anything reaching here is NOT expired, so the built labels are
+              already correct and no expired_* swap is needed in this stack.
+            {%- endcomment -%}
 
             {%- assign cat_slug = comp_category_slugs[idx] -%}
             {%- assign comp_name = comp_names[idx] -%}
@@ -373,14 +436,27 @@
           {%- endfor -%}
 
           {%- comment -%} ---------- Annual comps whose 2026 window has passed, bottom stack ---------- {%- endcomment -%}
-          {%- assign states_joined = comp_tile_states | join: ',' -%}
+          {%- assign states_joined = comp_live_states | join: ',' -%}
           {%- if states_joined contains 'annual-again' -%}
             <h3 class="theinmag-comps__closed-heading" data-closed-heading>already run this year (back next time)</h3>
           {%- endif -%}
           {%- for id in comp_ids -%}
             {%- assign idx = forloop.index0 -%}
-            {%- assign tile_state = comp_tile_states[idx] -%}
+            {%- assign tile_state = comp_live_states[idx] -%}
             {%- if tile_state != 'annual-again' -%}{%- continue -%}{%- endif -%}
+
+            {%- comment -%}
+              A tile that expired since the last build lands here, and its built
+              label still says "live now". Swap in the expired_* pair, which the
+              build script computed for exactly this moment. Tiles the build
+              already knew were closed keep their own labels untouched.
+            {%- endcomment -%}
+            {%- assign state_label = comp_state_labels[idx] -%}
+            {%- assign meta_line = comp_meta_lines[idx] -%}
+            {%- if comp_tile_states[idx] != 'annual-again' -%}
+              {%- assign state_label = comp_expired_state_labels[idx] -%}
+              {%- assign meta_line = comp_expired_meta_lines[idx] -%}
+            {%- endif -%}
 
             {%- assign cat_slug = comp_category_slugs[idx] -%}
             {%- assign comp_url = comp_websites[idx] -%}
@@ -411,13 +487,13 @@
                 <span class="theinmag-comps__tile-pitch">{{ comp_pitches[idx] }}</span>
                 {%- assign closed_note = comp_entry_notes[idx] -%}
                 <span class="theinmag-comps__tile-meta">
-                  <span class="theinmag-comps__tile-meta-item">{{ comp_meta_lines[idx] }}</span>
+                  <span class="theinmag-comps__tile-meta-item">{{ meta_line }}</span>
                   {%- if closed_note != blank -%}
                     <span class="theinmag-comps__tile-meta-item theinmag-comps__tile-meta-item--note">{{ closed_note }}</span>
                   {%- endif -%}
                   <span class="theinmag-comps__tile-meta-item">{{ comp_wheres[idx] }}</span>
                 </span>
-                <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ tile_state }}"><span class="theinmag-comps__dot"></span> {{ comp_state_labels[idx] }}</span>
+                <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ tile_state }}"><span class="theinmag-comps__dot"></span> {{ state_label }}</span>
               </span>
               <span class="theinmag-comps__tile-cta" aria-hidden="true">view <span class="theinmag-comps__arrow">&rarr;</span></span>
             </a>
@@ -430,7 +506,15 @@
       {%- comment -%} ----- Right column: top-pick rotation + missed-card stack ----- {%- endcomment -%}
       <div class="theinmag-comps__right-col">
         <aside class="theinmag-comps__featured" data-featured aria-label="Top pick comp">
-          <div class="theinmag-comps__featured-stack" data-featured-stack>
+          <div class="theinmag-comps__featured-stack" data-featured-stack data-rotate-seconds="{{ section.settings.spotlight_rotate_seconds }}">
+            {%- comment -%}
+              spot_rendered counts CARDS ACTUALLY DRAWN, not loop iterations,
+              because a spotlight comp can now be skipped mid-loop (below). The
+              rotation JS reads querySelectorAll order and expects the FIRST
+              drawn card to carry is-active, so forloop.first would put the
+              active class on nothing at all if entry 1 were skipped.
+            {%- endcomment -%}
+            {%- assign spot_rendered = 0 -%}
             {%- for spot_id in spotlight_ids -%}
               {%- liquid
                 assign spot_idx = -1
@@ -442,16 +526,35 @@
                 endfor
               -%}
               {%- if spot_idx >= 0 -%}
+                {%- assign s_state = comp_live_states[spot_idx] -%}
+                {%- comment -%}
+                  A closed comp must never sit in "top picks". The build already
+                  filters SPOTLIGHT_ORDER to live-now comps, but that decision is
+                  made at build time, so one could close between Tuesdays. This
+                  is the render-time half of the same guard. The pool is kept
+                  longer than SPOTLIGHT_MAX precisely so there are spares.
+                {%- endcomment -%}
+                {%- if s_state == 'annual-again' -%}{%- continue -%}{%- endif -%}
                 {%- assign s_cat = comp_category_slugs[spot_idx] -%}
                 {%- assign s_url = comp_websites[spot_idx] -%}
                 {%- if s_url == blank -%}{%- assign s_url = '#' -%}{%- endif -%}
-                {%- assign s_state = comp_tile_states[spot_idx] -%}
                 <a
-                  class="theinmag-comps__featured-card theinmag-comps__featured-card--{{ s_cat }}{% if forloop.first %} is-active{% endif %}"
+                  class="theinmag-comps__featured-card theinmag-comps__featured-card--{{ s_cat }}{% if spot_rendered == 0 %} is-active{% endif %}"
                   href="{{ s_url }}"
                   target="_blank"
                   rel="noopener noreferrer"
-                  data-spot-index="{{ forloop.index0 }}"
+                  data-spot-index="{{ spot_rendered }}"
+                  {%- comment -%}
+                    Every top pick is in the DOM at once and the inactive ones
+                    are hidden by OPACITY, which hides nothing from a screen
+                    reader and removes no tab stop. With six cards that is six
+                    "top picks" read out and five invisible tab stops. So the
+                    inactive cards are marked hidden here at render and the JS
+                    moves the marking with is-active. No aria-live anywhere on
+                    the stack, deliberately: a card changing on a timer must
+                    never be announced.
+                  {%- endcomment -%}
+                  {%- unless spot_rendered == 0 %} aria-hidden="true" tabindex="-1"{% endunless -%}
                 >
                   <span class="theinmag-comps__featured-cover">
                     <span class="theinmag-comps__featured-badge">top picks</span>
@@ -486,6 +589,7 @@
                     </span>
                   </span>
                 </a>
+                {%- assign spot_rendered = spot_rendered | plus: 1 -%}
               {%- endif -%}
             {%- endfor -%}
 
@@ -1351,6 +1455,39 @@
       padding: clamp(14px, 1.6vw, 20px);
     }
   }
+  /* PHONE: give the pitch room to finish its sentence.
+     Added 2026-08-18 (Compton, at Ryan's request; this is Webster's file, so it
+     is flagged to him rather than done quietly).
+
+     THE PROBLEM, measured on the live page rather than guessed: at 375px the
+     pitch column was 209px and clamped to 2 lines, which is about 56 characters.
+     ALL 64 tiles truncated mid-sentence, so the last thing a parent read was an
+     ellipsis. 56 characters is not a copy problem, it is a layout one: no useful
+     pitch fits in it, which is why we did NOT write a shorter mobile version.
+
+     WHY THESE TWO NUMBERS. Measured every option on the real page:
+       96px logo + 6 lines  -> 0 truncated, tile 282px (tall, and 6 lines of
+                               28-character text reads like a column of soup)
+       64px logo + 5 lines  -> 1 truncated, tile 263px  <- chosen
+       stacked, full width  -> 0 truncated, tile 302px, and it loses the
+                               left-rail look that makes the list scannable
+     Shrinking the logo rail buys 32px of text width, which is worth more than
+     an extra line: it took the pitch column from 209px to 241px. The single
+     remaining tile was fixed by trimming ITS copy by 8 characters, rather than
+     making all 64 tiles 19px taller for one row.
+
+     Desktop is deliberately untouched: it fits every pitch in 2 lines already. */
+  @media (max-width: 599px) {
+    .theinmag-comps__tile {
+      grid-template-columns: 64px 1fr;
+      align-items: start;
+    }
+  }
+  /* NOTE the matching -webkit-line-clamp override lives AFTER the base
+     .theinmag-comps__tile-pitch rule further down, not here. Same specificity
+     means source order decides, and the base rule is declared later in this
+     file, so a clamp set here is silently ignored. Caught by measuring the
+     rendered page (the column widened but the clamp stayed at 2). */
   .theinmag-comps__tile:hover,
   .theinmag-comps__tile:focus-visible {
     transform: translateY(-2px);
@@ -1504,6 +1641,28 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+  /* PHONE: 5 lines, paired with the narrower 64px logo rail set in the
+     max-width:599px block above. Two lines at 241px is about 62 characters and
+     truncated every single tile; five clears all 64. Desktop keeps 2 lines
+     because it fits every pitch already.
+     This MUST sit after the base rule above: same specificity, so source order
+     decides, and declaring it up with the grid change did nothing. */
+  @media (max-width: 599px) {
+    .theinmag-comps__tile-pitch {
+      -webkit-line-clamp: 5;
+    }
+    /* The cover carries aspect-ratio 1/1 AND height:100%. At 96px in a short
+       tile that read as roughly square; once the tile grew to fit 5 lines,
+       height:100% won and stretched it into a tall narrow white column with a
+       tiny logo floating in the middle of it. height:auto lets the aspect-ratio
+       do its job, and align-self:start parks the square up beside the title.
+       This also has to sit after the base .tile-cover rule for the same
+       source-order reason as the clamp above. */
+    .theinmag-comps__tile-cover {
+      height: auto;
+      align-self: start;
+    }
   }
   /* The row's dimming is done with a colour alpha, NOT opacity. Opacity on
      the row would create a group that no child could climb out of, and the
@@ -2350,6 +2509,57 @@
     var ORDER_EVERYWHERE_CLOSED = 6;
     var ORDER_EMPTY_MESSAGE = 9;
 
+    /* ------------------------------------------------------------------
+       Deep-link promotion (added 2026-09-08, replacing the old
+       scroll-the-list-to-the-tile approach - see goToHashTile below).
+
+       A visitor arriving on /pages/competitions#comp-<id> gets that comp
+       PROMOTED to first in the list rather than scrolled to. -1 beats both
+       the ungrouped default (order 0) and every grouped slot (1-6), so the
+       tile sits above the group headings and the "already run this year"
+       separator in either view.
+
+       THE TRAP THIS IS BUILT AROUND: applyFilters() owns tile.style.order
+       and wipes it (tile.style.order = '') on every ungrouped pass. Since
+       goToHashTile clears all filters first, it ALWAYS runs ungrouped, so a
+       promotion set before applyFilters is silently erased. Hence
+       applyPromotion() is called at the END of applyFilters, so the
+       promotion survives every internal re-filter.
+
+       And it is RELEASED the moment the visitor touches the search box, a
+       select, clear, or a choice button. Leaving one organiser's comp
+       pinned to the top of every subsequent search would be wrong, and
+       confusing to the next person using the page.
+
+       A promoted tile that happens to be an already-run comp lands above
+       the separator. That is deliberate: the tile is dimmed and carries its
+       own "opens again around ..." line, so it explains itself, and an
+       organiser following their own link must see their own comp first.
+       ------------------------------------------------------------------ */
+    var ORDER_PROMOTED = -1;
+    var promotedTile = null;
+
+    function applyPromotion() {
+      if (promotedTile) promotedTile.style.order = ORDER_PROMOTED;
+    }
+    function releasePromotion() {
+      if (!promotedTile) return;
+      promotedTile.style.order = '';
+      /* Drop the anchor offset too. It is only correct for the arrival
+         landing, and leaving it on would put a phantom gap above the tile
+         the next time anything scrolled it into view. */
+      promotedTile.style.scrollMarginTop = '';
+      promotedTile = null;
+    }
+    function promoteTile(tile) {
+      if (promotedTile && promotedTile !== tile) {
+        promotedTile.style.order = '';
+        promotedTile.style.scrollMarginTop = '';
+      }
+      promotedTile = tile;
+      applyPromotion();
+    }
+
     function applyFilters() {
       var q = (searchInput.value || '').trim().toLowerCase();
       var cat = selectCategory.value;
@@ -2427,6 +2637,10 @@
         listEmpty.style.order = grouped ? ORDER_EMPTY_MESSAGE : '';
         listEmpty.hidden = visible > 0;
       }
+      /* LAST, always. The loop above wipes tile.style.order on every
+         ungrouped pass, so a deep-link promotion has to be re-stamped here
+         or it disappears. See the promotion block above. */
+      applyPromotion();
     }
 
     /* ------------------------------------------------------------------
@@ -2464,6 +2678,8 @@
       searchInput.addEventListener('input', function () {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(function () {
+          /* The visitor is driving now - unpin any deep-linked comp. */
+          releasePromotion();
           applyFilters();
           if (!searchTracked && (searchInput.value || '').trim()) {
             searchTracked = true;
@@ -2475,6 +2691,7 @@
     filterSelects.forEach(function (el) {
       if (!el) return;
       el.addEventListener('change', function () {
+        releasePromotion();
         applyFilters();
         trackComps('comps_filter_' + el.getAttribute('data-filter'), el.value);
       });
@@ -2541,14 +2758,132 @@
     // sticky site header. Without the headerH subtraction the filter
     // row sits behind the header and the user can't see it without
     // scrolling up - Ryan caught this in review.
-    function scrollStageIntoView(behavior) {
+    /* Document-absolute Y the page should sit at for the stage to read
+       properly: the top of the section, less the sticky header. Split out
+       from scrollStageIntoView so the deep-link hold below can re-measure
+       it cheaply on later frames. It is idempotent - it does not depend on
+       where the page currently is - so re-asserting it is always safe. */
+    function stageLandingTop() {
       var headerEl = document.querySelector('.theinmag-header-section');
       var headerH = headerEl ? headerEl.offsetHeight : 0;
-      var top = root.getBoundingClientRect().top + window.pageYOffset - headerH;
-      window.scrollTo({ top: Math.max(0, top), behavior: behavior || (prefersReducedMotion ? 'auto' : 'smooth') });
+      return Math.max(0, root.getBoundingClientRect().top + window.pageYOffset - headerH);
+    }
+
+    function scrollStageIntoView(behavior) {
+      window.scrollTo({ top: stageLandingTop(), behavior: behavior || (prefersReducedMotion ? 'auto' : 'smooth') });
+    }
+
+    /* ------------------------------------------------------------------
+       LANDING A DEEP LINK, AND HOLDING IT (rewritten 2026-09-08).
+
+       THE BUG RYAN REPORTED, and the root cause, both measured rather than
+       reasoned about. Opening #comp-<id> cold landed with the target tile
+       jammed against the top of the viewport, its category label and title
+       hidden under the sticky header, and the filter bar scrolled off the
+       screen entirely.
+
+       WHAT ACTUALLY DOES THAT: the browser's own fragment jump. Measured on
+       the live page, calling the tile's scrollIntoView() from a correct
+       landing moves the page from scrollY 49 to 245, puts the tile's top
+       edge at y=0 so roughly 90px of it sits behind the 84px sticky header,
+       and pushes the filter bar to y=-88. That is Ryan's screenshot to the
+       pixel. The stage starts display:none, so the jump at parse time finds
+       no box and Chrome retries once the tile becomes rendered.
+
+       WHY OUR CODE LOST TO IT, and this is the part worth remembering: the
+       whole landing sat inside a nested requestAnimationFrame, and rAF is
+       NOT GUARANTEED TO RUN. Proved on the live page - with the browser
+       pane hidden, so the page was not being rendered, rAF was starved, the
+       callback never fired at all, and the page was left exactly where the
+       native jump had put it: scrollY 245, tile clipped, filter bar gone.
+       Reproduced on demand, both directions. A backgrounded or
+       de-prioritised tab, a slow phone, or an in-app browser preview does
+       the same thing - and about 60% of this site's sessions are in-app
+       browsers. So this was never really a race we could win with more
+       frames; it was a dependency we should not have had.
+
+       THE THREE DEFENCES, deliberately independent of each other:
+         1. Land SYNCHRONOUSLY, before any rAF. If nothing else in this file
+            ever runs again, the page is already right.
+         2. Hold with setTimeout, not rAF, so a starved rendering pipeline
+            cannot swallow the correction. Plus 'load' and fonts.ready,
+            because a webfont swap re-flows every tile and moves the
+            section's own top.
+         3. Give the tile a scroll-margin-top equal to the offset it has in
+            a correct landing. Then a late native jump, or a focus() that
+            ignored preventScroll, scrolls to where we already are and
+            nothing visibly moves. This is the one that works even if every
+            timer is late.
+       The hold stops the instant the visitor scrolls, taps or types.
+       Correcting the page under someone who has taken over would be worse
+       than the bug.
+       ------------------------------------------------------------------ */
+    function landStage() {
+      /* The list stays at the top: the target is promoted to first, so
+         there is nothing above it to scroll past. TOLERANCE, not zero: the
+         desktop list is scroll-snap-type: y mandatory over 4px of top
+         padding, so the snap engine parks it at 4 and an exact-zero test
+         would fight it on every tick for no visible gain. */
+      if (listEl && listEl.scrollTop > 24) listEl.scrollTop = 0;
+      var want = stageLandingTop();
+      if (Math.abs(window.pageYOffset - want) > 2) {
+        window.scrollTo({ top: want, behavior: 'auto' });
+      }
+      /* Re-derive the anchor offset from the landing we just made, so it
+         tracks the real layout instead of a magic number that would go
+         stale the next time the header or filter bar changes height. Read
+         AFTER the scroll: window.scrollTo with behavior 'auto' applies
+         synchronously, so this rect is the settled one. */
+      if (promotedTile) {
+        var off = Math.round(promotedTile.getBoundingClientRect().top);
+        if (off > 0) promotedTile.style.scrollMarginTop = off + 'px';
+      }
+    }
+
+    function holdStageLanding() {
+      var TICK_MS = 100;
+      var TICK_UNTIL = Date.now() + 2000;
+      var STOP_AFTER = 5000;
+      var events = ['wheel', 'touchstart', 'keydown', 'pointerdown'];
+      var released = false;
+
+      function release() {
+        if (released) return;
+        released = true;
+        events.forEach(function (evt) { window.removeEventListener(evt, release, true); });
+      }
+      events.forEach(function (evt) {
+        window.addEventListener(evt, release, { capture: true, passive: true });
+      });
+
+      function reassert() {
+        if (released) return;
+        landStage();
+      }
+
+      (function tick() {
+        if (released) return;
+        reassert();
+        /* Return, do NOT release: the listeners stay live for the two late
+           re-assertions below, which on a slow cold load can both fire
+           well after the tick window has closed. */
+        if (Date.now() > TICK_UNTIL) return;
+        setTimeout(tick, TICK_MS);
+      })();
+
+      if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+        document.fonts.ready.then(reassert).catch(function () { /* no-op */ });
+      }
+      window.addEventListener('load', reassert, { once: true });
+      /* Backstop, then stand down for good. Five seconds of "put it back if
+         something else moved it" is harmless - landStage is a no-op when
+         the page is already where it should be, and any real scroll, tap or
+         keypress cancels the whole thing immediately. */
+      setTimeout(function () { reassert(); release(); }, STOP_AFTER);
     }
 
     function commitChoice(category) {
+      releasePromotion();
       if (selectCategory) {
         selectCategory.value = (category === 'art' || category === 'writing') ? category : 'all';
         applyFilters();
@@ -2578,6 +2913,7 @@
         filterSelects.forEach(function (s) {
           if (s) s.value = 'all';
         });
+        releasePromotion();
         applyFilters();
         trackComps('comps_filter_clear');
       });
@@ -2585,14 +2921,26 @@
 
     /* ------------------------------------------------------------------
        Deep links - /pages/competitions#comp-<id> lands on that comp.
-       Every tile carries id="comp-<id>" and nothing visible on the tile
-       changes. The browser's own anchor jump cannot work here for three
-       reasons, so we do it ourselves:
+       Every tile carries id="comp-<id>". These links go out in organiser
+       outreach emails, so the cold load from an email client is the ONLY
+       path that matters here; a warm hashchange is the easy case.
+
+       THE SHAPE OF THE LANDING (rewritten 2026-09-08 on Ryan's brief, after
+       he found a deep link landing on a clipped tile with the filter bar
+       scrolled off screen): the page lands at the TOP OF THE STAGE with the
+       filter bar visible, and the linked comp is PROMOTED to first in the
+       list. We deliberately do not scroll the internal list to the tile any
+       more. Bringing the comp to the visitor is stable; scrolling the
+       visitor to the comp depended on measuring a list whose geometry was
+       still moving.
+
+       The browser's own anchor jump cannot do this job:
          1. the page opens on the choice gate with the stage display:none,
             so at hash-resolution time the tile has no box to scroll to
          2. a filter (or the category the gate sets) can have the tile hidden
-         3. the list scrolls INTERNALLY, so moving the page alone never
-            brings a tile deep in the list into view
+         3. it would land the tile at the top of the viewport, under the
+            sticky header, with the filter bar pushed off - which is exactly
+            the bug. holdStageLanding() undoes it if it fires late.
        Runs on load and on hashchange. An unknown hash is left alone, so a
        normal visit still starts at the choice gate.
        ------------------------------------------------------------------ */
@@ -2651,30 +2999,44 @@
       filterSelects.forEach(function (s) {
         if (s) s.value = 'all';
       });
+      /* Promote BEFORE applyFilters would not survive - applyFilters wipes
+         tile.style.order on its ungrouped pass - so promote first to set
+         promotedTile, and let applyFilters re-stamp it at the end. */
+      promoteTile(tile);
       applyFilters();
       root.dataset.choiceState = 'chosen';
 
-      /* Two frames: the first lets the stage lay out now it is no longer
-         display:none, the second gives the list real scroll geometry before
-         we measure the tile inside it. Rect deltas rather than offsetTop,
-         because the list's offsetParent differs between the mobile
-         display:contents flatten and the desktop grid. */
+      /* NO internal list scroll anywhere in here any more. The old code
+         measured the tile inside the list and scrolled the list to it,
+         which is what made this fragile: the measurement was taken before
+         fonts and logos settled, so the list landed short or long and the
+         tile arrived clipped. The tile is now FIRST in the list, so
+         scrollTop 0 is correct by construction and there is nothing left to
+         measure.
+
+         Land immediately, with no rAF in front of it. Setting choiceState
+         above un-hides the stage, and reading a layout property forces the
+         style and layout we need, so the geometry is real by the time
+         landStage measures it. This is the path that still works when rAF
+         is starved. */
+      void root.offsetHeight;
+      landStage();
+
+      /* Glow first, then focus, so the class is already on the tile when
+         the focus styles resolve and no ring can flash in between. */
+      markArrival(tile);
+      if (tile.focus) {
+        try { tile.focus({ preventScroll: true }); } catch (e) { /* older Safari */ }
+      }
+
+      /* Then land again once the browser has had a frame or two, for the
+         normal case where images and the featured panel are still settling,
+         and hold it against anything late. Both are best-effort on top of
+         the synchronous landing above, never the only attempt. */
       requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          if (listEl) {
-            var listRect = listEl.getBoundingClientRect();
-            var tileRect = tile.getBoundingClientRect();
-            listEl.scrollTop += (tileRect.top - listRect.top) - 8;
-          }
-          scrollStageIntoView('auto');
-          /* Glow first, then focus, so the class is already on the tile when
-             the focus styles resolve and no ring can flash in between. */
-          markArrival(tile);
-          if (tile.focus) {
-            try { tile.focus({ preventScroll: true }); } catch (e) { /* older Safari */ }
-          }
-        });
+        requestAnimationFrame(landStage);
       });
+      holdStageLanding();
       return true;
     }
 
@@ -2693,8 +3055,38 @@
     }
 
     /* ------------------------------------------------------------------
-       Featured top pick - manual flick-through, crossfade. No auto-rotation:
-       the top pick (Banabae) holds until a visitor taps an arrow.
+       Featured top pick - auto-advancing crossfade, with the manual
+       flick-through arrows kept as the way back.
+
+       HISTORY, so nobody reverts this by accident. It auto-rotated every
+       10s from the 2026-05-07 build; the arrows were added 2026-06-04 and
+       reset that timer; the timer was then taken out mid-June with the
+       pool capped at 3 cards. Ryan asked for it back on 2026-09-09 now
+       that the pool is 6, because a capped-at-3 list meant three live top
+       picks could never be seen at all. Rebuilt rather than reinstated:
+       the old version paused on mouse hover only, so it kept ticking
+       under a keyboard user, in a background tab, and while the panel was
+       nowhere near the screen. Ryan set the interval at 6s, so six cards
+       lap in 36 seconds rather than 48.
+
+       The rule is that the timer always yields to the visitor:
+         - never starts at all under prefers-reduced-motion, or if the
+           rotate-seconds setting is 0, or with fewer than 2 cards
+         - stops while the pointer is over the panel
+         - stops while keyboard focus is anywhere inside the panel, so a
+           card cannot slide out from under someone reaching for "enter"
+         - stops while a finger is on the panel, and takes a fresh full
+           interval after it lifts (touch has no hover to lean on)
+         - stops while the tab is hidden, so an hour-old tab does not come
+           back on a card nobody chose
+         - stops while the panel is scrolled out of view, which also covers
+           the choice gate, where the stage is not on screen yet
+         - stops for the whole session the moment an arrow is tapped. The
+           visitor has taken control and does not hand it back.
+
+       Pausing CLEARS the timer rather than skipping a tick, so resuming
+       always gives a full interval. A card must never flip one second
+       after the mouse leaves.
        ------------------------------------------------------------------ */
     var featuredStack = root.querySelector('[data-featured-stack]');
     if (featuredStack) {
@@ -2705,22 +3097,146 @@
 
       function show(idx) {
         if (featuredCards.length < 2) return;
-        featuredCards[current].classList.remove('is-active');
+        var outgoing = featuredCards[current];
+        outgoing.classList.remove('is-active');
+        /* Hidden by opacity is not hidden. Take the outgoing card out of the
+           accessibility tree and out of the tab order, and give both back to
+           the incoming one. */
+        outgoing.setAttribute('aria-hidden', 'true');
+        outgoing.setAttribute('tabindex', '-1');
         current = (idx % featuredCards.length + featuredCards.length) % featuredCards.length;
-        featuredCards[current].classList.add('is-active');
+        var incoming = featuredCards[current];
+        incoming.classList.add('is-active');
+        incoming.removeAttribute('aria-hidden');
+        incoming.removeAttribute('tabindex');
       }
 
-      // Manual flick-through only. No auto-rotation: the top pick stays put
-      // until a visitor taps an arrow (Ryan's call, 2026-06-16).
+      /* Seconds between advances. Schema setting, so Ryan can retune or
+         switch it off from the theme editor without a code push. Anything
+         non-numeric falls back to 6; 0 (or negative) means off. */
+      var rotateSeconds = parseFloat(featuredStack.getAttribute('data-rotate-seconds'));
+      if (isNaN(rotateSeconds)) rotateSeconds = 6;
+      var rotateMs = rotateSeconds > 0 ? rotateSeconds * 1000 : 0;
+
+      var rotationTimer = null;
+      var rotationStopped = false;   // permanent, set by an arrow tap
+      var pausedBy = {};             // reason -> true, any reason holds it
+
+      function rotationAllowed() {
+        return !rotationStopped &&
+               rotateMs > 0 &&
+               !prefersReducedMotion &&
+               featuredCards.length > 1;
+      }
+      function clearRotation() {
+        if (rotationTimer) { clearInterval(rotationTimer); rotationTimer = null; }
+      }
+      function evaluateRotation() {
+        var blocked = false;
+        for (var reason in pausedBy) { if (pausedBy[reason]) { blocked = true; break; } }
+        if (!rotationAllowed() || blocked || document.visibilityState === 'hidden') {
+          clearRotation();
+          return;
+        }
+        if (!rotationTimer) {
+          rotationTimer = setInterval(function () { show(current + 1); }, rotateMs);
+        }
+      }
+      function pauseRotation(reason) { pausedBy[reason] = true; evaluateRotation(); }
+      function resumeRotation(reason) { pausedBy[reason] = false; evaluateRotation(); }
+      function stopRotationForGood() {
+        rotationStopped = true;
+        clearRotation();
+      }
+
       if (featuredCards.length > 1) {
         if (prevBtn) {
           prevBtn.hidden = false;
-          prevBtn.addEventListener('click', function (e) { e.preventDefault(); show(current - 1); });
+          prevBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            stopRotationForGood();
+            show(current - 1);
+          });
         }
         if (nextBtn) {
           nextBtn.hidden = false;
-          nextBtn.addEventListener('click', function (e) { e.preventDefault(); show(current + 1); });
+          nextBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            stopRotationForGood();
+            show(current + 1);
+          });
         }
+
+        /* Mouse. Deliberately mouseenter/mouseleave and not pointerenter:
+           a tap fires pointerenter with no matching pointerleave on iOS,
+           which would leave the panel paused forever. */
+        featuredStack.addEventListener('mouseenter', function () { pauseRotation('hover'); });
+        featuredStack.addEventListener('mouseleave', function () { resumeRotation('hover'); });
+
+        /* Keyboard. focusin/focusout bubble, so this covers the card link
+           and both arrows. */
+        featuredStack.addEventListener('focusin', function () { pauseRotation('focus'); });
+        featuredStack.addEventListener('focusout', function () { resumeRotation('focus'); });
+
+        /* Touch, which is where the "it moved as I reached for enter"
+           complaint actually comes from, since a phone has no hover to
+           lean on. Hold while the finger is down; resuming then hands back
+           a FULL fresh interval on its own, because pausing cleared the
+           timer rather than skipping a tick. No extra delay on top of that
+           (an earlier version added one and quietly made a tap cost two
+           intervals, 16 seconds at the default). Not a permanent stop
+           either: an incidental touch should not kill the feature for the
+           majority of sessions, which are phones. Only the arrows stop it
+           for good. */
+        featuredStack.addEventListener('touchstart', function () {
+          pauseRotation('touch');
+        }, { passive: true });
+        var releaseTouch = function () { resumeRotation('touch'); };
+        featuredStack.addEventListener('touchend', releaseTouch, { passive: true });
+        featuredStack.addEventListener('touchcancel', releaseTouch, { passive: true });
+
+        /* Background tab. visibilityState is read in evaluateRotation, so
+           this listener only has to poke it. */
+        document.addEventListener('visibilitychange', evaluateRotation);
+
+        /* Off screen. Also does the work of the choice gate for free:
+           while the visitor is still on the three choice tiles the stage
+           is display:none, so the panel has no box, nothing ticks, and
+           they land on card 1.
+
+           "On screen" is 40% of the card OR 200px of it, whichever comes
+           first, and NOT ratio alone. A ratio-only test quietly inverts
+           itself the day a card grows taller than the viewport: it can
+           then never reach 40%, isIntersecting stays false and the
+           rotation is stranded off with nothing in the markup to show
+           why. Today the phone card is capped at 35vh so it cannot
+           happen, but that cap is one CSS edit away from someone else. */
+        if (window.IntersectionObserver) {
+          var featuredObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+              var seen = entry.isIntersecting &&
+                         (entry.intersectionRatio >= 0.4 ||
+                          entry.intersectionRect.height >= 200);
+              if (seen) { resumeRotation('offscreen'); }
+              else { pauseRotation('offscreen'); }
+            });
+          }, { threshold: [0, 0.4] });
+          featuredObserver.observe(featuredStack);
+          /* NOT pre-paused waiting for the first callback, on purpose, and
+             this is the one line here most likely to get "tidied" later.
+             An observer callback is a rendering-step dependency and is not
+             guaranteed to arrive: in a throttled or unrendered page it
+             never fires at all (measured, same starvation that broke the
+             deep-link landing on 2026-09-08, which is why that code stopped
+             using requestAnimationFrame). If we assumed off screen until
+             told otherwise, a starved observer would silently mean no
+             rotation, ever, with nothing to see in the markup. Starting
+             un-paused makes the failure mode "it rotates" instead, and on
+             a real render the first callback lands within a frame or two,
+             which is nowhere near the 6 second timer. */
+        }
+
+        evaluateRotation();
       }
     }
 
@@ -2885,6 +3401,24 @@
       "id": "modal_copy",
       "label": "Modal subtitle",
       "default": "Adults only. Send the details and we'll check it before it goes on the board."
+    },
+    {
+      "type": "header",
+      "content": "Top picks rotation"
+    },
+    {
+      "type": "paragraph",
+      "content": "Seconds a top pick holds before the next fades in. Set 0 to turn auto-advance off and leave the arrows as the only way through. It already stands down on its own for reduced motion, while the pointer, focus or a finger is on the card, while the tab is hidden or the card is off screen, and for good once a visitor taps an arrow. Which comps appear, and in what order, is set in the build script (SPOTLIGHT_ORDER / SPOTLIGHT_MAX), not here."
+    },
+    {
+      "type": "range",
+      "id": "spotlight_rotate_seconds",
+      "label": "Seconds per top pick (0 = no auto-advance)",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "s",
+      "default": 6
     },
     {
       "type": "header",
