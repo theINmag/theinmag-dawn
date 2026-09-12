@@ -54,8 +54,27 @@
   <meta name="twitter:image:alt" content="{{ default_og_image_alt | escape }}">
 {%- endif -%}
 
+{%- comment -%}
+  theINmag - variant-aware og:price (2026-09-13).
+  Dawn shipped `product.price`, which is the product's MINIMUM variant price, not the
+  price of the variant the URL actually names. So every non-cheapest variant URL told
+  crawlers the wrong price: /products/membership?variant=<Print 4-Issue> advertised
+  10.45 against a real 89.00, and every mag's Print variant advertised 10.45 against
+  23.95. That contradicted our own (correct) ProductGroup/hasVariant JSON-LD, which
+  carries the right per-variant price and offer URL, and it is the strongest candidate
+  for the Merchant Center price_mismatch disapprovals on account 5562282575.
+  `product.selected_variant` is populated only when ?variant= names a real variant, so
+  the bare product URL keeps its previous "from" price behaviour unchanged.
+{%- endcomment -%}
 {%- if request.page_type == 'product' -%}
-  <meta property="og:price:amount" content="{{ product.price | money_without_currency | strip_html }}">
+  {%- liquid
+    if product.selected_variant
+      assign og_price = product.selected_variant.price
+    else
+      assign og_price = product.price
+    endif
+  -%}
+  <meta property="og:price:amount" content="{{ og_price | money_without_currency | strip_html }}">
   <meta property="og:price:currency" content="{{ cart.currency.iso_code }}">
 {%- endif -%}
 
