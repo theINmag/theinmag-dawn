@@ -59,31 +59,119 @@
           >
         {%- endif -%}
         <span class="theinmag-wsb__sticker" aria-hidden="true">It's free</span>
-        <span class="theinmag-wsb__character" data-theinmag-pool-character aria-hidden="true"></span>
       </div>
 
       <div class="theinmag-wsb__hero-copy">
+        <span class="theinmag-wsb__character" data-theinmag-pool-character aria-hidden="true"></span>
         {%- if eyebrow != blank -%}<span class="theinmag-wsb__eyebrow">{{ eyebrow }}</span>{%- endif -%}
         <h1 id="theinmag-wsb-heading" class="theinmag-wsb__heading">{{ heading }}</h1>
         {%- if subhead != blank -%}<p class="theinmag-wsb__sub">{{ subhead }}</p>{%- endif -%}
-
-        <ul class="theinmag-wsb__facts">
-          <li><span>Sat 19 Sep</span></li>
-          <li><span>Caloundra Library</span></li>
-          <li><span>9:00am &amp; 10:15am</span></li>
-          <li><span>Ages 5 to 13</span></li>
-        </ul>
 
         <a class="theinmag-btn theinmag-btn--primary theinmag-wsb__hero-cta" href="#theinmag-wsb-book">Scroll down to book &darr;</a>
       </div>
     </div>
 
-    {%- comment -%} ---- Good to know: three tiny items ---- {%- endcomment -%}
-    <ul class="theinmag-wsb__know">
-      <li><b>Stay and play.</b> Not a drop-off. Stay and join in.</li>
-      <li><b>Coffee downstairs.</b> A cafe on the ground floor.</li>
-      <li><b>A mag to take home.</b> One for every family.</li>
-    </ul>
+    {%- comment -%} ---- Combined info panel: the basics + the camera crew ---- {%- endcomment -%}
+    <div class="theinmag-wsb__info">
+      <div class="theinmag-wsb__info-basics">
+        <h2 class="theinmag-wsb__info-heading">The basics</h2>
+        <ul class="theinmag-wsb__info-list">
+          <li>Saturday 19 September</li>
+          <li>Caloundra Library creative room</li>
+          <li>Pick a session: 9:00am or 10:15am, 45 minutes</li>
+          <li>For creative kids aged 5 to 15</li>
+          <li>Bring your pencil case</li>
+          <li>Parents stay for the session, it is not a drop-off</li>
+        </ul>
+      </div>
+      <div class="theinmag-wsb__info-camera">
+        <div class="theinmag-wsb__info-camera-text">
+          <h3 class="theinmag-wsb__info-camera-heading">Camera crew</h3>
+          <p class="theinmag-wsb__info-camera-body">Lauren from Tide Productions will be with us on the day, filming the fun and taking photos. By booking you are happy for us to use that footage. The full detail is in the short consent when you book. Please read!</p>
+        </div>
+        {%- assign cam = section.settings.camera_image | image_url: width: 640 -%}
+        {%- assign cam_fb = 'workshop-camera.jpg' | asset_url -%}
+        <img class="theinmag-wsb__info-camera-img" src="{{ cam | default: cam_fb }}" alt="Lauren from Tide Productions on a film set" width="640" height="360" loading="lazy">
+      </div>
+    </div>
+
+    {%- comment -%} ---- How the morning runs ---- {%- endcomment -%}
+    <div class="theinmag-wsb__flow">
+      <h2 class="theinmag-wsb__flow-heading">What's happening in this session?</h2>
+
+      {%- liquid
+        assign fi1 = section.settings.flow_image_1 | image_url: width: 680
+        assign fi2 = section.settings.flow_image_2 | image_url: width: 680
+        assign fi3 = section.settings.flow_image_3 | image_url: width: 680
+        assign fi4 = section.settings.flow_image_4 | image_url: width: 680
+        assign fi5 = section.settings.flow_image_5 | image_url: width: 680
+        assign fb1 = 'HERO_kid-reading-mag.jpg' | asset_url
+        assign fb2 = 'workshop-minions.jpg' | asset_url
+        assign fb3 = 'workshop-story.jpg' | asset_url
+        assign fb4 = 'workshop-make.jpg' | asset_url
+        assign fb5 = 'workshop-wrapup.jpg' | asset_url
+      -%}
+
+      <div class="theinmag-wsb__carousel" data-wsb-carousel>
+        <div class="theinmag-wsb__car-track" data-wsb-track>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              <img class="theinmag-wsb__slide-img" src="{{ fi1 | default: fb1 }}" alt="A child having a flick through theINmag" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">Firstly</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Have a flick</h3>
+              <p class="theinmag-wsb__slide-body">In small groups, kids explore a real issue of the mag and jot down the bits they love.</p>
+            </div>
+          </div></div>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              <img class="theinmag-wsb__slide-img" src="{{ fi2 | default: fb2 }}" alt="A kid-made character painting" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">Then</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Meet the mINions</h3>
+              <p class="theinmag-wsb__slide-body">With some chill music on, everyone dreams up and draws their own character.</p>
+            </div>
+          </div></div>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              <img class="theinmag-wsb__slide-img" src="{{ fi3 | default: fb3 }}" alt="A happy kid with their creation" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">And then</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Tell a story</h3>
+              <p class="theinmag-wsb__slide-body">In small groups, the new characters team up for a funny five-minute story.</p>
+            </div>
+          </div></div>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              <img class="theinmag-wsb__slide-img" src="{{ fi4 | default: fb4 }}" alt="A kid-made creation" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">Next</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Make your own</h3>
+              <p class="theinmag-wsb__slide-body">Find something in the mag that sparks an idea, then create your own version of it.</p>
+            </div>
+          </div></div>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              <img class="theinmag-wsb__slide-img" src="{{ fi5 | default: fb5 }}" alt="A theINmag cover made by a kid" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">Finally</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Relaxed wrap-up</h3>
+              <p class="theinmag-wsb__slide-body">Time for questions, and a look at how kids can get their own creations published in theINmag.</p>
+            </div>
+          </div></div>
+        </div>
+        <button class="theinmag-wsb__car-arrow theinmag-wsb__car-arrow--prev" data-wsb-prev type="button" aria-label="Previous step">&lsaquo;</button>
+        <button class="theinmag-wsb__car-arrow theinmag-wsb__car-arrow--next" data-wsb-next type="button" aria-label="Next step">&rsaquo;</button>
+        <div class="theinmag-wsb__car-dots" data-wsb-dots></div>
+      </div>
+    </div>
+
+    {%- comment -%} good-to-know vibe tiles removed 10 Sep per Ryan {%- endcomment -%}
 
     {%- comment -%} ---- Booking form ---- {%- endcomment -%}
     <div class="theinmag-wsb__card" id="theinmag-wsb-book">
@@ -111,31 +199,32 @@
           <input class="theinmag-wsb__in" type="text" data-wsb-pname placeholder="Your name" autocomplete="name">
           <div class="theinmag-wsb__two">
             <input class="theinmag-wsb__in" type="email" data-wsb-pemail placeholder="Your email" autocomplete="email">
-            <input class="theinmag-wsb__in" type="tel" data-wsb-pphone placeholder="Your phone" autocomplete="tel">
+            <input class="theinmag-wsb__in" type="tel" data-wsb-pphone placeholder="Your phone (optional)" autocomplete="tel">
           </div>
         </fieldset>
 
         <fieldset class="theinmag-wsb__fieldset">
           <p class="theinmag-wsb__consent-head">Please read before you book</p>
           <div class="theinmag-wsb__consent" data-wsb-consent tabindex="0" aria-label="Workshop consent, scroll to the end to agree">
-            <p class="theinmag-wsb__promise">You might know that we never show kids' faces. Not on our website, not on our socials, not in the magazine. That is a promise we mean. This day is our one exception, and only because you have said yes to it right here.</p>
+            <p class="theinmag-wsb__promise">We are putting on a free creative workshop. However, there is a catch. We are also bringing in Lauren from Tide Productions to capture some footage. Good footage can take a small brand like ours a long way. We are hoping to use it to elevate our website and socials. We want to be totally upfront about that. Aaand, yes, we fully understand if you aren't comfortable with this.</p>
+            <p>Honestly, we would love kids who genuinely love the mag, not actors. Genuine enthusiasm wins every time!</p>
+            <p>These photos and this footage will never be printed in the magazine. We never show kids' faces in the magazine. They may be used on our website, our social media, and our paid advertising.</p>
             <p>By booking, you confirm you are the parent or legal guardian of each child you book, and you agree that:</p>
             <ul>
-              <li>your child can take part in the workshop;</li>
-              <li>a videographer and photographer from Tide Productions will be there for the whole session, filming and taking photos;</li>
+              <li>Lauren, a videographer and photographer from Tide Productions, will be filming and taking photos throughout the session;</li>
               <li>theINmag can use any footage and photos that show your child, whether they are front and centre, in the background, or just passing through the shot, along with anything they make on the day;</li>
-              <li>theINmag can use them on our website, our social media and our paid advertising, including ads on Instagram, Facebook and Google;</li>
+              <li>theINmag can use them on our website, our social media, and our paid advertising, including ads on Instagram, Facebook and Google;</li>
               <li>Tide Productions can use some of the footage and photos on their own website and social media;</li>
               <li>this is without payment, has no end date, and applies anywhere in the world.</li>
             </ul>
-            <p>This also covers you, and anyone you bring along, if you end up in shot. We do not put names on general footage. If your child is filmed up close we will ask you to sign a short slip on the day, and even then we only ever use a first name. If your child would rather not be filmed, just tell us on the day and we will keep them out of the close-up shots.</p>
-            <p>Once you give this consent it stays in place, because the footage may already be out in the world, on our channels or Tide Productions', where it cannot always be pulled back. So please only tick the box if you are truly comfortable. That is the honest version, and we would rather be honest.</p>
+            <p>This also covers you, and anyone you bring along, if you end up in shot. If your child is filmed up close we will ask you to sign a short slip on the day, and even then we only ever use a first name. If your child would rather not be filmed, just tell us on the day and we will keep them out of the close-up shots.</p>
+            <p>Once you give this consent it stays in place, because the footage may already be out in the world, where it cannot always be pulled back. So please only tick the box if you are truly comfortable.</p>
           </div>
           <p class="theinmag-wsb__scroll-hint" data-wsb-scrollhint>Scroll to the end of the consent to continue</p>
 
           <div class="theinmag-wsb__tick" data-wsb-tick>
             <input type="checkbox" data-wsb-consent-box id="theinmag-wsb-consent-box">
-            <label for="theinmag-wsb-consent-box">I am this child's parent or legal guardian, and I agree to the consent above, including theINmag using photos and video of my child, without payment and with no end date, on our website, social media and paid advertising, and Tide Productions using some of it on their own channels.</label>
+            <label for="theinmag-wsb-consent-box">I am the child/ren's parent or legal guardian, and I agree to the consent above, including theINmag using photos and video of my child, without payment and with no end date, on our website, social media and paid advertising, and Tide Productions using some of it on their own channels.</label>
           </div>
         </fieldset>
 
@@ -184,7 +273,7 @@
     align-items: center;
   }
   @media (min-width: 750px) {
-    .theinmag-wsb__hero { grid-template-columns: minmax(0, 46%) 1fr; }
+    .theinmag-wsb__hero { grid-template-columns: minmax(0, 42%) 1fr; }
   }
 
   .theinmag-wsb__media {
@@ -217,11 +306,12 @@
     transform: rotate(-8deg);
     box-shadow: 0 6px 14px rgba(42, 31, 61, 0.18);
   }
+  /* Kid character peeks in to the right of the hero heading. */
   .theinmag-wsb__character {
     position: absolute;
-    right: -4px;
-    bottom: -18px;
-    width: clamp(72px, 10vw, 118px);
+    top: clamp(20px, 3.5vw, 46px);
+    right: 0;
+    width: clamp(68px, 9vw, 112px);
     height: auto;
     display: block;
     pointer-events: none;
@@ -230,7 +320,7 @@
     .theinmag-wsb__character { display: none; }
   }
 
-  .theinmag-wsb__hero-copy { text-align: center; }
+  .theinmag-wsb__hero-copy { text-align: center; position: relative; }
   @media (min-width: 750px) { .theinmag-wsb__hero-copy { text-align: left; } }
 
   .theinmag-wsb__eyebrow {
@@ -248,9 +338,9 @@
   .theinmag-wsb__heading {
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
-    font-size: clamp(36px, 6.4vw, 60px);
-    line-height: 1.02;
-    margin: 16px 0 12px;
+    font-size: clamp(42px, 7.6vw, 76px);
+    line-height: 1.0;
+    margin: 16px 0 14px;
     color: var(--color-purple-dark, #5D3A7A);
     text-wrap: balance;
   }
@@ -286,10 +376,270 @@
   }
   .theinmag-wsb__hero-cta { display: inline-block; }
 
+  /* ---- Info tiles ---- */
+  .theinmag-wsb__tiles {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin: clamp(28px, 4vw, 44px) auto 0;
+    max-width: 700px;
+  }
+  /* Basics tile twice the width of the camera-crew tile; pair centred. */
+  @media (min-width: 620px) { .theinmag-wsb__tiles { grid-template-columns: 2fr 1fr; } }
+  .theinmag-wsb__tile {
+    background: #fff;
+    border: 1px solid rgba(93, 58, 122, 0.14);
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: 0 10px 28px rgba(42, 31, 61, 0.06);
+  }
+  .theinmag-wsb__tile-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--color-purple-dark, #5D3A7A);
+    margin: 0 0 12px;
+  }
+  .theinmag-wsb__tile-list { margin: 0; padding: 0; list-style: none; }
+  .theinmag-wsb__tile-list li {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: 6px 0 6px 24px;
+    position: relative;
+  }
+  .theinmag-wsb__tile-list li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 12px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-sunny-yellow, #F9C23C);
+  }
+  .theinmag-wsb__tile-body {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0;
+  }
+
+  /* ---- Combined info panel (basics + camera crew) ---- */
+  .theinmag-wsb__info {
+    max-width: 840px;
+    margin: clamp(28px, 4vw, 44px) auto 0;
+    background: #fff;
+    border: 1px solid rgba(93, 58, 122, 0.14);
+    border-radius: 20px;
+    box-shadow: 0 16px 36px rgba(42, 31, 61, 0.09);
+    padding: clamp(20px, 3.5vw, 30px);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 620px) {
+    .theinmag-wsb__info { grid-template-columns: 1fr 1.5fr; gap: 30px; align-items: stretch; }
+  }
+  .theinmag-wsb__info-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: 24px;
+    color: var(--color-purple-dark, #5D3A7A);
+    margin: 0 0 12px;
+  }
+  .theinmag-wsb__info-list { margin: 0; padding: 0; list-style: none; }
+  .theinmag-wsb__info-list li {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    padding: 6px 0 6px 24px;
+    position: relative;
+  }
+  .theinmag-wsb__info-list li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 12px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-sunny-yellow, #F9C23C);
+  }
+  /* One merged tile: lavender text panel + photo flush inside the same
+     rounded, clipped container. */
+  .theinmag-wsb__info-camera {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-lavender-soft, #F3EEF8);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .theinmag-wsb__info-camera-text {
+    padding: 18px 20px;
+  }
+  .theinmag-wsb__info-camera-img {
+    display: block;
+    width: 100%;
+    height: 190px;
+    object-fit: cover;
+    object-position: center 30%;
+  }
+  @media (min-width: 620px) {
+    .theinmag-wsb__info-camera { flex-direction: row; align-items: stretch; }
+    .theinmag-wsb__info-camera-text { flex: 1 1 auto; align-self: center; }
+    .theinmag-wsb__info-camera-img { width: 210px; height: auto; align-self: stretch; }
+  }
+  .theinmag-wsb__info-camera-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: 19px;
+    color: var(--color-purple-dark, #5D3A7A);
+    margin: 0 0 8px;
+  }
+  .theinmag-wsb__info-camera-body {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0;
+  }
+
+  /* ---- How the morning runs ---- */
+  .theinmag-wsb__flow {
+    max-width: 620px;
+    margin: clamp(34px, 5vw, 56px) auto 0;
+    text-align: center;
+  }
+  .theinmag-wsb__flow-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(24px, 4vw, 34px);
+    color: var(--color-purple-dark, #5D3A7A);
+    margin: 0 0 10px;
+  }
+  .theinmag-wsb__flow-intro {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    max-width: 52ch;
+    margin: 0 auto clamp(22px, 3vw, 30px);
+  }
+  .theinmag-wsb__carousel { position: relative; max-width: 540px; margin: 0 auto; }
+  .theinmag-wsb__car-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .theinmag-wsb__car-track::-webkit-scrollbar { display: none; }
+  /* Slightly under full width so the previous/next slide peeks, signalling swipe. */
+  .theinmag-wsb__slide { flex: 0 0 84%; scroll-snap-align: center; padding: 0 6px; display: flex; }
+  .theinmag-wsb__slide-card {
+    background: #fff;
+    border: 1px solid rgba(93, 58, 122, 0.12);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 14px 32px rgba(42, 31, 61, 0.09);
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .theinmag-wsb__slide-media { position: relative; line-height: 0; }
+  .theinmag-wsb__slide-img { display: block; width: 100%; height: 300px; object-fit: cover; }
+  .theinmag-wsb__slide-step {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    background: var(--color-sunny-yellow, #F9C23C);
+    padding: 4px 11px;
+    border-radius: 999px;
+  }
+  .theinmag-wsb__slide-text { padding: 16px 20px 22px; text-align: center; flex: 1 1 auto; }
+  .theinmag-wsb__slide-title {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: 23px;
+    color: var(--color-purple-dark, #5D3A7A);
+    margin: 0 0 6px;
+  }
+  .theinmag-wsb__slide-body {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0;
+  }
+  .theinmag-wsb__car-arrow {
+    position: absolute;
+    top: 150px;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(42, 31, 61, 0.20);
+    color: var(--color-purple-dark, #5D3A7A);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    z-index: 2;
+    transition: opacity 0.15s;
+  }
+  .theinmag-wsb__car-arrow--prev { left: -4px; }
+  .theinmag-wsb__car-arrow--next { right: -4px; }
+  .theinmag-wsb__car-arrow:disabled { opacity: 0; pointer-events: none; }
+  .theinmag-wsb__car-dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+  .theinmag-wsb__car-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(93, 58, 122, 0.25);
+    cursor: pointer;
+    transition: width 0.2s, background 0.2s;
+  }
+  .theinmag-wsb__car-dot.is-active { width: 22px; background: var(--color-purple-dark, #5D3A7A); }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-wsb__car-track { scroll-behavior: auto; }
+  }
+  /* Desktop: no carousel, show all five steps small across the row. */
+  @media (min-width: 760px) {
+    .theinmag-wsb__flow { max-width: 1060px; }
+    .theinmag-wsb__carousel { max-width: 100%; }
+    .theinmag-wsb__car-track {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      overflow: visible;
+    }
+    .theinmag-wsb__slide { padding: 0; scroll-snap-align: none; }
+    .theinmag-wsb__slide-img { height: 168px; }
+    .theinmag-wsb__slide-text { padding: 12px 12px 16px; }
+    .theinmag-wsb__slide-title { font-size: 17px; }
+    .theinmag-wsb__slide-body { font-size: 12.5px; line-height: 1.4; }
+    .theinmag-wsb__slide-step { font-size: 11px; padding: 3px 9px; }
+    .theinmag-wsb__car-arrow,
+    .theinmag-wsb__car-dots { display: none; }
+  }
+
   /* ---- Good to know ---- */
   .theinmag-wsb__know {
     list-style: none;
-    margin: clamp(32px, 5vw, 56px) 0 0;
+    margin: 14px 0 0;
     padding: 0;
     display: grid;
     grid-template-columns: 1fr;
@@ -297,19 +647,25 @@
   }
   @media (min-width: 620px) { .theinmag-wsb__know { grid-template-columns: repeat(3, 1fr); } }
   .theinmag-wsb__know li {
-    font-family: var(--font-body, 'Inter', sans-serif);
-    font-size: 14px;
-    line-height: 1.4;
-    color: var(--color-inky-purple-navy, #2A1F3D);
     background: rgba(255, 255, 255, 0.62);
     border: 1px solid rgba(93, 58, 122, 0.14);
     border-radius: 12px;
-    padding: 13px 15px;
+    padding: 16px 18px;
   }
-  .theinmag-wsb__know b {
+  .theinmag-wsb__know-heading {
     font-family: var(--font-heading, 'Post Regular', Georgia, serif);
     font-weight: 400;
+    font-size: 21px;
+    line-height: 1.1;
     color: var(--color-purple-dark, #5D3A7A);
+    margin: 0 0 7px;
+  }
+  .theinmag-wsb__know-body {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    margin: 0;
   }
 
   /* ---- Booking card ---- */
@@ -405,6 +761,7 @@
 
   .theinmag-wsb__child-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
   .theinmag-wsb__child-row .theinmag-wsb__in { flex: 1; margin-top: 0; }
+  .theinmag-wsb__child-row .theinmag-wsb__age { flex: none; width: 84px; }
   .theinmag-wsb__child-remove {
     flex: none;
     width: 44px; height: 44px;
@@ -456,8 +813,10 @@
   .theinmag-wsb__consent ul { margin: 0 0 11px; padding-left: 18px; }
   .theinmag-wsb__consent li { margin-bottom: 5px; }
   .theinmag-wsb__promise {
-    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
-    font-size: 15px; color: var(--color-purple-dark, #5D3A7A);
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-inky-purple-navy, #2A1F3D);
   }
   .theinmag-wsb__scroll-hint {
     font-family: var(--font-body, 'Inter', sans-serif);
@@ -529,10 +888,17 @@
   "class": "theinmag-workshop-booking-section",
   "settings": [
     { "type": "header", "content": "Hero" },
-    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Free kids workshops" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Caloundra · Saturday 19 September" },
     { "type": "text", "id": "heading", "label": "Headline", "default": "Come and create with us" },
-    { "type": "textarea", "id": "subhead", "label": "Subhead", "default": "Two free creative workshops for Aussie kids. Bring an idea, or find one when you get there." },
+    { "type": "textarea", "id": "subhead", "label": "Subhead", "default": "Free workshop for creative kids, filled with art, storytelling, and magazines. An inspiring session encouraging kids to follow their passions and interests." },
     { "type": "image_picker", "id": "hero_image", "label": "Hero image", "info": "Lead with a real photo or kid creation. Defaults to HERO_kid-creation-art.jpg." },
+    { "type": "image_picker", "id": "camera_image", "label": "Camera crew photo (Lauren)" },
+    { "type": "header", "content": "How the morning runs (carousel photos)" },
+    { "type": "image_picker", "id": "flow_image_1", "label": "Step 1: Have a flick" },
+    { "type": "image_picker", "id": "flow_image_2", "label": "Step 2: Meet the mINions" },
+    { "type": "image_picker", "id": "flow_image_3", "label": "Step 3: Tell a story" },
+    { "type": "image_picker", "id": "flow_image_4", "label": "Step 4: Make your own" },
+    { "type": "image_picker", "id": "flow_image_5", "label": "Step 5: Relaxed wrap-up" },
     { "type": "header", "content": "Booking engine" },
     { "type": "text", "id": "worker_url", "label": "Worker URL", "default": "https://theinmag-workshop-booking.heyhey-53f.workers.dev", "info": "The theinmag-workshop-booking Cloudflare Worker base URL." }
   ],

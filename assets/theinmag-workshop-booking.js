@@ -87,6 +87,14 @@
     input.placeholder = "Child's first name";
     input.setAttribute('autocomplete', 'off');
     input.addEventListener('input', validate);
+    var age = document.createElement('input');
+    age.className = 'theinmag-wsb__in theinmag-wsb__age';
+    age.type = 'text';
+    age.inputMode = 'numeric';
+    age.placeholder = 'Age';
+    age.setAttribute('aria-label', "Child's age");
+    age.setAttribute('autocomplete', 'off');
+    age.addEventListener('input', validate);
     var rm = document.createElement('button');
     rm.type = 'button';
     rm.className = 'theinmag-wsb__child-remove';
@@ -94,6 +102,7 @@
     rm.innerHTML = '&times;';
     rm.addEventListener('click', function () { row.remove(); syncRemove(); validate(); });
     row.appendChild(input);
+    row.appendChild(age);
     row.appendChild(rm);
     childrenEl.appendChild(row);
     syncRemove();
@@ -107,10 +116,16 @@
     });
   }
 
-  function childNames() {
-    return Array.prototype.slice.call(childrenEl.querySelectorAll('.theinmag-wsb__child-row input'))
-      .map(function (i) { return i.value.trim(); })
-      .filter(function (v) { return v.length; });
+  function childData() {
+    return Array.prototype.slice.call(childrenEl.querySelectorAll('.theinmag-wsb__child-row'))
+      .map(function (row) {
+        var inps = row.querySelectorAll('input');
+        return {
+          name: ((inps[0] && inps[0].value) || '').trim(),
+          age: ((inps[1] && inps[1].value) || '').trim()
+        };
+      })
+      .filter(function (c) { return c.name.length; });
   }
 
   /* ---- Consent scroll gate ---- */
@@ -128,11 +143,12 @@
   /* ---- Validation ---- */
   function validate() {
     if (errorEl) errorEl.hidden = true;
+    var kids = childData();
     var ok = selected &&
-      childNames().length >= 1 &&
+      kids.length >= 1 &&
+      kids.every(function (c) { return c.name && c.age; }) &&
       pName.value.trim() &&
       EMAIL_RE.test(pEmail.value.trim()) &&
-      pPhone.value.trim() &&
       consentBox.checked;
     submitBtn.disabled = !ok;
   }
@@ -141,7 +157,7 @@
   function onSubmit(e) {
     e.preventDefault();
     errorEl.hidden = true;
-    var kids = childNames();
+    var kids = childData();
     var payload = {
       session: selected,
       children: kids,
@@ -189,7 +205,8 @@
     formEl.hidden = true;
     successEl.hidden = false;
     recapEl.innerHTML = '<b>' + (sess ? sess.time : '') + ' session</b><br>' +
-      kids.length + ' ' + (kids.length === 1 ? 'child' : 'children') + ': ' + kids.join(', ');
+      kids.length + ' ' + (kids.length === 1 ? 'child' : 'children') + ': ' +
+      kids.map(function (c) { return c.name + ' (' + c.age + ')'; }).join(', ');
     var card = document.getElementById('theinmag-wsb-book');
     if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -203,4 +220,69 @@
   [pName, pEmail, pPhone].forEach(function (el) { el.addEventListener('input', validate); });
   formEl.addEventListener('submit', onSubmit);
   setTimeout(checkScroll, 200);
+})();
+
+/* "How the morning runs" carousel: arrows + dots + swipe, kept in sync. */
+(function () {
+  'use strict';
+  var car = document.querySelector('[data-wsb-carousel]');
+  if (!car) return;
+  var track = car.querySelector('[data-wsb-track]');
+  if (!track) return;
+  var slides = track.children;
+  var n = slides.length;
+  if (!n) return;
+  var prev = car.querySelector('[data-wsb-prev]');
+  var next = car.querySelector('[data-wsb-next]');
+  var dotsWrap = car.querySelector('[data-wsb-dots]');
+  var i = 0;
+  var dots = [];
+
+  if (dotsWrap) {
+    for (var k = 0; k < n; k++) {
+      (function (idx) {
+        var d = document.createElement('button');
+        d.type = 'button';
+        d.className = 'theinmag-wsb__car-dot' + (idx === 0 ? ' is-active' : '');
+        d.setAttribute('aria-label', 'Go to step ' + (idx + 1));
+        d.addEventListener('click', function () { go(idx); });
+        dotsWrap.appendChild(d);
+        dots.push(d);
+      })(k);
+    }
+  }
+
+  function go(idx) {
+    i = Math.max(0, Math.min(n - 1, idx));
+    var s = slides[i];
+    var sRect = s.getBoundingClientRect();
+    var tRect = track.getBoundingClientRect();
+    track.scrollBy({ left: (sRect.left + sRect.width / 2) - (tRect.left + tRect.width / 2), behavior: 'smooth' });
+    update();
+  }
+  function update() {
+    for (var k = 0; k < dots.length; k++) dots[k].classList.toggle('is-active', k === i);
+    if (prev) prev.disabled = i === 0;
+    if (next) next.disabled = i === n - 1;
+  }
+  if (prev) prev.addEventListener('click', function () { go(i - 1); });
+  if (next) next.addEventListener('click', function () { go(i + 1); });
+
+  var t;
+  track.addEventListener('scroll', function () {
+    clearTimeout(t);
+    t = setTimeout(function () {
+      var tRect = track.getBoundingClientRect();
+      var center = tRect.left + tRect.width / 2;
+      var best = 0, bestDist = Infinity;
+      for (var k = 0; k < n; k++) {
+        var r = slides[k].getBoundingClientRect();
+        var d = Math.abs((r.left + r.width / 2) - center);
+        if (d < bestDist) { bestDist = d; best = k; }
+      }
+      if (best !== i) { i = best; update(); }
+    }, 90);
+  }, { passive: true });
+
+  update();
 })();
