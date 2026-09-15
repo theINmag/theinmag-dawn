@@ -82,7 +82,23 @@
     assign slot_4 = previous_issue
   endif
 
-  assign section_style = '--tmyml-pt: ' | append: section.settings.padding_top | append: 'px; --tmyml-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  # Slot 5 (Ryan, 16 Sep): fill the trailing slot left empty while Snack
+  # Pack is unavailable (currently draft) with the PREVIOUS issue as an
+  # in-stock PRINT option. The current issue sits in slot 4, but once its
+  # print sells out (Mag10 now) the row carries no buyable print mag. Only
+  # fires when there is a free slot (Snack Pack blank), only if the previous
+  # issue's print is genuinely in stock, and never a duplicate of the
+  # current product or slot 4. Self-retires when that print sells out too.
+  assign slot_5 = nil
+  if slot_1 == blank and previous_issue != blank and previous_issue.handle != product.handle and previous_issue.handle != slot_4.handle
+    for v in previous_issue.variants
+      if v.option1 == 'Print' and v.available
+        assign slot_5 = previous_issue
+      endif
+    endfor
+  endif
+
+  assign section_style ='--tmyml-pt: ' | append: section.settings.padding_top | append: 'px; --tmyml-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
 
 <section
@@ -99,6 +115,7 @@
       {%- if slot_2 != blank -%}{%- render 'theinmag-yml-card', product: slot_2, blurb: section.settings.digital_stack_blurb -%}{%- endif -%}
       {%- if slot_3 != blank -%}{%- render 'theinmag-yml-card', product: slot_3, blurb: section.settings.digital_stack_blurb -%}{%- endif -%}
       {%- if slot_4 != blank -%}{%- render 'theinmag-yml-card', product: slot_4, blurb: section.settings.digital_stack_blurb -%}{%- endif -%}
+      {%- if slot_5 != blank -%}{%- render 'theinmag-yml-card', product: slot_5, blurb: section.settings.digital_stack_blurb -%}{%- endif -%}
     </ul>
   </div>
 

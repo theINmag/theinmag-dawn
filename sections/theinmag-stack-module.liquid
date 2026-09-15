@@ -164,9 +164,24 @@
           # teachers) product is blank, so the generic path runs and the
           # per-instance overrides let each page speak its own language.
           assign inum_label = product.metafields.single_mag.issue_number.value | default: 0
+          # A pre-order issue (e.g. Mag11 before its 15 Oct drop) is NOT in
+          # the stack yet, so the possessive "is in the Digital Stack" heading
+          # would be untrue. Until it drops, say WHEN it joins instead, using
+          # the same next_release_date the pre-order badges read. This flips
+          # back to the possessive heading on its own on drop day, when
+          # is_pre_order goes false. The anchor, count and fan already exclude
+          # pre-order issues.
+          assign is_pre_label = product.metafields.theinmag.is_pre_order | default: false
+          assign stack_drop_date = ''
+          assign stack_nrd = shop.metafields.theinmag.next_release_date.value
+          if stack_nrd != blank
+            assign stack_drop_date = stack_nrd | date: '%-d %B'
+          endif
         -%}
-        {%- if inum_label > 0 -%}
+        {%- if inum_label > 0 and is_pre_label == false -%}
           <h2 class="theinmag-stack-module__heading">{{ issue_label }} is in the Digital Stack</h2>
+        {%- elsif inum_label > 0 and is_pre_label and stack_drop_date != blank -%}
+          <h2 class="theinmag-stack-module__heading">{{ issue_label }} joins the Digital Stack on {{ stack_drop_date }}</h2>
         {%- elsif section.settings.heading_override != blank -%}
           <h2 class="theinmag-stack-module__heading">{{ section.settings.heading_override }}</h2>
         {%- else -%}
