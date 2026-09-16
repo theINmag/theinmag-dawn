@@ -1052,9 +1052,15 @@
         scrollWheelZoom: true,
         attributionControl: true,
       }).fitBounds(AU_BOUNDS);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
+      // Basemap: OpenStreetMap standard tiles. Keyless and reliable. We were
+      // on Carto Voyager, but Carto now requires an API key on
+      // basemaps.cartocdn.com and the tiles fell back to "API KEY REQUIRED"
+      // watermarks (found 2026-09-15). OSM needs no key; note it has no {r}
+      // retina variant and its subdomains are a/b/c. If a cleaner style is
+      // wanted later, add a Carto or MapTiler key and swap this one line back.
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: 'abc',
         maxZoom: 19,
       }).addTo(map);
     }
