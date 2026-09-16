@@ -1,3 +1,9 @@
+{%- comment -%}
+  Stop mobile Safari auto-linking digit strings (the ABN, order numbers, dates)
+  into bright-blue tel: links that fail contrast on dark surfaces. There are no
+  phone numbers to call on the site, so disabling detection is all upside.
+{%- endcomment -%}
+<meta name="format-detection" content="telephone=no">
 {%- liquid
   assign og_title = page_title | default: shop.name
   assign og_url = canonical_url | default: request.origin
