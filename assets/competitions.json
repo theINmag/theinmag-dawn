@@ -1,122 +1,6 @@
 {
   "competitions": [
     {
-      "id": "asme-young-composers",
-      "name": "ASME Young Composers Awards (state-based)",
-      "category": "Performance",
-      "category_slug": "performance",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "A state-by-state comp for young composers, from solo instrument to rock, pop and EDM. Winning compositions are performed live at the awards ceremony.",
-      "when": "QLD entries close 11 September",
-      "closing_date_2026": "2026-09-11",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
-      "where": "QLD",
-      "cost_raw": "Paid - $20 to $25 per composition (QLD)",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "qld"
-      ],
-      "fields": [
-        "music"
-      ],
-      "format": [
-        "individual-entry"
-      ],
-      "website": "https://asme.edu.au/2026-qld-young-composers-competition/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "A",
-      "logo_filename": "comp-logo-asme-young-composers.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "canberra-glassworks-kids",
-      "name": "Canberra Glassworks Kids' Design Competition",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "",
-      "status": "Confirmed 2026, open now",
-      "pitch": "Draw a design on the theme Art in Bloom. Annette Blair blows the winning design in glass live at Floriade, and the finished piece goes home with the kid.",
-      "when": "Entries close mid September, winning design blown in glass at Floriade in late September",
-      "closing_date_2026": "2026-09-11",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
-      "where": "Run in Canberra, no geographic limit stated, entries by post or email",
-      "cost_raw": "Not stated by organiser",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "postal",
-        "individual-entry"
-      ],
-      "website": "https://canberraglassworks.com/kids-design-competition/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "C",
-      "logo_filename": "comp-logo-canberra-glassworks-kids.png",
-      "audience": "all"
-    },
-    {
-      "id": "water-week",
-      "name": "National Water Week Poster Competition",
-      "category": "Social Good",
-      "category_slug": "social-good",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Run by Victorian water corporations. Kids design a poster on the year's water theme, and category winners progress to state finals in National Water Week.",
-      "when": "Victoria only, closes 11 September",
-      "closing_date_2026": "2026-09-11",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
-      "where": "Victoria (state water corporations)",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "vic"
-      ],
-      "fields": [
-        "art",
-        "environment"
-      ],
-      "format": [
-        "school-entry"
-      ],
-      "website": "https://www.nationalwaterweek.com.au",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "N",
-      "logo_filename": "comp-logo-water-week.png",
-      "audience": "all"
-    },
-    {
       "id": "book-links",
       "name": "Book Links Short Story Writing Competition",
       "category": "Writing",
@@ -127,7 +11,7 @@
       "when": "Closes 18 September",
       "closing_date_2026": "2026-09-18",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -151,7 +35,9 @@
       "tile_state": "live-now",
       "first_letter": "B",
       "logo_filename": "comp-logo-book-links.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Short story 500-1,000 words",
+      "who": "Years 4-6"
     },
     {
       "id": "territory-young-scientists",
@@ -160,13 +46,13 @@
       "category_slug": "stem",
       "sub_category": "",
       "status": "Confirmed 2026, open now",
-      "pitch": "NT kids build a bug out of pre-used materials and explain where it lives, or make a Crocwise poster. Teachers enter. Prizes given in Darwin in November.",
+      "pitch": "NT kids build a bug from pre-used materials and explain where it lives, or make a Crocwise poster. Top 3 in every category at every year level win cash.",
       "when": "Entries through Term 2 and Term 3, closing the Friday of the last week of Term 3",
       "closing_date_2026": "2026-09-18",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "NT",
-      "cost_raw": "Not stated by organiser",
+      "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
         "ages-4-6",
@@ -193,7 +79,9 @@
       "tile_state": "live-now",
       "first_letter": "T",
       "logo_filename": "comp-logo-territory-young-scientists.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "A science project in any of 14 categories, including a bug built from recycled materials, an invention, a video, a game, a poster or a piece of writing",
+      "who": "NT students in four divisions: Transition to Year 3, Year 4 to 6, Year 7 to 9, Year 10 to 12"
     },
     {
       "id": "acmf-songwriting",
@@ -206,7 +94,7 @@
       "when": "Closes 21 September",
       "closing_date_2026": "2026-09-21",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -233,7 +121,9 @@
       "tile_state": "live-now",
       "first_letter": "A",
       "logo_filename": "comp-logo-acmf-songwriting.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Original song",
+      "who": "All school-aged children"
     },
     {
       "id": "tas-science-talent-search",
@@ -246,7 +136,7 @@
       "when": "Submissions close late September",
       "closing_date_2026": "2026-09-23",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "TAS",
       "cost_raw": "Paid - $10 per entry for STAT members, $25 for non-members",
       "cost_slug": "paid",
@@ -277,7 +167,9 @@
       "tile_state": "live-now",
       "first_letter": "T",
       "logo_filename": "comp-logo-tas-science-talent-search.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "A science picture book, creative writing piece, poster, photo essay, video, essay, invention or research project",
+      "who": "Tasmanian students K to Year 12, in six divisions starting at K to 2"
     },
     {
       "id": "nunga-kids",
@@ -290,7 +182,7 @@
       "when": "Entries close 24 September (awards 19 October)",
       "closing_date_2026": "2026-09-24",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "SA",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -317,7 +209,9 @@
       "tile_state": "live-now",
       "first_letter": "N",
       "logo_filename": "comp-logo-nunga-kids.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Painting, drawing or photo on annual theme",
+      "who": "Aboriginal and/or Torres Strait Islander children and young people"
     },
     {
       "id": "poetry-in-action",
@@ -330,7 +224,7 @@
       "when": "Submissions close early October",
       "closing_date_2026": "2026-10-02",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Not stated by organiser",
       "cost_slug": "free",
@@ -358,7 +252,9 @@
       "tile_state": "live-now",
       "first_letter": "P",
       "logo_filename": "comp-logo-poetry-in-action.svg",
-      "audience": "all"
+      "audience": "all",
+      "description": "One original poem",
+      "who": "Poets enrolled in an Australian primary school or high school"
     },
     {
       "id": "qvmag-artstart",
@@ -371,7 +267,7 @@
       "when": "Entries close late October, exhibition opens mid December",
       "closing_date_2026": "2026-10-30",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "TAS (Northern Tasmania)",
       "cost_raw": "Not stated by organiser",
       "cost_slug": "free",
@@ -396,7 +292,9 @@
       "tile_state": "live-now",
       "first_letter": "A",
       "logo_filename": "comp-logo-qvmag-artstart.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Original artwork on the exhibition theme, selected for a curated gallery show",
+      "who": "Kindergarten to Grade 6 students across Northern Tasmania, submitted by their teacher"
     },
     {
       "id": "save-the-frogs",
@@ -409,7 +307,7 @@
       "when": "Closes 1 November",
       "closing_date_2026": "2026-11-01",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "International",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -437,7 +335,9 @@
       "tile_state": "live-now",
       "first_letter": "S",
       "logo_filename": "comp-logo-save-the-frogs.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Frog-themed artwork on conservation",
+      "who": "Kids globally (junior and student categories)"
     },
     {
       "id": "nspc",
@@ -450,7 +350,7 @@
       "when": "Closes 10 November",
       "closing_date_2026": "2026-11-10",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -477,7 +377,9 @@
       "tile_state": "live-now",
       "first_letter": "N",
       "logo_filename": "comp-logo-nspc.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "E-poster about an investigation",
+      "who": "Students Years 3-12 (multiple stages)"
     },
     {
       "id": "flickerfest-flickerup",
@@ -490,7 +392,7 @@
       "when": "FlickerUp entries close 23 November, festival January 2027 at Bondi",
       "closing_date_2026": "2026-11-23",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Paid - USD $17 per film",
       "cost_slug": "paid",
@@ -513,7 +415,9 @@
       "tile_state": "live-now",
       "first_letter": "F",
       "logo_filename": "comp-logo-flickerfest-flickerup.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Short film under 25 minutes",
+      "who": "Australian secondary students and individuals 18 and under"
     },
     {
       "id": "childrens-week-poster",
@@ -526,7 +430,7 @@
       "when": "Entries close 26 November",
       "closing_date_2026": "2026-11-26",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Not stated by organiser",
       "cost_slug": "free",
@@ -554,7 +458,9 @@
       "tile_state": "live-now",
       "first_letter": "C",
       "logo_filename": "comp-logo-childrens-week-poster.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Original artwork on the annual children's rights theme",
+      "who": "Children and young people under 18 anywhere in Australia"
     },
     {
       "id": "festival-of-owls",
@@ -594,7 +500,9 @@
       "tile_state": "live-now",
       "first_letter": "I",
       "logo_filename": "comp-logo-festival-of-owls.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Owl-themed artwork",
+      "who": "Kids 18 and under"
     },
     {
       "id": "aca-cartoon-prize",
@@ -607,7 +515,7 @@
       "when": "Every issue, year-round",
       "closing_date_2026": "Rolling",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -634,7 +542,9 @@
       "tile_state": "live-now",
       "first_letter": "A",
       "logo_filename": "comp-logo-aca-cartoon-prize.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Cartoons, comics and character drawings",
+      "who": "Aussie kids up to 16 who send a creation in to theINmag"
     },
     {
       "id": "camp-aus-big-art",
@@ -647,7 +557,7 @@
       "when": "Quarterly - one per school term",
       "closing_date_2026": "Quarterly",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -671,7 +581,9 @@
       "tile_state": "live-now",
       "first_letter": "C",
       "logo_filename": "comp-logo-camp-aus-big-art.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Term-themed artwork (changes each term)",
+      "who": "Kids attending Camp Australia OSHC (Junior 7 and under, Senior 8 and over)"
     },
     {
       "id": "crayola-acts",
@@ -684,7 +596,7 @@
       "when": "Year-round Open Call",
       "closing_date_2026": "Year-round",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "International",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -709,7 +621,9 @@
       "tile_state": "live-now",
       "first_letter": "C",
       "logo_filename": "comp-logo-crayola-acts.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Any creative response - song, painting, recipe, dance, code - inspired by Crayola's annual creative theme",
+      "who": "Anyone, any age"
     },
     {
       "id": "premiers-reading",
@@ -722,7 +636,7 @@
       "when": "Term 1 to Term 3 (varies by state)",
       "closing_date_2026": "Varies",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "NSW, QLD, VIC, WA, SA, TAS",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -753,7 +667,9 @@
       "tile_state": "live-now",
       "first_letter": "S",
       "logo_filename": "comp-logo-premiers-reading.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Read a set number of books from approved booklists",
+      "who": "All students K-Year 10 (varies by state)"
     },
     {
       "id": "theinmag-send-in",
@@ -766,7 +682,7 @@
       "when": "Open all year round",
       "closing_date_2026": "Rolling",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -797,7 +713,9 @@
       "tile_state": "live-now",
       "first_letter": "T",
       "logo_filename": "comp-image-theinmag-send-in.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Writing, drawings, photos, jokes, facts, puzzles, songs, recipes and things kids have built",
+      "who": "Aussie kids up to 16, every state and territory"
     },
     {
       "id": "sydney-easter-show",
@@ -810,7 +728,7 @@
       "when": "Entries open November 2026, close 1 February 2027",
       "closing_date_2026": "2027-02-01",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National (NSW)",
       "cost_raw": "Paid (entry fees)",
       "cost_slug": "paid",
@@ -837,7 +755,49 @@
       "tile_state": "later",
       "first_letter": "S",
       "logo_filename": "comp-logo-sydney-easter-show.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "500+ competition categories - art, photography, pottery, cake decorating, woodwork, quilting, knitting, soft toys",
+      "who": "Aussie kids - junior categories across all ages (typically 5+ to 18)"
+    },
+    {
+      "id": "vsff-junior",
+      "name": "Very Short Film Festival - Junior Category (VSFF)",
+      "category": "Photography & Film",
+      "category_slug": "photofilm",
+      "sub_category": "",
+      "status": "Confirmed 2027, entries close 1 May 2027",
+      "pitch": "Australia's coolest under-the-radar youth film festival. Selected films premiere in Hobart, then tour nationally. Phone footage is fine.",
+      "when": "Annually, signature announced 1 November, entries close 1 May, festival in Hobart",
+      "closing_date_2026": "2027-05-01",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-09-15",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "film"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://veryshortfilmfestival.com.au/school-film-competition/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "later",
+      "first_letter": "V",
+      "logo_filename": "comp-logo-vsff-junior.jpg",
+      "audience": "all",
+      "description": "Short film under 5 minutes incorporating the annual signature (2027 signature announced 1 November 2026)",
+      "who": "Australian school students"
     },
     {
       "id": "apsmo-olympiad",
@@ -850,7 +810,7 @@
       "when": "Contests run early Term 2 onwards",
       "closing_date_2026": "Term 2 onwards",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National (and NZ)",
       "cost_raw": "Paid (school entry)",
       "cost_slug": "paid",
@@ -873,7 +833,9 @@
       "tile_state": "tbc",
       "first_letter": "A",
       "logo_filename": "comp-logo-apsmo-olympiad.svg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Four 30-minute contest papers spread across the year",
+      "who": "High-achieving Years 5 and 6 students"
     },
     {
       "id": "childrens-rights-qld",
@@ -886,7 +848,7 @@
       "when": "Annually",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "QLD",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -914,43 +876,9 @@
       "tile_state": "tbc",
       "first_letter": "C",
       "logo_filename": "comp-logo-childrens-rights-qld.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "class-clowns",
-      "name": "Class Clowns",
-      "category": "Performance",
-      "category_slug": "performance",
-      "sub_category": "",
-      "status": "Confirmed by the organiser 2026-09-08, 2027 registrations open late October 2026",
-      "pitch": "Run by the Melbourne International Comedy Festival. A free workshop with a pro comedian, then a real heat in front of a live audience. Top prize $1,500.",
-      "when": "2027 registrations open late October 2026, heats Term 1, National Grand Final at Melbourne Comedy Festival",
-      "closing_date_2026": "Term 1",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "comedy",
-        "performance"
-      ],
-      "format": [
-        "individual-entry"
-      ],
-      "website": "https://classclowns.com.au/the-comp",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "C",
-      "logo_filename": "comp-logo-class-clowns.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Artwork on rights/respect/love themes",
+      "who": "Queensland kids and young people"
     },
     {
       "id": "eckersleys-colouring",
@@ -963,7 +891,7 @@
       "when": "Multiple times per year (Easter, holidays, Christmas)",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -988,7 +916,9 @@
       "tile_state": "tbc",
       "first_letter": "E",
       "logo_filename": "comp-logo-eckersleys-colouring.svg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Colour in their themed colouring sheet (different theme each round)",
+      "who": "Aussie kids in two categories - 7 and under, 8-12"
     },
     {
       "id": "faber-castell-cym",
@@ -1001,7 +931,7 @@
       "when": "Annually, school-aligned (Term 3)",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -1026,7 +956,9 @@
       "tile_state": "tbc",
       "first_letter": "F",
       "logo_filename": "comp-logo-faber-castell-cym.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Original artwork using Faber-Castell products on annual theme",
+      "who": "K-Year 6 Aussie kids"
     },
     {
       "id": "first-lego",
@@ -1039,7 +971,7 @@
       "when": "Season runs August-April",
       "closing_date_2026": "Aug-Apr",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National (and global)",
       "cost_raw": "Paid (team registration)",
       "cost_slug": "paid",
@@ -1067,7 +999,9 @@
       "tile_state": "tbc",
       "first_letter": "F",
       "logo_filename": "comp-logo-first-lego.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Build, code and present a LEGO robot solving real-world challenges",
+      "who": "Discover (4-6), Explore (6-10), Challenge (9-16)"
     },
     {
       "id": "micador-giveaways",
@@ -1080,7 +1014,7 @@
       "when": "No giveaway running that we can confirm",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -1105,7 +1039,9 @@
       "tile_state": "tbc",
       "first_letter": "M",
       "logo_filename": "comp-logo-micador-giveaways.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Various promotions and giveaways",
+      "who": "Aussie families"
     },
     {
       "id": "nsw-childrens-week",
@@ -1118,7 +1054,7 @@
       "when": "Mid-October",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "NSW",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -1146,7 +1082,9 @@
       "tile_state": "tbc",
       "first_letter": "N",
       "logo_filename": "comp-logo-nsw-childrens-week.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Portrait of someone who champions children's rights",
+      "who": "Children and young people up to 18 living in NSW"
     },
     {
       "id": "osic",
@@ -1159,7 +1097,7 @@
       "when": "Qualifying period Aug-Aug",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Paid",
       "cost_slug": "paid",
@@ -1185,7 +1123,9 @@
       "tile_state": "tbc",
       "first_letter": "O",
       "logo_filename": "comp-logo-osic.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Instrumental performance via state finals to national",
+      "who": "School-age piano, strings, drums and guitar students Prep-Year 12"
     },
     {
       "id": "smiggle-christmas",
@@ -1198,7 +1138,7 @@
       "when": "Annually around October-November",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -1223,7 +1163,9 @@
       "tile_state": "tbc",
       "first_letter": "S",
       "logo_filename": "comp-logo-smiggle-christmas.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Design the front cover of a Smiggle Christmas card",
+      "who": "Aussie kids (broad age range)"
     },
     {
       "id": "staedtler-aoty",
@@ -1236,7 +1178,7 @@
       "when": "Term 2, voting in June",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -1259,7 +1201,9 @@
       "tile_state": "tbc",
       "first_letter": "S",
       "logo_filename": "comp-logo-staedtler-aoty.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Original artwork (any medium)",
+      "who": "Aussie secondary school students"
     },
     {
       "id": "staedtler-wkcd",
@@ -1272,7 +1216,7 @@
       "when": "Entries March-May, day is 6 May",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National (international)",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -1297,45 +1241,9 @@
       "tile_state": "tbc",
       "first_letter": "S",
       "logo_filename": "comp-logo-staedtler-wkcd.png",
-      "audience": "all"
-    },
-    {
-      "id": "vsff-junior",
-      "name": "Very Short Film Festival - Junior Category (VSFF)",
-      "category": "Photography & Film",
-      "category_slug": "photofilm",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Australia's coolest under-the-radar youth film festival. Selected films premiere in Hobart, then tour nationally. Phone footage is fine.",
-      "when": "Annually, festival in Hobart",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "film"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://veryshortfilmfestival.com.au/school-film-competition/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "V",
-      "logo_filename": "comp-logo-vsff-junior.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Colouring on annual theme - 2026 theme is 'Football, Friends & Colouring Fun'",
+      "who": "Kids 3-12"
     },
     {
       "id": "wakakirri",
@@ -1348,7 +1256,7 @@
       "when": "Performances in Term 3",
       "closing_date_2026": "End of Term 1",
       "opening_date_2026": "",
-      "schema_start_date": "2026-09-08",
+      "schema_start_date": "2026-09-15",
       "where": "National",
       "cost_raw": "Paid (school entry)",
       "cost_slug": "paid",
@@ -1376,7 +1284,9 @@
       "tile_state": "tbc",
       "first_letter": "W",
       "logo_filename": "comp-logo-wakakirri.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "3-7 minute Story-Dance performance",
+      "who": "Australian school students K-Year 12 (entered as a school)"
     },
     {
       "id": "just-write-sa",
@@ -1413,7 +1323,9 @@
       "tile_state": "annual-again",
       "first_letter": "J",
       "logo_filename": "comp-logo-just-write-sa.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Short story",
+      "who": "Children who are members of the SA Public Library network in two categories (9-10, 11-13)"
     },
     {
       "id": "young-archie",
@@ -1453,7 +1365,9 @@
       "tile_state": "annual-again",
       "first_letter": "Y",
       "logo_filename": "comp-logo-young-archie.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Portrait of someone special",
+      "who": "Aussie kids 5-18 in 4 age categories"
     },
     {
       "id": "think-science",
@@ -1491,7 +1405,9 @@
       "tile_state": "annual-again",
       "first_letter": "T",
       "logo_filename": "comp-logo-think-science.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Science inquiry project",
+      "who": "Students Years 3-10"
     },
     {
       "id": "cossack-children",
@@ -1532,7 +1448,9 @@
       "tile_state": "annual-again",
       "first_letter": "C",
       "logo_filename": "comp-logo-cossack-children.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Painted canvas (provided)",
+      "who": "Kids 5-15 in three age groups, living in City of Karratha or surrounding regional WA towns"
     },
     {
       "id": "dorothea-mackellar",
@@ -1573,7 +1491,9 @@
       "tile_state": "annual-again",
       "first_letter": "D",
       "logo_filename": "comp-logo-dorothea-mackellar.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Poem max 80 lines, any subject (optional theme)",
+      "who": "Aussie students K-Year 12"
     },
     {
       "id": "furphy-junior",
@@ -1611,7 +1531,9 @@
       "tile_state": "annual-again",
       "first_letter": "F",
       "logo_filename": "comp-logo-furphy-junior.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Short story up to 2,000 words or a poem up to 20 lines",
+      "who": "Kids up to 12 (Junior) and 13 to 17 (Youth) who live or go to school in the Goulburn Valley"
     },
     {
       "id": "nsw-spelling-bee",
@@ -1647,7 +1569,9 @@
       "tile_state": "annual-again",
       "first_letter": "N",
       "logo_filename": "comp-logo-nsw-spelling-bee.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Spoken spelling competition",
+      "who": "NSW students Years 3-6 (Junior and Senior categories)"
     },
     {
       "id": "nsw-writeon",
@@ -1685,7 +1609,55 @@
       "tile_state": "annual-again",
       "first_letter": "N",
       "logo_filename": "comp-logo-nsw-writeon.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Imaginative text up to 500 words from provided stimulus",
+      "who": "NSW primary students Years 1-6 (incl. home-schooled)"
+    },
+    {
+      "id": "vic-science-talent-search",
+      "name": "Science Talent Search (Victoria)",
+      "category": "STEM",
+      "category_slug": "stem",
+      "sub_category": "",
+      "status": "Confirmed 2026, entries closed, next round opens March",
+      "pitch": "Since 1952, Victorian kids have entered a picture book or an invention in this science comp. Prep to Year 12, tens of thousands in bursaries, all sections.",
+      "when": "Registrations open early March and close late May, submissions June to late July, results October",
+      "closing_date_2026": "2026-07-27",
+      "opening_date_2026": "2026-03-03",
+      "schema_start_date": "2026-03-03",
+      "where": "VIC",
+      "cost_raw": "Paid - $17 per individual entry, $25 per pair, $40 per class project",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "vic"
+      ],
+      "fields": [
+        "science",
+        "stem",
+        "writing",
+        "art",
+        "film",
+        "design"
+      ],
+      "format": [
+        "school-entry"
+      ],
+      "website": "https://stav.org.au/science-talent-search/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-vic-science-talent-search.jpg",
+      "audience": "all",
+      "description": "A science project in any of ten sections, including creative writing, picture story books, inventions, working models, games, video, photography and posters",
+      "who": "Victorian students, Foundation to Year 12, in six divisions starting at Foundation to Year 2"
     },
     {
       "id": "spencil-art-prize",
@@ -1725,7 +1697,9 @@
       "tile_state": "annual-again",
       "first_letter": "S",
       "logo_filename": "comp-logo-spencil-art-prize.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Open theme artwork",
+      "who": "Aussie kids in two categories - Young Stars (8 and under), Shooting Stars (9-13)"
     },
     {
       "id": "golden-pen",
@@ -1764,7 +1738,9 @@
       "tile_state": "annual-again",
       "first_letter": "T",
       "logo_filename": "comp-logo-golden-pen.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Any format - poetry, prose, comics - up to 2,000 words or 6 A4 pages",
+      "who": "WA students Years 4-12 in three categories (Junior 4-6, Middle 7-8, Senior 9-12)"
     },
     {
       "id": "cya-hatchlings",
@@ -1802,7 +1778,9 @@
       "tile_state": "annual-again",
       "first_letter": "C",
       "logo_filename": "comp-logo-cya-hatchlings.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Picture books, chapter books, middle grade or YA",
+      "who": "Kids 8-18"
     },
     {
       "id": "little-sydney-lives",
@@ -1841,7 +1819,9 @@
       "tile_state": "annual-again",
       "first_letter": "L",
       "logo_filename": "comp-logo-little-sydney-lives.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Photography of Sydney as you see it",
+      "who": "Sydney kids 5-12"
     },
     {
       "id": "randolph-stow",
@@ -1879,7 +1859,9 @@
       "tile_state": "annual-again",
       "first_letter": "R",
       "logo_filename": "comp-logo-randolph-stow.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Prose up to 1,200 words OR poetry (no word limit)",
+      "who": "Midwest and Gascoyne WA students (Years 3-6 prose/poetry)"
     },
     {
       "id": "shaun-tan-award",
@@ -1919,7 +1901,9 @@
       "tile_state": "annual-again",
       "first_letter": "S",
       "logo_filename": "comp-logo-shaun-tan-award.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Original 2D artwork no bigger than 1m x 1.5m",
+      "who": "WA students Years 1-12, judged in 5 age categories"
     },
     {
       "id": "whitsunday-voices",
@@ -1957,7 +1941,9 @@
       "tile_state": "annual-again",
       "first_letter": "W",
       "logo_filename": "comp-logo-whitsunday-voices.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Short story on any topic",
+      "who": "Students Grades 3-12 (5 grade categories)"
     },
     {
       "id": "big-science",
@@ -1994,7 +1980,9 @@
       "tile_state": "annual-again",
       "first_letter": "B",
       "logo_filename": "comp-logo-big-science.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "50-minute online science questions in real-world contexts",
+      "who": "Students Years 7-10 (international friendly)"
     },
     {
       "id": "boroondara-literary",
@@ -2033,7 +2021,9 @@
       "tile_state": "annual-again",
       "first_letter": "B",
       "logo_filename": "comp-logo-boroondara-literary.svg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Prose 300 to 500 words or poetry under 100 lines (Junior)",
+      "who": "Boroondara school students - Junior Years 5-6, Middle Years 7-9, Senior Years 10-12"
     },
     {
       "id": "laura-literary",
@@ -2072,48 +2062,9 @@
       "tile_state": "annual-again",
       "first_letter": "L",
       "logo_filename": "comp-logo-laura-literary.jpg",
-      "audience": "all"
-    },
-    {
-      "id": "aus-museum-ocean",
-      "name": "OM Kids Photo Competition (Australian National Maritime Museum)",
-      "category": "Photography & Film",
-      "category_slug": "photofilm",
-      "sub_category": "",
-      "status": "Confirmed 2026, entries closed",
-      "pitch": "Kids 16 and under photograph oceans and waterways, and three winners each take home an OM System Tough TG-7 underwater camera. It runs every year.",
-      "when": "Closes 3 May",
-      "closing_date_2026": "2026-05-03",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-05-03",
-      "where": "National",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "photography",
-        "environment"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.sea.museum/en/about/visitor-information/announcing-winners-of-the-opy-om-kids-photo-competition",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "O",
-      "logo_filename": "comp-logo-aus-museum-ocean.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Short story up to 800 words OR poem up to 60 lines",
+      "who": "Primary students 5-12 in two categories (5-8, 9-12)"
     },
     {
       "id": "act-reconciliation-poster",
@@ -2153,7 +2104,9 @@
       "tile_state": "annual-again",
       "first_letter": "R",
       "logo_filename": "comp-logo-act-reconciliation-poster.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "A4 poster on the year's Reconciliation Day theme",
+      "who": "ACT school students, Kindergarten to Year 10"
     },
     {
       "id": "spywa",
@@ -2193,7 +2146,9 @@
       "tile_state": "annual-again",
       "first_letter": "S",
       "logo_filename": "comp-logo-spywa.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Short story up to 1,500 words",
+      "who": "Students Years 1-10 living or attending school in City of South Perth WA"
     },
     {
       "id": "what-matters",
@@ -2231,7 +2186,9 @@
       "tile_state": "annual-again",
       "first_letter": "W",
       "logo_filename": "comp-logo-what-matters.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Up to 600 words of prose or poetry on what matters to you",
+      "who": "Aussie students Years 5-12 (4 categories)"
     },
     {
       "id": "banabae-artists",
@@ -2269,7 +2226,9 @@
       "tile_state": "annual-again",
       "first_letter": "B",
       "logo_filename": "comp-logo-banabae-artists.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Original artwork - drawing, painting, collage",
+      "who": "Aussie kids (no strict age cap, primary-aimed)"
     },
     {
       "id": "cbca-wa-storybook",
@@ -2310,7 +2269,9 @@
       "tile_state": "annual-again",
       "first_letter": "C",
       "logo_filename": "comp-logo-cbca-wa-storybook.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Original handbound picture/story book up to 5,000 words",
+      "who": "WA students Pre-Primary to Year 8"
     },
     {
       "id": "crikey-magazine",
@@ -2351,7 +2312,9 @@
       "tile_state": "annual-again",
       "first_letter": "C",
       "logo_filename": "comp-logo-crikey-magazine.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Wildlife/nature photography",
+      "who": "Three kids categories - Under 10, 11-14, 15-17"
     },
     {
       "id": "matific-olympiad",
@@ -2390,7 +2353,9 @@
       "tile_state": "annual-again",
       "first_letter": "M",
       "logo_filename": "comp-logo-matific-olympiad.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Online maths competition over 5 days",
+      "who": "Primary kids 4-13"
     },
     {
       "id": "operation-art",
@@ -2430,7 +2395,9 @@
       "tile_state": "annual-again",
       "first_letter": "O",
       "logo_filename": "comp-logo-operation-art.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Original artwork to lift the spirits of kids in hospital",
+      "who": "NSW students K-Year 10 (entered through schools)"
     },
     {
       "id": "wild-at-art",
@@ -2469,7 +2436,9 @@
       "tile_state": "annual-again",
       "first_letter": "W",
       "logo_filename": "comp-logo-wild-at-art.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Threatened species artwork",
+      "who": "Australian kids 5-12"
     },
     {
       "id": "amc",
@@ -2507,7 +2476,9 @@
       "tile_state": "annual-again",
       "first_letter": "A",
       "logo_filename": "comp-logo-amc.svg",
-      "audience": "all"
+      "audience": "all",
+      "description": "60-minute maths problem-solving exam",
+      "who": "Students Years 3-12 in 5 divisions"
     },
     {
       "id": "opti-minds",
@@ -2549,7 +2520,9 @@
       "tile_state": "annual-again",
       "first_letter": "O",
       "logo_filename": "comp-logo-opti-minds.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "A seven week Futures Thinking Long Term Challenge plus a Spontaneous Challenge on Challenge Day",
+      "who": "School teams, Division I is Prep to Year 6, then Prep to Year 9, Prep to Year 12 and an open division"
     },
     {
       "id": "pm-spelling-bee",
@@ -2587,7 +2560,9 @@
       "tile_state": "annual-again",
       "first_letter": "P",
       "logo_filename": "comp-logo-pm-spelling-bee.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Online spelling competition with progressive rounds",
+      "who": "Students Years 3-8"
     },
     {
       "id": "royal-adelaide-junior",
@@ -2627,7 +2602,9 @@
       "tile_state": "annual-again",
       "first_letter": "R",
       "logo_filename": "comp-logo-royal-adelaide-junior.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "250+ creative classes - art, craft, design, photography",
+      "who": "Kids 2-20"
     },
     {
       "id": "tournament-of-minds",
@@ -2668,7 +2645,9 @@
       "tile_state": "annual-again",
       "first_letter": "T",
       "logo_filename": "comp-logo-tournament-of-minds.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "A six week open-ended Long Term Challenge, performed to judges, plus a surprise Spontaneous Challenge on the day",
+      "who": "Australian school students, primary and secondary, entered as a school team"
     },
     {
       "id": "yicte",
@@ -2707,7 +2686,9 @@
       "tile_state": "annual-again",
       "first_letter": "Y",
       "logo_filename": "comp-logo-yicte.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Tech project of any kind - app, robot, VR, recycling solution",
+      "who": "Students Years 3-12"
     },
     {
       "id": "better-read-kids",
@@ -2746,7 +2727,9 @@
       "tile_state": "annual-again",
       "first_letter": "B",
       "logo_filename": "comp-logo-better-read-kids.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Short story, poem or comic, max 300 words",
+      "who": "Kids 6-17 in three age categories (6-9, 10-12, 13-17)"
     },
     {
       "id": "young-territory-author",
@@ -2787,7 +2770,131 @@
       "tile_state": "annual-again",
       "first_letter": "Y",
       "logo_filename": "comp-logo-young-territory-author.svg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Write and produce your own book, cover to cover",
+      "who": "Territorians 18 and under, in four age categories (8 and under, 9-12, 13-15, 16-18)"
+    },
+    {
+      "id": "asme-young-composers",
+      "name": "ASME Young Composers Awards (state-based)",
+      "category": "Performance",
+      "category_slug": "performance",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "A state-by-state comp for young composers, from solo instrument to rock, pop and EDM. Winning compositions are performed live at the awards ceremony.",
+      "when": "QLD entries close 11 September",
+      "closing_date_2026": "2026-09-11",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-09-11",
+      "where": "QLD",
+      "cost_raw": "Paid - $20 to $25 per composition (QLD)",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-10-12",
+        "ages-13-16"
+      ],
+      "states": [
+        "qld"
+      ],
+      "fields": [
+        "music"
+      ],
+      "format": [
+        "individual-entry"
+      ],
+      "website": "https://asme.edu.au/2026-qld-young-composers-competition/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "A",
+      "logo_filename": "comp-logo-asme-young-composers.jpg",
+      "audience": "all",
+      "description": "Original composition",
+      "who": "Composers 18 and under, primary or secondary school"
+    },
+    {
+      "id": "canberra-glassworks-kids",
+      "name": "Canberra Glassworks Kids' Design Competition",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "",
+      "status": "Confirmed 2026, open now",
+      "pitch": "Draw a design on the theme Art in Bloom. Annette Blair blows the winning design in glass live at Floriade, and the finished piece goes home with the kid.",
+      "when": "Entries close mid September, winning design blown in glass at Floriade in late September",
+      "closing_date_2026": "2026-09-11",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-09-11",
+      "where": "Run in Canberra, no geographic limit stated, entries by post or email",
+      "cost_raw": "Not stated by organiser",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "postal",
+        "individual-entry"
+      ],
+      "website": "https://canberraglassworks.com/kids-design-competition/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "C",
+      "logo_filename": "comp-logo-canberra-glassworks-kids.png",
+      "audience": "all",
+      "description": "Design a three dimensional object on the theme Art in Bloom",
+      "who": "Young artists aged 17 and under"
+    },
+    {
+      "id": "water-week",
+      "name": "National Water Week Poster Competition",
+      "category": "Social Good",
+      "category_slug": "social-good",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Run by Victorian water corporations. Kids design a poster on the year's water theme, and category winners progress to state finals in National Water Week.",
+      "when": "Victoria only, closes 11 September",
+      "closing_date_2026": "2026-09-11",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-09-11",
+      "where": "Victoria (state water corporations)",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "vic"
+      ],
+      "fields": [
+        "art",
+        "environment"
+      ],
+      "format": [
+        "school-entry"
+      ],
+      "website": "https://www.nationalwaterweek.com.au",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "N",
+      "logo_filename": "comp-logo-water-week.png",
+      "audience": "all",
+      "description": "Poster on annual water theme",
+      "who": "Victorian children, preschool to Year 8"
     },
     {
       "id": "gladstone-celebrate-australia",
@@ -2825,7 +2932,9 @@
       "tile_state": "annual-again",
       "first_letter": "C",
       "logo_filename": "comp-logo-gladstone-celebrate-australia.png",
-      "audience": "all"
+      "audience": "all",
+      "description": "Artwork on an aspect of Australia that matters to you",
+      "who": "Gladstone region primary students, Prep to Year 6"
     },
     {
       "id": "agnpoty-junior",
@@ -2864,7 +2973,9 @@
       "tile_state": "annual-again",
       "first_letter": "A",
       "logo_filename": "comp-logo-agnpoty-junior.jpg",
-      "audience": "all"
+      "audience": "all",
+      "description": "Nature photography in ANZANG bioregion",
+      "who": "Photographers under 18"
     }
   ]
 }
