@@ -221,12 +221,24 @@
   endif
 -%}
 
+{%- liquid
+  # Drop date for the pre-sale CTA relabel. On a pre-order issue the Digital
+  # variant is deliberately unavailable (no Filemonk file until the issue
+  # drops), so the JS relabels its disabled CTA to "Available <date>" rather
+  # than the generic "Sold out". Same shop metafield the badges read.
+  assign hero_drop_date_attr = ''
+  assign hero_nrd_top = shop.metafields.theinmag.next_release_date.value
+  if hero_nrd_top != blank
+    assign hero_drop_date_attr = hero_nrd_top | date: '%-d %B'
+  endif
+-%}
 <section
   class="theinmag-single-mags-hero{% unless show_card %} theinmag-single-mags-hero--flat{% endunless %}{% if show_colour_field %} theinmag-single-mags-hero--colour-field{% endif %}"
   data-theinmag-single-mags
   aria-labelledby="theinmag-single-mags-hero-heading"
   style="{{ section_style }}"
   data-initial-issue="{{ initial_issue.handle }}"
+  data-drop-date="{{ hero_drop_date_attr }}"
 >
   {%- if show_bg -%}
     {% render 'theinmag-section-bg', opacity: bg_opacity %}
@@ -1411,7 +1423,15 @@
       // can't buy it.
       if (ctaLabel) {
         if (!variantAvailable) {
-          ctaLabel.textContent = 'Sold out';
+          // Pre-order issue + an unavailable variant means Digital, which is
+          // held back until the issue drops and its Filemonk file is attached.
+          // Say so plainly instead of "Sold out".
+          if (isPreOrder) {
+            const dd = root.getAttribute('data-drop-date');
+            ctaLabel.textContent = dd ? ('Available ' + dd) : 'Available on release';
+          } else {
+            ctaLabel.textContent = 'Sold out';
+          }
         } else if (printForcedDigital && printExists) {
           ctaLabel.textContent = 'Get it digital - ' + formatMoney(variant.price);
         } else if (isPreOrder) {

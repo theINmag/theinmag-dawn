@@ -1574,6 +1574,28 @@
     color: rgba(42, 31, 61, 0.7);
   }
 
+  /* Learn more: soft tertiary button under the buy rows, a clear route
+     into the product page (and its issue strip). Deliberately lighter
+     than the outlined Add buttons so it reads as secondary. */
+  .theinmag-bundle-tile__learn-more {
+    display: block;
+    margin: 4px 12px 12px;
+    padding: 9px 12px;
+    background-color: rgba(93, 58, 122, 0.07);
+    border-radius: var(--radius-pill, 9999px);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 12.5px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--color-purple-dark, #5D3A7A);
+    transition: background-color 0.15s ease;
+  }
+  .theinmag-bundle-tile__learn-more:hover,
+  .theinmag-bundle-tile__learn-more:focus-visible {
+    background-color: rgba(93, 58, 122, 0.14);
+  }
+
   /* Value ribbon (Digital Stack): yellow sticker stack of savings over
      issue count - same two-line shape as the pre-sale ribbon. */
   .theinmag-bundle-tile__ribbon--value {

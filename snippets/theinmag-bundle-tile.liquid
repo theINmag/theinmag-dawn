@@ -107,6 +107,21 @@
     # the shopper never leaves the page. Blank list = no peek (link falls back).
     if peek
       assign peek_urls = ''
+      # Lead the preview with the styled cover, so the lightbox opens on the
+      # magazine's face, then walks the inside pages (same source as the INside
+      # section). Use media_images[0] (the styled/framed cover the shop hero and
+      # PDP show) rather than the product's featured image, which on a pre-sale
+      # issue is deliberately the plain flat cover for the grid tile. Falls back
+      # to a tile override, then the featured image, then nothing.
+      assign tile_media = product.metafields.single_mag.media_images.value
+      assign tile_media_first = tile_media | first
+      if cover_override != blank
+        assign peek_urls = cover_override | asset_url
+      elsif tile_media_first != blank
+        assign peek_urls = tile_media_first | image_url: width: 1200
+      elsif cover_image != blank
+        assign peek_urls = cover_image | image_url: width: 1200
+      endif
       assign peek_inside = product.metafields.single_mag.inside_gallery_images.value
       for img in peek_inside
         assign peek_one = img | image_url: width: 1200
@@ -116,17 +131,6 @@
           assign peek_urls = peek_urls | append: '|' | append: peek_one
         endif
       endfor
-      # Fallback only: a product with NO inside gallery (e.g. Snack Pack)
-      # still opens the lightbox showing its cover, so it never leaves the
-      # page. Mags with a gallery lead with their own first image (the
-      # styled cover), no plain-cover double-up of the tile.
-      if peek_urls == blank
-        if cover_override != blank
-          assign peek_urls = cover_override | asset_url
-        elsif cover_image != blank
-          assign peek_urls = cover_image | image_url: width: 1200
-        endif
-      endif
     endif
     # Peek is offered ONLY for genuine issues, NEVER membership: the peek's
     # add-to-cart would post the membership variant with no _starting_mag
@@ -150,7 +154,7 @@
 >
   <div class="theinmag-bundle-tile__cover">
     {%- if tile_context == 'shop' -%}
-      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link{% if peek_enabled %} theinmag-bundle-tile__cover-link--peek{% endif %}" aria-label="{% if peek_enabled %}Peek inside {{ tile_title }}{% else %}View {{ tile_title }}{% endif %}"{% if peek_enabled %} data-peek-trigger data-peek-images="{{ peek_urls | escape }}" data-peek-title="{{ tile_title | escape }}" data-peek-url="{{ pdp_url }}" data-peek-variant="{{ print_variant.id }}"{% if print_variant %} data-peek-variant-print="{{ print_variant.id }}" data-peek-price-print="{{ print_variant.price | money | escape }}"{% if stockist_pricing %} data-peek-rrp-print="{{ print_variant.price }}"{% endif %}{% if print_variant.available == false %} data-peek-print-soldout="true"{% endif %}{% endif %}{% if digital_variant and print_only != true %} data-peek-variant-digital="{{ digital_variant.id }}" data-peek-price-digital="{{ digital_variant.price | money | escape }}"{% endif %}{% endif %}>
+      <a href="{{ pdp_url }}" class="theinmag-bundle-tile__cover-link{% if peek_enabled %} theinmag-bundle-tile__cover-link--peek{% endif %}" aria-label="{% if peek_enabled %}Peek inside {{ tile_title }}{% else %}View {{ tile_title }}{% endif %}"{% if peek_enabled %} data-peek-trigger data-peek-images="{{ peek_urls | escape }}" data-peek-title="{{ tile_title | escape }}" data-peek-url="{{ pdp_url }}" data-peek-variant="{{ print_variant.id }}"{% if print_variant %} data-peek-variant-print="{{ print_variant.id }}" data-peek-price-print="{{ print_variant.price | money | escape }}"{% if stockist_pricing %} data-peek-rrp-print="{{ print_variant.price }}"{% endif %}{% if print_variant.available == false %} data-peek-print-soldout="true"{% endif %}{% endif %}{% if digital_variant and print_only != true and is_pre_order == false %} data-peek-variant-digital="{{ digital_variant.id }}" data-peek-price-digital="{{ digital_variant.price | money | escape }}"{% endif %}{% endif %}>
         {%- if cover_override != blank -%}
           <img
             class="theinmag-bundle-tile__cover-img theinmag-bundle-tile__cover-img--print"
@@ -334,17 +338,31 @@
 
     {%- comment -%} print_only (stockist picker) suppresses the Digital buy row. {%- endcomment -%}
     {%- if digital_variant and print_only != true -%}
-      <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--digital" data-variant-id="{{ digital_variant.id }}">
-        <span class="theinmag-bundle-tile__format">Digital</span>
-        <span class="theinmag-bundle-tile__price">{{ digital_variant.price | money }}</span>
-        <button
-          type="button"
-          class="theinmag-bundle-tile__add"
-          {{ add_attr }}
-          data-variant-id="{{ digital_variant.id }}"
-          aria-label="Add {{ tile_title }} Digital{{ add_suffix }}"
-        ><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
-      </div>
+      {%- if is_pre_order -%}
+        {%- comment -%}
+          Pre-sale: the digital edition is not for sale until the issue drops
+          and its Filemonk file is attached. Show "available on drop day" in
+          place of price + Add. The cover-link above also drops the digital
+          peek data, so the quick-view offers Print only - digital cannot be
+          selected or bought anywhere on the tile.
+        {%- endcomment -%}
+        <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--digital theinmag-bundle-tile__row--presale">
+          <span class="theinmag-bundle-tile__format">Digital</span>
+          <span class="theinmag-bundle-tile__pill theinmag-bundle-tile__pill--presale" aria-label="Digital available from {% if presale_date != blank %}{{ presale_date }}{% else %}release day{% endif %}">Available from {% if presale_date != blank %}{{ presale_date }}{% else %}release{% endif %}</span>
+        </div>
+      {%- else -%}
+        <div class="theinmag-bundle-tile__row theinmag-bundle-tile__row--digital" data-variant-id="{{ digital_variant.id }}">
+          <span class="theinmag-bundle-tile__format">Digital</span>
+          <span class="theinmag-bundle-tile__price">{{ digital_variant.price | money }}</span>
+          <button
+            type="button"
+            class="theinmag-bundle-tile__add"
+            {{ add_attr }}
+            data-variant-id="{{ digital_variant.id }}"
+            aria-label="Add {{ tile_title }} Digital{{ add_suffix }}"
+          ><span data-add-label>Add</span><span data-added-label hidden>Added &#10003;</span></button>
+        </div>
+      {%- endif -%}
     {%- endif -%}
 
   {%- endif -%}
@@ -357,5 +375,16 @@
   {%- endcomment -%}
   {%- if blurb != blank and tile_context == 'shop' -%}
     <p class="theinmag-bundle-tile__blurb">{{ blurb }}</p>
+  {%- endif -%}
+
+  {%- comment -%}
+    Learn more link (shop only, never Membership which has its own Join CTA):
+    a clear route into the product page and its issue strip (every issue plus
+    Membership and the Digital Stack). Placed AFTER the blurb so a tile's
+    descriptive line (e.g. the Digital Stack's "every mag we ever made") reads
+    above the button rather than below it.
+  {%- endcomment -%}
+  {%- if tile_context == 'shop' and pdp_url != blank and product.handle != 'membership' -%}
+    <a class="theinmag-bundle-tile__learn-more" href="{{ pdp_url }}">Learn more <span aria-hidden="true">&#8594;</span></a>
   {%- endif -%}
 </article>

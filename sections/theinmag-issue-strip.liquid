@@ -76,7 +76,13 @@
         continue
       endif
       assign fan_inum = fan_issue.metafields.single_mag.issue_number.value | default: 0
-      if fan_inum > 0
+      # Exclude pre-sale issues from the Digital Stack fan + count. A
+      # pre-order mag (e.g. Mag11 before its 15 Oct drop) is not part of
+      # the stack yet, so it must not sit on the fan or inflate the
+      # "All N" sticker. Matches the stack-module, which already skips
+      # is_pre_order issues from its count and fan.
+      assign fan_pre = fan_issue.metafields.theinmag.is_pre_order | default: false
+      if fan_inum > 0 and fan_pre == false
         assign stack_issue_count = stack_issue_count | plus: 1
         if stack_issue_count <= 3 and fan_issue.featured_image != blank
           assign fan_one = fan_issue.featured_image | image_url: width: 280
