@@ -467,12 +467,19 @@
         "padding_top": 80,
         "padding_bottom": 80
       }
+    },
+    "home_flipthrough": {
+      "type": "theinmag-home-flipthrough",
+      "settings": {
+        "featured_issue_handle": "mag11"
+      }
     }
   },
   "order": [
     "theinmag_hero",
     "theinmag_mission",
     "theinmag_press_band",
+    "home_flipthrough",
     "theinmag_audience_tiles",
     "theinmag_philosophy",
     "theinmag_meet_tam",

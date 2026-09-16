@@ -1,0 +1,980 @@
+{%- comment -%}
+  theinmag-home-flipthrough
+  "Flick through the latest mag", in place, on the homepage. Sits just
+  below the mission panel and above the Seen IN press row.
+
+  The design: one contained panel (sky pair by default) that lines up
+  edge-for-edge with the mission panel above it - same 1320px width,
+  same cream gutter, same modal shadow - so the two read as siblings,
+  not as a stray image floating on cream. Inside the panel, two
+  objects sit on the surface like a mag on a desk:
+    1. The cover shot (inside_gallery_images[0]) in a tilted white mat,
+       the "here's the real thing" anchor. Links to the issue.
+    2. The spread viewer: real double-page spreads (items 1..N) inside
+       a white mat with a faint spine shadow down the middle so a flat
+       scan still reads as an open magazine. One spread at a time,
+       flicked with the arrows, a swipe or the keyboard. No autoplay,
+       no lightbox.
+  Kid-drawn leaves (the shared pillars/FAQ texture) sit in two corners,
+  recoloured to the surface's wave tone through a mask so they stay
+  in-system. Optional kid-character pop from the sitewide pool, off by
+  default until Ryan approves it.
+
+  Pages come from the featured issue's single_mag.inside_gallery_images
+  so it self-updates each drop. Featured issue resolves: explicit handle
+  setting -> promoted issue metafield -> current issue metafield.
+  Self-gates: renders nothing without an issue and a non-empty gallery.
+
+  Sentence case. Hyphens only, never em dashes. Post Regular for the
+  heading, Inter for body. Colour via tokens only.
+{%- endcomment -%}
+
+{%- liquid
+  assign featured = nil
+  if section.settings.featured_issue_handle != blank
+    assign featured = all_products[section.settings.featured_issue_handle]
+  endif
+  if featured == blank
+    assign promo = shop.metafields.theinmag.promoted_issue_handle.value
+    if promo != blank
+      assign promo = promo | downcase
+      assign featured = all_products[promo]
+    endif
+  endif
+  if featured == blank
+    assign cur = shop.metafields.theinmag.current_issue_number.value
+    if cur != blank
+      assign cur = cur | downcase
+      assign featured = all_products[cur]
+    endif
+  endif
+
+  assign inside_imgs = featured.metafields.single_mag.inside_gallery_images.value
+  assign label = featured.title | replace: 'theINmag - ', '' | replace: 'theINmag ', ''
+  assign is_pre = featured.metafields.theinmag.is_pre_order | default: false
+
+  # Item 0 is the styled cover shot, the rest are spreads. With a single
+  # image there is nothing to anchor with, so it becomes the one page.
+  # The cover is rendered inside a `for ... limit: 1` loop in the markup:
+  # indexing, .first, or a captured loop var used later all fail to resolve
+  # with image_url on a list.file_reference metafield (single-mags-hero
+  # gotcha), so image_url must run on the loop variable in place.
+  assign page_offset = 0
+  assign page_count = inside_imgs.size
+  if inside_imgs.size > 1
+    assign page_offset = 1
+    assign page_count = inside_imgs.size | minus: 1
+  endif
+
+  assign drop_date_label = 'soon'
+  assign next_release_date = shop.metafields.theinmag.next_release_date.value
+  if next_release_date != blank
+    assign drop_date_label = next_release_date | date: '%-d %B'
+  endif
+
+  if is_pre
+    assign eyebrow = section.settings.eyebrow_preorder | default: 'Pre-order - drops [drop_date]'
+  else
+    assign eyebrow = section.settings.eyebrow | default: 'Out now'
+  endif
+  assign eyebrow = eyebrow | replace: '[issue]', label | replace: '[drop_date]', drop_date_label
+
+  assign heading = section.settings.heading | default: "What's INside [issue]?"
+  assign heading = heading | replace: '[issue]', label | escape
+  if heading contains 'IN'
+    assign heading = heading | replace: 'IN', '<span class="theinmag-in">IN</span>'
+  endif
+
+  assign intro = section.settings.intro | replace: '[issue]', label
+  assign hint = section.settings.hint
+
+  assign link_label = section.settings.link_label
+  if link_label == blank
+    if is_pre
+      assign link_label = 'Pre-order ' | append: label
+    else
+      assign link_label = 'See ' | append: label
+    endif
+  endif
+  assign link_label = link_label | replace: '[issue]', label
+
+  assign membership_url = section.settings.membership_url | default: '/products/membership'
+  assign membership_label = section.settings.membership_label | default: 'Grab a subscription'
+
+  assign surface = section.settings.surface | default: 'sky'
+  assign heading_id = 'theinmag-home-flip-heading-' | append: section.id
+  assign leaf_tl = 'kid-leaves_topleft.png' | asset_url
+  assign leaf_br = 'kid-leaves_bottom_right.png' | asset_url
+  assign section_style = '--hf-pt: ' | append: section.settings.padding_top | append: 'px; --hf-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+  assign panel_style = "--hf-leaf-tl: url('" | append: leaf_tl | append: "'); --hf-leaf-br: url('" | append: leaf_br | append: "');"
+-%}
+
+{%- if featured != blank and inside_imgs != blank and page_count > 0 -%}
+{%- if section.settings.show_character -%}
+  {% render 'theinmag-character-pool' %}
+{%- endif -%}
+<section
+  class="theinmag-home-flip theinmag-home-flip--{{ surface }}{% if section.settings.show_spine %} theinmag-home-flip--spine{% endif %}"
+  style="{{ section_style }}"
+  aria-labelledby="{{ heading_id }}"
+  data-hf-root
+>
+  <div class="theinmag-home-flip__panel" style="{{ panel_style }}">
+    {%- if section.settings.show_character -%}
+      <span class="theinmag-home-flip__character" data-theinmag-pool-character></span>
+    {%- endif -%}
+
+    <span class="theinmag-home-flip__surface" aria-hidden="true">
+      <span class="theinmag-home-flip__leaf theinmag-home-flip__leaf--tl"></span>
+      <span class="theinmag-home-flip__leaf theinmag-home-flip__leaf--br"></span>
+    </span>
+
+    {%- comment -%}
+      Flattened so mobile can stack eyebrow, cover, heading, body in that
+      order (Ryan, 16 Sep: the row was squished at the top on phones). On
+      desktop the cover is pulled to the top with order:-1.
+    {%- endcomment -%}
+    <div class="theinmag-home-flip__intro">
+      {%- if eyebrow != blank -%}
+        <p class="theinmag-home-flip__eyebrow">{{ eyebrow }}</p>
+      {%- endif -%}
+      {%- if inside_imgs.size > 1 -%}
+        {%- for img in inside_imgs limit: 1 -%}
+          <a class="theinmag-home-flip__object" href="{{ featured.url }}" aria-label="See {{ label | escape }}">
+            <img
+              class="theinmag-home-flip__object-img"
+              src="{{ img | image_url: width: 600 }}"
+              srcset="{{ img | image_url: width: 300 }} 300w, {{ img | image_url: width: 600 }} 600w, {{ img | image_url: width: 900 }} 900w"
+              sizes="(min-width: 990px) 280px, 200px"
+              width="600"
+              height="600"
+              alt="{{ img.alt | default: label | escape }}, the latest issue of theINmag"
+              loading="lazy"
+              draggable="false"
+            >
+          </a>
+        {%- endfor -%}
+      {%- endif -%}
+      <h2 id="{{ heading_id }}" class="theinmag-home-flip__heading">{{ heading }}</h2>
+      {%- if intro != blank -%}
+        <p class="theinmag-home-flip__text">{{ intro | newline_to_br }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="theinmag-home-flip__viewer">
+      <div
+        class="theinmag-home-flip__stage"
+        data-hf-stage
+        role="group"
+        aria-roledescription="flick-through"
+        aria-label="Pages from {{ label | escape }}"
+        tabindex="0"
+      >
+        <div class="theinmag-home-flip__mat">
+          <div class="theinmag-home-flip__pages">
+            {%- for img in inside_imgs offset: page_offset -%}
+              {%- liquid
+                assign default_alt = 'Inside ' | append: label | append: ', spread ' | append: forloop.index | append: ' of ' | append: page_count | append: ': creations by kids'
+              -%}
+              <img
+                class="theinmag-home-flip__page{% if forloop.first %} is-active{% else %} is-parked{% endif %}"
+                data-hf-page
+                src="{{ img | image_url: width: 1200 }}"
+                srcset="{{ img | image_url: width: 800 }} 800w, {{ img | image_url: width: 1200 }} 1200w, {{ img | image_url: width: 1600 }} 1600w"
+                sizes="(min-width: 990px) min(60vw, 840px), calc(100vw - 56px)"
+                width="1200"
+                height="786"
+                alt="{{ img.alt | default: default_alt | escape }}"
+                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                draggable="false"
+              >
+            {%- endfor -%}
+            <span class="theinmag-home-flip__spine" aria-hidden="true"></span>
+            {%- comment -%}
+              Single-page turn overlays. During a flick these paint half of the
+              OUTGOING spread each: the static half holds still while the turning
+              half pivots on the spine, so it reads as turning one page of an
+              open mag rather than the whole sheet. Driven entirely by the JS.
+            {%- endcomment -%}
+            <span class="theinmag-home-flip__pageleaf theinmag-home-flip__pageleaf--static" data-hf-static aria-hidden="true"></span>
+            <span class="theinmag-home-flip__pageleaf theinmag-home-flip__pageleaf--turn" data-hf-turn aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="theinmag-home-flip__controls">
+        <button type="button" class="theinmag-home-flip__arrow" data-hf-prev aria-label="Previous page">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <p class="theinmag-home-flip__counter" aria-live="polite" aria-atomic="true">
+          <span class="theinmag-home-flip__sr">Page </span><span data-hf-current>1</span> of {{ page_count }}
+        </p>
+        <button type="button" class="theinmag-home-flip__arrow" data-hf-next aria-label="Next page">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+      {%- if hint != blank -%}
+        <p class="theinmag-home-flip__hint">{{ hint }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_link -%}
+      <div class="theinmag-home-flip__cta">
+        <a class="theinmag-btn theinmag-btn--primary theinmag-home-flip__btn" href="{{ featured.url }}">{{ link_label }}</a>
+        {%- if membership_label != blank and membership_url != blank -%}
+          <a class="theinmag-btn theinmag-btn--secondary theinmag-home-flip__btn" href="{{ membership_url }}">{{ membership_label }}</a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+{%- endif -%}
+
+{% stylesheet %}
+  /* ================================================================
+     theinmag-home-flipthrough
+     Surface tokens per colour pair. Text stays inky purple-navy on
+     every light surface (the universal text colour); the pair-dark is
+     reserved for the eyebrow, link and arrow hover. Mint's pair-dark
+     fails AA at body size, so mint falls back to inky for accents.
+     ================================================================ */
+  .theinmag-home-flip {
+    --hf-bg: var(--color-sky, #C9E5E8);
+    --hf-leaf: var(--color-wave-sky, #B5DDE1);
+    --hf-ink: var(--color-inky-purple-navy, #2A1F3D);
+    --hf-accent: var(--color-teal-dark, #2D6878);
+    --hf-muted: rgba(42, 31, 61, 0.62);
+    --hf-disc: #FFFFFF;
+    --hf-disc-ink: var(--color-inky-purple-navy, #2A1F3D);
+    --hf-mat: #FFFFFF;
+    --hf-shadow: rgba(42, 31, 61, 0.22);
+
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--hf-ink);
+    /* Same horizontal gutter as the mission section above so the two
+       panels share left and right edges. */
+    padding: var(--hf-pt, 8px) clamp(16px, 3vw, 32px) var(--hf-pb, 40px);
+  }
+  .theinmag-home-flip--lavender {
+    --hf-bg: var(--color-lavender, #E8DEEF);
+    --hf-leaf: var(--color-wave-purple, #C9B5DB);
+    --hf-accent: var(--color-purple-dark, #5D3A7A);
+  }
+  .theinmag-home-flip--mint {
+    --hf-bg: var(--color-mint, #D6EAD9);
+    --hf-leaf: var(--color-wave-mint, #B8DCC0);
+    --hf-accent: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-home-flip--shelf {
+    --hf-bg: var(--color-inky-purple-navy, #2A1F3D);
+    --hf-leaf: rgba(255, 255, 255, 0.10);
+    --hf-ink: #FFFFFF;
+    --hf-accent: var(--color-soft-pink, #F7A092);
+    --hf-muted: rgba(255, 255, 255, 0.72);
+    --hf-shadow: rgba(0, 0, 0, 0.45);
+  }
+
+  /* ---------- Panel ---------- */
+  .theinmag-home-flip__panel {
+    position: relative;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: clamp(20px, 3.2vw, 44px) clamp(18px, 3.2vw, 48px) clamp(22px, 3.2vw, 44px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'intro'
+      'viewer'
+      'cta';
+    gap: clamp(16px, 2.4vw, 24px);
+    /* The surface is painted on a child layer so the kid character can
+       tuck behind the panel's top edge (see __character). */
+    background: transparent;
+  }
+
+  /* Painted surface + clipped texture. Doubled class beats Dawn's
+     div:empty rule by construction (these are spans) and by weight. */
+  .theinmag-home-flip__panel .theinmag-home-flip__surface {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    border-radius: var(--radius-xl, 28px);
+    background-color: var(--hf-bg);
+    box-shadow: var(--shadow-modal, 0 8px 32px rgba(123, 79, 158, 0.18));
+    pointer-events: none;
+  }
+  .theinmag-home-flip__panel .theinmag-home-flip__leaf {
+    display: block;
+    position: absolute;
+    width: clamp(220px, 36vw, 560px);
+    height: clamp(220px, 36vw, 560px);
+    background-color: var(--hf-leaf);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    opacity: 0.9;
+  }
+  .theinmag-home-flip__leaf--tl {
+    top: -6%;
+    left: -4%;
+    -webkit-mask-image: var(--hf-leaf-tl);
+    mask-image: var(--hf-leaf-tl);
+  }
+  .theinmag-home-flip__leaf--br {
+    right: -5%;
+    bottom: -8%;
+    -webkit-mask-image: var(--hf-leaf-br);
+    mask-image: var(--hf-leaf-br);
+  }
+
+  .theinmag-home-flip__intro,
+  .theinmag-home-flip__viewer,
+  .theinmag-home-flip__cta {
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+  }
+  .theinmag-home-flip__intro { grid-area: intro; }
+  .theinmag-home-flip__viewer { grid-area: viewer; }
+  .theinmag-home-flip__cta { grid-area: cta; }
+
+  /* ---------- Intro: eyebrow, cover, heading, body ----------
+     Mobile stacks them centred in that order (DOM order). Desktop pulls the
+     cover to the top with order:-1 and left-aligns (see the 990px block). */
+  .theinmag-home-flip__intro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: clamp(10px, 2.4vw, 16px);
+  }
+
+  /* The cover shot in a white mat, tilted like a mag dropped on a
+     desk. Straightens on hover, the same move as the issue-strip
+     shelf frames. Mobile: a compact 84px badge beside the heading. */
+  .theinmag-home-flip__object {
+    flex: 0 0 auto;
+    display: block;
+    width: clamp(150px, 46vw, 200px);
+    padding: 5px;
+    border-radius: 6px;
+    background-color: var(--hf-mat);
+    box-shadow: 0 6px 16px var(--hf-shadow);
+    transform: rotate(-3deg);
+    transition: transform var(--transition-hover, 0.2s ease), box-shadow var(--transition-hover, 0.2s ease);
+  }
+  .theinmag-home-flip__object:hover,
+  .theinmag-home-flip__object:focus-visible {
+    transform: rotate(0) translateY(-2px);
+    box-shadow: 0 12px 28px var(--hf-shadow);
+  }
+  .theinmag-home-flip__object-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 3px;
+  }
+
+  .theinmag-home-flip__copy { min-width: 0; }
+
+  .theinmag-home-flip__eyebrow {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--hf-accent);
+  }
+  .theinmag-home-flip__heading {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-synthesis: none;
+    font-size: clamp(26px, 4vw, 40px);
+    line-height: 1.1;
+    color: var(--hf-ink);
+    text-wrap: balance;
+  }
+  .theinmag-home-flip__text {
+    margin: 0;
+    max-width: 34ch;
+    font-family: var(--font-body);
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.55;
+    color: var(--hf-ink);
+  }
+
+  /* ---------- Viewer ---------- */
+  .theinmag-home-flip__stage {
+    position: relative;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    border-radius: 10px;
+  }
+  .theinmag-home-flip__stage.is-dragging { cursor: grabbing; }
+  .theinmag-home-flip__stage:focus-visible {
+    outline: 3px solid var(--color-yellow, #F9C23C);
+    outline-offset: 6px;
+  }
+
+  /* White mat around the spread, the "framed page" cue that stops the
+     scan reading as a raw image. Inky-tinted shadow family throughout
+     this section, never mixed with the purple card shadows. */
+  .theinmag-home-flip__mat {
+    padding: clamp(6px, 1vw, 10px);
+    border-radius: 8px;
+    background-color: var(--hf-mat);
+    box-shadow:
+      0 16px 40px var(--hf-shadow),
+      0 2px 6px rgba(42, 31, 61, 0.10);
+  }
+  .theinmag-home-flip__pages {
+    position: relative;
+    aspect-ratio: 2000 / 1310;
+    overflow: hidden;
+    border-radius: 3px;
+    background-color: var(--hf-mat);
+    /* 3D depth so the turning half-page has real perspective. */
+    perspective: 1700px;
+  }
+  /* Base layer: the spread currently on show. The turn is done by the two
+     half-page overlays below, so the base only cross-swaps beneath them. */
+  .theinmag-home-flip__page {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 1;
+    pointer-events: none;
+    -webkit-user-drag: none;
+  }
+  .theinmag-home-flip__page.is-parked { display: none; }
+  .theinmag-home-flip__page.is-active { z-index: 2; }
+
+  /* Half-page turn overlays. Each paints half of the OUTGOING spread via a
+     background image sized to the full spread (200% of the half-width box).
+     The static half holds; the turning half pivots on the spine, so it reads
+     as turning one page of an open mag. The JS sets halves, pivot and angle. */
+  .theinmag-home-flip__pageleaf {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    background-repeat: no-repeat;
+    background-size: 200% 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .theinmag-home-flip__pageleaf--static {
+    z-index: 5;
+    transition: opacity 0.3s ease 0.26s;
+  }
+  .theinmag-home-flip__pageleaf--turn {
+    z-index: 6;
+    transition: transform 0.58s cubic-bezier(0.34, 0.02, 0.2, 1), opacity 0.42s ease 0.16s, box-shadow 0.58s ease;
+    will-change: transform, opacity;
+  }
+
+  /* Faint spine down the centre so a flat scan reads as an open mag. */
+  .theinmag-home-flip__pages .theinmag-home-flip__spine { display: none; }
+  .theinmag-home-flip--spine .theinmag-home-flip__pages .theinmag-home-flip__spine {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      rgba(42, 31, 61, 0) 46.5%,
+      rgba(42, 31, 61, 0.09) 50%,
+      rgba(42, 31, 61, 0) 53.5%
+    );
+  }
+
+  /* ---------- Controls ---------- */
+  .theinmag-home-flip__controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(14px, 2vw, 22px);
+    margin-top: clamp(14px, 1.8vw, 20px);
+  }
+  .theinmag-home-flip__arrow {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: var(--hf-disc);
+    color: var(--hf-disc-ink);
+    box-shadow: 0 4px 14px var(--hf-shadow);
+    cursor: pointer;
+    transition: background-color var(--transition-standard, 0.15s ease), color var(--transition-standard, 0.15s ease), transform var(--transition-standard, 0.15s ease);
+  }
+  .theinmag-home-flip__arrow:hover {
+    background-color: var(--hf-accent);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+  }
+  .theinmag-home-flip--shelf .theinmag-home-flip__arrow:hover { color: var(--color-inky-purple-navy, #2A1F3D); }
+  .theinmag-home-flip__arrow:active { transform: translateY(1px); }
+  .theinmag-home-flip__arrow:focus-visible {
+    outline: 3px solid var(--color-yellow, #F9C23C);
+    outline-offset: 3px;
+  }
+  .theinmag-home-flip__counter {
+    margin: 0;
+    min-width: 5ch;
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--hf-muted);
+  }
+  .theinmag-home-flip__hint {
+    margin: 8px 0 0;
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--hf-muted);
+  }
+  .theinmag-home-flip__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ---------- CTA: two buttons (pre-order + membership) ---------- */
+  .theinmag-home-flip__cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  .theinmag-home-flip__btn { white-space: nowrap; }
+
+  /* ---------- Optional kid character (sitewide pool) ----------
+     Peeks over the panel's top-right edge; its lower half hides behind
+     the painted surface (z-index 1) because it sits at z-index 0. */
+  .theinmag-home-flip__panel .theinmag-home-flip__character { display: none; }
+  @media (min-width: 750px) {
+    .theinmag-home-flip__panel .theinmag-home-flip__character {
+      display: block;
+      position: absolute;
+      z-index: 0;
+      right: clamp(24px, 5vw, 72px);
+      bottom: calc(100% - clamp(36px, 4vw, 56px));
+      width: clamp(96px, 9vw, 140px);
+      pointer-events: none;
+    }
+  }
+
+  /* ---------- Tablet ---------- */
+  @media (min-width: 750px) {
+    .theinmag-home-flip__object { width: clamp(170px, 24vw, 220px); padding: 6px; }
+  }
+
+  /* ---------- Desktop: copy column left, viewer right ---------- */
+  @media (min-width: 990px) {
+    .theinmag-home-flip__panel {
+      grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.55fr);
+      grid-template-areas:
+        'intro viewer'
+        'cta   viewer';
+      grid-template-rows: auto auto;
+      align-content: center;
+      column-gap: clamp(28px, 4vw, 64px);
+      row-gap: 18px;
+    }
+    .theinmag-home-flip__intro {
+      flex-direction: column;
+      align-items: flex-start;
+      align-self: end;
+      text-align: left;
+      gap: clamp(8px, 1.2vw, 15px);
+    }
+    .theinmag-home-flip__object {
+      order: -1;
+      width: clamp(190px, 18vw, 280px);
+      padding: 8px;
+      border-radius: 8px;
+      margin-left: 6px;
+      transform: rotate(-3.5deg);
+      box-shadow: 0 14px 34px var(--hf-shadow);
+    }
+    .theinmag-home-flip__object-img { border-radius: 4px; }
+    .theinmag-home-flip__cta {
+      align-self: start;
+      justify-content: flex-start;
+    }
+  }
+
+  /* ---------- Reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-home-flip__page,
+    .theinmag-home-flip__object,
+    .theinmag-home-flip__arrow { transition: none; }
+    .theinmag-home-flip__object:hover,
+    .theinmag-home-flip__object:focus-visible { transform: rotate(-3deg); }
+    .theinmag-home-flip__arrow:hover,
+    .theinmag-home-flip__arrow:active { transform: none; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  /* In-place flick-through. One spread at a time, wraps around, moves
+     only when the visitor moves it (arrows, swipe or drag, arrow keys).
+     Off-screen spreads stay display:none so their lazy images do not
+     download until warmed; neighbours are warmed once the section is
+     on screen so a flick paints instantly. */
+  (function () {
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    document.querySelectorAll('[data-hf-root]').forEach(function (root) {
+      var stage = root.querySelector('[data-hf-stage]');
+      var pages = Array.prototype.slice.call(root.querySelectorAll('[data-hf-page]'));
+      var prev = root.querySelector('[data-hf-prev]');
+      var next = root.querySelector('[data-hf-next]');
+      var current = root.querySelector('[data-hf-current]');
+      var leafStatic = root.querySelector('[data-hf-static]');
+      var leafTurn = root.querySelector('[data-hf-turn]');
+      var n = pages.length;
+      if (!stage || n < 1) return;
+
+      var i = 0;
+      var busy = false;
+      var drag = null;
+
+      function warm(idx) {
+        var p = pages[(idx + n) % n];
+        if (!p || p.dataset.hfWarm) return;
+        p.dataset.hfWarm = '1';
+        var im = new Image();
+        var ss = p.getAttribute('srcset');
+        if (ss) { im.sizes = p.getAttribute('sizes') || ''; im.srcset = ss; }
+        im.src = p.getAttribute('src');
+      }
+
+      function update() {
+        if (current) current.textContent = String(i + 1);
+      }
+
+      function finishFlip(out) {
+        out.classList.add('is-parked');
+        if (leafStatic) {
+          leafStatic.style.transition = 'none';
+          leafStatic.style.opacity = '0';
+          leafStatic.style.backgroundImage = '';
+        }
+        if (leafTurn) {
+          leafTurn.style.transition = 'none';
+          leafTurn.style.opacity = '0';
+          leafTurn.style.transform = 'rotateY(0deg)';
+          leafTurn.style.boxShadow = '';
+          leafTurn.style.backgroundImage = '';
+        }
+        busy = false;
+      }
+
+      function go(dir) {
+        if (busy) return;
+        var from = i;
+        var to = (i + dir + n) % n;
+        if (to === from) return;
+        var out = pages[from];
+        var inn = pages[to];
+        busy = true;
+
+        var canFlip = leafStatic && leafTurn && !reduced;
+        if (!canFlip) {
+          inn.classList.remove('is-parked');
+          inn.classList.add('is-active');
+          out.classList.remove('is-active');
+          out.classList.add('is-parked');
+          i = to; update(); warm(to + 1); warm(to - 1);
+          busy = false;
+          return;
+        }
+
+        // Paint both halves of the OUTGOING spread over the frame, no
+        // transition. The outgoing base stays visible beneath for now, so if
+        // the background needs a frame to decode nothing flashes.
+        var url = 'url("' + out.getAttribute('src') + '")';
+        leafStatic.style.transition = 'none';
+        leafTurn.style.transition = 'none';
+        leafStatic.style.backgroundImage = url;
+        leafTurn.style.backgroundImage = url;
+        leafStatic.style.opacity = '1';
+        leafTurn.style.opacity = '1';
+        leafTurn.style.transform = 'rotateY(0deg)';
+        if (dir > 0) {
+          // Next: the right page is the one that lifts.
+          leafStatic.style.left = '0';
+          leafStatic.style.backgroundPosition = 'left center';
+          leafTurn.style.left = '50%';
+          leafTurn.style.backgroundPosition = 'right center';
+          leafTurn.style.transformOrigin = 'left center';
+        } else {
+          // Prev: the left page lifts.
+          leafStatic.style.left = '50%';
+          leafStatic.style.backgroundPosition = 'right center';
+          leafTurn.style.left = '0';
+          leafTurn.style.backgroundPosition = 'left center';
+          leafTurn.style.transformOrigin = 'right center';
+        }
+        void leafTurn.offsetWidth;
+
+        // Only once the outgoing cover has actually painted do we swap the
+        // base to the incoming spread beneath it and run the lift-and-dissolve.
+        // Swapping earlier is what let the next page flash for a frame. A short
+        // timeout (rather than rAF) so it can never stall on a hidden tab.
+        window.setTimeout(function () {
+          inn.classList.remove('is-parked');
+          inn.classList.add('is-active');
+          out.classList.remove('is-active');
+
+          leafStatic.style.transition = '';
+          leafTurn.style.transition = '';
+          leafTurn.style.transform = dir > 0 ? 'rotateY(-88deg)' : 'rotateY(88deg)';
+          leafTurn.style.opacity = '0';
+          leafStatic.style.opacity = '0';
+          leafTurn.style.boxShadow = dir > 0
+            ? '-20px 0 30px rgba(42, 31, 61, 0.20)'
+            : '20px 0 30px rgba(42, 31, 61, 0.20)';
+
+          i = to;
+          update();
+          warm(to + 1);
+          warm(to - 1);
+          window.setTimeout(function () { finishFlip(out); }, 640);
+        }, 40);
+      }
+
+      if (prev) prev.addEventListener('click', function () { go(-1); });
+      if (next) next.addEventListener('click', function () { go(1); });
+
+      root.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+      });
+
+      /* Swipe / drag. touch-action: pan-y on the stage leaves vertical
+         scrolling to the browser; we only claim the gesture once it is
+         clearly horizontal. The active spread follows the finger a
+         little for a tactile flick, then commits or snaps back. */
+      stage.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: Date.now(), dx: 0, locked: false };
+      });
+      stage.addEventListener('pointermove', function (e) {
+        if (!drag || e.pointerId !== drag.id) return;
+        var dx = e.clientX - drag.x;
+        var dy = e.clientY - drag.y;
+        if (!drag.locked) {
+          if (Math.abs(dx) < 8) return;
+          if (Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+          drag.locked = true;
+          try { stage.setPointerCapture(e.pointerId); } catch (err) { /* older engines */ }
+          stage.classList.add('is-dragging');
+        }
+        drag.dx = dx;
+      });
+      function release(e) {
+        if (!drag || (e && e.pointerId !== drag.id)) return;
+        var dx = drag.dx;
+        var quick = Math.abs(dx) > 24 && (Date.now() - drag.t) < 260;
+        stage.classList.remove('is-dragging');
+        if (drag.locked && (Math.abs(dx) > 44 || quick)) {
+          go(dx < 0 ? 1 : -1);
+        }
+        drag = null;
+      }
+      stage.addEventListener('pointerup', release);
+      stage.addEventListener('pointercancel', release);
+      stage.addEventListener('lostpointercapture', release);
+
+      /* Warm the two neighbours once the section is near the viewport. */
+      if (n > 1) {
+        if ('IntersectionObserver' in window) {
+          var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+              if (!entry.isIntersecting) return;
+              warm(1); warm(n - 1);
+              io.disconnect();
+            });
+          }, { rootMargin: '200px 0px' });
+          io.observe(root);
+        } else {
+          warm(1); warm(n - 1);
+        }
+      }
+    });
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Home flip-through",
+  "tag": "section",
+  "class": "shopify-section theinmag-home-flip-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "A contained 'flick through the latest mag' panel for the homepage: the cover shot beside a framed spread viewer, flicked with arrows, a swipe or the keyboard. Pages come from the featured issue's inside gallery, so it self-updates each drop."
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What's INside [issue]?",
+      "info": "[issue] becomes the issue name, e.g. Mag11. IN renders with the brand-pun lift."
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro line",
+      "default": "Have a flick through a few of the pages.\nEvery creation by a real Aussie kid."
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow (in stock)",
+      "default": "Out now"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow_preorder",
+      "label": "Eyebrow (pre-order)",
+      "default": "Pre-order - drops [drop_date]",
+      "info": "[drop_date] becomes the live drop date from theinmag.next_release_date."
+    },
+    {
+      "type": "text",
+      "id": "hint",
+      "label": "Hint under the arrows",
+      "default": "Swipe or tap the arrows to flick through."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_link",
+      "label": "Show the buttons",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "link_label",
+      "label": "Buy button label",
+      "info": "Leave blank to auto-generate 'Pre-order MagNN' / 'See MagNN'."
+    },
+    {
+      "type": "text",
+      "id": "membership_label",
+      "label": "Membership button label",
+      "default": "Grab a subscription"
+    },
+    {
+      "type": "url",
+      "id": "membership_url",
+      "label": "Membership button link",
+      "info": "Defaults to /products/membership."
+    },
+    {
+      "type": "header",
+      "content": "Look"
+    },
+    {
+      "type": "select",
+      "id": "surface",
+      "label": "Panel surface",
+      "options": [
+        { "value": "sky", "label": "Sky (default)" },
+        { "value": "lavender", "label": "Lavender" },
+        { "value": "mint", "label": "Mint" },
+        { "value": "shelf", "label": "Inky shelf (dark)" }
+      ],
+      "default": "sky",
+      "info": "Colour pair for the panel. Sky is the cool counter-tone to the peach mission panel above."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_spine",
+      "label": "Faint spine shadow down the spread",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_character",
+      "label": "Kid character peeking over the panel",
+      "default": false,
+      "info": "Random pick from the sitewide character pool. Desktop and tablet only."
+    },
+    {
+      "type": "header",
+      "content": "Featured issue"
+    },
+    {
+      "type": "text",
+      "id": "featured_issue_handle",
+      "label": "Featured issue handle",
+      "info": "Leave blank to auto-pick the promoted issue, then the current issue. Set e.g. 'mag11' to pin one."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 8,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 128,
+      "step": 4,
+      "default": 40,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    { "name": "Home flip-through" }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page"]
+  }
+}
+{% endschema %}
