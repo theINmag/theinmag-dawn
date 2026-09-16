@@ -751,7 +751,15 @@
         // base to the incoming spread beneath it and run the lift-and-dissolve.
         // Swapping earlier is what let the next page flash for a frame. A short
         // timeout (rather than rAF) so it can never stall on a hidden tab.
-        window.setTimeout(function () {
+        // Wait until the outgoing cover image is actually decoded AND a frame
+        // has painted before revealing the incoming spread. A fixed delay was
+        // too short on later pages (their cover decodes slower), which let the
+        // next page flash then revert. decode() removes that race; a 400ms
+        // safety guarantees we never stall (e.g. rAF paused on a hidden tab).
+        var revealed = false;
+        var reveal = function () {
+          if (revealed) return;
+          revealed = true;
           inn.classList.remove('is-parked');
           inn.classList.add('is-active');
           out.classList.remove('is-active');
@@ -770,7 +778,20 @@
           warm(to + 1);
           warm(to - 1);
           window.setTimeout(function () { finishFlip(out); }, 640);
-        }, 40);
+        };
+        var afterDecode = function () {
+          window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(reveal);
+          });
+        };
+        var probe = new Image();
+        probe.src = out.getAttribute('src');
+        if (probe.decode) {
+          probe.decode().then(afterDecode).catch(afterDecode);
+        } else {
+          window.setTimeout(afterDecode, 60);
+        }
+        window.setTimeout(reveal, 400);
       }
 
       if (prev) prev.addEventListener('click', function () { go(-1); });
