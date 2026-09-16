@@ -1,0 +1,770 @@
+{%- comment -%}
+  theinmag-creativity-tiles
+  The three "keep the creativity going" tiles (competitions / live gallery /
+  membership), lifted VERBATIM from sections/theinmag-submitted.liquid so they
+  render pixel-identical wherever they are dropped. Ported here as a shared
+  snippet so a page can carry the exact submitted tiles without the submitted
+  section being present, and without ever editing that section.
+
+  Ported faithfully:
+    - the submitted tiles markup, class names kept as theinmag-submitted__* so
+      the look is identical (this snippet is never rendered on /pages/submitted,
+      so there is no double-definition anywhere),
+    - the submitted tile CSS (Beat 2), inlined below,
+    - a self-contained gallery fetch, scoped to data-theinmag-ctiles-* hooks so
+      it shares nothing with the submitted section's own script.
+
+  Requirements of the host page:
+    - render {% render 'theinmag-character-pool' %} once (for the membership
+      mINion slot),
+    - be included with {% include 'theinmag-creativity-tiles' %} so it inherits
+      the section scope (it reads section.settings.* and, via the include of
+      theinmag-competitions-data just below, the comp_* arrays).
+
+  Settings read (add these to the host section schema if missing):
+    comps_name, comps_link, comps_count,
+    gallery_name, gallery_link, gallery_count, gallery_feed_url,
+    membership_name, membership_link, membership_headline,
+    membership_image (+ _fallback, _alt), membership_hover (+ _fallback),
+    membership_feature_1..4, membership_review_count.
+
+  No em dashes anywhere (hyphens only). "creation" not "work".
+{%- endcomment -%}
+
+{%- comment -%} Parallel comp arrays (comp_names, comp_logos, comp_when_text, comp_tile_states ...) for the competitions tile. Same include the competitions and submitted pages use. {%- endcomment -%}
+{%- include 'theinmag-competitions-data' -%}
+
+<div class="theinmag-submitted__tiles">
+
+  {%- comment -%} COMPETITIONS tile - bright like /pages/competitions, sharing the current live comps {%- endcomment -%}
+  <a class="theinmag-submitted__ptile theinmag-submitted__ptile--comps" href="{{ section.settings.comps_link }}">
+    <span class="theinmag-submitted__ptile-bar theinmag-submitted__ptile-bar--comps">
+      <span class="theinmag-submitted__ptile-barname">{{ section.settings.comps_name }}</span>
+      <span class="theinmag-submitted__ptile-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </span>
+    {%- comment -%}
+      Build the shown set at RENDER time. Two jobs:
+
+      1) Live / expiry guard, copied from sections/theinmag-competitions.liquid.
+         comp_tile_states is baked at BUILD time, so a comp that closed since the
+         last push could keep reading "live now". comp_expiry_dates carries each
+         row's real ISO close ('' for perennial / TBC rows). We compare it to the
+         render date (midnight to midnight, so a comp closing today is still open
+         all day) and downgrade any passed close to annual-again, which drops it
+         out of the live set below. Only the damaging direction is handled, same
+         as the hub page.
+
+      2) Order: soonest real closing date first, with perennial rows (Rolling /
+         Year-round / Quarterly, i.e. no ISO close) last. For every still-live
+         comp we build a sort key "<iso-close-or-9999-sentinel>~<padded-index>",
+         sort those as plain strings (ISO dates sort correctly that way, the 9999
+         sentinel sorts last, ties fall back to data order), then read back the
+         first comps_count indexes. Nothing is hardcoded, so the set self-freshens
+         each day.
+
+      Missing or broken logos never leave a broken box: an absent asset skips the
+      logo slot in Liquid, and the onerror handler removes the slot if the image
+      itself fails to load, so the row falls back cleanly to the name.
+    {%- endcomment -%}
+    {%- liquid
+      assign comps_count = section.settings.comps_count | default: 6
+      if comps_count < 6
+        assign comps_count = 6
+      endif
+      if comps_count > 8
+        assign comps_count = 8
+      endif
+
+      assign comps_today_stamp = 'now' | date: '%Y-%m-%d' | date: '%s' | times: 1
+      assign comps_sort_str = ''
+      for cid in comp_ids
+        assign cci = forloop.index0
+        assign cc_state = comp_tile_states[cci]
+        assign cc_expiry = comp_expiry_dates[cci]
+        if cc_expiry != blank and cc_state != 'annual-again'
+          assign cc_expiry_stamp = cc_expiry | date: '%s' | times: 1
+          if cc_expiry_stamp < comps_today_stamp
+            assign cc_state = 'annual-again'
+          endif
+        endif
+        if cc_state == 'live-now'
+          assign cc_key = cc_expiry
+          assign cc_year = cc_expiry | slice: 0, 2
+          if cc_expiry == blank or cc_year != '20' or cc_expiry.size != 10
+            assign cc_key = '9999-99-99'
+          endif
+          assign cc_idx_pad = cci
+          if cci < 10
+            assign cc_idx_pad = '0' | append: cci
+          endif
+          assign comps_sort_str = comps_sort_str | append: cc_key | append: '~' | append: cc_idx_pad | append: ','
+        endif
+      endfor
+      assign comps_sorted = comps_sort_str | split: ',' | sort
+    -%}
+    <span class="theinmag-submitted__ptile-feed theinmag-submitted__ptile-feed--comps">
+      {%- assign comps_shown = 0 -%}
+      {%- for comps_entry in comps_sorted -%}
+        {%- if comps_shown >= comps_count -%}{%- break -%}{%- endif -%}
+        {%- assign ci = comps_entry | split: '~' | last | plus: 0 -%}
+        {%- assign clogo = comp_logos[ci] -%}
+        {%- assign cc_slug = comp_cost_slugs[ci] -%}
+        <span class="theinmag-submitted__ccard">
+          {%- comment -%} TOP: small logo left of the competition name {%- endcomment -%}
+          <span class="theinmag-submitted__ccard-top">
+            {%- if clogo != blank -%}
+              <span class="theinmag-submitted__ccard-logo">
+                <img src="{{ clogo | asset_url }}" alt="" loading="lazy" onerror="this.closest('.theinmag-submitted__ccard-logo').remove()">
+              </span>
+            {%- endif -%}
+            <span class="theinmag-submitted__ccard-name">{{ comp_names[ci] }}</span>
+          </span>
+          {%- comment -%} MIDDLE: plain, factual description, wraps freely (no clamp) {%- endcomment -%}
+          {%- if comp_descriptions[ci] != blank -%}
+            <span class="theinmag-submitted__ccard-desc">{{ comp_descriptions[ci] }}</span>
+          {%- endif -%}
+          {%- comment -%} BOTTOM: live badge (guarded) + deadline + cost, then eligibility {%- endcomment -%}
+          <span class="theinmag-submitted__ccard-foot">
+            <span class="theinmag-submitted__ccard-status">
+              <span class="theinmag-submitted__clive"><span class="theinmag-submitted__clive-dot" aria-hidden="true"></span>live now</span>
+              {%- if comp_meta_lines[ci] != blank -%}<span class="theinmag-submitted__ccard-deadline">{{ comp_meta_lines[ci] }}</span>{%- endif -%}
+              {%- if cc_slug == 'free' -%}<span class="theinmag-submitted__ccard-cost theinmag-submitted__ccard-cost--free">free</span>{%- elsif cc_slug == 'paid' -%}<span class="theinmag-submitted__ccard-cost theinmag-submitted__ccard-cost--paid">paid</span>{%- endif -%}
+            </span>
+            {%- if comp_whos[ci] != blank -%}<span class="theinmag-submitted__ccard-who">{{ comp_whos[ci] }}</span>{%- endif -%}
+          </span>
+        </span>
+        {%- assign comps_shown = comps_shown | plus: 1 -%}
+      {%- endfor -%}
+    </span>
+    <span class="theinmag-submitted__ptile-fade theinmag-submitted__ptile-fade--comps" aria-hidden="true"></span>
+  </a>
+
+  {%- comment -%} GALLERY tile - mirrors the mobile gallery: a single column of live submissions, each with its real attribution, under a simple "Live gallery" bar {%- endcomment -%}
+  <a
+    class="theinmag-submitted__ptile theinmag-submitted__ptile--gallery"
+    href="{{ section.settings.gallery_link }}"
+    data-theinmag-ctiles-gallery
+    data-gallery-json="{{ section.settings.gallery_feed_url }}"
+    data-gallery-json-fallback="{{ 'gallery-data.json' | asset_url }}"
+    data-gallery-count="{{ section.settings.gallery_count }}"
+  >
+    <span class="theinmag-submitted__ptile-bar">
+      <span class="theinmag-submitted__ptile-barname">{{ section.settings.gallery_name }}</span>
+      <span class="theinmag-submitted__ptile-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </span>
+    <span class="theinmag-submitted__ptile-feed" data-theinmag-ctiles-strip aria-hidden="true">
+      {%- for i in (1..section.settings.gallery_count) -%}
+        <span class="theinmag-submitted__gcard theinmag-submitted__gcard--skeleton">
+          <span class="theinmag-submitted__gcard-img"></span>
+          <span class="theinmag-submitted__gcard-cap"></span>
+        </span>
+      {%- endfor -%}
+    </span>
+    <span class="theinmag-submitted__ptile-fade" aria-hidden="true"></span>
+  </a>
+
+  {%- comment -%} MEMBERSHIP tile - image + hover swap, from-price headline, features {%- endcomment -%}
+  {%- liquid
+    assign m_main = ''
+    if section.settings.membership_image
+      assign m_main = section.settings.membership_image | image_url: width: 900
+    elsif section.settings.membership_image_fallback != blank
+      assign m_main = section.settings.membership_image_fallback | asset_url
+    endif
+    assign m_hover = ''
+    if section.settings.membership_hover
+      assign m_hover = section.settings.membership_hover | image_url: width: 900
+    elsif section.settings.membership_hover_fallback != blank
+      assign m_hover = section.settings.membership_hover_fallback | asset_url
+    endif
+  -%}
+  <a class="theinmag-submitted__ptile theinmag-submitted__ptile--membership" href="{{ section.settings.membership_link }}">
+    <span class="theinmag-submitted__ptile-bar theinmag-submitted__ptile-bar--membership">
+      <span class="theinmag-submitted__ptile-barname">{{ section.settings.membership_name }}</span>
+      <span class="theinmag-submitted__ptile-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </span>
+    <span class="theinmag-submitted__mbody">
+      <span class="theinmag-submitted__mmedia">
+        {%- if m_main != blank -%}<img class="theinmag-submitted__mimg theinmag-submitted__mimg--main" src="{{ m_main }}" alt="{{ section.settings.membership_image_alt | escape }}" loading="lazy">{%- endif -%}
+        {%- if m_hover != blank -%}<img class="theinmag-submitted__mimg theinmag-submitted__mimg--hover" src="{{ m_hover }}" alt="" aria-hidden="true" loading="lazy">{%- endif -%}
+      </span>
+      <span class="theinmag-submitted__mheadline">{{ section.settings.membership_headline }}</span>
+      <span class="theinmag-submitted__mfeatures">
+        {%- for n in (1..4) -%}
+          {%- assign fkey = 'membership_feature_' | append: n -%}
+          {%- assign feat = section.settings[fkey] -%}
+          {%- if feat != blank -%}
+            <span class="theinmag-submitted__mfeature">
+              <svg class="theinmag-submitted__mtick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 10.5l3.5 3.5L16 5.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>{{ feat }}</span>
+            </span>
+          {%- endif -%}
+        {%- endfor -%}
+      </span>
+      {%- comment -%} Real reviews, straight from Judge.me {%- endcomment -%}
+      {%- assign jm_reviews = shop.metafields.judgeme.reviews_grid.value.all_reviews.reviews -%}
+      {%- if jm_reviews and section.settings.membership_review_count > 0 -%}
+        <span class="theinmag-submitted__mreviews">
+          {%- assign rev_shown = 0 -%}
+          {%- for rev in jm_reviews -%}
+            {%- if rev_shown >= section.settings.membership_review_count -%}{%- break -%}{%- endif -%}
+            {%- assign rbody = rev.body | strip -%}
+            {%- if rev.rating == 5 and rbody != blank and rbody.size < 150 -%}
+              <span class="theinmag-submitted__mreview">
+                <span class="theinmag-submitted__mstars" aria-hidden="true">★★★★★</span>
+                <span class="theinmag-submitted__mquote">{{ rbody }}</span>
+                <span class="theinmag-submitted__mauthor">{%- if rev.reviewer_name != blank and rev.is_anonymous_reviewer != true -%}{{ rev.reviewer_name }}{%- else -%}A happy reader{%- endif -%}</span>
+              </span>
+              {%- assign rev_shown = rev_shown | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </span>
+      {%- endif -%}
+      <span class="theinmag-submitted__mchar" aria-hidden="true">
+        <span class="theinmag-submitted__mchar-slot" data-theinmag-pool-character></span>
+      </span>
+    </span>
+  </a>
+
+</div>
+
+<script>
+  /* Live gallery tile: pull REAL kid creations from the same feed the gallery
+     and submitted pages use, and populate the clipped strip. Self-contained and
+     scoped to this snippet's own data-theinmag-ctiles-* hooks, so it shares
+     nothing with the submitted section's script and cannot break that page.
+     Mirrors the submitted section's fetch-and-render behaviour exactly. */
+  (function () {
+    var gtile = document.querySelector('[data-theinmag-ctiles-gallery]');
+    var strip = document.querySelector('[data-theinmag-ctiles-strip]');
+    if (!gtile || !strip) return;
+    if (gtile.__ctilesGalleryInit) return;
+    gtile.__ctilesGalleryInit = true;
+
+    var count = parseInt(gtile.getAttribute('data-gallery-count'), 10) || 4;
+    var sources = [gtile.getAttribute('data-gallery-json'), gtile.getAttribute('data-gallery-json-fallback')].filter(Boolean);
+
+    function sized(url, w) { return url ? url + (url.indexOf('?') >= 0 ? '&' : '?') + 'width=' + w : ''; }
+    function titleCase(s) { return (s || '').replace(/\w\S*/g, function (t) { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); }); }
+    function attribution(c) {
+      var name = titleCase(c.first_name || '');
+      if (c.last_initial) name += ' ' + String(c.last_initial).toUpperCase() + '.';
+      var loc = titleCase(c.town || '');
+      if (c.state) loc += ' ' + String(c.state).toUpperCase();
+      var out = name;
+      if (loc) out += (out ? ' | ' : '') + loc;
+      if (c.age) out += ', age ' + c.age;
+      return out;
+    }
+
+    function tryNext(i) {
+      if (i >= sources.length) { strip.innerHTML = ''; return; }
+      fetch(sources[i], { credentials: 'omit' })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (data) {
+          var list = ((data && data.creations) || []).filter(function (c) { return !c.is_text_only && c.images && c.images.length; });
+          if (!list.length) throw 0;
+          list.sort(function (a, b) { return (b.submitted_at || '').localeCompare(a.submitted_at || ''); });
+          renderCards(list.slice(0, count));
+        })
+        .catch(function () { tryNext(i + 1); });
+    }
+
+    function renderCards(items) {
+      strip.innerHTML = '';
+      items.forEach(function (c) {
+        var card = document.createElement('span');
+        card.className = 'theinmag-submitted__gcard';
+        var imgWrap = document.createElement('span');
+        imgWrap.className = 'theinmag-submitted__gcard-img';
+        var img = document.createElement('img');
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.src = sized(c.images[0], 480);
+        img.alt = '';
+        imgWrap.appendChild(img);
+        var cap = document.createElement('span');
+        cap.className = 'theinmag-submitted__gcard-cap';
+        cap.textContent = attribution(c);
+        card.appendChild(imgWrap);
+        card.appendChild(cap);
+        if (c.write_up) {
+          var wu = document.createElement('span');
+          wu.className = 'theinmag-submitted__gcard-writeup';
+          wu.textContent = c.write_up;
+          card.appendChild(wu);
+        }
+        strip.appendChild(card);
+      });
+    }
+
+    tryNext(0);
+  })();
+</script>
+
+<style>
+  /* ================================================================
+     theinmag-creativity-tiles
+     Ported VERBATIM from sections/theinmag-submitted.liquid (Beat 2).
+     Kept under the theinmag-submitted__ class names so the tiles render
+     pixel-identical to /pages/submitted. This snippet is never rendered
+     on the submitted page, so there is no double-definition.
+     ================================================================ */
+
+  /* ---- Beat 2: portrait "phone view" page-tiles ---- */
+
+  .theinmag-submitted__tiles {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(16px, 3vw, 28px);
+    padding: clamp(18px, 3vw, 26px) clamp(16px, 4vw, 48px) clamp(40px, 6vw, 72px);
+  }
+
+  /* On narrow screens the tiles become a swipeable row of phone previews.
+     The row scrolls, which would clip each tile's drop shadow, so the
+     padding here (and scroll-padding for snap) gives the shadow room. */
+  @media (max-width: 900px) {
+    .theinmag-submitted__tiles {
+      justify-content: flex-start;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: clamp(26px, 7vw, 36px);
+      padding-left: clamp(26px, 7vw, 36px);
+      padding-right: clamp(26px, 7vw, 36px);
+      scrollbar-width: none;
+    }
+    .theinmag-submitted__tiles::-webkit-scrollbar { display: none; }
+    .theinmag-submitted__ptile { scroll-snap-align: center; }
+  }
+
+  /* A portrait card that reads like the page opened on a phone. */
+  .theinmag-submitted__ptile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    width: clamp(240px, 62vw, 320px);
+    aspect-ratio: 10 / 37;
+    border-radius: var(--radius-xl, 28px);
+    overflow: hidden;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(42, 31, 61, 0.2);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .theinmag-submitted__ptile:hover,
+  .theinmag-submitted__ptile:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(42, 31, 61, 0.26);
+    outline: none;
+  }
+
+  .theinmag-submitted__ptile:focus-visible { outline: 3px solid var(--color-yellow, #F9C23C); outline-offset: 3px; }
+
+  /* Gallery variant - dark inky-purple, echoing /pages/gallery. */
+  .theinmag-submitted__ptile--gallery {
+    background-color: var(--color-inky-purple-navy, #2A1F3D);
+    color: #fff;
+  }
+
+  /* Cream banner, matching the gallery page's own header box. */
+  .theinmag-submitted__ptile-bar {
+    flex: 0 0 auto;
+    margin: clamp(12px, 2vw, 16px) clamp(12px, 2vw, 16px) clamp(8px, 1.4vw, 12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: clamp(9px, 1.6vw, 12px) clamp(10px, 1.8vw, 14px) clamp(9px, 1.6vw, 12px) clamp(14px, 2.4vw, 18px);
+    background-color: var(--color-cream, #FBF6EA);
+    border-radius: var(--radius-lg, 20px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  }
+
+  .theinmag-submitted__ptile-barname {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(21px, 2.7vw, 27px);
+    line-height: 1;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-submitted__ptile-arrow {
+    flex: 0 0 auto;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 999px;
+    background-color: var(--color-yellow, #F9C23C);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    transition: transform 0.18s ease;
+  }
+  .theinmag-submitted__ptile-arrow svg { width: 16px; height: 16px; }
+  .theinmag-submitted__ptile:hover .theinmag-submitted__ptile-arrow,
+  .theinmag-submitted__ptile:focus-visible .theinmag-submitted__ptile-arrow { transform: translateX(3px); }
+
+  /* Single column of live submissions, clipped at the bottom so it reads as
+     a scrollable feed - exactly like the gallery on a phone. */
+  .theinmag-submitted__ptile-feed {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.6vw, 14px);
+    padding: 0 clamp(12px, 2vw, 16px) clamp(14px, 2vw, 18px);
+    overflow-y: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .theinmag-submitted__ptile-feed::-webkit-scrollbar { display: none; }
+
+  .theinmag-submitted__gcard { display: flex; flex-direction: column; gap: 5px; flex: 0 0 auto; }
+
+  /* Natural shape, like the real gallery - the whole creation, uncropped. */
+  .theinmag-submitted__gcard-img {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius-sm, 6px);
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  .theinmag-submitted__gcard-img img { width: 100%; height: auto; display: block; }
+
+  .theinmag-submitted__gcard-cap {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(11px, 1.3vw, 13px);
+    line-height: 1.3;
+    color: #fff;
+    opacity: 0.92;
+  }
+
+  .theinmag-submitted__gcard-writeup {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: clamp(11px, 1.3vw, 13px);
+    line-height: 1.4;
+    color: #fff;
+    opacity: 0.66;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .theinmag-submitted__gcard--skeleton .theinmag-submitted__gcard-img {
+    min-height: 190px;
+    background-image: linear-gradient(100deg, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 70%);
+    background-size: 200% 100%;
+    animation: theinmag-ctiles-shimmer 1.4s ease-in-out infinite;
+  }
+  .theinmag-submitted__gcard--skeleton .theinmag-submitted__gcard-cap {
+    height: 12px; width: 70%; border-radius: 3px; background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  @keyframes theinmag-ctiles-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Bottom fade hints there is more to scroll, like a real feed. */
+  .theinmag-submitted__ptile-fade {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: clamp(40px, 8vw, 56px);
+    background: linear-gradient(to top, var(--color-inky-purple-navy, #2A1F3D), rgba(42, 31, 61, 0));
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ---- Competitions tile - bright, echoing /pages/competitions ---- */
+  .theinmag-submitted__ptile--comps {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-submitted__ptile-bar--comps { background-color: var(--color-peach, #FCDDB8); }
+  .theinmag-submitted__ptile-fade--comps {
+    background: linear-gradient(to top, var(--color-cream, #FBF6EA), rgba(251, 246, 234, 0));
+  }
+  .theinmag-submitted__ptile-feed--comps { gap: clamp(9px, 1.4vw, 12px); }
+
+  /* Taller comp card - three stacked parts:
+       top  = small logo beside the competition name
+       mid  = a plain, factual description of what the comp is (wraps, no clamp)
+       foot = live badge + deadline + cost chip, then who can enter
+     NOTE: the text rules below are scoped under .theinmag-submitted__ptile--comps
+     on purpose. The submitted section's own stylesheet block is bundled into a
+     theme-wide sheet that loads on this page too, and its single-class
+     .theinmag-submitted__ccard-name (clamp 2) rule would otherwise win. The extra
+     class raises specificity above it, so the full text really does show. */
+  .theinmag-submitted__ptile--comps .theinmag-submitted__ccard {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.4vw, 11px);
+    flex: 0 0 auto;
+    padding: clamp(12px, 1.8vw, 15px);
+    background-color: #fff;
+    border-radius: var(--radius-md, 12px);
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.08);
+  }
+
+  /* TOP row - logo pinned left, name centred to it. */
+  .theinmag-submitted__ptile--comps .theinmag-submitted__ccard-top {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 1.6vw, 13px);
+    min-width: 0;
+  }
+  .theinmag-submitted__ccard-logo {
+    flex: 0 0 auto;
+    width: clamp(44px, 12vw, 52px);
+    height: clamp(44px, 12vw, 52px);
+    border-radius: var(--radius-sm, 6px);
+    background-color: var(--color-cream, #FBF6EA);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .theinmag-submitted__ccard-logo img { width: 100%; height: 100%; object-fit: contain; }
+
+  /* Small "live now" badge, shown on any comp the data marks live-now. Green
+     reads as active; the dot carries the meaning for anyone who cannot separate
+     the green from the text. */
+  .theinmag-submitted__clive {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background-color: rgba(74, 124, 92, 0.14);
+    color: var(--color-sage-dark, #4A7C5C);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(10px, 1.15vw, 11px);
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+  }
+  .theinmag-submitted__clive-dot {
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background-color: var(--color-sage-dark, #4A7C5C);
+  }
+
+  .theinmag-submitted__ptile--comps .theinmag-submitted__ccard-name {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(14px, 1.6vw, 16px);
+    line-height: 1.2;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    /* Clear the bundled clamp so the whole name shows, however many lines. */
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  /* MIDDLE - description. Wraps to as many lines as it needs, never clamped. */
+  .theinmag-submitted__ptile--comps .theinmag-submitted__ccard-desc {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(12px, 1.35vw, 13px);
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.82;
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  /* BOTTOM - status row (badge + deadline + cost) then eligibility. */
+  .theinmag-submitted__ccard-foot {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(5px, 1vw, 7px);
+    margin-top: 1px;
+  }
+  .theinmag-submitted__ccard-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .theinmag-submitted__ccard-deadline {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(11px, 1.3vw, 12px);
+    line-height: 1.2;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  .theinmag-submitted__ccard-cost {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(9px, 1.05vw, 10px);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    line-height: 1;
+    padding: 3px 7px;
+    border-radius: 999px;
+  }
+  .theinmag-submitted__ccard-cost--free {
+    background-color: rgba(74, 124, 92, 0.14);
+    color: var(--color-sage-dark, #4A7C5C);
+  }
+  .theinmag-submitted__ccard-cost--paid {
+    background-color: rgba(217, 120, 58, 0.16);
+    color: var(--color-peach-dark, #D9783A);
+  }
+  .theinmag-submitted__ptile--comps .theinmag-submitted__ccard-who {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(11px, 1.25vw, 12px);
+    line-height: 1.3;
+    color: var(--color-text-muted, #6b6b6b);
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  /* ---- Membership tile - image + hover swap, from-price, features ---- */
+  /* Membership sizes to its own content (image + features + mINion), so there
+     is no awkward gap. It top-aligns with the two taller scrollable feeds. */
+  .theinmag-submitted__ptile--membership {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    aspect-ratio: auto;
+  }
+  .theinmag-submitted__ptile-bar--membership { background-color: var(--color-sky, #C9E5E8); }
+
+  .theinmag-submitted__mbody {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 2vw, 18px);
+    padding: 0 clamp(12px, 2vw, 16px) clamp(16px, 2.4vw, 22px);
+    overflow: hidden;
+  }
+
+  .theinmag-submitted__mmedia {
+    position: relative;
+    flex: 0 0 auto;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-lg, 20px);
+    overflow: hidden;
+    background-color: #fff;
+  }
+
+  /* Fills whatever space is left below the features with a random kid mINion. */
+  .theinmag-submitted__mchar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-top: clamp(14px, 2.6vw, 24px);
+  }
+  .theinmag-submitted__mchar-slot { display: block; width: clamp(130px, 36vw, 200px); }
+  .theinmag-submitted__mchar-slot .theinmag-pool-character__img {
+    width: 100%;
+    height: auto;
+    display: block;
+    opacity: 1;
+    transform: none;
+  }
+
+  .theinmag-submitted__mimg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .theinmag-submitted__mimg--hover { opacity: 0; transition: opacity 0.35s ease; }
+  .theinmag-submitted__ptile--membership:hover .theinmag-submitted__mimg--hover,
+  .theinmag-submitted__ptile--membership:focus-visible .theinmag-submitted__mimg--hover { opacity: 1; }
+
+  .theinmag-submitted__mheadline {
+    flex: 0 0 auto;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(21px, 2.6vw, 28px);
+    line-height: 1.08;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-submitted__mfeatures {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1vw, 10px);
+  }
+
+  .theinmag-submitted__mfeature {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(13px, 1.5vw, 15px);
+    line-height: 1.3;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-submitted__mtick {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    color: var(--color-sage-dark, #4A7C5C);
+  }
+
+  .theinmag-submitted__mreviews {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(9px, 1.5vw, 13px);
+    margin-top: clamp(2px, 0.6vw, 6px);
+  }
+  .theinmag-submitted__mreview {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: clamp(10px, 1.6vw, 13px);
+    background-color: #fff;
+    border-radius: var(--radius-md, 12px);
+    box-shadow: 0 2px 10px rgba(42, 31, 61, 0.07);
+  }
+  .theinmag-submitted__mstars {
+    color: var(--color-yellow, #F9C23C);
+    font-size: 13px;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .theinmag-submitted__mquote {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(12px, 1.4vw, 14px);
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .theinmag-submitted__mauthor {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(11px, 1.3vw, 12px);
+    color: var(--color-text-muted, #6b6b6b);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-submitted__ptile,
+    .theinmag-submitted__ptile-arrow,
+    .theinmag-submitted__gcard--skeleton { transition: none; animation: none; }
+  }
+</style>

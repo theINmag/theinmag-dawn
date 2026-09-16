@@ -1,0 +1,1105 @@
+{%- comment -%}
+  theinmag-daily-prompt
+  The theINmag Daily Prompt. A classroom-facing page a teacher opens on the
+  interactive whiteboard each morning. One stunning REAL kid creation on the
+  LEFT, a warm prompt panel on the RIGHT with three open discussion questions.
+  Design brief: Webster. v3 iteration, 2026-09-14 (built for Webster).
+
+  ARCHETYPE: derived from section 6.1 "Hero - story-first photo split", reworked
+  so the two panes are not both photos: the creation owns the left pane (shown in
+  full, never cropped or stretched) and a coloured prompt panel owns the right.
+  Below the fold sits the sales loop, styled in the language of /pages/submitted:
+  warm cards, a name bar with a yellow arrow, membership as the emphasised card.
+
+  Above the fold fits ONE screen on a wide classroom display (1280px+), no scroll
+  needed. On mobile the creation stacks over the prompt panel. The sales loop
+  begins exactly at the fold.
+
+  ============================ v3 changes ============================
+  1. FLUID CENTRELINE, WHOLE IMAGE ALWAYS SHOWN, NEVER CROPPED. The hero is a flex
+     row. The image renders at full hero height (height:100%, width:auto,
+     object-fit:contain), so the art column shrink-wraps to the image's own width
+     and the divide sits exactly at the image's right edge. A portrait makes a
+     NARROW art column and a WIDE panel; a landscape makes a WIDE column and a
+     narrower panel. The divide is driven by the image aspect, not a fixed grid.
+     The column is clamped to a min-width (34% of hero) and max-width (60%); an
+     image past the cap contains within it (small side or top ground, never crop).
+     Full-bleed in feel: no rounded corners, no shadow, no cream mat. Any ground
+     beside the image is just the day's style ground, reading as intentional space.
+  2. ATTRIBUTION + WRITE-UP LIVE IN THE PANEL, OFF THE IMAGE. No on-image scrim
+     credit. Above the "daily prompt" eyebrow the panel carries the creation title,
+     an attribution line matching the gallery feed ("FirstName Initial. | Town STATE, age N") and the kid's own write-up
+     styled as their voice. The write-up is line-clamped so a long one can never
+     push the questions below the fold.
+  3. THREE ROTATING COLOUR STYLES (lavender / sky / mint). Panel text stays
+     inky-purple-navy everywhere, the universal safe text colour, so no pair-contrast
+     rule is broken. Yellow stays rare (the membership CTA stamp only). The day's
+     style derives from the entry date (epoch-day modulo 3) on "auto", stable within
+     a day and cycling across days; an admin can pin a style too.
+  4. DATE-DRIVEN, ONE SHUFFLE CONTROL. Each entry carries its own date. On load the
+     page shows the entry with the greatest date on or before the store's current
+     date, so it auto-advances each day with no edit. Earlier-dated entries form the
+     past pool; a single "something different" button jumps to a RANDOM one of them,
+     never re-showing the current one, disabled when the pool is empty. Future-dated
+     entries are rendered hidden and are unreachable until their day arrives. Block
+     order does not matter. No reload, no generation, no fold push.
+  5. QUESTIONS STAY HUMAN-VISIBLE AND EDITABLE as plain block data, clearly marked
+     PLACEHOLDER. Ryan and Gary see and edit every one in the theme editor before it
+     displays. No live generation, ever. Appending a new day = one block on the front.
+     Cadence: weekdays only; the ordered list simply holds weekday entries.
+
+  BRAND RULES honoured: sentence case headings, no en or em dashes anywhere
+  (hyphens only, code comments included), no Caveat font (Post + Inter only),
+  real kid creation with a first-name + surname-initial credit matching the gallery feed, no pure-white or
+  pure-yellow section backgrounds (yellow only as the CTA stamp), "theINmag"
+  casing exact via the .theinmag-in span. Kid names are NOT emitted into JSON-LD
+  (gallery brand-safety rule): schema stays titles + URLs only.
+{%- endcomment -%}
+
+{% render 'theinmag-character-pool' %}
+
+<section
+  class="theinmag-daily-prompt"
+  data-theinmag-daily-prompt
+  aria-labelledby="theinmag-daily-prompt-h1"
+>
+  {%- comment -%} Visually-hidden H1 carries the AEO load; the visible chrome speaks for itself. {%- endcomment -%}
+  <h1 id="theinmag-daily-prompt-h1" class="theinmag-daily-prompt__vh">
+    the<span class="theinmag-in">IN</span>mag daily prompt, a free classroom discussion and speaking-and-listening starter for Australian kids
+  </h1>
+
+  {%- comment -%} Polite live region so a screen reader hears which prompt is showing after navigation. {%- endcomment -%}
+  <p class="theinmag-daily-prompt__vh" data-dp-live aria-live="polite"></p>
+
+  {%- comment -%}
+    ===== ABOVE THE FOLD: one hero per daily entry, selected by date =====
+    Every entry is a full hero (art pane + prompt panel) so its orientation class
+    and colour-style class travel with it. Only the date-selected "today" entry is
+    visible on load; the "something different" and "back to today's" controls toggle
+    [hidden] on the past-pool entries. Future entries stay hidden. All client-side.
+  {%- endcomment -%}
+  {%- assign total = section.blocks.size -%}
+
+  {%- comment -%}
+    DATE-DRIVEN selection. The prompt shown on load is the entry with the greatest
+    date that is on or before the store's current date. Earlier-dated entries form
+    the past pool ("something different" cycles through them). Future-dated entries
+    are rendered hidden and are unreachable client-side until their day arrives.
+    Dates compare as epoch seconds so the comparison is numeric, not string-lexical.
+  {%- endcomment -%}
+  {%- assign now_s = 'now' | date: '%s' | plus: 0 -%}
+  {%- assign current_index = -1 -%}
+  {%- assign current_s = 0 -%}
+  {%- assign earliest_index = 0 -%}
+  {%- assign earliest_s = 0 -%}
+  {%- for block in section.blocks -%}
+    {%- assign b_s = block.settings.date | date: '%s' | plus: 0 -%}
+    {%- if forloop.first or b_s < earliest_s -%}
+      {%- assign earliest_s = b_s -%}
+      {%- assign earliest_index = forloop.index0 -%}
+    {%- endif -%}
+    {%- if b_s <= now_s -%}
+      {%- if current_index == -1 or b_s > current_s -%}
+        {%- assign current_s = b_s -%}
+        {%- assign current_index = forloop.index0 -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- comment -%} Everything is in the future (nothing on or before today): fall back to the earliest so the page is never blank. {%- endcomment -%}
+  {%- if current_index == -1 -%}
+    {%- assign current_index = earliest_index -%}
+    {%- assign current_s = earliest_s -%}
+  {%- endif -%}
+  {%- comment -%} Past-pool size: entries on or before today that are not the current one. Drives the shuffle disabled state. {%- endcomment -%}
+  {%- assign past_count = 0 -%}
+  {%- for block in section.blocks -%}
+    {%- assign b_s = block.settings.date | date: '%s' | plus: 0 -%}
+    {%- if b_s <= now_s and forloop.index0 != current_index -%}
+      {%- assign past_count = past_count | plus: 1 -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- for block in section.blocks -%}
+    {%- liquid
+      # Artwork source: admin image_picker first, then a theme asset (a pre-rotated
+      # or otherwise hosted file in /assets/), then the entry's raw URL. The asset
+      # path wins over the URL, so a sideways photo can be pre-rotated and pinned to
+      # /assets/ rather than fought with a CSS transform inside the fluid divide.
+      assign art_src = ''
+      if block.settings.image
+        assign art_src = block.settings.image | image_url: width: 1600
+      elsif block.settings.image_asset != blank
+        assign art_src = block.settings.image_asset | asset_url
+      elsif block.settings.image_url != blank
+        assign art_src = block.settings.image_url
+      endif
+
+      # Optional second image: a clean two-up in the art pane when set.
+      assign art_src_2 = ''
+      if block.settings.image_url_2 != blank
+        assign art_src_2 = block.settings.image_url_2
+      endif
+
+      # Intrinsic size drives orientation and reserves space (no layout shift).
+      assign iw = block.settings.image_w | default: 1600
+      assign ih = block.settings.image_h | default: 1200
+      assign orient = 'landscape'
+      if ih > iw
+        assign orient = 'portrait'
+      endif
+      # A two-up sits side by side, so it always reads as a wide (landscape) column.
+      if art_src_2 != blank
+        assign orient = 'landscape'
+      endif
+
+      # Role from the date-driven selection above: current (shown on load), future
+      # (rendered hidden, never revealed client-side) or past (the shuffle pool).
+      assign b_s = block.settings.date | date: '%s' | plus: 0
+      assign is_current = false
+      if forloop.index0 == current_index
+        assign is_current = true
+      endif
+      assign dp_role = 'past'
+      if is_current
+        assign dp_role = 'current'
+      elsif b_s > now_s
+        assign dp_role = 'future'
+      endif
+
+      # Colour style: "auto" derives from the date (epoch-day modulo 3) so it is
+      # stable within a day and cycles across days; an admin can pin one instead.
+      assign estyle = block.settings.style
+      if estyle == 'auto' or estyle == blank
+        assign epochday = block.settings.date | date: '%s' | divided_by: 86400
+        assign sidx = epochday | modulo: 3
+        case sidx
+          when 0
+            assign estyle = 'lavender'
+          when 1
+            assign estyle = 'sky'
+          else
+            assign estyle = 'mint'
+        endcase
+      endif
+
+      # Credit line, matching the live gallery feed format exactly:
+      # "FirstName Initial. | Town STATE, age N" (e.g. "Frankie G. | Pottsville NSW, age 9").
+      # State stays abbreviated (NSW / VIC / QLD / WA). Age is required and always shows.
+      assign credit = block.settings.first_name | strip
+      assign si = block.settings.surname_initial | strip
+      if si != blank
+        assign credit = credit | append: ' ' | append: si | append: '.'
+      endif
+      assign loc = ''
+      if block.settings.town != blank
+        assign loc = block.settings.town | strip
+      endif
+      if block.settings.state != blank
+        if loc != blank
+          assign loc = loc | append: ' ' | append: block.settings.state
+        else
+          assign loc = block.settings.state | strip
+        endif
+      endif
+      if loc != blank
+        assign credit = credit | append: ' | ' | append: loc
+      endif
+      if block.settings.age != blank
+        assign credit = credit | append: ', age ' | append: block.settings.age
+      endif
+
+      # Human date line for the eyebrow, parsed from the ISO date on the entry.
+      assign date_line = block.settings.date | date: '%A %-d %B'
+    -%}
+
+    <div
+      class="theinmag-daily-prompt__hero theinmag-daily-prompt__hero--{{ estyle }} is-{{ orient }}"
+      data-dp-entry
+      data-dp-index="{{ forloop.index0 }}"
+      data-dp-orient="{{ orient }}"
+      data-dp-role="{{ dp_role }}"
+      role="group"
+      aria-roledescription="daily prompt"
+      aria-label="Daily prompt for {{ date_line | escape }}, artwork by {{ credit | escape }}"
+      {%- comment -%} Storefront shows the date-selected entry only; the theme editor reveals every entry so Ryan and Gary can see and edit each day's questions. {%- endcomment -%}
+      {% unless is_current %}{% unless request.design_mode %}hidden{% endunless %}{% endunless %}
+      {{ block.shopify_attributes }}
+    >
+
+      <div class="theinmag-daily-prompt__art{% if art_src_2 != blank %} theinmag-daily-prompt__art--pair{% endif %}">
+        {%- if art_src != blank -%}
+          <img
+            class="theinmag-daily-prompt__art-img"
+            src="{{ art_src }}"
+            alt="{{ block.settings.artwork_alt | escape }}"
+            width="{{ iw }}"
+            height="{{ ih }}"
+            {% if is_current %}loading="eager" fetchpriority="high"{% else %}loading="lazy"{% endif %}
+            decoding="async"
+          >
+        {%- endif -%}
+        {%- if art_src_2 != blank -%}
+          <img
+            class="theinmag-daily-prompt__art-img"
+            src="{{ art_src_2 }}"
+            alt="{{ block.settings.artwork_alt | escape }}"
+            width="{{ block.settings.image_w_2 | default: 1600 }}"
+            height="{{ block.settings.image_h_2 | default: 1200 }}"
+            {% if is_current %}loading="eager"{% else %}loading="lazy"{% endif %}
+            decoding="async"
+          >
+        {%- endif -%}
+      </div>
+
+      <div class="theinmag-daily-prompt__panel">
+        <div class="theinmag-daily-prompt__panel-inner">
+
+          {%- comment -%}
+            Attribution + write-up sit ABOVE the eyebrow, off the image. The write-up
+            is the kid's own voice (a short quote), line-clamped so a long one can
+            never push the questions below the fold.
+          {%- endcomment -%}
+          <div class="theinmag-daily-prompt__by">
+            {%- if block.settings.artwork_title != blank -%}
+              <p class="theinmag-daily-prompt__art-title">{{ block.settings.artwork_title }}</p>
+            {%- endif -%}
+            {%- if credit != blank -%}
+              <p class="theinmag-daily-prompt__credit-by">{{ credit }}</p>
+            {%- endif -%}
+            {%- if block.settings.writeup != blank -%}
+              <blockquote class="theinmag-daily-prompt__writeup" data-dp-writeup>{{ block.settings.writeup }}</blockquote>
+              <button type="button" class="theinmag-daily-prompt__writeup-more" data-dp-writeup-more hidden>read more</button>
+            {%- endif -%}
+          </div>
+
+          {%- comment -%} Shuffle control: jumps to a random OTHER past entry, client-side. {%- endcomment -%}
+          <div class="theinmag-daily-prompt__nav">
+            <button
+              type="button"
+              class="theinmag-daily-prompt__shuffle"
+              data-dp-shuffle
+              {% if past_count < 1 %}disabled{% endif %}
+              aria-label="Show a different past prompt"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+              <span>something different</span>
+            </button>
+            {%- comment -%} Only shown on non-current entries, so a viewer can jump back to the current day's prompt. {%- endcomment -%}
+            {%- unless is_current -%}
+              <button
+                type="button"
+                class="theinmag-daily-prompt__today"
+                data-dp-today
+                aria-label="Back to today's prompt"
+              >back to today's</button>
+            {%- endunless -%}
+          </div>
+
+          <p class="theinmag-daily-prompt__eyebrow">
+            daily prompt
+            {%- if date_line != blank -%}
+              <span class="theinmag-daily-prompt__eyebrow-date">{{ date_line }}</span>
+            {%- endif -%}
+          </p>
+
+          {%- if section.settings.heading != blank -%}
+            <h2 class="theinmag-daily-prompt__heading">{{ section.settings.heading }}</h2>
+          {%- endif -%}
+
+          {%- comment -%}
+            PLACEHOLDER questions. Real questions come from a pre-generate-and-human-
+            approve pipeline (Yogi drafts, a human gates), which is NOT part of this
+            build. Each entry carries three open, discussion-first questions that
+            Ryan and Gary can see and edit here before the prompt ever displays.
+          {%- endcomment -%}
+          <ol class="theinmag-daily-prompt__questions">
+            {%- for n in (1..3) -%}
+              {%- assign qkey = 'question_' | append: n -%}
+              {%- assign q = block.settings[qkey] -%}
+              {%- if q != blank -%}
+                <li class="theinmag-daily-prompt__q">
+                  <span class="theinmag-daily-prompt__q-num" aria-hidden="true">{{ n }}</span>
+                  <span class="theinmag-daily-prompt__q-text">{{ q }}</span>
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ol>
+
+          {%- comment -%} The creative task: one open, imaginative invitation, bespoke to THIS creation. {%- endcomment -%}
+          {%- if block.settings.creative_task != blank -%}
+            <p class="theinmag-daily-prompt__task">
+              <span class="theinmag-daily-prompt__task-label">{{ section.settings.task_label | default: 'The creative task' }}</span>
+              {%- if section.settings.invite_link != blank -%}
+                <a class="theinmag-daily-prompt__task-text" href="{{ section.settings.invite_link }}">{{ block.settings.creative_task }}</a>
+              {%- else -%}
+                <span class="theinmag-daily-prompt__task-text">{{ block.settings.creative_task }}</span>
+              {%- endif -%}
+            </p>
+          {%- endif -%}
+
+        </div>
+      </div>
+
+    </div>
+  {%- endfor -%}
+
+  {%- if total == 0 -%}
+    <div class="theinmag-daily-prompt__empty">
+      <p>Add a daily prompt entry in the theme editor to fill this page.</p>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} ===== BELOW THE FOLD: the sales loop back to memberships ===== {%- endcomment -%}
+  <div class="theinmag-daily-prompt__loop">
+    <div class="theinmag-daily-prompt__loop-inner">
+
+      <div class="theinmag-daily-prompt__loop-head">
+        <h2 class="theinmag-daily-prompt__loop-title">{{ section.settings.loop_heading }}</h2>
+      </div>
+
+      {%- comment -%} A single kid character floats in the right margin, clear of the centred heading, shown only where there is room beside it (wide screens). {%- endcomment -%}
+      <span class="theinmag-daily-prompt__loop-char" aria-hidden="true">
+        <span data-theinmag-pool-character></span>
+      </span>
+
+      {%- comment -%}
+        The three creativity tiles (competitions / live gallery / membership),
+        rendered from the shared snippet so they are pixel-identical to the tiles
+        on /pages/submitted. The snippet carries its own markup, CSS and gallery
+        fetch, and includes theinmag-competitions-data itself. Included (not
+        rendered) so it inherits this section's settings scope.
+      {%- endcomment -%}
+      {%- include 'theinmag-creativity-tiles' -%}
+
+    </div>
+  </div>
+</section>
+
+{%- comment -%} Page-level JSON-LD: BreadcrumbList (always-on) + WebPage. No kid names in schema (gallery rule). {%- endcomment -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": {{ shop.url | json }} },
+    { "@type": "ListItem", "position": 2, "name": "Daily prompt", "item": {{ shop.url | append: page.url | json }} }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "theINmag daily prompt",
+  "description": "A daily classroom talking point built around one real Australian kid's creation, with open discussion questions for ages 5 to 13.",
+  "url": {{ shop.url | append: page.url | json }},
+  "isPartOf": { "@type": "WebSite", "name": {{ shop.name | json }}, "url": {{ shop.url | json }} }
+}
+</script>
+
+<script>
+  (function () {
+    var section = document.querySelector('[data-theinmag-daily-prompt]');
+    if (!section) return;
+    if (section.__dpInit) return;
+    section.__dpInit = true;
+
+    var entries = Array.prototype.slice.call(section.querySelectorAll('[data-dp-entry]'));
+
+    /* Write-up expand. Reveal a "read more" only when the clamped quote actually
+       overflows, and toggle it open in place on click. Runs before the shuffle nav
+       below so it works even with a single entry. Hidden entries have no height, so
+       they are synced when shown (see show()) rather than now. */
+    function syncWriteup(entry) {
+      var q = entry.querySelector('[data-dp-writeup]');
+      var more = entry.querySelector('[data-dp-writeup-more]');
+      if (!q || !more) return;
+      if (q.classList.contains('is-expanded')) { more.hidden = false; return; }
+      more.hidden = (q.scrollHeight <= q.clientHeight + 2);
+    }
+    function collapseWriteup(entry) {
+      var q = entry.querySelector('[data-dp-writeup]');
+      var more = entry.querySelector('[data-dp-writeup-more]');
+      if (q) { q.classList.remove('is-expanded'); }
+      if (more) { more.textContent = 'read more'; }
+    }
+    section.addEventListener('click', function (e) {
+      var mb = e.target.closest && e.target.closest('[data-dp-writeup-more]');
+      if (!mb) return;
+      var entry = mb.closest('[data-dp-entry]');
+      var q = entry && entry.querySelector('[data-dp-writeup]');
+      if (!q) return;
+      mb.textContent = q.classList.toggle('is-expanded') ? 'read less' : 'read more';
+    });
+    /* Sync every currently-visible entry now (entry 0 on the storefront, all in the
+       theme editor) and again on resize, since the clamp count shifts with width. */
+    function syncVisible() {
+      entries.forEach(function (entry) { if (!entry.hidden) syncWriteup(entry); });
+    }
+    syncVisible();
+    window.addEventListener('resize', syncVisible);
+
+    /* Date-driven roles come from the server: which entry is today's, which are the
+       past pool, which are future (hidden and never revealed client-side). */
+    var currentIndex = 0;
+    var pastPool = [];
+    entries.forEach(function (entry, i) {
+      var role = entry.getAttribute('data-dp-role');
+      if (role === 'current') { currentIndex = i; }
+      else if (role === 'past') { pastPool.push(i); }
+    });
+
+    if (pastPool.length < 1) return; /* nothing to shuffle to: one entry stands alone */
+
+    /* Preload the current + past-pool images so a shuffle swaps instantly, with no
+       blank flash. Future entries stay lazy: they are hidden and never revealed. */
+    entries.forEach(function (entry) {
+      if (entry.getAttribute('data-dp-role') === 'future') { return; }
+      var im = entry.querySelector('.theinmag-daily-prompt__art-img');
+      if (im) { im.loading = 'eager'; }
+    });
+
+    var live = section.querySelector('[data-dp-live]');
+    var current = currentIndex; /* the date-selected "today" entry */
+
+    function announce(i) {
+      if (!live) return;
+      var label = entries[i].getAttribute('aria-label') || '';
+      live.textContent = label;
+    }
+
+    function show(i, keepFocus) {
+      if (i < 0 || i > entries.length - 1 || i === current) return;
+      collapseWriteup(entries[current]);
+      entries[current].hidden = true;
+      entries[i].hidden = false;
+      syncWriteup(entries[i]);
+      current = i;
+      announce(i);
+      /* Keep focus inside the panel on the shuffle button of the new entry, so a
+         keyboard user is not dropped to the top of the page. */
+      if (keepFocus) {
+        var btn = entries[i].querySelector('[data-dp-shuffle]');
+        if (btn) { try { btn.focus(); } catch (e) {} }
+      }
+    }
+
+    /* Pick a random entry from the PAST pool that is not the one already showing,
+       then show it. Future entries are never in the pool, so a shuffle can only ever
+       land on a past prompt (or stay put when the pool holds a single entry). */
+    function shuffle() {
+      if (pastPool.length < 1) { return; }
+      var i = current;
+      var guard = 0;
+      while (i === current && guard < 50) {
+        i = pastPool[Math.floor(Math.random() * pastPool.length)];
+        guard++;
+      }
+      show(i, true);
+    }
+
+    /* Delegate: only the visible entry's shuffle button is reachable, so a plain
+       click handler on the section routes correctly to the current entry. */
+    section.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('[data-dp-shuffle]');
+      if (btn) { shuffle(); return; }
+      /* Back to today's: jump to the date-selected current entry. The button only
+         exists on non-current entries, so this is only reachable when off today. */
+      var today = e.target.closest && e.target.closest('[data-dp-today]');
+      if (today) { show(currentIndex, true); }
+    });
+
+    /* Safety net: if an entry declared no width/height, refine its orientation
+       from the loaded image so the layout is still right. Declared sizes win. */
+    entries.forEach(function (entry) {
+      if (entry.getAttribute('data-dp-orient')) return;
+      var img = entry.querySelector('.theinmag-daily-prompt__art-img');
+      if (!img) return;
+      var apply = function () {
+        if (!img.naturalWidth || !img.naturalHeight) return;
+        var portrait = img.naturalHeight > img.naturalWidth;
+        entry.classList.toggle('is-portrait', portrait);
+        entry.classList.toggle('is-landscape', !portrait);
+      };
+      if (img.complete) { apply(); } else { img.addEventListener('load', apply); }
+    });
+  })();
+</script>
+
+
+{%- stylesheet -%}
+  /* ================================================================
+     theinmag-daily-prompt
+     ================================================================ */
+
+  .theinmag-daily-prompt {
+    background-color: var(--color-cream, #FBF6EA);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-daily-prompt__vh {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0);
+    white-space: nowrap; border: 0;
+  }
+
+  /* ---- Colour styles (three on-brand pairs). Panel text always inky-purple-navy,
+     the universal safe text colour, so no pair-contrast rule is broken. ---- */
+  .theinmag-daily-prompt__hero--lavender {
+    --dp-bg: var(--color-cream, #FBF6EA);
+    --dp-panel: var(--color-lavender, #E8DEEF);
+    --dp-accent: var(--color-purple-dark, #5D3A7A);
+  }
+  .theinmag-daily-prompt__hero--sky {
+    --dp-bg: #FDFAF5;
+    --dp-panel: var(--color-sky, #C9E5E8);
+    --dp-accent: var(--color-teal-dark, #2D6878);
+  }
+  .theinmag-daily-prompt__hero--mint {
+    --dp-bg: #F4ECD2;
+    --dp-panel: var(--color-mint, #D6EAD9);
+    --dp-accent: var(--color-sage-dark, #4A7C5C);
+  }
+
+  /* ---- Above the fold: split hero ----
+     Mobile-first: the hero stacks (art on top, whole image visible, panel below).
+     The desktop rules below turn it into the fluid-centreline flex row. */
+
+  .theinmag-daily-prompt__hero {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--dp-bg, var(--color-cream, #FBF6EA));
+  }
+
+  /* A hidden entry must leave the flow. The flex display above outranks the UA
+     [hidden] rule, so state it explicitly or every entry stacks and the visible
+     one is pushed below the fold. */
+  .theinmag-daily-prompt__hero[hidden] { display: none; }
+
+  /* ART pane: creation shown IN FULL, never cropped or distorted. On mobile the
+     image is capped by height so the whole thing shows above the panel. */
+  /* Ground behind the creation is the PANEL colour, not cream, so any letterbox
+     space above/below a landscape image reads as one continuous field with the
+     prompt panel on the right. A portrait hugs the column edge and shows none. */
+  .theinmag-daily-prompt__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 5vw, 28px) clamp(14px, 5vw, 28px) 0;
+    min-width: 0;
+    background-color: var(--dp-panel, var(--color-lavender, #E8DEEF));
+  }
+
+  .theinmag-daily-prompt__art-img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 48vh;
+    object-fit: contain;
+  }
+
+  /* Two-up: two images side by side in the art pane, each shown whole and never
+     distorted. The column shrink-wraps to their combined width, so a pair reads as
+     a wide (landscape) column. Each image is capped to just under half the pane. */
+  .theinmag-daily-prompt__art--pair { gap: clamp(10px, 1.6vw, 22px); }
+  .theinmag-daily-prompt__art--pair .theinmag-daily-prompt__art-img { max-width: 48%; }
+
+  /* Wide classroom display is the PRIMARY viewport: the whole split fits one
+     screen with no scroll. Reserve ~132px for the sticky header + a little air,
+     so the sales loop begins exactly at the fold. */
+  @media (min-width: 1000px) {
+    .theinmag-daily-prompt__hero {
+      flex-direction: row;
+      height: calc(100vh - 132px);
+      min-height: 540px;
+      max-height: 900px;
+    }
+
+    /* FLUID CENTRELINE. The art column shrink-wraps to the image's own width
+       (flex-basis:auto reads the image's rendered width, which is height x aspect
+       once the row height is definite), so the column hugs the creation exactly and
+       the image sits flush left with NO dead ground beside it. A portrait yields a
+       narrow column and a wide panel (more room for the writing); a landscape yields
+       a wide column and a narrower panel. Only the max is guarded: a very wide
+       landscape caps at 60% so the panel keeps room. No min, so a portrait never
+       leaves a strip of mismatched ground next to it. */
+    .theinmag-daily-prompt__art {
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 60%;
+      padding: 0;
+      height: 100%;
+    }
+
+    /* height:100% + width:auto shows the whole image floor to ceiling, never
+       cropped. max-width:100% caps a very wide landscape to the column; object-fit
+       contain then letterboxes it (top/bottom ground) rather than cropping. Any
+       ground revealed is the day's style ground, reading as intentional space. */
+    .theinmag-daily-prompt__art-img {
+      height: 100%;
+      width: auto;
+      max-width: 100%;
+      max-height: none;
+    }
+
+    /* In a pair, each image is bounded by height AND half-width, so both fit whole
+       without either being forced to full height (which would distort it against
+       the width cap). object-fit contain keeps every pixel of aspect. */
+    .theinmag-daily-prompt__art--pair .theinmag-daily-prompt__art-img {
+      height: auto;
+      width: auto;
+      max-height: 100%;
+      max-width: 48%;
+      object-fit: contain;
+    }
+
+    /* The panel takes ALL the space the art column leaves, right out to the
+       section's right edge. Without this it defaulted to flex:0 1 auto and only
+       hugged its content, so a strip of the day's ground was left down the right
+       of the coloured panel (very visible on a portrait entry, where the art
+       column is narrow and the leftover region is wide). flex:1 fills it, so the
+       panel colour AND its text reach the viewport edge. */
+    .theinmag-daily-prompt__panel {
+      flex: 1 1 auto;
+    }
+  }
+
+  /* Identity tile: the attribution line + the kid's write-up wrapped in a warm
+     cream card that lifts off the coloured panel field, so it is the first thing
+     the eye lands on. Cream is an existing brand token (never a pure-white
+     field); the day's accent frames the left edge and colours the byline, tying
+     the card to that day's palette. A soft shadow gives depth independent of hue
+     (a deliberate colourblind-safe cue), so it reads as a card even on the
+     lavender day where cream and panel are closest in tone. */
+  .theinmag-daily-prompt__by {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4px, 0.6vw, 7px);
+    background-color: var(--color-cream, #FBF6EA);
+    border-left: 4px solid var(--dp-accent, var(--color-inky-purple-navy, #2A1F3D));
+    border-radius: clamp(12px, 1.4vw, 18px);
+    padding: clamp(13px, 1.5vw, 18px) clamp(15px, 1.7vw, 20px);
+    box-shadow: 0 6px 18px rgba(42, 31, 61, 0.12);
+  }
+
+  .theinmag-daily-prompt__art-title {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.12;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* The kid's name and place: the loudest line in the card, in the day's accent
+     colour (all three pass AA on cream) so the identity leads. */
+  .theinmag-daily-prompt__credit-by {
+    margin: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(13px, 1.45vw, 16px);
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    color: var(--dp-accent, var(--color-inky-purple-navy, #2A1F3D));
+    opacity: 1;
+  }
+
+  /* The kid's own words: a warm quote, not a caption. Line-clamped to 3 lines so a
+     long write-up can never push the questions below the fold. */
+  .theinmag-daily-prompt__writeup {
+    margin: clamp(4px, 0.6vw, 7px) 0 0;
+    padding: 0 0 0 clamp(12px, 1.4vw, 16px);
+    border-left: 3px solid var(--dp-accent, var(--color-inky-purple-navy, #2A1F3D));
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(15px, 1.55vw, 18px);
+    line-height: 1.42;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Expanded state: the full write-up in place. Triggered on click; on load the
+     clamp holds so a long one can never push the questions below the fold. */
+  .theinmag-daily-prompt__writeup.is-expanded {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  .theinmag-daily-prompt__writeup-more {
+    align-self: flex-start;
+    margin: 4px 0 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(12px, 1.2vw, 14px);
+    color: var(--dp-accent, var(--color-inky-purple-navy, #2A1F3D));
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .theinmag-daily-prompt__writeup-more:hover { opacity: 0.8; }
+
+  /* PROMPT panel: warm coloured field, inky-purple-navy text (safe on every style). */
+  .theinmag-daily-prompt__panel {
+    display: flex;
+    align-items: center;
+    padding: clamp(24px, 4vw, 48px) clamp(22px, 4vw, 60px) clamp(26px, 4vw, 52px);
+    min-width: 0;
+    background-color: var(--dp-panel, var(--color-lavender, #E8DEEF));
+  }
+
+  .theinmag-daily-prompt__panel-inner {
+    width: 100%;
+    /* Raised from 620px and left-aligned (was centred) so the lines run longer
+       across the fuller panel, especially on a portrait entry where the panel is
+       now wide. The panel's own padding keeps the text off the right edge. */
+    max-width: 820px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1vw, 13px);
+  }
+
+  /* ---- Shuffle control (subtle, sits at the top of the panel, adds no height
+     that would push the hero below the fold) ---- */
+  .theinmag-daily-prompt__nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0;
+  }
+
+  /* Back to today's: a quieter text button beside the shuffle, only present once
+     the viewer has moved off today. */
+  .theinmag-daily-prompt__today {
+    border: 0;
+    background: transparent;
+    padding: 7px 6px;
+    color: var(--dp-accent, var(--color-inky-purple-navy, #2A1F3D));
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(12px, 1.2vw, 14px);
+    line-height: 1;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .theinmag-daily-prompt__today:hover,
+  .theinmag-daily-prompt__today:focus-visible { opacity: 0.75; }
+
+  .theinmag-daily-prompt__shuffle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 15px 7px 12px;
+    border: 1.5px solid rgba(42, 31, 61, 0.28);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(12px, 1.2vw, 14px);
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+  }
+  .theinmag-daily-prompt__shuffle svg { width: 16px; height: 16px; }
+  .theinmag-daily-prompt__shuffle:hover,
+  .theinmag-daily-prompt__shuffle:focus-visible {
+    background-color: rgba(42, 31, 61, 0.08);
+    border-color: rgba(42, 31, 61, 0.5);
+    outline: none;
+  }
+  .theinmag-daily-prompt__shuffle:focus-visible { outline: 3px solid var(--color-yellow, #F9C23C); outline-offset: 2px; }
+  .theinmag-daily-prompt__shuffle:disabled { opacity: 0.32; cursor: default; }
+  .theinmag-daily-prompt__shuffle:disabled:hover { background: transparent; border-color: rgba(42, 31, 61, 0.28); }
+
+  .theinmag-daily-prompt__eyebrow {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(12px, 1.3vw, 14px);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-daily-prompt__eyebrow-date {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    opacity: 0.66;
+  }
+
+  .theinmag-daily-prompt__heading {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-synthesis: none;
+    font-size: clamp(29px, 3.6vw, 44px);
+    line-height: 1.08;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  .theinmag-daily-prompt__questions {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(11px, 1.5vw, 16px);
+  }
+
+  .theinmag-daily-prompt__q {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(12px, 1.4vw, 16px);
+  }
+
+  .theinmag-daily-prompt__q-num {
+    flex: 0 0 auto;
+    width: clamp(30px, 3.4vw, 38px);
+    height: clamp(30px, 3.4vw, 38px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background-color: var(--dp-accent, var(--color-inky-purple-navy, #2A1F3D));
+    color: var(--color-cream, #FBF6EA);
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(15px, 1.7vw, 19px);
+    line-height: 1;
+    margin-top: 2px;
+  }
+
+  .theinmag-daily-prompt__q-text {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 500;
+    font-size: clamp(17px, 1.75vw, 22px);
+    line-height: 1.38;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* The creative task: a small eyebrow label above one open, imaginative line. */
+  .theinmag-daily-prompt__task {
+    margin: clamp(2px, 0.8vw, 8px) 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .theinmag-daily-prompt__task-label {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(11px, 1.05vw, 12px);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dp-accent, var(--color-purple-dark, #5D3A7A));
+  }
+
+  .theinmag-daily-prompt__task-text {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 600;
+    font-size: clamp(15px, 1.6vw, 18px);
+    line-height: 1.4;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+  a.theinmag-daily-prompt__task-text {
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-decoration: underline;
+    text-decoration-color: var(--dp-accent, var(--color-purple-dark, #5D3A7A));
+    text-underline-offset: 3px;
+    text-decoration-thickness: 2px;
+  }
+  a.theinmag-daily-prompt__task-text:hover,
+  a.theinmag-daily-prompt__task-text:focus-visible { text-decoration-color: var(--color-inky-purple-navy, #2A1F3D); }
+
+  .theinmag-daily-prompt__empty {
+    padding: clamp(40px, 8vw, 96px) 24px;
+    text-align: center;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    opacity: 0.7;
+  }
+
+  /* ---- Below the fold: the sales loop ---- */
+
+  .theinmag-daily-prompt__loop {
+    background-color: var(--color-cream, #FBF6EA);
+    padding: clamp(40px, 6vw, 84px) clamp(20px, 4vw, 48px) clamp(48px, 7vw, 96px);
+    border-top: 1px solid rgba(42, 31, 61, 0.08);
+  }
+
+  .theinmag-daily-prompt__loop-inner {
+    position: relative;
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .theinmag-daily-prompt__loop-head {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto clamp(28px, 4vw, 44px);
+  }
+
+  .theinmag-daily-prompt__loop-title {
+    margin: 0;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-synthesis: none;
+    font-size: clamp(26px, 4vw, 40px);
+    line-height: 1.12;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+  }
+
+  /* One kid character floats just to the right of the loop heading, level with
+     it and nestled in close. The heading text is centred inside the 1180px
+     inner, so anchoring the character off centre (left 50% plus a fixed offset)
+     keeps a steady gap from the heading at every width above the breakpoint. It
+     is hidden below that width so it can never sit over the heading on tablet or
+     mobile. If a wider width ever pushes it into the heading, scale it back in a
+     media query rather than letting it cover the words. */
+  .theinmag-daily-prompt__loop-char {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    margin-left: 244px;
+    width: clamp(120px, 12vw, 172px);
+    transform: translateY(-50%);
+    display: none;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .theinmag-daily-prompt__loop-char .theinmag-pool-character__img { width: 100%; height: auto; display: block; }
+  @media (min-width: 1040px) { .theinmag-daily-prompt__loop-char { display: block; } }
+
+  /* ---- Mobile + iPad: stack creation over the prompt panel, whole image visible ---- */
+  @media (max-width: 999px) {
+    .theinmag-daily-prompt__art { padding: clamp(18px, 5vw, 32px) clamp(16px, 5vw, 32px) clamp(4px, 2vw, 12px); }
+    /* Portrait gets more room than landscape, but both show the whole image. */
+    .theinmag-daily-prompt__hero.is-portrait .theinmag-daily-prompt__art-img { max-height: 54vh; }
+    .theinmag-daily-prompt__hero.is-landscape .theinmag-daily-prompt__art-img { max-height: 42vh; }
+    .theinmag-daily-prompt__panel { align-items: flex-start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-daily-prompt__shuffle { transition: none; }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Daily prompt",
+  "tag": "section",
+  "class": "theinmag-daily-prompt-section",
+  "max_blocks": 30,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Each daily entry is a block below, one per weekday, each with its own date. The page is DATE-DRIVEN: it shows the entry whose date is today (or the most recent past date when today has none), earlier dates become the 'something different' pool, and future-dated entries stay hidden until their day. Block order does not matter. To add a new day, add a block and set its date."
+    },
+    { "type": "header", "content": "Lead-in + creative task (shared label + link)" },
+    { "type": "text", "id": "heading", "label": "Lead-in heading", "default": "Let's talk about this creation." },
+    { "type": "text", "id": "task_label", "label": "Creative task label", "default": "The creative task" },
+    { "type": "text", "id": "invite_link", "label": "Creative task link", "default": "/pages/send-in" },
+
+    { "type": "header", "content": "The loop back (below the fold)" },
+    { "type": "text", "id": "loop_heading", "label": "Loop heading", "default": "Keep the creativity going" },
+
+    { "type": "header", "content": "Competitions tile (live logos)" },
+    { "type": "text", "id": "comps_name", "label": "Competitions card name", "default": "Competitions" },
+    { "type": "text", "id": "comps_link", "label": "Competitions card link", "default": "/pages/competitions" },
+    { "type": "range", "id": "comps_count", "label": "How many live comps", "min": 3, "max": 8, "step": 1, "default": 4 },
+
+    { "type": "header", "content": "Live gallery tile (real creations)" },
+    { "type": "text", "id": "gallery_name", "label": "Gallery card name", "default": "Live gallery" },
+    { "type": "text", "id": "gallery_link", "label": "Gallery card link", "default": "/pages/gallery" },
+    { "type": "range", "id": "gallery_count", "label": "How many creations", "min": 4, "max": 14, "step": 1, "default": 10 },
+    { "type": "text", "id": "gallery_feed_url", "label": "Gallery feed URL (advanced)", "default": "https://theinmag-gallery-review.heyhey-53f.workers.dev/gallery-data.json" },
+
+    { "type": "header", "content": "Membership tile (emphasised)" },
+    { "type": "text", "id": "membership_name", "label": "Membership card name", "default": "Membership" },
+    { "type": "text", "id": "membership_headline", "label": "Membership money tile", "default": "Grab a membership from $28.90" },
+    { "type": "text", "id": "membership_blurb", "label": "Membership card blurb (optional)", "default": "Posted three times a year, ad-free and made by kids." },
+    { "type": "text", "id": "membership_cta_label", "label": "Membership CTA label", "default": "Grab a membership" },
+    { "type": "text", "id": "membership_link", "label": "Membership card link", "default": "/products/membership" },
+    { "type": "image_picker", "id": "membership_image", "label": "Membership image" },
+    { "type": "text", "id": "membership_image_fallback", "label": "Fallback image filename (theme asset)", "default": "product-membership.jpg" },
+    { "type": "text", "id": "membership_image_alt", "label": "Membership image alt text", "default": "A theINmag membership, posted to your door" },
+    { "type": "image_picker", "id": "membership_hover", "label": "Membership hover image" },
+    { "type": "text", "id": "membership_hover_fallback", "label": "Fallback hover image filename (theme asset)", "default": "product-membership-hover.jpg" },
+    { "type": "text", "id": "membership_feature_1", "label": "Feature 1", "default": "Every issue posted to your door" },
+    { "type": "text", "id": "membership_feature_2", "label": "Feature 2", "default": "Made by kids, always ad-free" },
+    { "type": "text", "id": "membership_feature_3", "label": "Feature 3", "default": "Your creations could be published" },
+    { "type": "text", "id": "membership_feature_4", "label": "Feature 4", "default": "Pause or cancel anytime" },
+    { "type": "range", "id": "membership_review_count", "label": "How many reviews to show", "min": 0, "max": 4, "step": 1, "default": 2 }
+  ],
+  "blocks": [
+    {
+      "type": "entry",
+      "name": "Daily entry",
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "One weekday's prompt. Give it a date; the page selects the right day automatically and it joins the past pool afterwards. Questions are human-checked data: a human sees and edits every one here before it ever shows. No live generation. Keep them simple, universal and open, so they work for any creation and a teacher can run a rich open task off them: notice, wonder, what happens next."
+        },
+        { "type": "text", "id": "date", "label": "Date (YYYY-MM-DD)", "info": "Used for the date line and, on auto style, to pick the colour.", "default": "2026-09-14" },
+        { "type": "image_picker", "id": "image", "label": "Creation image" },
+        { "type": "text", "id": "image_url", "label": "Creation image URL", "info": "Used when no image is picked. Paste a moderated gallery image." },
+        { "type": "text", "id": "image_asset", "label": "Creation image asset filename", "info": "Optional. A file in the theme's /assets/ (e.g. a pre-rotated image). Resolved via asset_url and wins over the URL above." },
+        { "type": "number", "id": "image_w", "label": "Image width (px)", "info": "Sets orientation: taller than wide = portrait layout. For a pre-rotated image, use the ROTATED dimensions.", "default": 1600 },
+        { "type": "number", "id": "image_h", "label": "Image height (px)", "default": 1200 },
+        { "type": "text", "id": "artwork_alt", "label": "Image alt text" },
+        { "type": "text", "id": "image_url_2", "label": "Second image URL (optional)", "info": "When set, both images show side by side as a clean two-up." },
+        { "type": "number", "id": "image_w_2", "label": "Second image width (px)" },
+        { "type": "number", "id": "image_h_2", "label": "Second image height (px)" },
+        { "type": "text", "id": "artwork_title", "label": "Creation title (optional)" },
+        { "type": "textarea", "id": "writeup", "label": "Kid's write-up (their own words)", "info": "Shown in the panel as the child's voice. Clamped to three lines on the page." },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Colour style",
+          "options": [
+            { "value": "auto", "label": "Auto (picked from the date)" },
+            { "value": "lavender", "label": "Lavender" },
+            { "value": "sky", "label": "Sky" },
+            { "value": "mint", "label": "Mint" }
+          ],
+          "default": "auto"
+        },
+        { "type": "header", "content": "Credit (matches the gallery feed byline)" },
+        { "type": "text", "id": "first_name", "label": "First name", "info": "Shown first in the credit line, e.g. 'Frankie G. | Pottsville NSW, age 9'." },
+        { "type": "text", "id": "surname_initial", "label": "Surname initial", "info": "One letter only, no full stop (we add it). Renders as 'G.' Matches the gallery feed format." },
+        { "type": "text", "id": "town", "label": "Town" },
+        { "type": "text", "id": "state", "label": "State" },
+        { "type": "text", "id": "age", "label": "Age", "info": "Required. Shows in the credit line, e.g. 'age 9'." },
+        { "type": "header", "content": "Three open questions (PLACEHOLDER, universal)" },
+        { "type": "textarea", "id": "question_1", "label": "Question 1", "default": "What do you notice in this creation?" },
+        { "type": "textarea", "id": "question_2", "label": "Question 2", "default": "What do you wonder about it?" },
+        { "type": "textarea", "id": "question_3", "label": "Question 3", "default": "What do you think happens next?" },
+        { "type": "textarea", "id": "creative_task", "label": "The creative task", "info": "One open, imaginative task bespoke to THIS creation, e.g. 'Grab some paper and design a land made of your favourite foods.'" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Daily prompt" }
+  ]
+}
+{% endschema %}
