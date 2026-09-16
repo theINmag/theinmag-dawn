@@ -116,7 +116,7 @@
   <span class="theinmag-reviews__character" data-theinmag-pool-character></span>
 
   <div class="theinmag-reviews__inner">
-    <header class="theinmag-reviews__header">
+    <header class="theinmag-reviews__header{% unless review_count > 0 or use_judgeme %} theinmag-reviews__header--solo{% endunless %}">
       <div class="theinmag-reviews__title-stack">
         {%- if heading != blank -%}
           <h2 id="theinmag-reviews-heading" class="theinmag-reviews__heading">{{ heading }}</h2>
@@ -486,6 +486,23 @@
       align-items: center;
       justify-content: space-between;
       gap: var(--space-md, 16px);
+    }
+  }
+
+  /* No right-hand aggregate (store-review model with the "make our day"
+     card): the title would otherwise sit stranded on the left of a
+     space-between row. Centre it so it lines up with the card below. */
+  .theinmag-reviews__header--solo {
+    align-items: center;
+    text-align: center;
+  }
+  .theinmag-reviews__header--solo .theinmag-reviews__title-stack {
+    align-items: center;
+  }
+  @media (min-width: 750px) {
+    .theinmag-reviews__header--solo {
+      flex-direction: column;
+      justify-content: center;
     }
   }
 
