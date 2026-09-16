@@ -196,8 +196,8 @@
               half pivots on the spine, so it reads as turning one page of an
               open mag rather than the whole sheet. Driven entirely by the JS.
             {%- endcomment -%}
-            <span class="theinmag-home-flip__pageleaf theinmag-home-flip__pageleaf--static" data-hf-static aria-hidden="true"></span>
-            <span class="theinmag-home-flip__pageleaf theinmag-home-flip__pageleaf--turn" data-hf-turn aria-hidden="true"></span>
+            <span class="theinmag-home-flip__pageleaf theinmag-home-flip__pageleaf--static" data-hf-static aria-hidden="true"><img class="theinmag-home-flip__pageleaf-img" data-hf-static-img alt="" draggable="false"></span>
+            <span class="theinmag-home-flip__pageleaf theinmag-home-flip__pageleaf--turn" data-hf-turn aria-hidden="true"><img class="theinmag-home-flip__pageleaf-img" data-hf-turn-img alt="" draggable="false"></span>
           </div>
         </div>
       </div>
@@ -469,12 +469,23 @@
     top: 0;
     height: 100%;
     width: 50%;
-    background-repeat: no-repeat;
-    background-size: 200% 100%;
+    overflow: hidden;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     opacity: 0;
     pointer-events: none;
+  }
+  /* Inner img is the full spread at 200% of the half-width box; the JS slides
+     it left/right to show the correct half. A real <img> (not a background)
+     so its decode() can be awaited, killing the intermittent reveal flash. */
+  .theinmag-home-flip__pageleaf-img {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 200%;
+    max-width: none;
+    object-fit: fill;
+    -webkit-user-drag: none;
   }
   .theinmag-home-flip__pageleaf--static {
     z-index: 5;
@@ -661,6 +672,8 @@
       var current = root.querySelector('[data-hf-current]');
       var leafStatic = root.querySelector('[data-hf-static]');
       var leafTurn = root.querySelector('[data-hf-turn]');
+      var leafStaticImg = leafStatic && leafStatic.querySelector('img');
+      var leafTurnImg = leafTurn && leafTurn.querySelector('img');
       var n = pages.length;
       if (!stage || n < 1) return;
 
@@ -687,14 +700,12 @@
         if (leafStatic) {
           leafStatic.style.transition = 'none';
           leafStatic.style.opacity = '0';
-          leafStatic.style.backgroundImage = '';
         }
         if (leafTurn) {
           leafTurn.style.transition = 'none';
           leafTurn.style.opacity = '0';
           leafTurn.style.transform = 'rotateY(0deg)';
           leafTurn.style.boxShadow = '';
-          leafTurn.style.backgroundImage = '';
         }
         busy = false;
       }
@@ -708,7 +719,7 @@
         var inn = pages[to];
         busy = true;
 
-        var canFlip = leafStatic && leafTurn && !reduced;
+        var canFlip = leafStatic && leafTurn && leafStaticImg && leafTurnImg && !reduced;
         if (!canFlip) {
           inn.classList.remove('is-parked');
           inn.classList.add('is-active');
@@ -719,43 +730,38 @@
           return;
         }
 
-        // Paint both halves of the OUTGOING spread over the frame, no
-        // transition. The outgoing base stays visible beneath for now, so if
-        // the background needs a frame to decode nothing flashes.
-        var url = 'url("' + out.getAttribute('src') + '")';
+        // Paint both halves of the OUTGOING spread over the frame as real
+        // <img>s (no transition yet). The outgoing base stays visible beneath
+        // until the covers are decoded, so nothing can flash through.
+        var src = out.getAttribute('src');
         leafStatic.style.transition = 'none';
         leafTurn.style.transition = 'none';
-        leafStatic.style.backgroundImage = url;
-        leafTurn.style.backgroundImage = url;
         leafStatic.style.opacity = '1';
         leafTurn.style.opacity = '1';
         leafTurn.style.transform = 'rotateY(0deg)';
+        leafStaticImg.src = src;
+        leafTurnImg.src = src;
         if (dir > 0) {
-          // Next: the right page is the one that lifts.
+          // Next: the RIGHT page lifts; the LEFT half is held static.
           leafStatic.style.left = '0';
-          leafStatic.style.backgroundPosition = 'left center';
+          leafStaticImg.style.left = '0';
           leafTurn.style.left = '50%';
-          leafTurn.style.backgroundPosition = 'right center';
+          leafTurnImg.style.left = '-100%';
           leafTurn.style.transformOrigin = 'left center';
         } else {
-          // Prev: the left page lifts.
+          // Prev: the LEFT page lifts; the RIGHT half is held static.
           leafStatic.style.left = '50%';
-          leafStatic.style.backgroundPosition = 'right center';
+          leafStaticImg.style.left = '-100%';
           leafTurn.style.left = '0';
-          leafTurn.style.backgroundPosition = 'left center';
+          leafTurnImg.style.left = '0';
           leafTurn.style.transformOrigin = 'right center';
         }
         void leafTurn.offsetWidth;
 
-        // Only once the outgoing cover has actually painted do we swap the
-        // base to the incoming spread beneath it and run the lift-and-dissolve.
-        // Swapping earlier is what let the next page flash for a frame. A short
-        // timeout (rather than rAF) so it can never stall on a hidden tab.
-        // Wait until the outgoing cover image is actually decoded AND a frame
-        // has painted before revealing the incoming spread. A fixed delay was
-        // too short on later pages (their cover decodes slower), which let the
-        // next page flash then revert. decode() removes that race; a 400ms
-        // safety guarantees we never stall (e.g. rAF paused on a hidden tab).
+        // Reveal the incoming spread only after BOTH cover halves are decoded
+        // and a frame has painted. Awaiting the real overlay <img>s (not a
+        // throwaway probe) is what finally kills the intermittent flash; a 500ms
+        // safety means it can never stall (e.g. rAF paused on a hidden tab).
         var revealed = false;
         var reveal = function () {
           if (revealed) return;
@@ -784,14 +790,15 @@
             window.requestAnimationFrame(reveal);
           });
         };
-        var probe = new Image();
-        probe.src = out.getAttribute('src');
-        if (probe.decode) {
-          probe.decode().then(afterDecode).catch(afterDecode);
+        var decodes = [];
+        try { if (leafStaticImg.decode) { decodes.push(leafStaticImg.decode()); } } catch (e) {}
+        try { if (leafTurnImg.decode) { decodes.push(leafTurnImg.decode()); } } catch (e) {}
+        if (decodes.length) {
+          Promise.all(decodes.map(function (p) { return (p && p.catch) ? p.catch(function () {}) : p; })).then(afterDecode);
         } else {
           window.setTimeout(afterDecode, 60);
         }
-        window.setTimeout(reveal, 400);
+        window.setTimeout(reveal, 500);
       }
 
       if (prev) prev.addEventListener('click', function () { go(-1); });

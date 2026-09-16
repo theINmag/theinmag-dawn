@@ -836,10 +836,59 @@
             data-desc
             {% unless is_active_issue %}hidden{% endunless %}
           >
-            {% if desc_body != blank %}{{ desc_body | metafield_tag }}{% endif %}
+            <div class="theinmag-single-mags-hero__desc-body" data-desc-body>
+              {% if desc_body != blank %}{{ desc_body | metafield_tag }}{% endif %}
+            </div>
+            <button type="button" class="theinmag-single-mags-hero__desc-toggle" data-desc-toggle aria-expanded="false" hidden>Read more</button>
           </div>
         {%- endfor -%}
       </div>
+
+      {%- comment -%}
+        Mobile-only "read more" collapse for the description (Ryan, 16 Sep: the
+        subtitle plus the full description was too much text on a phone). The
+        subtitle stays the headline; the description clamps to a few lines with
+        a toggle. Fails safe: if this script does not run, the description shows
+        in full exactly as before. Only ever clamps on a phone and only when the
+        text actually overflows, and re-measures when the issue picker swaps.
+      {%- endcomment -%}
+      <script>
+        (function () {
+          var root = document.querySelector('[data-theinmag-single-mags]');
+          if (!root) return;
+          var mq = window.matchMedia('(max-width: 749px)');
+          function setup() {
+            var d = root.querySelector('[data-desc]:not([hidden])');
+            if (!d) return;
+            var body = d.querySelector('[data-desc-body]');
+            var btn = d.querySelector('[data-desc-toggle]');
+            if (!body || !btn) return;
+            d.classList.remove('is-expanded', 'theinmag-single-mags-hero__desc--clamp');
+            btn.hidden = true;
+            btn.setAttribute('aria-expanded', 'false');
+            btn.textContent = 'Read more';
+            if (mq.matches) {
+              d.classList.add('theinmag-single-mags-hero__desc--clamp');
+              if (body.scrollHeight - body.clientHeight > 6) {
+                btn.hidden = false;
+              } else {
+                d.classList.remove('theinmag-single-mags-hero__desc--clamp');
+              }
+            }
+          }
+          root.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-desc-toggle]');
+            if (!btn) return;
+            var d = btn.closest('[data-desc]');
+            var open = d.classList.toggle('is-expanded');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            btn.textContent = open ? 'Read less' : 'Read more';
+          });
+          setup();
+          if (mq.addEventListener) { mq.addEventListener('change', setup); } else if (mq.addListener) { mq.addListener(setup); }
+          document.addEventListener('single-mags:issue-changed', function () { window.setTimeout(setup, 40); });
+        })();
+      </script>
 
       </div>{%- comment -%} /__left-col {%- endcomment -%}
 
@@ -2865,6 +2914,39 @@
     color: var(--color-inky-purple-navy);
   }
   .theinmag-single-mags-hero__desc p { margin: 0 0 var(--space-md); }
+
+  /* Mobile-only "read more" collapse (JS adds --clamp only on a phone when the
+     text overflows; desktop always shows the full description). */
+  .theinmag-single-mags-hero__desc-toggle {
+    display: none;
+    margin-top: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-purple-dark, #5D3A7A);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  @media (max-width: 749px) {
+    .theinmag-single-mags-hero__desc--clamp .theinmag-single-mags-hero__desc-body {
+      max-height: 6.6em;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent);
+      mask-image: linear-gradient(to bottom, #000 62%, transparent);
+    }
+    .theinmag-single-mags-hero__desc--clamp.is-expanded .theinmag-single-mags-hero__desc-body {
+      max-height: none;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .theinmag-single-mags-hero__desc--clamp .theinmag-single-mags-hero__desc-toggle {
+      display: inline-block;
+    }
+  }
   .theinmag-single-mags-hero__desc p:last-child { margin-bottom: 0; }
 
   /* ---------- Flip callout ----------
