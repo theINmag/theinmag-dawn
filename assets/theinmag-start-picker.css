@@ -327,6 +327,18 @@
   box-shadow: var(--shadow-button-pressed);
   outline: none;
 }
+/* Disabled until a tile is tapped. Muted + flat + not-allowed cursor so
+   the "not yet actionable" state reads without relying on colour (Ryan is
+   colourblind): it is clearly lighter and carries no button shadow. */
+.theinmag-start-picker__confirm[disabled],
+.theinmag-start-picker__confirm[disabled]:hover,
+.theinmag-start-picker__confirm[disabled]:focus-visible {
+  background: rgba(42, 31, 61, 0.12);
+  color: rgba(42, 31, 61, 0.5);
+  box-shadow: none;
+  translate: 0 0;
+  cursor: not-allowed;
+}
 .theinmag-start-picker__cancel {
   appearance: none;
   background: transparent;

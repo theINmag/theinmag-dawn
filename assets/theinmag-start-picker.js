@@ -170,15 +170,29 @@
     var visible = tiles.filter(function (t) { return !t.hidden; }).length;
     if (tilesWrap) tilesWrap.setAttribute('data-count', String(visible));
 
+    /* Sold-out crossover: lead with the two REAL choices side by side -
+       prev (posts now) and next (pre-sale, equal weight) - and drop the
+       stamped sold-out current issue to the end so it never sits between
+       them or reads as the default answer. In stock: reset to DOM order. */
+    if (prevTile) prevTile.style.order = soldOut ? '1' : '';
+    if (nextTile) nextTile.style.order = soldOut ? '2' : '';
+    if (curTile) curTile.style.order = soldOut ? '3' : '';
+
     if (subEl) {
       subEl.textContent = soldOut
-        ? S.currentIssue + ' print has sold out. Start with ' + S.prevIssue + ' today, or wait for ' + S.nextIssue + '.'
+        ? S.currentIssue + ' print has sold out. Choose ' + S.prevIssue + ', ready to post now, or ' + S.nextIssue + ', dropping ' + S.releaseText + '.'
         : 'Start with a current mag, or wait for the next issue!';
     }
   }
 
   function renderPlan() {
-    if (!session || picked == null) return;
+    if (!session) return;
+    /* No tile tapped yet: clear the plan and prompt for an explicit pick. */
+    if (picked == null) {
+      if (chipsEl) chipsEl.innerHTML = '';
+      if (noteEl) noteEl.innerHTML = '<strong>Tap a mag to choose your first issue.</strong>';
+      return;
+    }
     var length = session.length;
     var items = plan(picked, length);
     var rolling = length === 'Rolling';
@@ -248,11 +262,14 @@
     if (focus) t.focus();
     renderPlan();
     renderFlipNote();
+    updateConfirmEnabled();
   }
 
-  function defaultPick() {
-    if (currentSoldOut()) return S.prevAvailable ? S.prevNum : S.nextNum;
-    return S.currentNum;
+  /* Confirm stays disabled until the buyer actively taps a tile, so a
+     membership can never be added by inertia with a sold-out or back
+     issue as an unseen default. */
+  function updateConfirmEnabled() {
+    if (confirmBtn) confirmBtn.disabled = picked == null;
   }
 
   function openDialog() {
@@ -278,13 +295,20 @@
   function open(opts) {
     session = opts || {};
     session.length = session.length || '4-Issue';
+    /* No silent default: every membership surface (PDP hero, sitewide
+       popup, Build-a-Bundle) must force an explicit tap so the buyer never
+       ships a sold-out or back issue by inertia. Reset any prior selection
+       and keep confirm disabled until a tile is tapped. */
+    picked = null;
+    tiles.forEach(function (tile) { tile.setAttribute('aria-pressed', 'false'); });
     applyState();
     if (confirmBtn) confirmBtn.textContent = session.confirmLabel || 'Add to cart';
-    var start = session.preselect != null ? num(session.preselect) : NaN;
-    if (isNaN(start)) start = defaultPick();
     openDialog();
-    select(start, true);
-    if (picked == null) select(defaultPick(), true);
+    /* Honour only a genuine prior explicit choice (reopening via Change). */
+    var start = session.preselect != null ? num(session.preselect) : NaN;
+    if (!isNaN(start)) select(start, true);
+    renderPlan();
+    updateConfirmEnabled();
     track('start_picker_open', { length: session.length, sold_out: currentSoldOut() ? 'yes' : 'no' });
   }
 

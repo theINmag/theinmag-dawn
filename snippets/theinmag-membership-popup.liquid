@@ -52,9 +52,12 @@
   endif
   assign alt_release_formatted = next_release_value | date: '%-d %B %Y' | default: '15 October 2026'
 
-  # Safe no-JS default for the hidden _starting_mag input: never the
-  # sold-out issue. The real pick happens in the start picker dialog
-  # (snippets/theinmag-start-picker) which gates every Print add.
+  # Safe no-JS default for the hidden _starting_mag input. The real pick
+  # happens in the start picker dialog (snippets/theinmag-start-picker),
+  # which gates every Print add AND now forces an explicit tap. This
+  # fallback only ships if the script fails entirely, so in a sold-out
+  # crossover it leads with the NEXT (pre-sale) issue, never the sold-out
+  # current issue or the older back issue.
   assign cur_handle = current_issue | downcase
   assign cur_prod = all_products[cur_handle]
   assign cur_print_available = false
@@ -64,25 +67,7 @@
     endif
   endfor
   if cur_print_available == false or print_in_stock == false
-    assign prev_num = current_num | minus: 1
-    if prev_num < 10
-      assign prev_issue = 'Mag0' | append: prev_num
-    else
-      assign prev_issue = 'Mag' | append: prev_num
-    endif
-    assign prev_handle = prev_issue | downcase
-    assign prev_prod = all_products[prev_handle]
-    assign prev_print_available = false
-    for v in prev_prod.variants
-      if v.option1 == 'Print' and v.available
-        assign prev_print_available = true
-      endif
-    endfor
-    if prev_print_available
-      assign lead_issue = prev_issue
-    else
-      assign lead_issue = alt_issue
-    endif
+    assign lead_issue = alt_issue
   endif
 
   assign first_variant = membership_product.selected_or_first_available_variant

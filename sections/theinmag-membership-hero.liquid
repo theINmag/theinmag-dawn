@@ -64,9 +64,12 @@
 
   # No-JS / belt-and-braces default for the hidden _starting_mag input. The
   # real choice is made in the start picker (snippets/theinmag-start-picker),
-  # which gates every Print submit, but the input must never carry a
-  # sold-out issue if a submit ever slips through. Sold-out is read from
-  # the current issue's Print variant (real-time) OR the shop flag.
+  # which gates every Print submit AND now forces an explicit tap. This
+  # fallback only ever ships if the script fails entirely, so it must never
+  # quietly carry the sold-out CURRENT issue OR the older BACK issue: in a
+  # sold-out crossover it leads with the NEXT (pre-sale) issue, the
+  # recoverable choice that matches the picker. Sold-out is read from the
+  # current issue's Print variant (real-time) OR the shop flag.
   assign cur_handle = current_issue | downcase
   assign cur_prod = all_products[cur_handle]
   assign cur_print_available = false
@@ -85,25 +88,7 @@
     endif
   endfor
   if cur_print_available == false or print_in_stock == false
-    assign prev_num = current_num | minus: 1
-    if prev_num < 10
-      assign prev_issue = 'Mag0' | append: prev_num
-    else
-      assign prev_issue = 'Mag' | append: prev_num
-    endif
-    assign prev_handle = prev_issue | downcase
-    assign prev_prod = all_products[prev_handle]
-    assign prev_print_available = false
-    for v in prev_prod.variants
-      if v.option1 == 'Print' and v.available
-        assign prev_print_available = true
-      endif
-    endfor
-    if prev_print_available
-      assign lead_issue = prev_issue
-    else
-      assign lead_issue = next_issue
-    endif
+    assign lead_issue = next_issue
   endif
 
   assign first_variant = product.selected_or_first_available_variant
