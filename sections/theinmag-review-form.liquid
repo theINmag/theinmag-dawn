@@ -247,12 +247,20 @@
   }
   /* The modal is appended to <body>, outside this section. Judge.me's
      branding already sets Inter on headings and copy; inputs and buttons
-     fall back to Arial, so bring those into the type system too. */
+     fall back to Arial, so bring those into the type system too.
+     NEVER the star buttons: each rating star is a <button class="jdgm-star">
+     whose glyph is the JudgemeStar icon font set on the button itself (no
+     !important), so an !important Inter on every button turned the five
+     stars into stacks of bars (found by Ryan 23 Sep 2026). */
   .jdgm-write-review-modal input,
   .jdgm-write-review-modal textarea,
   .jdgm-write-review-modal select,
-  .jdgm-write-review-modal button {
+  .jdgm-write-review-modal button:not(.jdgm-star) {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+  }
+  .jdgm-write-review-modal .jdgm-star,
+  .jdgm-write-review-modal .jdgm-star::before {
+    font-family: JudgemeStar !important;
   }
 
   /* ---------------------------------------------------------------
