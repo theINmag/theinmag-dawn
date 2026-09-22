@@ -235,6 +235,38 @@
     <div class="theinmag-stack-module__cta-col">
       {%- if mode == 'stack' -%}
         <a class="theinmag-stack-module__cta" data-stack-cta="add-to-cart" href="/cart/add?id={{ stack_product.selected_or_first_available_variant.id }}&quantity=1">Add to cart</a>
+      {%- elsif section.settings.cta_add_to_cart and product == blank -%}
+        {%- comment -%}
+          In-place add (2026-09-22, Ryan on the school-order page): pages
+          whose own content reads the cart (the school order form) want
+          the stack added WITHOUT leaving the page. JS posts to
+          /cart/add.js, flips the pill to "Added", then reloads so the
+          Liquid-rendered cart preview picks it up. No-JS fallback is the
+          GET permalink with return_to, which lands back here. If the
+          stack is already in the cart the pill says so and does nothing,
+          so a second tap cannot double-add.
+        {%- endcomment -%}
+        {%- liquid
+          assign stack_variant_id = stack_product.selected_or_first_available_variant.id
+          assign stack_in_cart = false
+          for cart_item in cart.items
+            if cart_item.product.handle == stack_handle
+              assign stack_in_cart = true
+            endif
+          endfor
+        -%}
+        {%- if stack_in_cart -%}
+          <span class="theinmag-stack-module__cta theinmag-stack-module__cta--done" role="status">In your cart</span>
+        {%- else -%}
+          <a
+            class="theinmag-stack-module__cta"
+            data-stack-cta="add-in-place"
+            data-stack-variant="{{ stack_variant_id }}"
+            data-stack-anchor="{{ section.settings.cta_add_anchor | strip }}"
+            href="/cart/add?id={{ stack_variant_id }}&quantity=1&return_to={{ request.path | url_encode }}"
+            role="button"
+          >Add to cart</a>
+        {%- endif -%}
       {%- else -%}
         <a class="theinmag-stack-module__cta" data-stack-cta="{{ mode }}" href="{{ stack_product.url }}">See the Digital Stack</a>
       {%- endif -%}
@@ -438,6 +470,25 @@
     transform: translateY(2px);
     box-shadow: 0 2px 0 var(--color-yellow-shadow);
   }
+  /* In-place add states. The words carry the state (Adding / Added /
+     In your cart), the surface change is a second cue only. */
+  .theinmag-stack-module__cta[aria-busy="true"] {
+    cursor: progress;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-yellow-shadow);
+  }
+  .theinmag-stack-module__cta.is-added,
+  .theinmag-stack-module__cta--done {
+    background-color: var(--color-cream);
+    border: 1.5px solid var(--color-inky-purple-navy);
+    box-shadow: none;
+    transform: none;
+    cursor: default;
+  }
+  .theinmag-stack-module__cta--done::before,
+  .theinmag-stack-module__cta.is-added::before {
+    content: '\2713\00a0';
+  }
 
   @media (max-width: 749px) {
     /* Compact phone layout (Ryan, 2026-08-12: the stacked column ran
@@ -481,6 +532,43 @@
         });
       }
     } catch (err) { /* never block the navigation */ }
+  });
+
+  /* In-place add to cart (2026-09-22, pages with cta_add_to_cart on).
+     Posts to /cart/add.js, shows "Added", then reloads so Liquid-rendered
+     cart previews (the school order form) pick the stack up. Any failure
+     falls through to the pill's own href, the GET permalink with
+     return_to, so the add still happens server-side. */
+  document.addEventListener('click', function (event) {
+    var pill = event.target.closest('[data-stack-cta="add-in-place"]');
+    if (!pill) return;
+    event.preventDefault();
+    if (pill.getAttribute('aria-busy') === 'true' || pill.classList.contains('is-added')) return;
+    var variantId = parseInt(pill.getAttribute('data-stack-variant'), 10);
+    var anchor = pill.getAttribute('data-stack-anchor') || '';
+    pill.setAttribute('aria-busy', 'true');
+    pill.setAttribute('aria-live', 'polite');
+    pill.textContent = 'Adding...';
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ items: [{ id: variantId, quantity: 1 }] })
+    }).then(function (r) {
+      if (!r.ok) throw new Error('cart/add.js ' + r.status);
+      return r.json();
+    }).then(function () {
+      pill.removeAttribute('aria-busy');
+      pill.classList.add('is-added');
+      pill.textContent = 'Added';
+      setTimeout(function () {
+        if (anchor) window.location.hash = anchor;
+        window.location.reload();
+      }, 900);
+    }).catch(function () {
+      pill.removeAttribute('aria-busy');
+      pill.textContent = 'Add to cart';
+      window.location.href = pill.href;
+    });
   });
 
   /* Fresh kid character per page load (Ryan, 2026-08-12): re-roll from
@@ -546,6 +634,19 @@
       "id": "body_points",
       "label": "Points override (pages only)",
       "info": "One short point per line, rendered as a list instead of the body paragraph. Write [count] to drop in the live issue count. Ignored on issue PDPs."
+    },
+    {
+      "type": "checkbox",
+      "id": "cta_add_to_cart",
+      "label": "Add to cart in place (pages only)",
+      "default": false,
+      "info": "Button reads Add to cart and adds the Digital Stack without leaving the page, then reloads. Off = link to the Digital Stack page."
+    },
+    {
+      "type": "text",
+      "id": "cta_add_anchor",
+      "label": "Jump to element id after adding",
+      "info": "Optional. Element id (no #) to scroll to after the reload, e.g. the cart preview heading."
     }
   ],
   "presets": [
