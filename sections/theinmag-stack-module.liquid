@@ -187,7 +187,26 @@
         {%- else -%}
           <h2 class="theinmag-stack-module__heading">Every issue, in one download</h2>
         {%- endif -%}
-        {%- if inum_label <= 0 and section.settings.body_override != blank -%}
+        {%- if inum_label <= 0 and section.settings.body_points != blank -%}
+          {%- comment -%}
+            Points list (2026-09-22, Ryan on the school-order banner: "needs
+            to be a lot easier to read", name the product, lead with the two
+            facts). One point per line in the setting; [count] is swapped
+            for the live issue count so it never goes stale on a drop. A
+            capture is the only way to get a literal newline in Liquid.
+          {%- endcomment -%}
+          {% capture stack_nl %}
+{% endcapture %}
+          <ul class="theinmag-stack-module__points" role="list">
+            {%- assign stack_point_lines = section.settings.body_points | split: stack_nl -%}
+            {%- for stack_line in stack_point_lines -%}
+              {%- assign stack_line_text = stack_line | strip -%}
+              {%- if stack_line_text != blank -%}
+                <li>{{ stack_line_text | replace: '[count]', issue_count }}</li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        {%- elsif inum_label <= 0 and section.settings.body_override != blank -%}
           <p class="theinmag-stack-module__body">{{ section.settings.body_override }}</p>
         {%- else -%}
           <p class="theinmag-stack-module__body">Every issue we have ever made, including the sold-out ones, as instant PDFs. On the big screen, the iPad, or printed at home.</p>
@@ -339,6 +358,34 @@
     opacity: 0.85;
     max-width: 56ch;
   }
+  /* Points list (pages that set body_points). Bigger and full-contrast
+     on purpose: the one-paragraph body was the thing Ryan could not read. */
+  .theinmag-stack-module__points {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 44ch;
+  }
+  .theinmag-stack-module__points li {
+    position: relative;
+    padding-left: 22px;
+    font-family: var(--font-body);
+    font-size: clamp(15px, 1.6vw, 16px);
+    line-height: 1.45;
+    color: var(--color-inky-purple-navy);
+  }
+  .theinmag-stack-module__points li::before {
+    content: '\2713';
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 700;
+    color: var(--color-inky-purple-navy);
+  }
+
   .theinmag-stack-module__value {
     margin: 0;
     display: flex;
@@ -493,6 +540,12 @@
       "type": "text",
       "id": "body_override",
       "label": "Body override (pages only)"
+    },
+    {
+      "type": "textarea",
+      "id": "body_points",
+      "label": "Points override (pages only)",
+      "info": "One short point per line, rendered as a list instead of the body paragraph. Write [count] to drop in the live issue count. Ignored on issue PDPs."
     }
   ],
   "presets": [
