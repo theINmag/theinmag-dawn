@@ -55,6 +55,18 @@
 
   assign cart_heading = section.settings.cart_heading
 
+  # Empty-cart gate (2026-09-22, Ryan's ask): a teacher who lands here
+  # first (email, search) must not fill in the whole form only to find
+  # the submit button greyed out. When the cart is empty the notice +
+  # Browse the shop CTA render FIRST, above the vendor block, and the
+  # form is hidden (kept in the DOM so the copy buttons and submit guard
+  # keep working). With items in the cart nothing changes. The cart is
+  # Liquid-rendered, so adding mags in another tab needs a reload.
+  assign cart_is_empty = false
+  if cart.item_count == 0
+    assign cart_is_empty = true
+  endif
+
   # Vendor details - metafield first, schema fallback second.
   # Schema fallbacks carry the canonical values from memory so the page
   # works the moment it's pushed, before the metafields are populated.
@@ -100,6 +112,19 @@
       cream container. Pattern bg shows around the card edges.
     {%- endcomment -%}
     <div class="theinmag-school-order-form__card">
+
+    {%- comment -%} ========= Empty-cart notice - first thing in the card, only when there is nothing to order ========= {%- endcomment -%}
+    {%- if cart_is_empty -%}
+      <div class="theinmag-school-order-form__empty-first" role="status" aria-labelledby="theinmag-school-order-form-empty-heading">
+        <h2 id="theinmag-school-order-form-empty-heading" class="theinmag-school-order-form__empty-first-heading">{{ cart_empty_heading | default: 'Your cart is empty.' }}</h2>
+        {%- if cart_empty_body != blank -%}
+          <p class="theinmag-school-order-form__empty-first-body">{{ cart_empty_body }}</p>
+        {%- endif -%}
+        {%- if cart_empty_cta_label != blank and cart_empty_cta_url != blank -%}
+          <a class="theinmag-btn theinmag-btn--primary" href="{{ cart_empty_cta_url }}">{{ cart_empty_cta_label }}</a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
 
     {%- comment -%} ========= Vendor block - what to put on the school's PO ========= {%- endcomment -%}
     <details class="theinmag-school-order-form__vendor" open>
@@ -157,21 +182,11 @@
       </div>
     </details>
 
-    {%- comment -%} ========= Cart preview ========= {%- endcomment -%}
+    {%- comment -%} ========= Cart preview (only when there is something to order; the empty notice sits at the top of the card) ========= {%- endcomment -%}
+    {%- unless cart_is_empty -%}
     <div class="theinmag-school-order-form__cart" aria-labelledby="theinmag-school-order-form-cart-heading">
       <h2 id="theinmag-school-order-form-cart-heading" class="theinmag-school-order-form__cart-heading">{{ cart_heading | default: "What you're ordering" }}</h2>
 
-      {%- if cart.item_count == 0 -%}
-        <div class="theinmag-school-order-form__cart-empty">
-          <p class="theinmag-school-order-form__cart-empty-heading">{{ cart_empty_heading | default: 'Your cart is empty.' }}</p>
-          {%- if cart_empty_body != blank -%}
-            <p class="theinmag-school-order-form__cart-empty-body">{{ cart_empty_body }}</p>
-          {%- endif -%}
-          {%- if cart_empty_cta_label != blank and cart_empty_cta_url != blank -%}
-            <a class="theinmag-btn theinmag-btn--primary" href="{{ cart_empty_cta_url }}">{{ cart_empty_cta_label }}</a>
-          {%- endif -%}
-        </div>
-      {%- else -%}
         <ul class="theinmag-school-order-form__cart-list" role="list">
           {%- for item in cart.items -%}
             <li class="theinmag-school-order-form__cart-row">
@@ -204,15 +219,16 @@
           <p class="theinmag-school-order-form__cart-tax-note">GST included where applicable. Final invoice issued on order.</p>
         </div>
         <a class="theinmag-school-order-form__cart-edit" href="{{ routes.cart_url }}">&larr; Edit cart</a>
-      {%- endif -%}
     </div>
+    {%- endunless -%}
 
-    {%- comment -%} ========= Form ========= {%- endcomment -%}
+    {%- comment -%} ========= Form (hidden while the cart is empty; stays in the DOM so the inline script still binds) ========= {%- endcomment -%}
     <form
       class="theinmag-school-order-form__form"
       id="theinmag-school-order-form-element"
-      data-cart-empty="{% if cart.item_count == 0 %}true{% else %}false{% endif %}"
+      data-cart-empty="{% if cart_is_empty %}true{% else %}false{% endif %}"
       novalidate
+      {% if cart_is_empty %}hidden{% endif %}
     >
       <div class="theinmag-school-order-form__errors" role="alert" data-theinmag-school-errors hidden></div>
 
@@ -386,7 +402,7 @@
           type="submit"
           class="theinmag-btn theinmag-btn--primary theinmag-school-order-form__submit"
           data-theinmag-school-submit
-          {% if cart.item_count == 0 %}disabled aria-disabled="true"{% endif %}
+          {% if cart_is_empty %}disabled aria-disabled="true"{% endif %}
         >
           <span data-theinmag-submit-label>{{ submit_label | default: 'Place order + email me the invoice' }}</span>
           <span class="theinmag-school-order-form__spinner" data-theinmag-submit-spinner aria-hidden="true"></span>
@@ -1076,30 +1092,46 @@
     color: var(--color-inky-purple-navy, #2A1F3D);
   }
 
-  .theinmag-school-order-form__cart-empty {
+  /* ----- Empty-cart notice (first block in the card) ---------------- */
+  /* Same white-card treatment as the vendor and cart boxes so it reads
+     as part of the page, not an error. The words and the yellow button
+     carry the meaning (no colour-only signal). */
+
+  .theinmag-school-order-form__empty-first {
+    background-color: #FFFFFF;
+    border-radius: var(--radius-lg, 20px);
+    box-shadow: var(--shadow-card, 0 2px 12px rgba(123, 79, 158, 0.08));
+    padding: clamp(22px, 3vw, 32px) clamp(18px, 2.4vw, 24px);
     text-align: center;
-    padding: clamp(8px, 1.4vw, 14px) 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: clamp(10px, 1.4vw, 14px);
     align-items: center;
   }
 
-  .theinmag-school-order-form__cart-empty-heading {
-    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-weight: 600;
-    font-size: 16px;
+  .theinmag-school-order-form__empty-first-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(22px, 2.8vw, 30px);
+    line-height: 1.15;
     margin: 0;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    text-wrap: balance;
   }
 
-  .theinmag-school-order-form__cart-empty-body {
+  .theinmag-school-order-form__empty-first-body {
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    font-size: 14px;
+    font-size: clamp(15px, 1.5vw, 16px);
     line-height: 1.5;
     margin: 0;
-    max-width: 44ch;
+    max-width: 46ch;
     color: var(--color-inky-purple-navy, #2A1F3D);
-    opacity: 0.8;
+    opacity: 0.85;
+    text-wrap: balance;
+  }
+
+  .theinmag-school-order-form__empty-first .theinmag-btn {
+    margin-top: 4px;
   }
 
   .theinmag-school-order-form__cart-list {
@@ -1214,6 +1246,9 @@
     flex-direction: column;
     gap: clamp(18px, 2.4vw, 24px);
   }
+
+  /* display:flex above would beat the UA's [hidden] rule, so restate it. */
+  .theinmag-school-order-form__form[hidden] { display: none; }
 
   .theinmag-school-order-form__fieldset {
     border: none;
