@@ -22,6 +22,21 @@
   Type: Inter only. Small uppercase Inter 700 heading, the same Atari-mimic
   register as the reviews section above (design system 6.14). No Post display
   moment here on purpose, and no Caveat anywhere.
+
+  Form image (23 Sep 2026, Ryan's call): Judge.me's modal shows its synced
+  image_url, which is the product's FEATURED image, in a 160px square with
+  object-fit cover. Mag featured images are portrait flat covers (the /shop
+  grid tile), so the crop looked wrong. The swap below is data-driven: when
+  the featured image is not square, point jdgm.data.reviewWidget[id].image_url
+  at the first SQUARE image the product already has, in this order:
+    1. single_mag.media_images[0] (the styled square cover the shop hero,
+       PDP and quick-view use)
+    2. the first square image in product.media
+    3. nothing: Judge.me keeps its default
+  Square = aspect ratio 0.9 to 1.1. Products whose featured image is already
+  square (Membership) are never touched. Product images are never changed;
+  only the value the widget reads. The widget JS reads image_url after this
+  inline script has run (verified 23 Sep: the app block sets it synchronously).
 {%- endcomment -%}
 
 {%- liquid
@@ -36,6 +51,29 @@
       assign has_app_block = true
     endif
   endfor
+
+  # Square form image (see the header comment). Only when the featured image
+  # is not already square.
+  assign form_image = blank
+  assign featured_ratio = product.featured_image.aspect_ratio | default: 1
+  if featured_ratio < 0.9 or featured_ratio > 1.1
+    assign square_media = product.metafields.single_mag.media_images.value
+    assign square_first = square_media | first
+    if square_first != blank and square_first.aspect_ratio >= 0.9 and square_first.aspect_ratio <= 1.1
+      assign form_image = square_first
+    else
+      for m in product.media
+        if m.media_type == 'image' and m.aspect_ratio >= 0.9 and m.aspect_ratio <= 1.1
+          assign form_image = m
+          break
+        endif
+      endfor
+    endif
+  endif
+  assign form_image_url = blank
+  if form_image != blank
+    assign form_image_url = form_image | image_url: width: 640
+  endif
 -%}
 
 <section
@@ -44,6 +82,7 @@
   aria-labelledby="theinmag-review-form-heading"
   style="--tmrf-pt: {{ pt }}px; --tmrf-pb: {{ pb }}px;"
   data-theinmag-review-form
+  data-form-image="{{ form_image_url }}"
 >
   <div class="theinmag-review-form__inner">
     <div class="theinmag-review-form__divider" aria-hidden="true"></div>
@@ -87,6 +126,30 @@
         {%- if product.metafields.judgeme.review_widget_data -%}
           <script>jdgm.data ||= {}; jdgm.data.reviewWidget ||= {}; jdgm.data.reviewWidget[{{ product.id }}] = {{ product.metafields.judgeme.review_widget_data }}</script>
         {%- endif -%}
+      {%- endif -%}
+      {%- if form_image_url != blank -%}
+        {%- comment -%}
+          Rewrite the widget's synced image_url to the square cover. The app
+          block above sets jdgm.data.reviewWidget[id] synchronously, so this
+          normally lands on the first try; the short retry covers a block that
+          defers it. Product images are untouched.
+        {%- endcomment -%}
+        <script>
+          (function () {
+            var id = {{ product.id | json }};
+            var url = {{ form_image_url | json }};
+            var tries = 0;
+            function apply() {
+              var rw = window.jdgm && window.jdgm.data && window.jdgm.data.reviewWidget;
+              if (rw && rw[id]) { rw[id].image_url = url; return true; }
+              return false;
+            }
+            if (apply()) return;
+            var t = setInterval(function () {
+              if (apply() || ++tries > 100) clearInterval(t);
+            }, 50);
+          })();
+        </script>
       {%- endif -%}
     </div>
   </div>
