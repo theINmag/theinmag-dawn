@@ -115,6 +115,25 @@
         "padding_bottom": 96
       }
     },
+    "review-form": {
+      "type": "theinmag-review-form",
+      "blocks": {
+        "judgeme": {
+          "type": "shopify://apps/judge-me-reviews/blocks/review_widget/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "judgeme"
+      ],
+      "settings": {
+        "heading": "Write a review",
+        "body": "Tell other families what the mag did for your kid. It takes two minutes and it is the thing parents trust most.",
+        "form_only": true,
+        "padding_top": 48,
+        "padding_bottom": 96
+      }
+    },
     "faq": {
       "type": "theinmag-membership-faq",
       "blocks": {
@@ -238,6 +257,7 @@
     "pillars",
     "pull_quote",
     "reviews",
+    "review-form",
     "faq",
     "cross-sells"
   ]

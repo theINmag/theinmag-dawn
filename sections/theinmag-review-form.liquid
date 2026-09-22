@@ -1,0 +1,481 @@
+{%- comment -%}
+  theinmag-review-form
+  Built 22 Sep 2026. Hosts the Judge.me Review Widget as an app block so the
+  per-order review links Klaviyo sends (?judgeme_review_source=...&judgeme_token=...)
+  have a form to open. Without a Review Widget on the product page, Judge.me's
+  token handler has nothing to target and the link silently does nothing.
+
+  Placement: directly after theinmag-membership-reviews on the mag PDP
+  (product.json) and the membership PDP (product.membership.json). Same white
+  surface, so the two read as one editorial chapter: the reviews list above,
+  "write yours" below.
+
+  form_only (default on): both PDPs already render the pooled store reviews in
+  theinmag-membership-reviews, so this section hides the widget's own list,
+  summary, histogram, sort and pagination, keeping only the write-a-review
+  button and the form. Turn it off to show Judge.me's full widget.
+
+  Fallback: if the template carries no app block (app removed, block never
+  added), the section renders Judge.me's documented Liquid markup for the same
+  widget so the token link still works. The app embed hydrates either.
+
+  Type: Inter only. Small uppercase Inter 700 heading, the same Atari-mimic
+  register as the reviews section above (design system 6.14). No Post display
+  moment here on purpose, and no Caveat anywhere.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading | default: 'Write a review'
+  assign body = section.settings.body
+  assign form_only = section.settings.form_only
+  assign pt = section.settings.padding_top | default: 48
+  assign pb = section.settings.padding_bottom | default: 96
+  assign has_app_block = false
+  for block in section.blocks
+    if block.type == '@app'
+      assign has_app_block = true
+    endif
+  endfor
+-%}
+
+<section
+  class="theinmag-review-form{% if form_only %} theinmag-review-form--form-only{% endif %}"
+  id="theinmag-review-form"
+  aria-labelledby="theinmag-review-form-heading"
+  style="--tmrf-pt: {{ pt }}px; --tmrf-pb: {{ pb }}px;"
+  data-theinmag-review-form
+>
+  <div class="theinmag-review-form__inner">
+    <div class="theinmag-review-form__divider" aria-hidden="true"></div>
+
+    <div class="theinmag-review-form__intro">
+      <h2 class="theinmag-review-form__heading" id="theinmag-review-form-heading">{{ heading }}</h2>
+      {%- if body != blank -%}
+        <p class="theinmag-review-form__body">{{ body }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="theinmag-review-form__widget">
+      {%- if has_app_block -%}
+        {%- for block in section.blocks -%}
+          {%- render block -%}
+        {%- endfor -%}
+      {%- else -%}
+        {%- comment -%} Judge.me's documented Review Widget Liquid (help article 12058208). {%- endcomment -%}
+        {%- liquid
+          assign has_legacy = false
+          if product.metafields.judgeme.widget.size > 20
+            assign has_legacy = true
+          endif
+        -%}
+        <div
+          id="judgeme_product_reviews"
+          class="jdgm-widget jdgm-review-widget"
+          data-product-title="{{ product.title | escape }}"
+          data-id="{{ product.id }}"
+          data-product-id="{{ product.id }}"
+          data-widget="review"
+          data-auto-install="false"
+          data-shop-reviews-count="{{ shop.metafields.judgeme.shop_reviews_count | default: 0 | escape }}"
+          data-entry-point="review_widget.js"
+          data-entry-key="review-widget/main.js"
+        >
+          {%- if has_legacy -%}
+            <div class="jdgm-legacy-widget-content" style="display: none;">{{ product.metafields.judgeme.widget }}</div>
+          {%- endif -%}
+        </div>
+        {%- if product.metafields.judgeme.review_widget_data -%}
+          <script>jdgm.data ||= {}; jdgm.data.reviewWidget ||= {}; jdgm.data.reviewWidget[{{ product.id }}] = {{ product.metafields.judgeme.review_widget_data }}</script>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .theinmag-review-form {
+    background-color: #FFFFFF;
+    color: #1a1a1a;
+    padding: var(--tmrf-pt, 48px) clamp(20px, 5vw, 64px) var(--tmrf-pb, 96px);
+  }
+  .theinmag-review-form__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .theinmag-review-form__divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.08);
+    margin: 0 0 clamp(28px, 4vw, 48px);
+  }
+  .theinmag-review-form__intro {
+    max-width: 640px;
+    margin: 0 0 clamp(20px, 3vw, 32px);
+  }
+  .theinmag-review-form__heading {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(14px, 1.4vw, 16px);
+    line-height: 1.1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1a1a1a;
+    margin: 0 0 12px;
+  }
+  .theinmag-review-form__body {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0;
+  }
+
+  /* ---------------------------------------------------------------
+     Judge.me Review Widget, restyled to the design system.
+     Everything below is scoped to this section so it cannot leak
+     into theinmag-membership-reviews' own overrides.
+     --------------------------------------------------------------- */
+  .theinmag-review-form__widget .jdgm-widget,
+  .theinmag-review-form__widget .jdgm-rev-widg {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    color: #1a1a1a !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    text-align: left !important;
+  }
+  .theinmag-review-form__widget .jdgm-rev-widg__header {
+    padding: 0 !important;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+  .theinmag-review-form__widget .jdgm-rev-widg__title {
+    display: none !important;
+  }
+  .theinmag-review-form__widget .jdgm-rev-widg__powered-by-text,
+  .theinmag-review-form__widget .jdgm-rev-widg__body-wrap-desktop .jdgm-rev-widg__powered-by-text {
+    display: none !important;
+  }
+
+  /* ---------------------------------------------------------------
+     Judge.me "new version" widget (jm- classes, verified on preview
+     22 Sep 2026). The write-a-review form opens as a body-level modal
+     (.jdgm-write-review-modal), so the section only owns the trigger.
+     --------------------------------------------------------------- */
+  .theinmag-review-form__widget .jm-review-widget {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    color: #1a1a1a !important;
+    /* Judge.me pads the widget 48px top and bottom; the section owns spacing. */
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .theinmag-review-form__widget .jm-review-widget__header,
+  .theinmag-review-form__widget .jm-review-widget-minimal-header {
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+  }
+  /* Form-only, new widget: hide title, aggregate, sort/filters, media
+     strip, review list and pagination. Keep only the action button. */
+  .theinmag-review-form--form-only .jm-review-widget-minimal-header__title,
+  .theinmag-review-form--form-only .jm-average-rating-display,
+  .theinmag-review-form--form-only .jm-review-widget__header > .jm-cluster > .jm-stack:first-child,
+  .theinmag-review-form--form-only .jm-review-widget-minimal-header__filters,
+  .theinmag-review-form--form-only .jm-filters,
+  .theinmag-review-form--form-only .jm-sort-filter,
+  .theinmag-review-form--form-only .jm-media-preview,
+  .theinmag-review-form--form-only .jm-review-widget__body,
+  .theinmag-review-form--form-only .jdgm-review-list,
+  .theinmag-review-form--form-only .jm-pagination-controls {
+    display: none !important;
+  }
+  .theinmag-review-form--form-only .jm-review-widget__header > .jm-cluster,
+  .theinmag-review-form--form-only .jm-review-widget-minimal-header__filter-container,
+  .theinmag-review-form--form-only .jm-review-widget-minimal-header__button-and-filters {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    justify-content: flex-start !important;
+  }
+  /* Trigger button: yellow sticker, same recipe as .theinmag-btn--primary. */
+  .theinmag-review-form__widget .jm-action-buttons__button,
+  .theinmag-review-form__widget .jm-action-buttons .jm-button--primary {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    max-width: 100% !important;
+    flex: 0 0 auto !important;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif) !important;
+    font-weight: 400 !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.01em !important;
+    color: var(--color-inky-purple-navy, #2A1F3D) !important;
+    background: var(--color-yellow, #F9C23C) !important;
+    border: 0 !important;
+    border-radius: var(--radius-button, 32px) !important;
+    box-shadow: 0 4px 0 var(--color-yellow-shadow, #D4A02E) !important;
+    padding: 11px 20px !important;
+    min-height: 44px;
+    margin: 0 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .theinmag-review-form__widget .jm-action-buttons__button:hover,
+  .theinmag-review-form__widget .jm-action-buttons__button:focus-visible {
+    background: var(--color-purple-dark, #5D3A7A) !important;
+    color: #FFFFFF !important;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #4A2D62 !important;
+  }
+  .theinmag-review-form__widget .jm-action-buttons__button:focus-visible {
+    outline: 3px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 3px;
+  }
+  @media (min-width: 990px) {
+    /* Same selector list as the base rule: both are !important, so
+       specificity decides, and a shorter selector here silently loses. */
+    .theinmag-review-form__widget .jm-action-buttons__button,
+    .theinmag-review-form__widget .jm-action-buttons .jm-button--primary {
+      font-size: 19px !important;
+      padding: 16px 32px !important;
+    }
+  }
+  /* The modal is appended to <body>, outside this section. Judge.me's
+     branding already sets Inter on headings and copy; inputs and buttons
+     fall back to Arial, so bring those into the type system too. */
+  .jdgm-write-review-modal input,
+  .jdgm-write-review-modal textarea,
+  .jdgm-write-review-modal select,
+  .jdgm-write-review-modal button {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+  }
+
+  /* ---------------------------------------------------------------
+     Legacy widget (jdgm-rev-widg classes), kept in case Judge.me serves
+     the old markup. Harmless when the new widget renders.
+     --------------------------------------------------------------- */
+  .theinmag-review-form--form-only .jdgm-rev-widg__summary,
+  .theinmag-review-form--form-only .jdgm-rev-widg__histogram,
+  .theinmag-review-form--form-only .jdgm-histogram,
+  .theinmag-review-form--form-only .jdgm-rev-widg__sort-wrapper,
+  .theinmag-review-form--form-only .jdgm-rev-widg__filter-wrapper,
+  .theinmag-review-form--form-only .jdgm-rev-widg__filter-buttons,
+  .theinmag-review-form--form-only .jdgm-rev-widg__search,
+  .theinmag-review-form--form-only .jdgm-rev-widg__reviews,
+  .theinmag-review-form--form-only .jdgm-rev-widg__paginate,
+  .theinmag-review-form--form-only .jdgm-paginate,
+  .theinmag-review-form--form-only .jdgm-rev-widg__body-wrap-desktop > :not(.jdgm-form),
+  .theinmag-review-form--form-only .jdgm-rev-widg .jdgm-rev {
+    display: none !important;
+  }
+
+  /* The write-a-review trigger becomes the yellow sticker button.
+     One yellow stamp in this section, none in the reviews list above. */
+  .theinmag-review-form__widget .jdgm-write-rev-link {
+    display: inline-block !important;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif) !important;
+    font-weight: 400 !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.01em !important;
+    color: var(--color-inky-purple-navy, #2A1F3D) !important;
+    background: var(--color-yellow, #F9C23C) !important;
+    border: 0 !important;
+    border-radius: var(--radius-button, 32px) !important;
+    box-shadow: 0 4px 0 var(--color-yellow-shadow, #D4A02E) !important;
+    padding: 11px 20px !important;
+    margin: 0 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    float: none !important;
+  }
+  .theinmag-review-form__widget .jdgm-write-rev-link:hover,
+  .theinmag-review-form__widget .jdgm-write-rev-link:focus-visible {
+    background: var(--color-purple-dark, #5D3A7A) !important;
+    color: #FFFFFF !important;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #4A2D62 !important;
+  }
+  .theinmag-review-form__widget .jdgm-write-rev-link:focus-visible {
+    outline: 3px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 3px;
+  }
+  @media (min-width: 990px) {
+    .theinmag-review-form__widget .jdgm-write-rev-link {
+      font-size: 19px !important;
+      padding: 16px 32px !important;
+    }
+  }
+
+  /* The form itself. Judge.me keeps it hidden until the button or a
+     token link opens it; we only restyle what it draws. */
+  .theinmag-review-form__widget .jdgm-form {
+    margin: clamp(20px, 3vw, 28px) 0 0 !important;
+    padding: clamp(20px, 3vw, 32px) !important;
+    max-width: 640px;
+    background: var(--color-cream, #FBF6EA) !important;
+    border: 0 !important;
+    border-radius: var(--radius-lg, 20px) !important;
+    text-align: left !important;
+  }
+  .theinmag-review-form__widget .jdgm-form label,
+  .theinmag-review-form__widget .jdgm-form .jdgm-form__fieldset-label,
+  .theinmag-review-form__widget .jdgm-form .jdgm-form__fieldset-title {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: #1a1a1a !important;
+    text-align: left !important;
+  }
+  .theinmag-review-form__widget .jdgm-form input[type="text"],
+  .theinmag-review-form__widget .jdgm-form input[type="email"],
+  .theinmag-review-form__widget .jdgm-form input[type="url"],
+  .theinmag-review-form__widget .jdgm-form textarea,
+  .theinmag-review-form__widget .jdgm-form select {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-size: 16px !important;
+    color: #1a1a1a !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(42, 31, 61, 0.22) !important;
+    border-radius: var(--radius-md, 12px) !important;
+    padding: 12px 14px !important;
+    box-shadow: none !important;
+    min-height: 44px;
+  }
+  .theinmag-review-form__widget .jdgm-form input:focus,
+  .theinmag-review-form__widget .jdgm-form textarea:focus,
+  .theinmag-review-form__widget .jdgm-form select:focus {
+    border-color: var(--color-purple-dark, #5D3A7A) !important;
+    outline: 2px solid var(--color-purple-dark, #5D3A7A);
+    outline-offset: 1px;
+  }
+  .theinmag-review-form__widget .jdgm-form .jdgm-star {
+    font-size: 28px !important;
+    color: var(--color-yellow, #F9C23C) !important;
+  }
+  .theinmag-review-form__widget .jdgm-form .jdgm-btn,
+  .theinmag-review-form__widget .jdgm-form input[type="submit"],
+  .theinmag-review-form__widget .jdgm-form button[type="submit"] {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+    border-radius: var(--radius-button, 32px) !important;
+    padding: 12px 24px !important;
+    min-height: 44px;
+    cursor: pointer !important;
+  }
+  .theinmag-review-form__widget .jdgm-form .jdgm-btn.jdgm-submit-rev,
+  .theinmag-review-form__widget .jdgm-form input[type="submit"],
+  .theinmag-review-form__widget .jdgm-form button[type="submit"] {
+    background: var(--color-purple-dark, #5D3A7A) !important;
+    color: #FFFFFF !important;
+    border: 2px solid var(--color-purple-dark, #5D3A7A) !important;
+  }
+  .theinmag-review-form__widget .jdgm-form .jdgm-btn.jdgm-cancel-rev {
+    background: transparent !important;
+    color: var(--color-purple-dark, #5D3A7A) !important;
+    border: 2px solid var(--color-purple-dark, #5D3A7A) !important;
+  }
+  .theinmag-review-form__widget .jdgm-form .jdgm-btn.jdgm-cancel-rev:hover {
+    background: var(--color-purple-dark, #5D3A7A) !important;
+    color: #FFFFFF !important;
+  }
+  .theinmag-review-form__widget .jdgm-form .jdgm-form__submit-btn-wrapper,
+  .theinmag-review-form__widget .jdgm-form .jdgm-form__action-btns {
+    text-align: left !important;
+  }
+  .theinmag-review-form__widget .jdgm-form .jdgm-notification,
+  .theinmag-review-form__widget .jdgm-form .jdgm-form__success {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif) !important;
+    color: #1a1a1a !important;
+    text-align: left !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-review-form__widget .jdgm-write-rev-link {
+      transition: none;
+    }
+    .theinmag-review-form__widget .jdgm-write-rev-link:hover {
+      transform: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Review form (Judge.me)",
+  "tag": "section",
+  "class": "theinmag-review-form-section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Hosts the Judge.me Review Widget app block. Review-request links from Klaviyo open this form on load. Add the Judge.me Review Widget block below; if none is added, the section renders the same widget itself."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Write a review"
+    },
+    {
+      "type": "text",
+      "id": "body",
+      "label": "Line under the heading",
+      "default": "Tell other families what the mag did for your kid. It takes two minutes and it is the thing parents trust most."
+    },
+    {
+      "type": "checkbox",
+      "id": "form_only",
+      "label": "Form only (hide the widget's own review list)",
+      "info": "Keep on when the page already shows reviews above this section.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Review form (Judge.me)"
+    }
+  ]
+}
+{% endschema %}
