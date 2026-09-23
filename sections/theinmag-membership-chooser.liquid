@@ -5,7 +5,7 @@
   image + format name + one-line subhead + a live price ladder (one row per
   Length, price pulled from the actual product variants so it never goes
   stale). Each length row deep-links to that product's PDP with the
-  format + length pre-selected (?format=&length=), so the buyer still lands
+  format + length pre-selected (?fmt=&length=), so the buyer still lands
   on the PDP and picks current-vs-next issue (the _starting_mag step) before
   checkout - we don't add straight to cart and skip that.
 
@@ -54,7 +54,12 @@
           assign prod = all_products[block.settings.product_handle]
           # Where the row links to can differ from where prices are read: the
           # Combo card reads prices from the membership-combo product but links
-          # to the unified PDP (/products/membership?format=Combo).
+          # to the unified PDP (/products/membership?fmt=Combo).
+          #
+          # The param is `fmt`, NOT `format`: `format` is RESERVED on a Shopify
+          # product URL and Shopify's own ProductDetailsController 404s any value
+          # but `json` BEFORE the theme renders - so it is not rescuable in Liquid
+          # or JS. Verified 23 Sep 2026. Do not rename it back.
           assign link_handle = block.settings.link_handle | default: block.settings.product_handle
           assign link_fmt = block.settings.link_format | default: block.settings.format
         -%}
@@ -85,7 +90,7 @@
                 {%- endfor -%}
                 {%- if match -%}
                   {%- if link_fmt != blank -%}
-                    {%- capture row_link -%}/products/{{ link_handle }}?format={{ link_fmt | url_encode }}&length={{ len | url_encode }}{%- endcapture -%}
+                    {%- capture row_link -%}/products/{{ link_handle }}?fmt={{ link_fmt | url_encode }}&length={{ len | url_encode }}{%- endcapture -%}
                   {%- else -%}
                     {%- capture row_link -%}/products/{{ link_handle }}?length={{ len | url_encode }}{%- endcapture -%}
                   {%- endif -%}

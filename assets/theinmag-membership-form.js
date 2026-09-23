@@ -48,9 +48,27 @@
   const singlePrint = parseInt(section.dataset.singlePrint || '0', 10) || 0;
   const singleDigital = parseInt(section.dataset.singleDigital || '0', 10) || 0;
 
+  /* currentIssue is the REAL current issue (the shop metafield), which is
+     what Digital starts on and what the on-page copy names. safeStart is
+     the sold-out-aware Print default the section computes in Liquid: in a
+     crossover it is the next (pre-sale) issue, never the sold-out one.
+     Keep the two apart - conflating them made Digital start on the wrong
+     issue while the page said otherwise. */
   const currentIssue = section.dataset.currentIssue;
+  const safeStart = section.dataset.safeStart;
   const nextIssue = section.dataset.nextIssue;
   const printInStock = section.dataset.printInStock === 'true';
+
+  /* Print default when the picker has not registered (script failure, slow
+     load, no-JS-ish path). A Print membership must never start on an issue
+     we cannot post, so this never trusts currentIssue blind: it takes the
+     Liquid-computed safe start, then independently refuses to hand back the
+     current issue while print is out of stock. */
+  function safeStartFallback() {
+    let candidate = safeStart || currentIssue;
+    if (!printInStock && candidate === currentIssue) candidate = nextIssue || candidate;
+    return candidate;
+  }
 
   /* First-mag step. For Print the starting issue is picked in the shared
      start picker dialog (assets/theinmag-start-picker.js), which opens on
@@ -184,7 +202,7 @@
         const p0 = picker();
         const st0 = p0 ? p0.state() : null;
         if (st0) startMag = st0.currentSoldOut ? (st0.prevAvailable ? st0.prevIssue : st0.nextIssue) : st0.currentIssue;
-        else startMag = propStarting ? propStarting.value : currentIssue;
+        else startMag = safeStartFallback();
         if (firstMagRow) firstMagRow.hidden = true;
         if (printStartHint) printStartHint.hidden = false;
       }
@@ -475,17 +493,25 @@
   }
 
   /* Pre-select Format / Length from URL query params. The /pages/membership
-     chooser deep-links here as ?format=Print&length=8-Issue so the buyer
-     lands on the chosen plan, then still picks current-vs-next issue before
-     adding to cart. Only applies a value if a matching pill exists. */
+     chooser deep-links here as ?fmt=Print&length=8-Issue so the buyer lands
+     on the chosen plan, then still picks current-vs-next issue before adding
+     to cart. Only applies a value if a matching pill exists.
+
+     The Format param is `fmt`, NOT `format`. `format` is RESERVED on a
+     Shopify product URL: Shopify's own ProductDetailsController returns a
+     bare text/plain 404 for any value but `json`, before the theme renders -
+     so ?format= links never reach this file and cannot be rescued here.
+     Every plan link on /pages/membership 404'd this way until 23 Sep 2026.
+     Keep the param name and the option name separate below. */
   (function preselectFromQuery() {
     var params = new URLSearchParams(window.location.search);
-    ['format', 'length'].forEach(function (name) {
-      var val = params.get(name);
+    /* [query param, data-option-name] */
+    [['fmt', 'format'], ['length', 'length']].forEach(function (pair) {
+      var val = params.get(pair[0]);
       if (!val) return;
       var safe = window.CSS && CSS.escape ? CSS.escape(val) : val;
-      var tile = form.querySelector('[data-option-name="' + name + '"] [data-value="' + safe + '"]');
-      if (tile) setSelected(name, val);
+      var tile = form.querySelector('[data-option-name="' + pair[1] + '"] [data-value="' + safe + '"]');
+      if (tile) setSelected(pair[1], val);
     });
   })();
 
