@@ -104,13 +104,24 @@
   assign hero_combo = 'membership-hero-combo.jpg' | asset_url
 
   comment
-    Flick-through video filename pattern: mag{NN}-02-flick-through1.mp4
-    Bound to the shop-level current_issue_number metafield so the slot
-    auto-rolls to the new mag at each release (Stage 14 trigger). If a
-    matching file is not uploaded, the video tag's `poster` fallback or
-    a manual file-name update via section setting is the remediation.
+    Flick-through video. WAS bound straight to current_issue_number
+    (mag{NN}-02-flick-through1.mp4) so the slot auto-rolled at each release.
+    That silently 404'd the moment a release happened without the matching
+    file being uploaded: from Mag10 going current until 23 Sep 2026 the
+    membership PDP served a dead video (404, 2,770 bytes of HTML, not video)
+    on the page people buy from. Liquid cannot test whether an asset exists,
+    so the auto-roll could never be made safe on its own.
+
+    Now the filename comes from the section setting, which defaults to a file
+    we KNOW is uploaded. The auto-rolled name is kept only as the fallback for
+    the case where someone deliberately clears the setting. Per drop: upload
+    mag{NN}-02-flick-through1.mp4, then point the setting at it. Until that
+    happens the slot shows the last good flick-through rather than a 404.
   endcomment
-  assign flick_through_filename = 'mag' | append: current_num_str | append: '-02-flick-through1.mp4'
+  assign flick_through_filename = section.settings.flick_through_file
+  if flick_through_filename == blank
+    assign flick_through_filename = 'mag' | append: current_num_str | append: '-02-flick-through1.mp4'
+  endif
   assign flick_through_src = flick_through_filename | asset_url
   assign three_times_year_src = 'trust-overlay-three-times-year.jpg' | asset_url
   assign sustainable_src = 'trust-overlay-sustainable.jpg' | asset_url
@@ -178,7 +189,8 @@
 <section
   class="theinmag-membership-hero{% if show_field %} theinmag-membership-hero--field{% endif %}"
   data-theinmag-membership-form
-  data-current-issue="{{ lead_issue }}"
+  data-current-issue="{{ current_issue }}"
+  data-safe-start="{{ lead_issue }}"
   data-next-issue="{{ alt_issue }}"
   data-print-in-stock="{{ print_stock_attr }}"
   data-single-print="{{ single_print_cents }}"
@@ -273,7 +285,7 @@
             loop
             playsinline
             preload="metadata"
-            aria-label="A quick flick-through of the latest theINmag issue."
+            aria-label="A quick flick-through of a theINmag issue."
           ></video>
         </div>
 
@@ -1962,6 +1974,13 @@
       "step": 4,
       "default": 56,
       "unit": "px"
+    },
+    {
+      "type": "text",
+      "id": "flick_through_file",
+      "label": "Flick-through video filename",
+      "info": "Theme asset filename for the trust-carousel video, e.g. mag10-02-flick-through1.mp4. Upload the new file each drop, THEN change this. A name with no matching uploaded file serves a 404, not a video. Leave blank to fall back to the auto-rolled mag{NN} name.",
+      "default": "mag09-02-flick-through1.mp4"
     }
   ],
   "presets": [
