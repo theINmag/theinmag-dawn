@@ -1,0 +1,92 @@
+{
+  "sections": {
+    "workshops": {
+      "type": "theinmag-workshops",
+      "blocks": {
+        "brisbane": {
+          "type": "workshop",
+          "settings": {
+            "status": "upcoming",
+            "area": "Brisbane",
+            "date_short": "Wed 21 Oct",
+            "date_long": "Wednesday 21 October",
+            "place_short": "Redland Bay",
+            "venue": "Redland Bay, venue to be confirmed",
+            "time": "4pm to 5pm",
+            "cap": 30,
+            "fee": "$10 a family",
+            "bring": "Bring a sketchpad and pencil case if you have them",
+            "minion": 35
+          }
+        },
+        "gold_coast": {
+          "type": "workshop",
+          "settings": {
+            "status": "upcoming",
+            "area": "Gold Coast",
+            "date_short": "Sat 31 Oct",
+            "date_long": "Saturday 31 October",
+            "place_short": "Burleigh Heads",
+            "venue": "EXAMPLE: the park at Burleigh Heads, by the playground",
+            "time": "10am to 11am",
+            "cap": 50,
+            "fee": "$10 a family",
+            "bring": "Bring a sketchpad and pencil case if you have them",
+            "extra": "Outdoors, so bring a hat and a picnic rug",
+            "minion": 14
+          }
+        },
+        "byron_bay": {
+          "type": "workshop",
+          "settings": {
+            "status": "upcoming",
+            "area": "Byron Bay",
+            "date_short": "Thu 5 Nov",
+            "date_long": "Thursday 5 November",
+            "place_short": "Bangalow",
+            "venue": "EXAMPLE: Bangalow community hall",
+            "time": "4pm to 5pm",
+            "cap": 40,
+            "fee": "$10 a family",
+            "bring": "Bring a sketchpad and pencil case if you have them",
+            "minion": 22
+          }
+        },
+        "sunshine_coast": {
+          "type": "workshop",
+          "settings": {
+            "status": "past",
+            "area": "Sunshine Coast",
+            "date_short": "Sat 19 Sep",
+            "date_long": "Saturday 19 September",
+            "place_short": "Caloundra Library",
+            "venue": "Caloundra Library creative room",
+            "time": "9am and 10:15am",
+            "cap": 25,
+            "fee": "Free",
+            "minion": 11
+          }
+        }
+      },
+      "block_order": [
+        "brisbane",
+        "gold_coast",
+        "byron_bay",
+        "sunshine_coast"
+      ],
+      "settings": {
+        "eyebrow": "IN-person workshops",
+        "heading": "Pick your workshop",
+        "detail_heading": "Come and create with us",
+        "detail_subhead": "A workshop for creative kids, filled with art, ideas and magazines.",
+        "hosts_heading": "Meet Tam and Ryan",
+        "hosts_body": "Two teachers who wanted kids to have somewhere real to put their ideas.\n\nSo they started theINmag, the magazine where kids get published.\n\nNow they are travelling Australia, with their little one Nora, connecting with kids and families.",
+        "worker_url": "https://theinmag-workshop-booking.heyhey-53f.workers.dev",
+        "terms": "I am the parent or guardian of each child, we will stay for the session, and you can email me about the day. Photos are sometimes taken for theINmag's socials. Tell us on the day if you would rather your child stayed out of them."
+      }
+    }
+  },
+  "order": [
+    "workshops"
+  ]
+}

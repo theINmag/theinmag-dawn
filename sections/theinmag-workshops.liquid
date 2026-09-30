@@ -1,0 +1,870 @@
+{%- comment -%}
+  theinmag-workshops
+  IN-person workshops: ONE page, two screens, same background.
+    Screen 1 (chooser): a tile per upcoming workshop (kid mINion on the
+      left, area in Post, date / place / time in Inter), previous
+      workshops greyed out underneath, and a small enquiry button for
+      schools and homeschool groups.
+    Screen 2 (detail): the workshop page built for Caloundra
+      (theinmag-workshop-booking), filled from the picked workshop.
+  Picking a tile fades the chooser out and the detail in; the section
+  background never changes. "Pick a different workshop" fades back.
+  Each workshop is deep-linkable by hash (/pages/workshops#brisbane).
+
+  Each workshop is a BLOCK, so adding one is filling in a form in the
+  theme editor (or the template JSON), never a build.
+
+  The detail screen reuses the .theinmag-wsb__ styles from
+  sections/theinmag-workshop-booking.liquid on purpose: those choices
+  are settled. Only the chooser (.theinmag-wsp__) is new.
+
+  Booking: the form posts to the multi-workshop Worker (theinmag-workshop-booking),
+  which owns the kid limit per workshop and fires the Klaviyo confirmation.
+{%- endcomment -%}
+
+{% render 'theinmag-character-pool' %}
+
+<section class="theinmag-wsb theinmag-wsp" data-wsp-root data-wsp-state="choose" data-worker-url="{{ section.settings.worker_url }}" aria-labelledby="theinmag-wsp-heading">
+  {% render 'theinmag-section-bg', opacity: 0.20 %}
+
+  <div class="theinmag-wsb__inner">
+
+    {%- comment -%} ================= Screen 1: chooser ================= {%- endcomment -%}
+    <div class="theinmag-wsp__screen theinmag-wsp__screen--choose" data-wsp-choose>
+      <div class="theinmag-wsp__top">
+        <div class="theinmag-wsp__top-row">
+          <span class="theinmag-wsb__eyebrow">{{ section.settings.eyebrow }}</span>
+          <button type="button" class="theinmag-btn theinmag-btn--secondary theinmag-wsp__enquire" data-wsp-enquire-open>
+            School or homeschool group? Ask us to visit
+          </button>
+        </div>
+        <h1 id="theinmag-wsp-heading" class="theinmag-wsb__heading theinmag-wsp__heading">{{ section.settings.heading }}</h1>
+      </div>
+
+      <div class="theinmag-wsp__grid">
+        {%- for block in section.blocks -%}
+          {%- if block.settings.status == 'upcoming' -%}
+            <button
+              type="button"
+              class="theinmag-wsp__tile"
+              data-wsp-pick="{{ block.settings.area | handleize }}"
+              {{ block.shopify_attributes }}
+            >
+              {%- assign minion_file = 'character-' | append: block.settings.minion | append: '.png' -%}
+              <span class="theinmag-wsp__minion" aria-hidden="true"><img src="{{ minion_file | asset_url }}" alt="" width="208" height="208"></span>
+              <span class="theinmag-wsp__tile-body">
+                <span class="theinmag-wsp__area">{{ block.settings.area }}</span>
+                <span class="theinmag-wsp__line theinmag-wsp__line--date">{{ block.settings.date_short }}</span>
+                <span class="theinmag-wsp__line">{{ block.settings.place_short }}</span>
+                <span class="theinmag-wsp__line">{{ block.settings.time }}</span>
+                <span class="theinmag-wsp__spots" data-wsp-spots="{{ block.settings.area | handleize }}"></span>
+              </span>
+            </button>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      {%- assign has_past = false -%}
+      {%- for block in section.blocks -%}{%- if block.settings.status == 'past' -%}{%- assign has_past = true -%}{%- endif -%}{%- endfor -%}
+      {%- if has_past -%}
+        <div class="theinmag-wsp__past">
+          <h2 class="theinmag-wsp__past-heading">Previous workshops</h2>
+          <div class="theinmag-wsp__grid">
+            {%- for block in section.blocks -%}
+              {%- if block.settings.status == 'past' -%}
+                <div class="theinmag-wsp__tile theinmag-wsp__tile--past" {{ block.shopify_attributes }}>
+                  {%- assign minion_file = 'character-' | append: block.settings.minion | append: '.png' -%}
+              <span class="theinmag-wsp__minion" aria-hidden="true"><img src="{{ minion_file | asset_url }}" alt="" width="208" height="208"></span>
+                  <span class="theinmag-wsp__tile-body">
+                    <span class="theinmag-wsp__area">{{ block.settings.area }}</span>
+                    <span class="theinmag-wsp__line theinmag-wsp__line--date">{{ block.settings.date_short }}</span>
+                    <span class="theinmag-wsp__line">{{ block.settings.place_short }}</span>
+                  </span>
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} ================= Screen 2: detail ================= {%- endcomment -%}
+    <div class="theinmag-wsp__screen theinmag-wsp__screen--detail" data-wsp-detail hidden>
+      <button type="button" class="theinmag-btn theinmag-btn--secondary theinmag-wsp__back" data-wsp-back>&larr; Pick a different workshop</button>
+
+      <div class="theinmag-wsb__hero">
+        <div class="theinmag-wsb__media">
+          {%- if section.settings.hero_image != blank -%}
+            <img class="theinmag-wsb__photo" src="{{ section.settings.hero_image | image_url: width: 760 }}" alt="{{ section.settings.hero_image.alt | default: 'Aussie kids making creations at a theINmag workshop' | escape }}" width="760" height="600" loading="lazy">
+          {%- else -%}
+            <img class="theinmag-wsb__photo" src="{{ 'HERO_audiences-kids.jpg' | asset_url }}" alt="A young child giving a thumbs up over their colourful creation at a theINmag workshop" width="760" height="600" loading="lazy">
+          {%- endif -%}
+          <span class="theinmag-wsb__sticker" aria-hidden="true" data-wsp-fill="sticker"></span>
+        </div>
+        <div class="theinmag-wsb__hero-copy">
+          <span class="theinmag-wsb__character" data-theinmag-pool-character aria-hidden="true"></span>
+          <span class="theinmag-wsb__eyebrow" data-wsp-fill="eyebrow"></span>
+          <h2 class="theinmag-wsb__heading">{{ section.settings.detail_heading }}</h2>
+          <p class="theinmag-wsb__sub">{{ section.settings.detail_subhead }}</p>
+          <a class="theinmag-btn theinmag-btn--primary theinmag-wsb__hero-cta" href="#theinmag-wsp-book">Scroll down to book &darr;</a>
+        </div>
+      </div>
+
+      <div class="theinmag-wsb__info">
+        <div class="theinmag-wsb__info-basics">
+          <h2 class="theinmag-wsb__info-heading">The basics</h2>
+          <ul class="theinmag-wsb__info-list" data-wsp-fill="basics"></ul>
+        </div>
+        <div class="theinmag-wsb__info-camera">
+          <div class="theinmag-wsb__info-camera-text">
+            <h3 class="theinmag-wsb__info-camera-heading">{{ section.settings.hosts_heading }}</h3>
+            <p class="theinmag-wsb__info-camera-body theinmag-wsp__hosts-body">{{ section.settings.hosts_body | newline_to_br }}</p>
+          </div>
+          {%- assign hosts = section.settings.hosts_image | image_url: width: 640 -%}
+          {%- assign hosts_fb = 'HERO_founders-atthemarket.jpg' | asset_url -%}
+          <img class="theinmag-wsb__info-camera-img theinmag-wsp__hosts-img" src="{{ hosts | default: hosts_fb }}" alt="Tam and Ryan, the two teachers behind theINmag, at a market stall with copies of the magazine" width="640" height="427" loading="lazy">
+        </div>
+      </div>
+
+    {%- comment -%} ---- How the morning runs ---- {%- endcomment -%}
+    <div class="theinmag-wsb__flow theinmag-wsp__flow">
+      <h2 class="theinmag-wsb__flow-heading">What's happening in this session?</h2>
+      <div class="theinmag-wsb__carousel theinmag-wsp__carousel" data-wsp-carousel>
+        <div class="theinmag-wsb__car-track theinmag-wsp__track" data-wsp-track>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              {%- assign fi = section.settings.flow_image_1 | image_url: width: 680 -%}
+              {%- assign fb = 'HERO_kid-reading-mag.jpg' | asset_url -%}
+              <img class="theinmag-wsb__slide-img" src="{{ fi | default: fb }}" alt="A child having a flick through theINmag" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">Firstly</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Meet the team + flick through</h3>
+              <p class="theinmag-wsb__slide-body">Meet Tam and Ryan, then in small groups, explore an issue of the mag and share the bits you love.</p>
+            </div>
+          </div></div>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              {%- assign fi = section.settings.flow_image_2 | image_url: width: 680 -%}
+              {%- assign fb = 'workshop-passions.jpg' | asset_url -%}
+              <img class="theinmag-wsb__slide-img" src="{{ fi | default: fb }}" alt="A child drawing in a sketchbook next to an open theINmag" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">Then</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Passions, interests and hobbies</h3>
+              <p class="theinmag-wsb__slide-body">Kids brainstorm all the stuff they love. The things that make them special.</p>
+            </div>
+          </div></div>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              {%- assign fi = section.settings.flow_image_3 | image_url: width: 680 -%}
+              {%- assign fb = 'workshop-minions.jpg' | asset_url -%}
+              <img class="theinmag-wsb__slide-img" src="{{ fi | default: fb }}" alt="A kid-made character painting" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">And then</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Meet the mINions</h3>
+              <p class="theinmag-wsb__slide-body">With some chill music on, everyone dreams up and draws their own character.</p>
+            </div>
+          </div></div>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              {%- assign fi = section.settings.flow_image_4 | image_url: width: 680 -%}
+              {%- assign fb = 'workshop-storytime.jpg' | asset_url -%}
+              <img class="theinmag-wsb__slide-img" src="{{ fi | default: fb }}" alt="Tam reading a story from theINmag to a family at a market stall" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">Next</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Story time</h3>
+              <p class="theinmag-wsb__slide-body">We'll read a story written by a real kid, then in small groups the kids make up a story.</p>
+            </div>
+          </div></div>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              {%- assign fi = section.settings.flow_image_5 | image_url: width: 680 -%}
+              {%- assign fb = 'workshop-wrapup.jpg' | asset_url -%}
+              <img class="theinmag-wsb__slide-img" src="{{ fi | default: fb }}" alt="A theINmag cover made by a kid" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">After that</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">How to get <span class="theinmag-wsp__in">IN</span></h3>
+              <p class="theinmag-wsb__slide-body">Ask us anything, then find out how your own creation could end up in theINmag.</p>
+            </div>
+          </div></div>
+          <div class="theinmag-wsb__slide"><div class="theinmag-wsb__slide-card">
+            <div class="theinmag-wsb__slide-media">
+              {%- assign fi = section.settings.flow_image_6 | image_url: width: 680 -%}
+              {%- assign fb = 'workshop-make.jpg' | asset_url -%}
+              <img class="theinmag-wsb__slide-img" src="{{ fi | default: fb }}" alt="A kid-made creation" width="680" height="380" loading="lazy">
+              <span class="theinmag-wsb__slide-step">Finally</span>
+            </div>
+            <div class="theinmag-wsb__slide-text">
+              <h3 class="theinmag-wsb__slide-title">Make your own</h3>
+              <p class="theinmag-wsb__slide-body">Find something in the mag that sparks an idea, then create your own version of it.</p>
+            </div>
+          </div></div>
+        </div>
+        <button class="theinmag-wsb__car-arrow theinmag-wsp__arrow theinmag-wsb__car-arrow--prev" data-wsp-prev type="button" aria-label="Previous step">&lsaquo;</button>
+        <button class="theinmag-wsb__car-arrow theinmag-wsp__arrow theinmag-wsb__car-arrow--next" data-wsp-next type="button" aria-label="Next step">&rsaquo;</button>
+        <div class="theinmag-wsb__car-dots theinmag-wsp__dots" data-wsp-dots></div>
+      </div>
+    </div>
+
+      <div class="theinmag-wsb__card" id="theinmag-wsp-book">
+        <form class="theinmag-wsb__form" data-wsp-form novalidate>
+          <h2 class="theinmag-wsb__card-heading">Book your spot</h2>
+          <p class="theinmag-wsb__card-hint" data-wsp-fill="hint"></p>
+
+          <fieldset class="theinmag-wsb__fieldset">
+            <legend class="theinmag-wsb__label">Who is coming?</legend>
+            <div data-wsp-children></div>
+            <button type="button" class="theinmag-wsb__add" data-wsp-add><span class="theinmag-wsb__plus" aria-hidden="true">+</span> Add another child</button>
+          </fieldset>
+
+          <fieldset class="theinmag-wsb__fieldset">
+            <legend class="theinmag-wsb__label">Your details</legend>
+            <input class="theinmag-wsb__in" type="text" id="theinmag-wsp-pname" name="parent_name" placeholder="Your name" autocomplete="name" required>
+            <div class="theinmag-wsb__two">
+              <input class="theinmag-wsb__in" type="email" id="theinmag-wsp-pemail" name="parent_email" placeholder="Your email" autocomplete="email" required pattern="[^@\s]+@[^@\s]+\.[^@\s]{2,}">
+              <input class="theinmag-wsb__in" type="tel" id="theinmag-wsp-pphone" name="parent_phone" placeholder="Your phone (optional)" autocomplete="tel">
+            </div>
+          </fieldset>
+
+          <fieldset class="theinmag-wsb__fieldset">
+            <div class="theinmag-wsb__tick is-unlocked">
+              <input type="checkbox" id="theinmag-wsp-terms" data-wsp-terms>
+              <label for="theinmag-wsp-terms">{{ section.settings.terms }}</label>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="theinmag-btn theinmag-btn--primary theinmag-wsb__submit" data-wsp-submit>Book my spot</button>
+          <p class="theinmag-wsb__error" data-wsp-error hidden></p>
+          <p class="theinmag-wsb__privacy">We use your details to hold the spot, send you the details for the day, and reach you if anything changes. We never sell them or hand them on. Questions? Email <a href="mailto:heyhey@theinmag.com.au">heyhey@theinmag.com.au</a></p>
+        </form>
+
+        <div class="theinmag-wsb__success" data-wsp-full hidden>
+          <h2 class="theinmag-wsb__success-heading">This one is full</h2>
+          <p class="theinmag-wsb__success-body">Every spot is taken. Email <a href="mailto:heyhey@theinmag.com.au">heyhey@theinmag.com.au</a> and we will let you know if one opens up.</p>
+        </div>
+
+        <div class="theinmag-wsb__success" data-wsp-success hidden aria-live="polite">
+          <span class="theinmag-wsb__success-badge" aria-hidden="true"></span>
+          <h2 class="theinmag-wsb__success-heading">You are booked in</h2>
+          <p class="theinmag-wsb__success-body" data-wsp-fill="success"></p>
+          <div class="theinmag-wsb__recap theinmag-wsp__recap" data-wsp-fill="recap"></div>
+          <p class="theinmag-wsb__privacy theinmag-wsp__recap-note">Please email us at <a href="mailto:heyhey@theinmag.com.au">heyhey@theinmag.com.au</a> if any of these details look wrong. Thanks!</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {%- comment -%} ---- Enquiry, schools and homeschool groups ---- {%- endcomment -%}
+  {%- comment -%}
+    Shopify contact form, same route as theinmag-partnership-form: the
+    submission emails the store inbox. After sending, Shopify reloads the
+    page and the dialog reopens on the thank-you (or on the errors).
+  {%- endcomment -%}
+  <dialog class="theinmag-wsp__dialog" data-wsp-enquire>
+    {%- form 'contact', id: 'theinmag-wsp-enquire-form', class: 'theinmag-wsp__dialog-form' -%}
+      {%- if form.posted_successfully? -%}
+        <div data-wsp-enquire-state="sent">
+          <h2 class="theinmag-wsb__card-heading">Got it, thank you</h2>
+          <p class="theinmag-wsb__card-hint">We will reply by email as soon as we can.</p>
+        </div>
+      {%- else -%}
+        <h2 class="theinmag-wsb__card-heading">Ask us to visit</h2>
+        <p class="theinmag-wsb__card-hint">For schools and homeschool groups. We will reply by email within two business days.</p>
+        {%- if form.errors -%}
+          <p class="theinmag-wsb__error" data-wsp-enquire-state="error">Please check your email address and try again.</p>
+        {%- endif -%}
+        <input type="hidden" name="contact[enquiry_type]" value="Workshop visit enquiry (school or homeschool group)">
+        <input class="theinmag-wsb__in" type="text" id="theinmag-wsp-ename" name="contact[name]" placeholder="Your name" autocomplete="name" required value="{{ form.name }}">
+        <input class="theinmag-wsb__in" type="email" id="theinmag-wsp-eemail" name="contact[email]" placeholder="Your email" autocomplete="email" required pattern="[^@\s]+@[^@\s]+\.[^@\s]{2,}" title="Please enter a full email address, like name@example.com" value="{{ form.email }}">
+        <input class="theinmag-wsb__in" type="text" id="theinmag-wsp-egroup" name="contact[school_or_group]" placeholder="School or group name" required>
+        <input class="theinmag-wsb__in" type="text" id="theinmag-wsp-ewhere" name="contact[town_or_suburb]" placeholder="Town or suburb" required>
+        <textarea class="theinmag-wsb__in" id="theinmag-wsp-emsg" name="contact[body]" rows="3" placeholder="Anything we should know?"></textarea>
+        <input class="theinmag-wsp__hp" type="text" id="theinmag-wsp-ewebsite" name="contact[website]" tabindex="-1" autocomplete="off" aria-hidden="true">
+      {%- endif -%}
+      <div class="theinmag-wsp__dialog-actions">
+        {%- unless form.posted_successfully? -%}
+          <button type="submit" class="theinmag-btn theinmag-btn--primary">Send</button>
+        {%- endunless -%}
+        <button type="button" class="theinmag-btn theinmag-btn--secondary" data-wsp-enquire-close>Close</button>
+      </div>
+    {%- endform -%}
+  </dialog>
+
+  <script type="application/json" data-wsp-data>
+    [
+      {%- assign first = true -%}
+      {%- for block in section.blocks -%}
+        {%- if block.settings.status == 'upcoming' -%}
+          {%- unless first -%},{%- endunless -%}
+          {%- assign first = false -%}
+          {
+            "id": {{ block.settings.area | handleize | json }},
+            "area": {{ block.settings.area | json }},
+            "dateLong": {{ block.settings.date_long | json }},
+            "place": {{ block.settings.place_short | json }},
+            "venue": {{ block.settings.venue | json }},
+            "time": {{ block.settings.time | json }},
+            "cap": {{ block.settings.cap | json }},
+            "fee": {{ block.settings.fee | json }},
+            "bring": {{ block.settings.bring | json }},
+            "extra": {{ block.settings.extra | json }}
+          }
+        {%- endif -%}
+      {%- endfor -%}
+    ]
+  </script>
+</section>
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-wsp-root]');
+    if (!root || root.dataset.wspInit) return;
+    root.dataset.wspInit = '1';
+    var choose = root.querySelector('[data-wsp-choose]');
+    var detail = root.querySelector('[data-wsp-detail]');
+    var data = [];
+    try { data = JSON.parse(root.querySelector('[data-wsp-data]').textContent); } catch (e) {}
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var FADE = reduce ? 0 : 320;
+
+    function fill(key) { return root.querySelector('[data-wsp-fill="' + key + '"]'); }
+
+    function paint(w) {
+      fill('eyebrow').textContent = w.area + ' · ' + w.dateLong;
+      fill('sticker').textContent = w.fee;
+      current = w;
+      paintBooking(w);
+      var items = [w.dateLong, w.venue, w.time, 'For creative kids aged 5 to 15', w.bring, w.fee + ', paid on the day', 'Parents stay and join in (it is not a drop-off). The more the merrier.'];
+      if (w.extra) items.push(w.extra);
+      var ul = fill('basics');
+      ul.textContent = '';
+      items.forEach(function (t) {
+        if (!t) return;
+        var li = document.createElement('li');
+        li.textContent = t;
+        ul.appendChild(li);
+      });
+    }
+
+    function swap(from, to, state) {
+      from.classList.add('is-leaving');
+      window.setTimeout(function () {
+        from.hidden = true;
+        from.classList.remove('is-leaving');
+        to.classList.add('is-entering');
+        to.hidden = false;
+        root.dataset.wspState = state;
+        var top = root.getBoundingClientRect().top + window.pageYOffset - 90;
+        if (window.pageYOffset > top) window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
+        /* A timer, not requestAnimationFrame: rAF never fires in a tab
+           that is not painting, which would strand the screen at opacity 0. */
+        void to.offsetWidth;
+        window.setTimeout(function () { to.classList.remove('is-entering'); }, 30);
+      }, FADE);
+    }
+
+    function open(id, instant) {
+      var w = data.filter(function (x) { return x.id === id; })[0];
+      if (!w) return;
+      paint(w);
+      if (instant) { choose.hidden = true; detail.hidden = false; root.dataset.wspState = 'detail'; return; }
+      swap(choose, detail, 'detail');
+    }
+
+    /* ---- Live spots from the booking Worker ---- */
+    var workerUrl = root.getAttribute('data-worker-url') || '';
+    var avail = {};
+    var current = null;
+    function spotsText(w) {
+      if (!w) return '';
+      if (w.full) return 'Full';
+      return w.left + ' spot' + (w.left === 1 ? '' : 's') + ' left';
+    }
+    function takeAvail(list) { (list || []).forEach(function (w) { avail[w.slug] = w; }); }
+    function paintSpots() {
+      root.querySelectorAll('[data-wsp-spots]').forEach(function (el) {
+        var w = avail[el.getAttribute('data-wsp-spots')];
+        el.textContent = spotsText(w);
+        el.classList.toggle('is-full', !!(w && w.full));
+        el.classList.toggle('is-low', !!(w && !w.full && w.left <= 5));
+      });
+    }
+    function loadAvailability() {
+      if (!workerUrl) return;
+      fetch(workerUrl + '/availability', { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { takeAvail(d.workshops); paintSpots(); if (current) paintBooking(current); })
+        .catch(function () { /* spots stay blank; booking still posts */ });
+    }
+
+    /* ---- Booking form ---- */
+    var form = root.querySelector('[data-wsp-form]');
+    var fullBox = root.querySelector('[data-wsp-full]');
+    var successBox = root.querySelector('[data-wsp-success]');
+    var errorEl = root.querySelector('[data-wsp-error]');
+    var kidsWrap = root.querySelector('[data-wsp-children]');
+    var submitBtn = root.querySelector('[data-wsp-submit]');
+
+    function childRow() {
+      var n = kidsWrap.children.length + 1;
+      var row = document.createElement('div');
+      row.className = 'theinmag-wsb__child-row';
+      row.innerHTML = '<input class="theinmag-wsb__in" type="text" id="theinmag-wsp-child-' + n + '" placeholder="Child\'s first name" autocomplete="off" data-wsp-child-name>'
+        + '<input class="theinmag-wsb__in theinmag-wsb__age" type="number" id="theinmag-wsp-age-' + n + '" placeholder="Age" min="3" max="16" data-wsp-child-age>'
+        + '<button type="button" class="theinmag-wsb__child-remove" aria-label="Remove this child">&times;</button>';
+      row.querySelector('.theinmag-wsb__child-remove').addEventListener('click', function () {
+        if (kidsWrap.children.length > 1) row.remove();
+      });
+      kidsWrap.appendChild(row);
+    }
+    if (!kidsWrap.children.length) childRow();
+    root.querySelector('[data-wsp-add]').addEventListener('click', function () {
+      if (kidsWrap.children.length < 10) childRow();
+    });
+
+    function paintBooking(w) {
+      var a = avail[w.id];
+      var full = !!(a && a.full);
+      form.hidden = full;
+      fullBox.hidden = !full;
+      successBox.hidden = true;
+      fill('hint').textContent = (a ? a.left + ' spots left. ' : w.cap + ' spots. ') + 'We count each child, so a family of three takes three spots.';
+    }
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.hidden = !msg;
+    }
+    function escapeText(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!current) return;
+      showError('');
+      var children = [];
+      kidsWrap.querySelectorAll('.theinmag-wsb__child-row').forEach(function (row) {
+        var name = row.querySelector('[data-wsp-child-name]').value.trim();
+        var age = row.querySelector('[data-wsp-child-age]').value.trim();
+        if (name) children.push({ name: name, age: age });
+      });
+      var pname = form.querySelector('[name="parent_name"]');
+      var pemail = form.querySelector('[name="parent_email"]');
+      var pphone = form.querySelector('[name="parent_phone"]');
+      var terms = form.querySelector('[data-wsp-terms]');
+      if (!children.length) return showError("Please add at least one child's first name.");
+      if (children.some(function (c) { return !c.age; })) return showError('Please add an age for each child.');
+      if (!pname.value.trim()) return showError('Please add your name.');
+      if (!pemail.checkValidity()) return showError('Please add a full email address, like name@example.com.');
+      if (!terms.checked) return showError('Please tick the box to agree to the terms.');
+      if (!workerUrl) return showError('Bookings are not switched on yet.');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Booking...';
+      fetch(workerUrl + '/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: current.id,
+          children: children,
+          parent_name: pname.value.trim(),
+          parent_email: pemail.value.trim(),
+          parent_phone: pphone.value.trim(),
+          consent: true
+        })
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Book my spot';
+          if (res.d && res.d.workshops) { takeAvail(res.d.workshops); paintSpots(); }
+          if (!res.ok || !res.d.ok) return showError((res.d && res.d.error) || 'Something went wrong. Please try again.');
+          var names = children.map(function (c) { return c.name; });
+          var kids = names.length <= 1 ? names[0] : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+          fill('success').textContent = "We're excited to meet you. We'll send the details through to " + pemail.value.trim();
+          fill('recap').innerHTML = '<b class="theinmag-wsp__recap-name">' + escapeText(kids) + '</b>'
+            + '<ul class="theinmag-wsp__recap-list">'
+            + '<li><span aria-hidden="true">\uD83D\uDCC5</span>' + escapeText(current.dateLong) + '</li>'
+            + '<li><span aria-hidden="true">\u23F0</span>' + escapeText(current.time) + '</li>'
+            + '<li><span aria-hidden="true">\uD83C\uDF0F</span>' + escapeText(current.place) + '</li>'
+            + '<li><span aria-hidden="true">\uD83D\uDCCD</span>' + escapeText(current.venue) + '</li>'
+            + '</ul>';
+          form.hidden = true;
+          successBox.hidden = false;
+        })
+        .catch(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Book my spot';
+          showError('Could not reach the booking desk. Please try again in a moment.');
+        });
+    });
+
+    root.querySelectorAll('[data-wsp-pick]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-wsp-pick');
+        try { history.pushState(null, '', '#' + id); } catch (e) {}
+        open(id);
+      });
+    });
+    root.querySelector('[data-wsp-back]').addEventListener('click', function () {
+      try { history.pushState(null, '', location.pathname + location.search); } catch (e) {}
+      swap(detail, choose, 'choose');
+    });
+    window.addEventListener('popstate', function () {
+      var id = location.hash.replace('#', '');
+      if (id && root.dataset.wspState === 'choose') open(id);
+      else if (!id && root.dataset.wspState === 'detail') swap(detail, choose, 'choose');
+    });
+    if (location.hash.length > 1) open(location.hash.slice(1), true);
+
+    /* Steps carousel: arrows + dots + swipe, kept in sync (mirrors the
+       Caloundra page's carousel in theinmag-workshop-booking.js). */
+    (function () {
+      var car = root.querySelector('[data-wsp-carousel]');
+      if (!car) return;
+      var track = car.querySelector('[data-wsp-track]');
+      var slides = track.children;
+      var n = slides.length;
+      if (!n) return;
+      var prev = car.querySelector('[data-wsp-prev]');
+      var next = car.querySelector('[data-wsp-next]');
+      var dotsWrap = car.querySelector('[data-wsp-dots]');
+      var i = 0;
+      var dots = [];
+      for (var k = 0; k < n; k++) {
+        (function (idx) {
+          var d = document.createElement('button');
+          d.type = 'button';
+          d.className = 'theinmag-wsb__car-dot' + (idx === 0 ? ' is-active' : '');
+          d.setAttribute('aria-label', 'Go to step ' + (idx + 1));
+          d.addEventListener('click', function () { go(idx); });
+          dotsWrap.appendChild(d);
+          dots.push(d);
+        })(k);
+      }
+      /* Cards snap to the rail's left edge (inside its 8% padding), so the
+         active card is the leftmost fully visible one. */
+      function pad() { return track.clientWidth * 0.08; }
+      function go(idx) {
+        i = Math.max(0, Math.min(n - 1, idx));
+        track.scrollTo({ left: slides[i].offsetLeft - pad(), behavior: reduce ? 'auto' : 'smooth' });
+        update();
+      }
+      function update() {
+        for (var k = 0; k < dots.length; k++) dots[k].classList.toggle('is-active', k === i);
+        prev.disabled = i === 0;
+        next.disabled = i === n - 1;
+      }
+      prev.addEventListener('click', function () { go(i - 1); });
+      next.addEventListener('click', function () { go(i + 1); });
+      var t;
+      track.addEventListener('scroll', function () {
+        clearTimeout(t);
+        t = setTimeout(function () {
+          var target = track.scrollLeft + pad();
+          var best = 0, bestDist = Infinity;
+          for (var k = 0; k < n; k++) {
+            var d = Math.abs(slides[k].offsetLeft - target);
+            if (d < bestDist) { bestDist = d; best = k; }
+          }
+          if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 4) best = n - 1;
+          if (best !== i) { i = best; update(); }
+        }, 90);
+      }, { passive: true });
+      update();
+    })();
+
+    var dlg = root.querySelector('[data-wsp-enquire]');
+    root.querySelector('[data-wsp-enquire-open]').addEventListener('click', function () {
+      if (dlg.showModal) dlg.showModal();
+    });
+    dlg.querySelector('[data-wsp-enquire-close]').addEventListener('click', function () { dlg.close(); });
+    /* Back from Shopify after a send (or a rejected send): show the result. */
+    if (dlg.querySelector('[data-wsp-enquire-state]') && dlg.showModal) dlg.showModal();
+    var hp = dlg.querySelector('.theinmag-wsp__hp');
+    var ef = dlg.querySelector('form');
+    if (hp && ef) ef.addEventListener('submit', function (e) { if (hp.value) e.preventDefault(); });
+    loadAvailability();
+  })();
+</script>
+
+{%- stylesheet -%}
+  /* =================================================================
+     theinmag-workshops: the chooser. Detail screen styles are the
+     settled .theinmag-wsb__ rules in theinmag-workshop-booking.liquid.
+     ================================================================= */
+  .theinmag-wsp { min-height: calc(100vh - 140px); }
+
+  .theinmag-wsp__screen { transition: opacity 0.32s ease, transform 0.32s ease; }
+  .theinmag-wsp__screen.is-leaving,
+  .theinmag-wsp__screen.is-entering { opacity: 0; transform: translateY(8px); }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-wsp__screen { transition: none; }
+  }
+
+  /* Chooser column: eyebrow, heading and tiles share one left edge, so the
+     eyebrow lines up with the P of "Pick your workshop" (Ryan, 30 Sep). */
+  .theinmag-wsp__screen--choose { max-width: 960px; margin: 0 auto; text-align: left; }
+  .theinmag-wsp__top-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 20px;
+  }
+  .theinmag-wsp__heading { margin-bottom: clamp(22px, 4vw, 40px); text-align: center; }
+
+  /* Three across on desktop; a fourth or fifth workshop starts a new row. */
+  .theinmag-wsp__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 2.4vw, 26px);
+  }
+  @media (min-width: 620px) { .theinmag-wsp__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 900px) { .theinmag-wsp__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+  .theinmag-wsp__tile {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: clamp(86px, 24vw, 104px) 1fr;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px 16px 12px;
+    text-align: left;
+    background: #fff;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    border-radius: clamp(20px, 2vw, 28px);
+    box-shadow: 0 6px 0 rgba(93, 58, 122, 0.22);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+  }
+  .theinmag-wsp__tile:nth-child(odd) { transform: rotate(-1.2deg); }
+  .theinmag-wsp__tile:nth-child(even) { transform: rotate(1deg); }
+  button.theinmag-wsp__tile:hover,
+  button.theinmag-wsp__tile:focus-visible {
+    transform: rotate(0deg) translateY(-4px);
+    box-shadow: 0 10px 0 rgba(93, 58, 122, 0.22);
+    outline: none;
+  }
+  button.theinmag-wsp__tile:focus-visible { box-shadow: 0 0 0 3px var(--color-purple-dark, #5D3A7A); }
+
+  /* Each workshop keeps ONE mINion (block setting), so families can spot
+     theirs. A plain image: no pool, no bob (Ryan, 30 Sep 2026). */
+  .theinmag-wsp__minion { display: block; width: 100%; aspect-ratio: 1 / 1; }
+  .theinmag-wsp__minion img { display: block; width: 100%; height: 100%; object-fit: contain; animation: none; }
+
+  .theinmag-wsp__tile-body { display: flex; flex-direction: column; min-width: 0; }
+  .theinmag-wsp__area {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(26px, 3vw, 32px);
+    line-height: 1;
+    color: var(--color-purple-dark, #5D3A7A);
+    margin-bottom: 8px;
+  }
+  .theinmag-wsp__line {
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 14.5px;
+    line-height: 1.4;
+  }
+  .theinmag-wsp__line--date { font-weight: 600; }
+  .theinmag-wsp__spots { margin-top: 6px; font-size: 13px; font-weight: 600; color: #2E7D5B; }
+  .theinmag-wsp__spots.is-low { color: var(--color-coral-warm, #E9836F); }
+  .theinmag-wsp__spots.is-full { color: var(--color-slate-muted, #6B5B7E); }
+  .theinmag-wsp .theinmag-wsb__success a { color: var(--color-purple-dark, #5D3A7A); }
+  .theinmag-wsp__recap { text-align: left; min-width: min(100%, 320px); }
+  .theinmag-wsp__recap-name { display: block; text-align: center; font-size: 16px; margin-bottom: 8px; }
+  .theinmag-wsp__recap-list { list-style: none; margin: 0; padding: 0; }
+  .theinmag-wsp__recap-list li { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; color: var(--color-inky-purple-navy, #2A1F3D); }
+  .theinmag-wsp__recap-note { text-align: center; max-width: 40ch; margin-inline: auto; }
+
+  /* White text and white outline on the open background, with a soft glow
+     so it reads over the pattern. Hover fills purple (base rule). */
+  .theinmag-wsp .theinmag-wsp__enquire {
+    /* See-through purple tint so white text holds on the paler patterns. */
+    background: rgba(93, 58, 122, 0.30);
+    color: #fff;
+    border-color: #fff;
+    text-shadow: 0 1px 6px rgba(42, 31, 61, 0.45);
+    box-shadow: 0 6px 18px rgba(42, 31, 61, 0.16);
+    backdrop-filter: blur(3px);
+  }
+  .theinmag-wsp .theinmag-wsp__enquire:hover,
+  .theinmag-wsp .theinmag-wsp__enquire:focus-visible {
+    background: var(--color-purple-dark, #5D3A7A);
+    border-color: var(--color-purple-dark, #5D3A7A);
+    color: #fff;
+    text-shadow: none;
+  }
+  .theinmag-wsp__hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+  .theinmag-wsp__past { margin-top: clamp(36px, 6vw, 64px); }
+  .theinmag-wsp__past-heading {
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-weight: 400;
+    font-size: clamp(20px, 2.6vw, 24px);
+    color: var(--color-slate-muted, #6B5B7E);
+    margin: 0 0 16px;
+  }
+  .theinmag-wsp__tile--past {
+    cursor: default;
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: none;
+    color: var(--color-slate-muted, #6B5B7E);
+  }
+  .theinmag-wsp__tile--past .theinmag-wsp__area { color: var(--color-slate-muted, #6B5B7E); }
+  .theinmag-wsp__tile--past .theinmag-wsp__minion { filter: grayscale(1); opacity: 0.5; }
+
+  .theinmag-wsp__back { margin-bottom: clamp(20px, 3vw, 32px); background: rgba(255, 255, 255, 0.7); }
+  .theinmag-wsp__hosts-img { object-position: center 35%; }
+  .theinmag-wsp .theinmag-wsb__info-camera-heading { font-size: 24px; }
+  .theinmag-wsp__hosts-body { font-size: 14.5px; line-height: 1.6; }
+  /* Hero mINion nudged up and left into the gap beside the headline. */
+  @media (min-width: 750px) {
+    .theinmag-wsp .theinmag-wsb__character { top: clamp(0px, 1.2vw, 14px); right: clamp(24px, 5vw, 72px); }
+  }
+  /* Six steps as a polaroid rail on every width: cards snap to centre, the
+     neighbours peek in, each card leans a touch the other way, the step
+     label is a yellow hand stamp. Overrides the Caloundra page's desktop
+     grid (same class names, higher specificity). */
+  .theinmag-wsp .theinmag-wsp__flow { max-width: 1060px; }
+  .theinmag-wsp .theinmag-wsp__carousel { max-width: 100%; padding: 14px 0 6px; }
+  .theinmag-wsp .theinmag-wsp__track {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 8%;
+    /* Deep bottom padding, pulled back with a negative margin: the rail clips
+       anything outside itself, and the card shadows need the room or they
+       end in a hard line. */
+    padding: 20px 8% 56px;
+    margin-bottom: -32px;
+    scrollbar-width: none;
+  }
+  .theinmag-wsp .theinmag-wsp__track::-webkit-scrollbar { display: none; }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide {
+    flex: 0 0 84%;
+    scroll-snap-align: start;
+    padding: 0 8px;
+    display: flex;
+  }
+  @media (min-width: 620px) { .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide { flex-basis: 46%; } }
+  @media (min-width: 900px) { .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide { flex-basis: 33.333%; padding: 0 10px; } }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-card {
+    border-radius: 16px;
+    padding: 10px 10px 0;
+    overflow: visible;
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(42, 31, 61, 0.12);
+    transition: transform 0.25s ease;
+  }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide:nth-child(odd) .theinmag-wsb__slide-card { transform: rotate(-1.4deg); }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide:nth-child(even) .theinmag-wsb__slide-card { transform: rotate(1.2deg); }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-card:hover { transform: rotate(0deg) translateY(-4px); }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-media { border-radius: 10px; overflow: visible; }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-img { height: 240px; border-radius: 10px; }
+  @media (min-width: 900px) { .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-img { height: 210px; } }
+  /* Step label as the yellow hand stamp, Post font, like the hero sticker. */
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-step {
+    top: -16px;
+    left: -10px;
+    font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+    font-size: 15px;
+    font-weight: 400;
+    padding: 7px 14px;
+    transform: rotate(-7deg);
+    box-shadow: 0 5px 12px rgba(42, 31, 61, 0.18);
+  }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-text { padding: 16px 12px 22px; }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-title { font-size: 21px; }
+  .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-body { font-size: 14.5px; }
+  .theinmag-wsp__in { font-size: 1.3em; line-height: 1; }
+  .theinmag-wsp .theinmag-wsp__arrow { display: grid; top: 50%; }
+  .theinmag-wsp .theinmag-wsp__arrow.theinmag-wsb__car-arrow--prev { left: 2px; }
+  .theinmag-wsp .theinmag-wsp__arrow.theinmag-wsb__car-arrow--next { right: 2px; }
+  @media (min-width: 900px) {
+    .theinmag-wsp .theinmag-wsp__arrow { width: 46px; height: 46px; font-size: 28px; }
+    .theinmag-wsp .theinmag-wsp__arrow.theinmag-wsb__car-arrow--prev { left: 14px; }
+    .theinmag-wsp .theinmag-wsp__arrow.theinmag-wsb__car-arrow--next { right: 14px; }
+  }
+  .theinmag-wsp .theinmag-wsp__dots { display: flex; margin-top: 10px; }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-wsp .theinmag-wsp__track .theinmag-wsb__slide-card { transition: none; transform: none; }
+  }
+
+  .theinmag-wsp__dialog {
+    border: 0;
+    border-radius: 22px;
+    padding: clamp(22px, 4vw, 34px);
+    width: min(92vw, 480px);
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    box-shadow: 0 20px 48px rgba(42, 31, 61, 0.25);
+  }
+  .theinmag-wsp__dialog::backdrop { background: rgba(42, 31, 61, 0.45); }
+  .theinmag-wsp__dialog-form { display: flex; flex-direction: column; gap: 12px; }
+  .theinmag-wsp__dialog-form .theinmag-wsb__in + .theinmag-wsb__in { margin-top: 0; }
+  .theinmag-wsp__dialog-form .theinmag-wsb__card-hint { margin: 0 0 6px; }
+  .theinmag-wsp__dialog-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "theINmag Workshops",
+  "tag": "section",
+  "class": "theinmag-workshops-section",
+  "settings": [
+    { "type": "header", "content": "Chooser screen" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "IN-person workshops" },
+    { "type": "text", "id": "heading", "label": "Headline", "default": "Pick your workshop" },
+    { "type": "header", "content": "Workshop screen" },
+    { "type": "text", "id": "detail_heading", "label": "Headline", "default": "Come and create with us" },
+    { "type": "textarea", "id": "detail_subhead", "label": "Subhead", "default": "A workshop for creative kids, filled with art, ideas and magazines." },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero image" },
+    { "type": "header", "content": "Booking" },
+    { "type": "text", "id": "worker_url", "label": "Booking Worker URL", "default": "https://theinmag-workshop-booking.heyhey-53f.workers.dev" },
+    { "type": "textarea", "id": "terms", "label": "Terms (tick box)", "default": "I am the parent or guardian of each child, we will stay for the session, and you can email me about the day. Photos are sometimes taken for theINmag's socials. Tell us on the day if you would rather your child stayed out of them." },
+    { "type": "header", "content": "Tam and Ryan panel" },
+    { "type": "text", "id": "hosts_heading", "label": "Heading", "default": "Meet Tam and Ryan" },
+    { "type": "textarea", "id": "hosts_body", "label": "Body", "default": "Two teachers who wanted kids to have somewhere real to put their ideas.\n\nSo they started theINmag, the magazine where kids get published.\n\nNow they are travelling Australia, with their little one Nora, connecting with kids and families." },
+    { "type": "image_picker", "id": "hosts_image", "label": "Photo of Tam and Ryan" },
+    { "type": "header", "content": "What's happening (step photos)" },
+    { "type": "image_picker", "id": "flow_image_1", "label": "Step 1: Meet the team + flick through" },
+    { "type": "image_picker", "id": "flow_image_2", "label": "Step 2: Passions, interests and hobbies" },
+    { "type": "image_picker", "id": "flow_image_3", "label": "Step 3: Meet the mINions" },
+    { "type": "image_picker", "id": "flow_image_4", "label": "Step 4: Story time" },
+    { "type": "image_picker", "id": "flow_image_5", "label": "Step 5: How to get IN" },
+    { "type": "image_picker", "id": "flow_image_6", "label": "Step 6: Make your own" }
+  ],
+  "blocks": [
+    {
+      "type": "workshop",
+      "name": "Workshop",
+      "settings": [
+        { "type": "select", "id": "status", "label": "Status", "default": "upcoming", "options": [
+          { "value": "upcoming", "label": "Upcoming" },
+          { "value": "past", "label": "Previous (greyed out)" }
+        ] },
+        { "type": "text", "id": "area", "label": "Area (big, on the tile)", "default": "Brisbane" },
+        { "type": "number", "id": "minion", "label": "mINion number (1 to 53), locked to this workshop", "default": 35 },
+        { "type": "text", "id": "date_short", "label": "Date, short (tile)", "default": "Wed 21 Oct" },
+        { "type": "text", "id": "date_long", "label": "Date, long (workshop screen)", "default": "Wednesday 21 October" },
+        { "type": "text", "id": "place_short", "label": "Place, short (tile)", "default": "Redland Bay" },
+        { "type": "text", "id": "venue", "label": "Venue and how to find us", "default": "Redland Bay, venue to be confirmed" },
+        { "type": "text", "id": "time", "label": "Time", "default": "4pm to 5pm" },
+        { "type": "number", "id": "cap", "label": "Kid limit", "default": 30 },
+        { "type": "text", "id": "fee", "label": "Fee", "default": "$10 a family" },
+        { "type": "text", "id": "bring", "label": "What to bring", "default": "Bring a sketchpad and pencil case if you have them" },
+        { "type": "text", "id": "extra", "label": "Anything else (optional)" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "theINmag Workshops" }
+  ]
+}
+{% endschema %}
