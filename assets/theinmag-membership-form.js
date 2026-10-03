@@ -81,6 +81,7 @@
   const firstMagChange = section.querySelector('[data-first-mag-change]');
   const printStartHint = section.querySelector('[data-print-start-hint]');
   let chosenStart = null;      /* e.g. "Mag09" once picked for Print */
+  let chosenAddOn = null;      /* { issue, variantId, price, ... } when the buyer added the back issue (single mode) */
   let pendingSubmitter = null; /* the button that started the gated submit */
 
   function picker() { return window.theinmagStartPicker || null; }
@@ -183,7 +184,9 @@
           const chosenNum = issueNumberOf(chosenStart);
           const curNum = issueNumberOf(currentIssue);
           if (chosenNum > curNum) {
-            firstMagNote.textContent = 'Ships on drop day' + (st && st.releaseText ? ', ' + st.releaseText : '') + '.';
+            const dropOn = st && typeof st.dropTextFor === 'function' ? st.dropTextFor(chosenStart) : (st && st.releaseText ? st.releaseText : '');
+            firstMagNote.textContent = (dropOn ? 'Posted around the 10th, lands around ' + dropOn : 'Posted around the 10th, lands around the 15th') + '.'
+              + (chosenAddOn ? ' Plus ' + chosenAddOn.issue + ' as an add-on, ' + (chosenAddOn.priceText || '') + ', in the same parcel.' : '');
           } else if (st && st.currentSoldOut && chosenNum < curNum) {
             firstMagNote.textContent = 'Posts within 3 business days. ' + currentIssue + ' is sold out, so it is skipped.';
           } else {
@@ -201,10 +204,19 @@
            (the gate guarantees a pick before any Print submit anyway). */
         const p0 = picker();
         const st0 = p0 ? p0.state() : null;
-        if (st0) startMag = st0.currentSoldOut ? (st0.prevAvailable ? st0.prevIssue : st0.nextIssue) : st0.currentIssue;
+        if (st0 && st0.startMode === 'single') startMag = st0.nextIssue;
+        else if (st0) startMag = st0.currentSoldOut ? (st0.prevAvailable ? st0.prevIssue : st0.nextIssue) : st0.currentIssue;
         else startMag = safeStartFallback();
         if (firstMagRow) firstMagRow.hidden = true;
-        if (printStartHint) printStartHint.hidden = false;
+        if (printStartHint) {
+          /* Single mode (pre-drop window): the dialog opens on Add to cart
+             anyway and already says which mags and when, so no hint under
+             the length pills (Ryan, 2026-10-01). Choice mode keeps its
+             one-liner. */
+          const single = !!(st0 && st0.startMode === 'single');
+          printStartHint.hidden = single;
+          printStartHint.textContent = 'Next, you\'ll pick which mag arrives first.';
+        }
       }
     }
 
@@ -269,7 +281,7 @@
     }
     if (floatingIssue) {
       if (format === 'Digital') floatingIssue.textContent = 'Starts with ' + currentIssue;
-      else if (chosenStart) floatingIssue.textContent = 'Starts with ' + chosenStart;
+      else if (chosenStart) floatingIssue.textContent = 'Starts with ' + chosenStart + (chosenAddOn ? ' + ' + chosenAddOn.issue : '');
       else floatingIssue.textContent = 'Pick your first mag next';
     }
 
@@ -418,6 +430,43 @@
     }
     form.submit();
   }
+  /* Membership + back-issue add-on in ONE /cart/add.js call, then on to
+     the cart (or straight to checkout for Buy now). The membership line is
+     built from the form's own hidden inputs, so its variant, selling plan
+     and _starting_mag / _mags_included are byte-identical to the native
+     submit; the add-on is the back issue's own Print variant as a second,
+     separate line carrying _addon_with (Pat's classifier reads it to hold
+     both for one parcel). If the call fails the form falls back to the
+     plain native submit: the membership sale is never lost over an add-on. */
+  function addBothThenGo(submitter) {
+    update();
+    const isBuyNow = !!(submitter && submitter.name === 'checkout');
+    const membershipLine = {
+      id: parseInt(variantInput ? variantInput.value : '', 10),
+      quantity: 1,
+      properties: {
+        _starting_mag: propStarting ? propStarting.value : '',
+        _remaining_after_first: propRemaining ? propRemaining.value : '',
+        _mags_included: propIncluded ? propIncluded.value : ''
+      }
+    };
+    if (sellingPlanInput && !sellingPlanInput.disabled && sellingPlanInput.value) {
+      membershipLine.selling_plan = parseInt(sellingPlanInput.value, 10);
+    }
+    const addOnLine = {
+      id: chosenAddOn.variantId,
+      quantity: 1,
+      properties: { _addon_with: chosenStart }
+    };
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ items: [membershipLine, addOnLine] })
+    })
+      .then(function (r) { if (!r.ok) throw new Error('Add failed'); return r.json(); })
+      .then(function () { window.location.href = isBuyNow ? '/checkout' : '/cart'; })
+      .catch(function () { chosenAddOn = null; update(); resubmit(submitter); });
+  }
   function openPickerThen(submitter, confirmLabel) {
     const p = picker();
     if (!p) return false;
@@ -427,13 +476,16 @@
       preselect: chosenStart,
       confirmLabel: confirmLabel,
       opener: submitter || primaryCta,
+      allowAddOn: true,
+      addOnPreselect: !!chosenAddOn,
       onPick: function (result) {
         chosenStart = result.startMag;
+        chosenAddOn = result.addOn || null;
         update();
         if (pendingSubmitter !== undefined && confirmLabel !== 'Save') {
           const btn = pendingSubmitter;
           pendingSubmitter = null;
-          resubmit(btn);
+          if (chosenAddOn) addBothThenGo(btn); else resubmit(btn);
         }
       },
       onCancel: function () { pendingSubmitter = null; }
@@ -442,8 +494,18 @@
   }
   form.addEventListener('submit', function (evt) {
     const format = selected('format');
-    if (!needsPick(format)) return;
     const submitter = evt.submitter || null;
+    if (!needsPick(format)) {
+      /* Already picked WITH the add-on (floating CTA, or a second submit
+         after Change): the native single-item post cannot carry the second
+         line, so route through the two-line add instead. */
+      if (format === 'Print' && chosenAddOn) {
+        evt.preventDefault();
+        evt.stopImmediatePropagation();
+        addBothThenGo(submitter);
+      }
+      return;
+    }
     const isBuyNow = !!(submitter && submitter.name === 'checkout');
     if (!openPickerThen(submitter, isBuyNow ? 'Buy now' : 'Add to cart')) return; /* no picker: let it through with the safe default */
     evt.preventDefault();

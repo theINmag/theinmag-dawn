@@ -1017,7 +1017,7 @@
 
           <p class="theinmag-single-mags-hero__preorder" data-preorder-note{% unless initial_is_pre_order %} hidden{% endunless %} role="note">
             <span class="theinmag-single-mags-hero__preorder-icon" aria-hidden="true">&#128197;</span>
-            <span><strong>Pre-order.</strong> {% if hero_drop_date != blank %}Ships on {{ hero_drop_date }}.{% else %}Ships on release day.{% endif %} It is not in stock yet.</span>
+            <span><strong>Pre-order.</strong> {% if hero_drop_date != blank %}Posted on 10 {{ hero_nrd | date: '%B' }}, lands around {{ hero_drop_date }}.{% else %}Posted around the 10th of its release month, lands around the 15th.{% endif %} It is not in stock yet.</span>
           </p>
 
           <div class="theinmag-single-mags-hero__cta-row">

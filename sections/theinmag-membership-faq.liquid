@@ -18,6 +18,32 @@
   assign heading = section.settings.heading | default: 'Common Membership questions'
   assign items = section.blocks | where: 'type', 'faq_item'
 
+  # Issue tokens for answers (2026-10-04): [current_issue], [next_issue] and
+  # [next_drop_date] are swapped for live values from the shop metafields, so
+  # an answer that names an issue or a date never goes stale at a drop.
+  # current_issue_number flips on drop day; next_release_date (YYYY-MM-DD) is
+  # the next drop. Mirrors the announcement bar's +1 logic.
+  assign faq_current_issue = shop.metafields.theinmag.current_issue_number.value | default: ''
+  assign faq_next_issue = ''
+  if faq_current_issue != blank
+    assign faq_next_num = faq_current_issue | remove: 'Mag' | times: 1 | plus: 1
+    if faq_next_num < 10
+      assign faq_next_issue = 'Mag0' | append: faq_next_num
+    else
+      assign faq_next_issue = 'Mag' | append: faq_next_num
+    endif
+  endif
+  assign faq_next_drop = shop.metafields.theinmag.next_release_date.value | date: '%-d %B %Y' | default: ''
+  if faq_next_issue == blank
+    assign faq_next_issue = 'the next issue'
+  endif
+  if faq_current_issue == blank
+    assign faq_current_issue = 'the current issue'
+  endif
+  if faq_next_drop == blank
+    assign faq_next_drop = 'its release date'
+  endif
+
   # Optional bg image (additive - default blank preserves Membership
   # PDP lavender-only rendering). When set, renders as a full-bleed
   # layer behind the inner content at the configured opacity.
@@ -85,7 +111,7 @@
         {%- for block in items -%}
           {%- liquid
             assign q = block.settings.question
-            assign a = block.settings.answer
+            assign a = block.settings.answer | replace: '[current_issue]', faq_current_issue | replace: '[next_issue]', faq_next_issue | replace: '[next_drop_date]', faq_next_drop
             assign uid = section.id | append: '-' | append: forloop.index
           -%}
           <li class="theinmag-membership-faq__item" {{ block.shopify_attributes }}>
@@ -129,7 +155,7 @@
           "name": {{ block.settings.question | json }},
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": {{ block.settings.answer | strip_html | strip | json }}
+            "text": {{ block.settings.answer | replace: '[current_issue]', faq_current_issue | replace: '[next_issue]', faq_next_issue | replace: '[next_drop_date]', faq_next_drop | strip_html | strip | json }}
           }
         }{%- unless forloop.last -%},{%- endunless -%}
       {%- endfor -%}
@@ -207,7 +233,7 @@
     letter-spacing: -0.01em;
   }
 
-  /* Kid character — sits absolutely on the left edge of the section,
+  /* Kid character - sits absolutely on the left edge of the section,
      vertically near the heading. Pops in from off-screen left when the
      character pool's scroll-pop adds `.is-popped` (sitewide trigger
      from theinmag-character-pool.liquid). On narrow viewports the
@@ -233,7 +259,7 @@
     opacity: 1;
     transform: translateX(0) rotate(-6deg);
   }
-  /* Let the sitewide pool's bob animation play — character wobbles
+  /* Let the sitewide pool's bob animation play - character wobbles
      slightly while keeping the wrapper's static -6deg tilt. The bob's
      transform applies to the inner <img>, the wrapper's rotation
      applies separately, so they compose without fighting. */
@@ -460,7 +486,7 @@
           "type": "textarea",
           "id": "answer",
           "label": "Answer",
-          "info": "Blank line separates paragraphs."
+          "info": "Blank line separates paragraphs. Tokens [current_issue], [next_issue] and [next_drop_date] fill from the shop metafields, so issue names and dates never go stale."
         }
       ]
     }
