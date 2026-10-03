@@ -58,7 +58,7 @@ Don't read the deprecated three unless explicitly asked. Their values may drift 
 - Sentence case headings sitewide. Brand name "theINmag" keeps its specific casing - the IN stays capitalised. EXCEPTION (2026-05-28): Field notes blog post TITLES use Title Case (capitalised), changed after teachers flagged that lowercase titles model poor punctuation for kids. Trailing period kept. Do not "fix" these back to lowercase. Body H2s, heroes and section headings stay sentence case.
 - Never collect contactable details from kids. Adults only on every form.
 - Never use "subscription" in product names. The recurring product is "theINmag Membership."
-- Real kid creations are the design system. Named attribution always: "Maya, age 9 - Fremantle WA."
+- Real kid creations are the design system. Named attribution always, online as first name, town and state, age; NEVER a surname initial on the web (Ryan, 4 Oct 2026). Gallery format: "Maya │ Fremantle WA, age 9". Print keeps the surname initial.
 
 ---
 

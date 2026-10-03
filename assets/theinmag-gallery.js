@@ -48,9 +48,17 @@
     l.style.display = 'none';
   }
 
+  /* Online credit rule (Ryan, 4 Oct 2026): first name, town + state, age
+     ("Lewis | Broome WA, age 11"). NEVER the surname initial on the web.
+     Town + state follow the grid section's show_town setting (data-show-town,
+     on by default). Every field is optional: the public feed is due to stop
+     sending last_initial, and this code never reads it. */
+  var SHOW_TOWN = true;
+
   function init() {
     var gridSection = document.querySelector('[data-theinmag-gallery-grid]');
     if (!gridSection) return;
+    SHOW_TOWN = gridSection.getAttribute('data-show-town') !== 'false';
 
     Lightbox.init(gridSection);
     PlaceholderRotator.init();
@@ -371,7 +379,7 @@
       if (this.state.category !== 'all' && c.category !== this.state.category) return false;
       var q = this.state.query;
       if (!q) return true;
-      var hay = [c.first_name, c.last_initial, c.town, c.state, (c.tags || []).join(' '), c.age, c.write_up]
+      var hay = [c.first_name, SHOW_TOWN ? c.town : '', SHOW_TOWN ? c.state : '', (c.tags || []).join(' '), c.age, c.write_up]
         .join(' ').toLowerCase();
       return hay.indexOf(q) !== -1;
     },
@@ -539,12 +547,12 @@
     },
 
     attribution: function (c) {
-      var a = c.first_name + ' ' + c.last_initial + '.';
-      if (c.town) {
+      var a = c.first_name || 'Anon';
+      if (SHOW_TOWN && c.town) {
         a += ' │ ' + c.town;
         if (c.state) a += ' ' + c.state;
-        if (c.age) a += ', age ' + c.age;
       }
+      if (c.age) a += ', age ' + c.age;
       return a;
     },
 
@@ -558,9 +566,10 @@
       article.setAttribute('data-theinmag-gallery-card', '');
       article.setAttribute('data-category', c.category || 'art');
       article.setAttribute('data-first-name', (c.first_name || '').toLowerCase());
-      article.setAttribute('data-last-initial', (c.last_initial || '').toLowerCase());
-      article.setAttribute('data-town', (c.town || '').toLowerCase());
-      article.setAttribute('data-state', (c.state || '').toLowerCase());
+      if (SHOW_TOWN && c.town) {
+        article.setAttribute('data-town', (c.town || '').toLowerCase());
+        article.setAttribute('data-state', (c.state || '').toLowerCase());
+      }
       article.setAttribute('data-age', c.age || '');
       article.setAttribute('data-tags', (c.tags || []).join(','));
       article.setAttribute('data-submitted-at', c.submitted_at || '');
@@ -572,7 +581,7 @@
       article.setAttribute('data-index', index);
       article.setAttribute('tabindex', '0');
       article.setAttribute('role', 'button');
-      article.setAttribute('aria-label', 'View creation by ' + c.first_name + ' ' + c.last_initial + (c.town ? ' from ' + c.town : ''));
+      article.setAttribute('aria-label', 'View creation by ' + (c.first_name || 'Anon') + (SHOW_TOWN && c.town ? ' from ' + c.town : ''));
 
       if (c.is_text_only || !c.images || !c.images.length) {
         var metaT = document.createElement('div');
@@ -768,7 +777,7 @@
         var match = true;
         if (cat !== 'all' && card.getAttribute('data-category') !== cat) match = false;
         if (match && q) {
-          var hay = [card.getAttribute('data-first-name') || '', card.getAttribute('data-last-initial') || '',
+          var hay = [card.getAttribute('data-first-name') || '',
             card.getAttribute('data-town') || '', card.getAttribute('data-state') || '',
             card.getAttribute('data-tags') || '', card.getAttribute('data-age') || ''].join(' ');
           if (hay.indexOf(q) === -1) match = false;

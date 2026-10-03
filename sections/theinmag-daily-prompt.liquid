@@ -50,7 +50,7 @@
 
   BRAND RULES honoured: sentence case headings, no en or em dashes anywhere
   (hyphens only, code comments included), no Caveat font (Post + Inter only),
-  real kid creation with a first-name + surname-initial credit matching the gallery feed, no pure-white or
+  real kid creation with a first name, town and age credit matching the gallery, no pure-white or
   pure-yellow section backgrounds (yellow only as the CTA stamp), "theINmag"
   casing exact via the .theinmag-in span. Kid names are NOT emitted into JSON-LD
   (gallery brand-safety rule): schema stays titles + URLs only.
@@ -182,14 +182,10 @@
         endcase
       endif
 
-      # Credit line, matching the live gallery feed format exactly:
-      # "FirstName Initial. | Town STATE, age N" (e.g. "Frankie G. | Pottsville NSW, age 9").
-      # State stays abbreviated (NSW / VIC / QLD / WA). Age is required and always shows.
+      # Credit line (Ryan, 4 Oct 2026): first name, town + state, age, e.g.
+      # "Frankie | Pottsville NSW, age 9". The surname_initial setting stays in
+      # the schema for records but NEVER renders on the web.
       assign credit = block.settings.first_name | strip
-      assign si = block.settings.surname_initial | strip
-      if si != blank
-        assign credit = credit | append: ' ' | append: si | append: '.'
-      endif
       assign loc = ''
       if block.settings.town != blank
         assign loc = block.settings.town | strip
@@ -1085,8 +1081,8 @@
           "default": "auto"
         },
         { "type": "header", "content": "Credit (matches the gallery feed byline)" },
-        { "type": "text", "id": "first_name", "label": "First name", "info": "Shown first in the credit line, e.g. 'Frankie G. | Pottsville NSW, age 9'." },
-        { "type": "text", "id": "surname_initial", "label": "Surname initial", "info": "One letter only, no full stop (we add it). Renders as 'G.' Matches the gallery feed format." },
+        { "type": "text", "id": "first_name", "label": "First name", "info": "Shown first in the credit line, e.g. 'Frankie | Pottsville NSW, age 9'." },
+        { "type": "text", "id": "surname_initial", "label": "Surname initial", "info": "Kept for our records only. Never shown on the website (Ryan, 4 Oct 2026: no surname initial online)." },
         { "type": "text", "id": "town", "label": "Town" },
         { "type": "text", "id": "state", "label": "State" },
         { "type": "text", "id": "age", "label": "Age", "info": "Required. Shows in the credit line, e.g. 'age 9'." },

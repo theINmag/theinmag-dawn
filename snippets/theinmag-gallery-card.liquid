@@ -16,7 +16,6 @@
 
 {%- liquid
   assign first_name = submission.first_name | default: 'Anon'
-  assign last_initial = submission.last_initial | upcase | strip
   assign age = submission.age
   assign town = submission.town | default: ''
   assign state = submission.state | upcase | strip
@@ -96,15 +95,18 @@
     endif
   endfor
 
-  assign attribution_parts = first_name | append: ' ' | append: last_initial | append: '.'
-  if town != blank
+  # Online credit rule (Ryan, 4 Oct 2026): first name, town + state, age, e.g.
+  # "Lewis | Broome WA, age 11". NEVER the surname initial on the web (print
+  # keeps it). Town + state follow the gallery grid's show_town setting (on).
+  assign attribution_parts = first_name
+  if show_town and town != blank
     assign attribution_parts = attribution_parts | append: ' │ ' | append: town
     if state != blank
       assign attribution_parts = attribution_parts | append: ' ' | append: state
     endif
-    if age != blank
-      assign attribution_parts = attribution_parts | append: ', age ' | append: age
-    endif
+  endif
+  if age != blank
+    assign attribution_parts = attribution_parts | append: ', age ' | append: age
   endif
 -%}
 
@@ -113,9 +115,7 @@
   data-theinmag-gallery-card
   data-category="{{ category }}"
   data-first-name="{{ first_name | downcase | strip }}"
-  data-last-initial="{{ last_initial | downcase }}"
-  data-town="{{ town | downcase | strip }}"
-  data-state="{{ state | downcase }}"
+  {%- if show_town %} data-town="{{ town | downcase | strip }}" data-state="{{ state | downcase }}"{% endif %}
   data-age="{{ age }}"
   data-tags="{{ tags_str }}"
   data-submitted-at="{{ submitted_at }}"
@@ -127,7 +127,7 @@
   data-index="{{ index }}"
   tabindex="0"
   role="button"
-  aria-label="View creation by {{ first_name }} {{ last_initial }}{% if town != blank %} from {{ town }}{% endif %}"
+  aria-label="View creation by {{ first_name }}{% if show_town and town != blank %} from {{ town }}{% endif %}"
 >
   {%- comment -%}
     Text-only submissions have no image_files, so they render a native styled

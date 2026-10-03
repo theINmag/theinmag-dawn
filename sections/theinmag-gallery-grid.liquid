@@ -120,6 +120,7 @@
 <section
   class="theinmag-gallery-grid{% if bg_url != blank %} theinmag-gallery-grid--has-bg{% endif %}"
   data-theinmag-gallery-grid
+  data-show-town="{{ section.settings.show_town }}"
   data-gallery-json="https://theinmag-gallery-review.heyhey-53f.workers.dev/gallery-data.json"
   data-gallery-json-fallback="{{ 'gallery-data.json' | asset_url }}"
   {%- comment -%}
@@ -167,7 +168,7 @@
           {%- if rendered_index >= initial_batch -%}
             {%- assign is_hidden = true -%}
           {%- endif -%}
-          {%- render 'theinmag-gallery-card', submission: sub, is_hidden: is_hidden, index: rendered_index -%}
+          {%- render 'theinmag-gallery-card', submission: sub, is_hidden: is_hidden, index: rendered_index, show_town: section.settings.show_town -%}
           {%- assign rendered_index = rendered_index | plus: 1 -%}
         {%- endif -%}
       {%- endfor -%}
@@ -227,6 +228,13 @@
   "tag": "section",
   "class": "theinmag-gallery-grid-section",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_town",
+      "label": "Show town and state on kid credits",
+      "info": "On (default, Ryan 4 Oct 2026): credits read \"Lewis | Broome WA, age 11\". Untick for first name + age only. The surname initial never shows online.",
+      "default": true
+    },
     {
       "type": "header",
       "content": "Background"

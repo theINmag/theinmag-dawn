@@ -761,11 +761,12 @@
 
       function sized(url, w) { return url ? url + (url.indexOf('?') >= 0 ? '&' : '?') + 'width=' + w : ''; }
       function titleCase(s) { return (s || '').replace(/\w\S*/g, function (t) { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); }); }
+      // Online credit rule (Ryan, 4 Oct 2026): first name, town + state, age,
+      // e.g. "Lewis | Broome WA, age 11". NEVER the surname initial on the web.
       function attribution(c) {
         var name = titleCase(c.first_name || '');
-        if (c.last_initial) name += ' ' + String(c.last_initial).toUpperCase() + '.';
         var loc = titleCase(c.town || '');
-        if (c.state) loc += ' ' + String(c.state).toUpperCase();
+        if (c.state) loc += (loc ? ' ' : '') + String(c.state).toUpperCase();
         var out = name;
         if (loc) out += (out ? ' | ' : '') + loc;
         if (c.age) out += ', age ' + c.age;
