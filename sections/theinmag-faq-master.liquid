@@ -19,6 +19,122 @@
   self-contained 40-60 word block. "creation" not "work". No em or en dashes.
 {%- endcomment -%}
 
+
+{%- comment -%}
+  LIVE DATA TOKENS (2026-10-04). Answers are richtext settings, so they cannot
+  hold Liquid. Write a token in the answer and it is swapped here, in BOTH the
+  visible answer and the FAQPage JSON-LD, so prices, issues and dates never go
+  stale. Tokens:
+    [current_issue] [next_issue] [next_drop_date]      shop metafields
+    [single_print_price] [single_digital_price]         current issue product
+    [m_print_4] [m_print_8] [m_print_rolling]           membership variants
+    [m_digital_4] [m_digital_8] [m_digital_rolling]
+    [stack_price]                                       digital-stack product
+    [back_print_sentence]   which back issues are still in print (collection)
+    [mag09_print_status]    Mag09 in print or sold out (product availability)
+    [christmas_line]        Christmas order-by line, shown 1 Oct to 20 Dec only
+  Anything that cannot be read in Liquid (shipping rates, the automatic bundle
+  discount ladder, Worker data) is written evergreen in the answer instead.
+{%- endcomment -%}
+{%- liquid
+  assign fq_cur = shop.metafields.theinmag.current_issue_number.value | default: ''
+  assign fq_next = ''
+  if fq_cur != blank
+    assign fq_next_num = fq_cur | remove: 'Mag' | times: 1 | plus: 1
+    if fq_next_num < 10
+      assign fq_next = 'Mag0' | append: fq_next_num
+    else
+      assign fq_next = 'Mag' | append: fq_next_num
+    endif
+  endif
+  assign fq_cur_num = fq_cur | remove: 'Mag' | times: 1
+  assign fq_drop = shop.metafields.theinmag.next_release_date.value | date: '%-d %B %Y' | default: ''
+  if fq_cur == blank
+    assign fq_cur = 'the current issue'
+  endif
+  if fq_next == blank
+    assign fq_next = 'the next issue'
+  endif
+  if fq_drop == blank
+    assign fq_drop = 'its release date in February, June or October'
+  endif
+
+  assign fq_issue_handle = fq_cur | downcase
+  assign fq_issue = all_products[fq_issue_handle]
+  assign fq_sp = ''
+  assign fq_sd = ''
+  for v in fq_issue.variants
+    if v.option1 == 'Print'
+      assign fq_sp = v.price | money_without_trailing_zeros
+    elsif v.option1 == 'Digital'
+      assign fq_sd = v.price | money_without_trailing_zeros
+    endif
+  endfor
+
+  assign fq_mem = all_products['membership']
+  for v in fq_mem.variants
+    assign vp = v.price | money_without_trailing_zeros
+    case v.title
+      when 'Print / 4-Issue'
+        assign fq_mp4 = vp
+      when 'Print / 8-Issue'
+        assign fq_mp8 = vp
+      when 'Print / Rolling'
+        assign fq_mpr = vp
+      when 'Digital / 4-Issue'
+        assign fq_md4 = vp
+      when 'Digital / 8-Issue'
+        assign fq_md8 = vp
+      when 'Digital / Rolling'
+        assign fq_mdr = vp
+    endcase
+  endfor
+  assign fq_stack = all_products['digital-stack'].price | money_without_trailing_zeros
+
+  assign fq_back = ''
+  for issue in collections['single-issues'].products
+    assign inum = issue.metafields.single_mag.issue_number.value | default: 0
+    assign is_pre = issue.metafields.theinmag.is_pre_order | default: false
+    if inum > 0 and inum < fq_cur_num and is_pre == false
+      for v in issue.variants
+        if v.option1 == 'Print' and v.available
+          assign fq_t = issue.title | split: ' - ' | last
+          if fq_back == blank
+            assign fq_back = fq_t
+          else
+            assign fq_back = fq_back | append: ', ' | append: fq_t
+          endif
+        endif
+      endfor
+    endif
+  endfor
+  if fq_back != blank
+    assign fq_back_sentence = 'Some back issues are still available in print (right now: ' | append: fq_back | append: ').'
+  else
+    assign fq_back_sentence = 'Every back issue has sold out in print for now.'
+  endif
+
+  assign fq_m09 = all_products['mag09']
+  assign fq_m09_print = false
+  for v in fq_m09.variants
+    if v.option1 == 'Print' and v.available
+      assign fq_m09_print = true
+    endif
+  endfor
+  if fq_m09_print
+    assign fq_m09_status = 'It is one of the back issues still available in print: print posts within three business days and digital is emailed within minutes.'
+  else
+    assign fq_m09_status = 'It has sold out in print, and the digital edition is emailed within minutes of ordering.'
+  endif
+
+  assign fq_month = 'now' | date: '%m' | times: 1
+  assign fq_day = 'now' | date: '%d' | times: 1
+  assign fq_xmas = ''
+  if fq_month == 10 or fq_month == 11 or fq_month == 12 and fq_day <= 20
+    assign fq_xmas = 'Order by around 15 December for standard delivery before Christmas (a few days later for Express). We confirm the exact date once Australia Post publishes its Christmas send-by dates.'
+  endif
+-%}
+
 {%- liquid
   assign policy_links = ''
   for i in (1..4)
@@ -71,7 +187,7 @@
               <span class="theinmag-faqm__q-text">{{ block.settings.question }}</span>
               <svg class="theinmag-faqm__chev" width="14" height="8" viewBox="0 0 13 6" fill="none" aria-hidden="true"><path d="M0 1.67551L2.054 0L6.5 3.15445L10.946 0L13 1.67551L6.5 6L0 1.67551Z" fill="currentColor"/></svg>
             </summary>
-            <div class="theinmag-faqm__a">{{ block.settings.answer }}</div>
+            <div class="theinmag-faqm__a">{{ block.settings.answer | replace: '[current_issue]', fq_cur | replace: '[next_issue]', fq_next | replace: '[next_drop_date]', fq_drop | replace: '[single_print_price]', fq_sp | replace: '[single_digital_price]', fq_sd | replace: '[m_print_4]', fq_mp4 | replace: '[m_print_8]', fq_mp8 | replace: '[m_print_rolling]', fq_mpr | replace: '[m_digital_4]', fq_md4 | replace: '[m_digital_8]', fq_md8 | replace: '[m_digital_rolling]', fq_mdr | replace: '[stack_price]', fq_stack | replace: '[back_print_sentence]', fq_back_sentence | replace: '[mag09_print_status]', fq_m09_status | replace: '[christmas_line]', fq_xmas }}</div>
           </details>
         {%- endif -%}
       {%- endfor -%}
@@ -101,7 +217,7 @@
         {
           "@type": "Question",
           "name": {{ block.settings.question | strip_html | json }},
-          "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.answer | strip_html | strip_newlines | json }} }
+          "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.answer | replace: '[current_issue]', fq_cur | replace: '[next_issue]', fq_next | replace: '[next_drop_date]', fq_drop | replace: '[single_print_price]', fq_sp | replace: '[single_digital_price]', fq_sd | replace: '[m_print_4]', fq_mp4 | replace: '[m_print_8]', fq_mp8 | replace: '[m_print_rolling]', fq_mpr | replace: '[m_digital_4]', fq_md4 | replace: '[m_digital_8]', fq_md8 | replace: '[m_digital_rolling]', fq_mdr | replace: '[stack_price]', fq_stack | replace: '[back_print_sentence]', fq_back_sentence | replace: '[mag09_print_status]', fq_m09_status | replace: '[christmas_line]', fq_xmas | strip_html | replace: '&amp;', '&' | strip_newlines | json }} }
         }
         {%- assign first = false -%}
       {%- endif -%}

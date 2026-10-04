@@ -12,6 +12,96 @@
     "faq": {
       "type": "theinmag-faq-master",
       "blocks": {
+        "cat_about_the_mag": {
+          "type": "category",
+          "settings": {
+            "name": "About theINmag"
+          }
+        },
+        "v4_a_what": {
+          "type": "qa",
+          "settings": {
+            "question": "What is theINmag?",
+            "answer": "<p>Every page of theINmag is an idea by real Aussie kids: their art, writing, comics and photos, in print three times a year. It is a real magazine made from real kids' creations, published in February, June and October, with no ads and nothing written by adults. It is printed sustainably in Australia, designed for kids aged 5 to 13, and any kid can send in a creation for free through the <a href=\"/pages/send-in\" title=\"Send IN page\">Send IN page</a>.</p>"
+          }
+        },
+        "v4_a_who": {
+          "type": "qa",
+          "settings": {
+            "question": "Who makes theINmag?",
+            "answer": "<p>Two Australian teachers, Ryan and Tam, founded theINmag after years of consulting with kids, then sold their house and converted a van so they could travel the country meeting young creators. The pages themselves are made by kids. A small team of teachers and artists reviews every submission, and a designer and proofreaders carry each issue to print. The business is Australian, ABN 95 229 012 388. More on <a href=\"/pages/behind-the-mag\" title=\"Behind the mag\">Behind the mag</a>.</p>"
+          }
+        },
+        "qa_38_what_s_actually_inside_it_is_it_really_a": {
+          "type": "qa",
+          "settings": {
+            "question": "What's actually inside it? Is it really all made by kids?",
+            "answer": "<p>Yes, really, 100 percent. Every page of theINmag is an idea by real Aussie kids: their art, writing, comics and photos, in print three times a year. Every story, drawing, photo, joke and puzzle is a creation from a real Aussie kid, and we do not write any of it ourselves. A team of teachers and artists reviews every submission, and the mag is ad-free and sustainably printed in Australia.</p>"
+          }
+        },
+        "v4_a_diff": {
+          "type": "qa",
+          "settings": {
+            "question": "How is theINmag different from other kids' magazines?",
+            "answer": "<p>Every page of theINmag is an idea by real Aussie kids: their art, writing, comics and photos, in print three times a year. It is made by kids, not for them by adults; a team of teachers and artists reviews the submissions and writes nothing itself. There are no ads, no sponsored content and no brand tie-ins. Any kid can send in for free, published kids are credited online with their first name, hometown, state and age (the printed mag adds a surname initial), and the mag is built to be multi-age and multi-ability rather than pitched at one year level.</p>"
+          }
+        },
+        "qa_36_what_age_group_is_theinmag_for": {
+          "type": "qa",
+          "settings": {
+            "question": "What age group is theINmag for?",
+            "answer": "<p>theINmag is designed for kids aged 5 to 13, and in practice littlies, middles and oldies all find something in it, because every page carries a kid's voice exactly as they made it. Sending in is a different story: kids of all ages are welcome, and the range keeps aging up as older kids send in their creations.</p>"
+          }
+        },
+        "v4_a_legit": {
+          "type": "qa",
+          "settings": {
+            "question": "Is theINmag legit, and is it worth it?",
+            "answer": "<p>theINmag is a real Australian print magazine, independent and ad-free, with five-star reviews from families on Judge.me, an ABC Radio interview and a spot in The Guardian's guide to the best kids' Christmas gifts in Australia. Families most often mention kids getting excited to create, pride at seeing a creation in print, and the quality of the pages. Read them on our <a href=\"/pages/reviews\" title=\"reviews page\">reviews page</a>; current prices are on the <a href=\"/products/membership\" title=\"Membership page\">Membership page</a>.</p>"
+          }
+        },
+        "v4_a_reviews": {
+          "type": "qa",
+          "settings": {
+            "question": "What do families say about theINmag? Is it any good?",
+            "answer": "<p>Families give theINmag five-star reviews on Judge.me. Reviewers most often mention kids getting excited to create and send in their own creations, pride at seeing a creation in print and sharing it with family and classmates, and the quality and design of the pages. It has featured on ABC Radio, in The Guardian and on teacher and homeschool podcasts. Read the reviews yourself on our <a href=\"/pages/reviews\" title=\"reviews page\">reviews page</a>.</p>"
+          }
+        },
+        "v4_a_adfree": {
+          "type": "qa",
+          "settings": {
+            "question": "Is there an ad-free children's magazine in Australia?",
+            "answer": "<p>theINmag is an ad-free children's magazine made in Australia: no banner ads, no sponsored content, no brand integrations anywhere in it. Every page is a creation from a real Australian kid, reviewed by a team of teachers and artists, and the mag is printed in Melbourne on FSC-certified paper with vegetable-based inks. It comes out three times a year and is designed for kids aged 5 to 13.</p>"
+          }
+        },
+        "v4_a_aussie": {
+          "type": "qa",
+          "settings": {
+            "question": "Is there an Australian kids' magazine made by Australian kids?",
+            "answer": "<p>theINmag is an Australian kids' magazine made entirely from Australian kids' creations. Every page of theINmag is an idea by real Aussie kids: their art, writing, comics and photos, in print three times a year. Each issue carries the IN Map showing where its published kids live around the country, and kids from every state and territory appear in the live gallery. It is printed in Melbourne, ad-free, and any kid can send in for free.</p>"
+          }
+        },
+        "v4_a_sustain": {
+          "type": "qa",
+          "settings": {
+            "question": "Is theINmag a sustainable print magazine?",
+            "answer": "<p>Yes. theINmag is printed in Melbourne using vegetable-based inks on FSC-certified paper, and every issue carries the line \"sustainably printed in Australia\". There are no ads to pad the page count, so every page is a kid's creation, and print copies are made in one run three times a year. A digital PDF edition exists for families who prefer no paper at all.</p>"
+          }
+        },
+        "qa_39_what_s_the_difference_between_print_and_": {
+          "type": "qa",
+          "settings": {
+            "question": "What's the difference between print and digital?",
+            "answer": "<p>Print is the full theINmag on heavy paper, sustainably printed in Australia and posted within Australia only, with the jokes and puzzles section printed upside down. Digital is the same mag as a PDF, emailed within minutes and readable on any device, with those pages the right way up. You can print the pages your kids love at home. Same kids, same creations, different format.</p>"
+          }
+        },
+        "v4_a_mag09": {
+          "type": "qa",
+          "settings": {
+            "question": "What is theINmag Mag09?",
+            "answer": "<p>Mag09 is the ninth issue of theINmag, a thick, ad-free magazine of creations by hundreds of Australian kids. Inside, a kid draws how the body heals, others make the case for saving the bees and go dog sledding, there are jokes and puzzles, and an interview with an illustrator. [mag09_print_status] Current prices are on the <a href=\"/products/mag09\" title=\"Mag09 page\">Mag09 page</a>.</p>"
+          }
+        },
         "cat_sending_in": {
           "type": "category",
           "settings": {
@@ -22,7 +112,14 @@
           "type": "qa",
           "settings": {
             "question": "How does my kid get published in theINmag?",
-            "answer": "<p>Every page of theINmag is made by real Aussie kids, and getting in starts at our <a href=\"/pages/send-in\">Send IN page</a>. Your child submits a creation they are proud of, a real person on our team reviews it, and around 300 creations make it into each issue. It is completely free to submit. The number one thing we look for is effort. Personality and heart matter more than polish, so the best tip is to send in something your kid genuinely loves.</p>"
+            "answer": "<p>Head to our <a href=\"/pages/send-in\" title=\"Send IN page\">Send IN page</a>, upload the creation and have a grown-up tick the consent box. It is free, and kids of all ages are welcome. A real human on our team of teachers and artists reviews every submission, and nothing is ever auto-published. Hundreds of kids' creations make it into each issue, and the number one thing we look for is effort, not polish, so send in something your kid genuinely loves.</p>"
+          }
+        },
+        "v4_a_where": {
+          "type": "qa",
+          "settings": {
+            "question": "Where can kids get their writing or art published in a real magazine?",
+            "answer": "<p>theINmag publishes kids' creations in a real printed magazine, for free, and kids of all ages are welcome. A story, drawing, comic, photo, joke, recipe, song or something they built goes in through our <a href=\"/pages/send-in\" title=\"Send IN page\">Send IN page</a>, a grown-up ticks consent, and a human team reviews every submission. Selected creations are printed, and creations are shared to the <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a>, credited online with their first name, hometown, state and age (the printed mag adds a surname initial).</p>"
           }
         },
         "qa_02_where_and_how_do_we_send_in_a_drawing_or": {
@@ -30,6 +127,13 @@
           "settings": {
             "question": "Where and how do we send in a drawing or story?",
             "answer": "<p>Head to our <a href=\"/pages/send-in\">Send IN page</a>. Upload your child's creation there, whether it is a drawing, story, photo, joke or puzzle. It is free, it takes a few minutes, and a real human reviews every single submission. Nothing is ever auto-published. You will see a celebration screen once you hit submit, and if the creation is selected for print and you shared a parent email, we will be in touch before the issue drops.</p>"
+          }
+        },
+        "v4_send_what_can": {
+          "type": "qa",
+          "settings": {
+            "question": "What can kids send in to theINmag?",
+            "answer": "<p>Just about anything they have made: writing, drawings, comics, photos, jokes, facts, puzzles, songs, recipes, hobbies, and things they built like shelters, veggie patches, sculptures or a really great box. Photograph it with a phone or iPad in bright light, save the largest file you can and add two or three sentences about it. For the gallery, no copyrighted characters, real faces or school names.</p>"
           }
         },
         "qa_03_can_my_grandkids_send_in_their_creations": {
@@ -50,21 +154,21 @@
           "type": "qa",
           "settings": {
             "question": "What happens after we hit submit?",
-            "answer": "<p>First, a celebration screen. Then a real human on our team of teachers and artists reviews the submission personally. We never auto-publish anything. If the creation is selected for print and you provided a parent email on the form, we will contact you before the issue drops. The parent email is optional, so we only contact families who chose to share it.</p>"
+            "answer": "<p>First, a celebration screen. Then a real person on our team of teachers and artists reviews the submission. We never auto-publish anything. If the creation is chosen for print and you left a parent email on the form, we email you before the issue drops. The parent email is optional, so we only contact families who shared it. So many creations arrive for each issue that we cannot reply to every submission individually, so look for your child's creation in the <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a>. Published kids do not receive a free copy; a Membership or a single issue is the surest way to hold the page.</p>"
           }
         },
         "qa_06_what_if_our_creation_isn_t_picked": {
           "type": "qa",
           "settings": {
             "question": "What if our creation isn't picked?",
-            "answer": "<p>Not every creation makes it into print. There are more incredible kids than there are pages, and around 300 creations fit in each issue. But submissions that miss print can still appear in our <a href=\"/pages/gallery\">online gallery</a>, so other kids get to see what your child made. Two things help next time: we always notice serious effort, and kids who send in lots of different creations across the year have more chances of being picked.</p>"
+            "answer": "<p>Not every creation makes print, because there are more incredible kids than there are pages. Creations are shared to our <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a>, which shows live submissions from recent months filtered by art, writing, photos, puzzles, hobbies and wonderings, so other kids still get to see what your child made. Two things help next time: serious effort, and sending in lots of different creations across the year.</p>"
           }
         },
         "qa_07_is_this_safe_for_my_kid": {
           "type": "qa",
           "settings": {
             "question": "Is this safe for my kid?",
-            "answer": "<p>Yes. Kid safety is locked in across the whole process. We only ever show a first name, last initial, age and town, never full names, schools or addresses. A real person reviews every single submission, nothing is auto-published, and you can ask us to take a creation down at any time.</p>"
+            "answer": "<p>Yes. Published kids are credited online with their first name, hometown, state and age (the printed mag adds a surname initial). We never show full names, schools, addresses, contact details or faces in photos. A parent or guardian must say yes before anything is sent, and the form is for adults only. A real person reviews every submission, nothing is auto-published, and you can ask us to take a creation down at any time. The details are in our <a href=\"/pages/child-safety-terms-conditions-privacy-policy\" title=\"child safety and privacy policy\">child safety and privacy policy</a>.</p>"
           }
         },
         "qa_08_can_i_take_my_kid_s_creation_down_later": {
@@ -74,10 +178,31 @@
             "answer": "<p>Yes, anytime. Email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> and we will remove the creation from the website and <a href=\"/pages/gallery\">gallery</a>, no questions asked. Print and digital copies that have already been published cannot be recalled, but nothing future-facing stays up once you ask us to take it down.</p>"
           }
         },
+        "v4_send_owns": {
+          "type": "qa",
+          "settings": {
+            "question": "Who owns my child's creation after it's published?",
+            "answer": "<p>Your child does. theINmag receives a non-exclusive, royalty-free, worldwide, perpetual licence, so the child can reuse the creation anywhere else. Accepted creations may appear in print, on the website and social channels, in marketing and on products such as prints or cards, with any proceeds funding future ad-free issues. How long submission records are kept is set out in our <a href=\"/pages/child-safety-terms-conditions-privacy-policy\" title=\"child safety and privacy policy\">child safety and privacy policy</a>.</p>"
+          }
+        },
         "cat_membership": {
           "type": "category",
           "settings": {
             "name": "Membership"
+          }
+        },
+        "v4_mem_how": {
+          "type": "qa",
+          "settings": {
+            "question": "What is a theINmag Membership and how does it work?",
+            "answer": "<p>A theINmag Membership delivers a brand-new magazine made by real Australian kids three times a year, every February, June and October, with shipping included. Choose 4-Issue, 8-Issue or Rolling, in print or digital; current prices are on the <a href=\"/products/membership\" title=\"Membership page\">Membership page</a>. Pick which mag arrives first, and if an issue has sold out in print we skip it and you still get every mag you paid for. Members get theirs first.</p>"
+          }
+        },
+        "v4_mem_cost": {
+          "type": "qa",
+          "settings": {
+            "question": "How much does theINmag cost?",
+            "answer": "<p>A single print issue of theINmag is [single_print_price] and a digital issue is [single_digital_price]. Print Memberships are [m_print_4] for 4 issues, [m_print_8] for 8 issues or [m_print_rolling] per drop on Rolling, all with shipping included. Digital Memberships are [m_digital_4] for 4 issues, [m_digital_8] for 8 or [m_digital_rolling] per drop. The Digital Stack, every back issue as PDFs, is [stack_price]. Single issues ship at a flat rate, with free shipping over the threshold shown at checkout. All prices are in Australian dollars.</p>"
           }
         },
         "qa_09_i_only_meant_to_order_once_will_i_be_cha": {
@@ -105,7 +230,7 @@
           "type": "qa",
           "settings": {
             "question": "Is a Membership the same as a subscription?",
-            "answer": "<p>Same idea, different feel. Members never miss an issue and are among the first kids to get the new mag each drop. The 4-Issue and 8-Issue <a href=\"/products/membership\">Memberships</a> are paid upfront and never auto-renew. Only the Rolling Membership renews, with a heads-up email before each charge. The result: a real reason for your kid to get excited about the postie again.</p>"
+            "answer": "<p>Yes, a theINmag Membership is our magazine subscription: a brand-new issue three times a year, in February, June and October, in print or digital. We just call it a Membership. Only the Rolling Membership charges again. It is billed on the 1st of February, June and October with a heads-up email first, and you can cancel in two clicks from your account or by emailing us. The 4-Issue and 8-Issue Memberships are paid upfront, never auto-renew and simply finish when the last issue ships.</p>"
           }
         },
         "qa_13_what_s_the_difference_between_the_rollin": {
@@ -119,7 +244,7 @@
           "type": "qa",
           "settings": {
             "question": "How do I cancel my membership?",
-            "answer": "<p>If you have a 4-Issue or 8-Issue <a href=\"/products/membership\">Membership</a>, there is nothing to cancel. They are paid upfront, never auto-renew, and simply finish after the last issue. If you have a Rolling Membership, you can cancel anytime, just email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> and we will take care of it.</p>"
+            "answer": "<p>If you have a 4-Issue or 8-Issue <a href=\"/products/membership\" title=\"Membership\">Membership</a>, there is nothing to cancel. They are paid upfront, never auto-renew, and simply finish after the last issue. If you have a Rolling Membership, you can cancel anytime in two clicks from your account, or email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> and we will take care of it.</p>"
           }
         },
         "qa_15_my_membership_is_running_out_how_do_i_re": {
@@ -143,6 +268,13 @@
             "answer": "<p>Yes, that is exactly what the \"start with the next issue\" option is for. You skip the issue your kid already has, and your <a href=\"/products/membership\">Membership</a> begins with the next drop. The price is the same either way, so there is no extra cost to wait.</p>"
           }
         },
+        "v4_mem_refund": {
+          "type": "qa",
+          "settings": {
+            "question": "What is the refund policy?",
+            "answer": "<p>We investigate and replace damaged or missing mags. Change-of-mind returns are not accepted on printed single issues, because return postage would exceed the price. For Memberships, shipped issues are not refundable, but unshipped issues can be cancelled and refunded pro rata. Digital mags are delivered instantly so are not refundable, except if you bought digital by mistake instead of print: buy print, email us, and the digital is refunded.</p>"
+          }
+        },
         "cat_delivery_and_your_order": {
           "type": "category",
           "settings": {
@@ -160,7 +292,7 @@
           "type": "qa",
           "settings": {
             "question": "Can I get a tracking number or link?",
-            "answer": "<p>For the big tri-annual drops we post by Print Post, which AusPost does not track, so there is no live tracking link for those copies. Copies ordered between drops go by registered post and do come with tracking. Either way, if something goes astray, email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> and we will look it up, and resend it if it is lost.</p>"
+            "answer": "<p>Not on the big drops. Release-day Membership mags go by Print Post, which Australia Post does not track, so there is no link for those. Every other order, single issues, bundles and gifts, comes with a tracking link. If something goes astray, email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a>. We investigate and replace lost or damaged mags, and reply within two business days, same day for lost or damaged ones.</p>"
           }
         },
         "qa_20_we_paid_for_a_year_but_have_only_had_som": {
@@ -174,7 +306,7 @@
           "type": "qa",
           "settings": {
             "question": "Has the new issue been released yet? When does the next one drop?",
-            "answer": "<p>New issues drop three times a year, in February, June and October. Each one is posted on the 10th of its month and usually lands around the 15th, with Members getting theirs first. So the next drop is always the next of those three months.</p>"
+            "answer": "<p>New issues drop three times a year, in February, June and October. Each one is posted on the 10th of its month and usually lands around the 15th, with Members getting theirs first. The next one, [next_issue], drops on [next_drop_date].</p>"
           }
         },
         "qa_22_my_mags_went_to_our_old_address_can_they": {
@@ -198,17 +330,45 @@
             "answer": "<p>Almost certainly yes. When this happens, the payment has nearly always gone through fine and the confirmation email has simply gone to a different address, often one with a small typo. Email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> and we will confirm your order and fix the email on file so future updates reach you.</p>"
           }
         },
+        "v4_del_back": {
+          "type": "qa",
+          "settings": {
+            "question": "Can I buy back issues of theINmag?",
+            "answer": "<p>[back_print_sentence] Every issue that has sold out in print is available as a digital PDF. The <a href=\"/products/digital-stack\" title=\"Digital Stack\">Digital Stack</a> bundles every back issue as instant downloads, and Digital Memberships also include access to sold-out back issues. The <a href=\"/pages/shop\" title=\"shop page\">shop page</a> shows what is in stock in print right now.</p>"
+          }
+        },
+        "v4_del_shop": {
+          "type": "qa",
+          "settings": {
+            "question": "Where can I buy theINmag in a shop?",
+            "answer": "<p>theINmag has stockists around Australia, and the locator on our <a href=\"/pages/instock\" title=\"stockist page\">stockist page</a> lets you search by suburb, postcode or state. If your local shop is not on it yet, shops can apply on the same page; they buy direct at a trade discount, one stockist per postcode. Everything is also sold directly at theinmag.com.au, with free shipping over the threshold shown at checkout.</p>"
+          }
+        },
         "cat_gifts": {
           "type": "category",
           "settings": {
             "name": "Gifts"
           }
         },
+        "v4_gift_birthday": {
+          "type": "qa",
+          "settings": {
+            "question": "What's a good birthday gift for a creative kid?",
+            "answer": "<p>A theINmag Membership is a birthday gift that keeps arriving: an ad-free magazine made by kids, posted three times a year with shipping included. Enter the child's address at checkout so each mag arrives addressed to them, add a gift note in the order notes, and tell us the birthday date so the first issue lands just before it. Current Membership options and prices are on the <a href=\"/products/membership\" title=\"Membership page\">Membership page</a>.</p>"
+          }
+        },
+        "v4_gift_xmas": {
+          "type": "qa",
+          "settings": {
+            "question": "What's a Christmas gift for a kid who has everything?",
+            "answer": "<p>Try a magazine they can be in. theINmag was named in The Guardian's guide to the best kids' Christmas gifts in Australia: made entirely by kids, no ads, and the gift comes with the chance for the child to send in their own creation and be published. [christmas_line]</p>"
+          }
+        },
         "qa_25_how_do_i_gift_a_membership_to_my_grandch": {
           "type": "qa",
           "settings": {
             "question": "How do I gift a membership to my grandchild, niece or a friend?",
-            "answer": "<p>Just grab a <a href=\"/products/membership\">Membership</a> on our website and pop the child's postal address in as the delivery address, so the mag goes straight to them. Grandparents are some of our favourite gift buyers. You can add a gift note at checkout, and we will include it with the first mag.</p>"
+            "answer": "<p>Grandparents are some of our favourite gift buyers, and it is simple. Buy a <a href=\"/products/membership\" title=\"Membership\">Membership</a> and put the child's postal address in as the delivery address, so every mag arrives addressed to them. Add your message in the order notes and it goes in with the first mag. Forgot the address? Email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> with your order number and we will post it straight to the child.</p>"
           }
         },
         "qa_26_can_you_time_the_first_issue_to_arrive_j": {
@@ -236,13 +396,124 @@
           "type": "qa",
           "settings": {
             "question": "Will they get the current issue or the next one first?",
-            "answer": "<p>Your choice. Pick \"start with the current issue\" and it ships right away while stock lasts. Pick \"start with the next issue\" and their first mag arrives in the week after the next drop in February, June or October.</p>"
+            "answer": "<p>You pick at checkout. \"Start with the current issue\" ships within three business days while stock lasts; \"start with the next issue\" means the first mag arrives after the next drop in February, June or October. The price is the same either way. If an issue has sold out in print, we say so and skip it, and the child still gets every mag you paid for.</p>"
+          }
+        },
+        "cat_international": {
+          "type": "category",
+          "settings": {
+            "name": "Overseas & digital"
+          }
+        },
+        "qa_40_do_you_ship_overseas": {
+          "type": "qa",
+          "settings": {
+            "question": "Do you ship overseas?",
+            "answer": "<p>Printed copies post within Australia only, and digital editions for families outside Australia are opening soon. Meanwhile the free e-mag sampler, the <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a> and the <a href=\"/pages/real-kids-voices\" title=\"Real kids' voices library\">Real kids' voices library</a> are open to anyone, and overseas kids are welcome to send in their creations too.</p>"
+          }
+        },
+        "v4_i_expat": {
+          "type": "qa",
+          "settings": {
+            "question": "We're an Australian family living overseas. Is there Aussie content for our kids?",
+            "answer": "<p>Digital editions for families outside Australia are opening soon. Until then, the free e-mag sampler, the <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a> and the <a href=\"/pages/real-kids-voices\" title=\"Real kids' voices library\">Real kids' voices library</a> are open to anyone, and expat kids can send in creations too, with a parent's consent.</p>"
+          }
+        },
+        "v4_i_grandparent": {
+          "type": "qa",
+          "settings": {
+            "question": "I'm a grandparent overseas. Can I gift theINmag to a grandchild in Australia?",
+            "answer": "<p>Yes. Order a theINmag <a href=\"/products/membership\" title=\"Membership\">Membership</a> and enter your grandchild's Australian postal address as the delivery address; shipping is included and every mag arrives addressed to them. Add a gift note in the order notes and it goes in with the first mag. If the grandchild lives outside Australia too, digital editions for overseas families are opening soon.</p>"
+          }
+        },
+        "v4_i_travel": {
+          "type": "qa",
+          "settings": {
+            "question": "Can we take theINmag travelling or on a road trip?",
+            "answer": "<p>Easily. The digital edition of theINmag is the full magazine as a PDF, emailed within minutes of ordering and readable on any device, so it rides along on the iPad in the car. The print mag is a thick, ad-free read built for long flicking, with the jokes and puzzles section printed upside down for fun. The <a href=\"/products/digital-stack\" title=\"Digital Stack\">Digital Stack</a> puts every back issue on one tablet.</p>"
           }
         },
         "cat_schools_and_teachers": {
           "type": "category",
           "settings": {
             "name": "Schools & teachers"
+          }
+        },
+        "v4_t_use": {
+          "type": "qa",
+          "settings": {
+            "question": "How do teachers use theINmag in the classroom?",
+            "answer": "<p>Teachers use theINmag for shared reading and mentor-text analysis, \"I notice, I wonder\" visual prompts, rich numeracy tasks, wellbeing discussions, art room units and as a stimulus for students' own submissions. Each issue is organised into sections spanning persuasive, informative and entertaining writing, art, photography, puzzles, jokes and problem solving, and every piece is by a real Australian kid.</p>"
+          }
+        },
+        "v4_t_examples": {
+          "type": "qa",
+          "settings": {
+            "question": "Where can I find examples of real kids' writing from Australia?",
+            "answer": "<p>theINmag's <a href=\"/pages/real-kids-voices\" title=\"Real kids' voices library\">Real kids' voices library</a> is a free collection of writing by Australian kids aged 5 to 13, each piece published in the magazine and reproduced exactly as the kid wrote it. It is organised by purpose: persuasive pieces such as \"Is Plastic Pollution a Problem for the Oceans?\" and \"We Need a Gym\", informative pieces such as \"Daintree Rainforest\" and \"Aquatic Biomes\", and entertaining stories such as \"All Hail the Queen!\" and \"The Re-awakening of Zard\".</p>"
+          }
+        },
+        "v4_t_mentor": {
+          "type": "qa",
+          "settings": {
+            "question": "Where can I get writing samples by Australian students to use as mentor texts in class?",
+            "answer": "<p>theINmag publishes real kids' writing free online, no login needed, and its submission terms cover classroom use, so you can project, print and pull the pieces apart. The <a href=\"/pages/real-kids-voices\" title=\"Real kids' voices library\">Real kids' voices library</a> is sorted into persuasive, informative and entertaining to match your unit, there is a free PIE poster PDF, and new pieces are added from every issue. Co-founder Ryan's post <a href=\"/blogs/field-notes/real-kid-samples-classroom-lessons\" title=\"Stop Searching for Fake Samples. Use Real Ones\">Stop Searching for Fake Samples. Use Real Ones</a> explains why kid-made samples beat adult models.</p>"
+          }
+        },
+        "v4_t_persuasive": {
+          "type": "qa",
+          "settings": {
+            "question": "Do you have persuasive writing examples by kids for Year 3 and Year 5?",
+            "answer": "<p>Yes. theINmag's published writers are aged 5 to 13, so its free persuasive pieces span the primary years including the NAPLAN ones, and each was written by a real kid, which sets believable targets rather than polished adult models. Persuasive pieces include \"Why We Need to Renovate the Toilets!\", \"Why Teachers Should Give us More Free Time\" and \"We Should Get a Dog\". More land with every issue.</p>"
+          }
+        },
+        "v4_t_jobs": {
+          "type": "qa",
+          "settings": {
+            "question": "Where can I find real information texts about jobs for primary students?",
+            "answer": "<p>theINmag interviews a real Australian professional in every issue and publishes them free on <a href=\"/pages/real-jobs-real-people\" title=\"Real jobs, real people\">Real jobs, real people</a>, written to be read by kids themselves. The questions come from kids, so the answers land at kid level. Jobs so far include a detective, a zookeeper, a DNA scientist, a drone-flying ecologist, a judge's associate, an architect, a chiropractor, an art teacher, a bird artist and a family of travel vloggers.</p>"
+          }
+        },
+        "v4_t_curric": {
+          "type": "qa",
+          "settings": {
+            "question": "Is theINmag aligned to the Australian Curriculum?",
+            "answer": "<p>Not deliberately. theINmag is not mapped to curriculum dot points, because the founders, both teachers, say prescriptive mapping locks content to single year levels when the mag is built to be multi-age and multi-ability. Teachers design their own lessons using it as stimulus across year levels. Its kid-written pieces are cousins of ACARA samples: real pieces kids enjoy, not assessment exemplars.</p>"
+          }
+        },
+        "qa_34_do_you_have_resources_for_the_classroom_": {
+          "type": "qa",
+          "settings": {
+            "question": "Do you have resources for the classroom or homeschooling?",
+            "answer": "<p>Yes. Start with our free downloads on the <a href=\"/pages/freebies\">Freebies page</a>, printable activities and creative prompts you can use straight away. The mag itself is a resource too: 100 percent made by real Aussie kids, ad-free, and a brilliant model of what kids can create, so teachers use it for reading corners, writing prompts and inspiring their own students to send in creations. <a href=\"/products/digital-stack\">Digital copies</a> for classroom sharing are also available.</p>"
+          }
+        },
+        "v4_t_bulk": {
+          "type": "qa",
+          "settings": {
+            "question": "Can we buy a class set of theINmag or get a bulk discount?",
+            "answer": "<p>There is no special class-set price; the discount comes from the cart. Mix any mags, Snack Packs and Memberships and the saving applies automatically at checkout on a sliding ladder, so the more items, the bigger the saving, with the current tiers shown in the cart. No code is needed, and it works alongside school invoicing. For whole-class reading, one digital issue of theINmag may be shared across the entire school, so many schools pair a few print copies with digital.</p>"
+          }
+        },
+        "qa_35_can_we_get_a_digital_copy_to_share_acros": {
+          "type": "qa",
+          "settings": {
+            "question": "Can we get a digital copy to share across the school as well as print?",
+            "answer": "<p>Yes. Buy one digital issue of theINmag and share it across your classroom, year level, staff or whole school: project it, email it to colleagues, send it home with families or build a school library. The <a href=\"/products/digital-stack\" title=\"Digital Stack\">Digital Stack</a> has every back issue as PDFs. Lots of schools run digital on the classroom screen and print in the reading corner.</p>"
+          }
+        },
+        "v4_t_students": {
+          "type": "qa",
+          "settings": {
+            "question": "How can my students send in their creations?",
+            "answer": "<p>Through theINmag's <a href=\"/pages/send-in\" title=\"Send IN page\">Send IN page</a>, with a parent or guardian giving permission. For classes, there is a free annual consent form that covers a year of submissions, and every issue includes a cut-out page with a QR code students can scan to submit themselves. Sending in is free, open to every kid and curated by teachers.</p>"
+          }
+        },
+        "v4_t_visit": {
+          "type": "qa",
+          "settings": {
+            "question": "Does theINmag visit schools?",
+            "answer": "<p>Yes, when the van is nearby. Founders Ryan and Tam travel Australia in a converted campervan and offer art workshops, writing unit launches, half-hour classroom introductions and assembly presentations. Schools and homeschool groups can email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> with where you are and what you have in mind, and we reply within two business days. Public kids' workshops are listed on the <a href=\"/pages/workshops\" title=\"workshops page\">workshops page</a>.</p>"
           }
         },
         "qa_30_can_i_get_a_tax_invoice_or_pdf_receipt": {
@@ -256,7 +527,7 @@
           "type": "qa",
           "settings": {
             "question": "Can we order with a purchase order?",
-            "answer": "<p>Yes, purchase orders are fine. Schools can order through our <a href=\"/pages/school-order\">school-order page</a>, and we are happy to work with an invoice and bank transfer rather than card payment. Email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> with your purchase order and requirements and we will take it from there.</p>"
+            "answer": "<p>Yes. Order through our <a href=\"/pages/school-order\" title=\"school-order page\">school-order page</a>, check out as a guest, choose \"Schools &amp; Institutions - Bank Transfer\" and a tax invoice arrives by email, payable on the terms shown on the invoice. There is an optional PO number field, and a school email address is required. Supplier setup and EFT forms are fine too; just email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a>.</p>"
           }
         },
         "qa_32_we_need_to_set_you_up_as_a_supplier_or_f": {
@@ -273,59 +544,217 @@
             "answer": "<p>Happy to, email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> with your school name and we will check your order straight away. One thing worth knowing: issues arrive one per drop, three times a year in February, June and October, so a <a href=\"/products/membership\">Membership</a> always has more issues on the way. If one has gone missing, we will resend it.</p>"
           }
         },
-        "qa_34_do_you_have_resources_for_the_classroom_": {
+        "v4_t_stock": {
           "type": "qa",
           "settings": {
-            "question": "Do you have resources for the classroom or homeschooling?",
-            "answer": "<p>Yes. Start with our free downloads on the <a href=\"/pages/freebies\">Freebies page</a>, printable activities and creative prompts you can use straight away. The mag itself is a resource too: 100 percent made by real Aussie kids, ad-free, and a brilliant model of what kids can create, so teachers use it for reading corners, writing prompts and inspiring their own students to send in creations. <a href=\"/products/digital-stack\">Digital copies</a> for classroom sharing are also available.</p>"
+            "question": "Can a shop or school library stock theINmag?",
+            "answer": "<p>Shops buy theINmag direct at a trade discount off the recommended retail price of [single_print_price], one stockist per postcode and no consignment; apply on our <a href=\"/pages/instock\" title=\"stockist page\">stockist page</a> and we are in touch within a week. School libraries order on invoice through the <a href=\"/pages/school-order\" title=\"school-order page\">school-order page</a>, and a single digital issue may be shared across the school.</p>"
           }
         },
-        "qa_35_can_we_get_a_digital_copy_to_share_acros": {
-          "type": "qa",
-          "settings": {
-            "question": "Can we get a digital copy to share across the school as well as print?",
-            "answer": "<p>Yes. <a href=\"/products/digital-stack\">Digital copies</a> for classroom sharing are available, and lots of schools run both, digital on the classroom screen or in the library, print for the reading corner. The digital PDF is yours to share freely across the school, with colleagues, with students for shared and independent reading, even home with families. Email <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a> with what your school needs and we will set it up.</p>"
-          }
-        },
-        "cat_about_the_mag": {
+        "cat_homeschool": {
           "type": "category",
           "settings": {
-            "name": "About the mag"
+            "name": "Homeschoolers"
           }
         },
-        "qa_36_what_age_group_is_theinmag_for": {
+        "v4_h_resource": {
           "type": "qa",
           "settings": {
-            "question": "What age group is theINmag for?",
-            "answer": "<p>We built theINmag for kids aged 5 to 13, though in practice it reaches from around 4 up to about 16, as older kids keep sending in creations. Because every page carries a kid's voice exactly as they made it, littlies, middles and oldies all find something they connect with.</p>"
+            "question": "Is there a creative homeschool resource that isn't a worksheet?",
+            "answer": "<p>theINmag is a magazine made entirely by kids, with no ads and no timetable, designed to sit alongside whatever you are already doing rather than replace it. Homeschool families use it as mentor texts for writing, art prompts, \"I notice, I wonder\" starters and a quiet driver for the cool stuff kids already do. Its sections span literacy, numeracy, art, wellbeing, geography and careers. More on <a href=\"/pages/for-homeschoolers\" title=\"our homeschool page\">our homeschool page</a>.</p>"
           }
         },
-        "qa_37_how_often_does_it_come_out": {
+        "v4_h_portfolio": {
           "type": "qa",
           "settings": {
-            "question": "How often does it come out?",
-            "answer": "<p>Three times a year, in February, June and October. We wait for kids' creations to come in, and the three-a-year rhythm works beautifully. Each issue is posted on the 10th and usually arrives around the 15th. Grab a <a href=\"/products/membership\">Membership</a> and it arrives automatically, with Members first in line.</p>"
+            "question": "Can theINmag count towards our homeschool portfolio or registration?",
+            "answer": "<p>Many families use theINmag as evidence for homeschool registration and portfolios: the mag as stimulus, the child's response as the sample, and a published creation as a real-world outcome. It is not a curriculum, and we say so plainly. Digital Memberships include access to sold-out back issues, and the <a href=\"/products/digital-stack\" title=\"Digital Stack\">Digital Stack</a> has every back issue as PDFs.</p>"
           }
         },
-        "qa_38_what_s_actually_inside_it_is_it_really_a": {
+        "v4_h_publish": {
           "type": "qa",
           "settings": {
-            "question": "What's actually inside it? Is it really all made by kids?",
-            "answer": "<p>Yes, really, 100 percent. Every story, drawing, photo, joke and puzzle inside theINmag is a creation from a real Aussie kid. We do not write any of it ourselves. A team of teachers and artists reviews every submission, and the mag is ad-free and sustainably printed in Australia.</p>"
+            "question": "Is there a magazine my homeschooled kid can be published in?",
+            "answer": "<p>theINmag publishes creations from kids of all ages, homeschooled or not, and it is free to send in. Kids can send writing, art, comics, photos, jokes, recipes, puzzles or things they built, and a real person reviews everything. Co-founder Tam has been a guest on the Sisters Who Homeschool podcast, and the mag is listed on Homeschool Resource Finder.</p>"
           }
         },
-        "qa_39_what_s_the_difference_between_print_and_": {
-          "type": "qa",
+        "cat_parents": {
+          "type": "category",
           "settings": {
-            "question": "What's the difference between print and digital?",
-            "answer": "<p>Print is the full magazine on heavy paper, sustainably printed in Australia and posted to your door, within Australia only. Digital is the same mag as a PDF you can download instantly and read on any device, anywhere in the world. Same kids, same creations, different format.</p>"
+            "name": "For parents"
           }
         },
-        "qa_40_do_you_ship_overseas": {
+        "v4_p_drawing": {
           "type": "qa",
           "settings": {
-            "question": "Do you ship overseas?",
-            "answer": "<p>The printed mag ships within Australia only. But overseas families are not left out: the <a href=\"/products/digital-stack\">Digital version</a> is an instant PDF download you can read anywhere in the world, with all the same creations inside. Overseas kids are welcome to send in their creations too, and we love our international submissions. We just only print and post within Australia.</p>"
+            "question": "What's a good magazine for kids who love drawing?",
+            "answer": "<p>theINmag is an Australian magazine filled entirely with drawings, comics, stories, photos, jokes and puzzles made by kids, and any kid can send in their own. It is a thick, ad-free read, printed sustainably in Australia three times a year, with whole sections of kid-made art across all sorts of media. The <a href=\"/pages/send-in\" title=\"Send IN page\">Send IN page</a> is where a drawing goes to be considered for the next issue, and sending in is free.</p>"
+          }
+        },
+        "v4_p_writing": {
+          "type": "qa",
+          "settings": {
+            "question": "Is there a creative writing outlet for my 9 year old?",
+            "answer": "<p>theINmag publishes real kids' writing, stories, persuasive pieces, info texts, jokes and poems, and any kid can send theirs in for free. Writing is sorted into persuade, inform and entertain, plus a featured story each issue. A real person reviews every submission, and published writers are credited online with their first name, hometown, state and age (the printed mag adds a surname initial). Effort is the number one thing we look for.</p>"
+          }
+        },
+        "v4_p_reluctant": {
+          "type": "qa",
+          "settings": {
+            "question": "My child is a reluctant reader or writer. Will a kids' magazine help?",
+            "answer": "<p>It can, and theINmag is built for exactly that kid, because every page is made by another kid rather than a polished adult. Children read what kids their own age actually made, which sparks \"I could do that too\". Pages mix comics, jokes, puzzles, photos and short pieces, so there is always a quick way in. Teachers use the same pieces as believable mentor texts in class.</p>"
+          }
+        },
+        "v4_p_author": {
+          "type": "qa",
+          "settings": {
+            "question": "My kid dreams of being an author or an artist. Where can they start?",
+            "answer": "<p>Being published in a real print magazine is a big first step, and theINmag makes it free for kids of all ages. Kids send a story, drawing, comic, photo, joke, recipe, song or something they built through our <a href=\"/pages/send-in\" title=\"Send IN page\">Send IN page</a>, a grown-up gives permission, and a human team reviews it. Selected creations go to print, and creations are shared to the <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a>, credited online with their first name, hometown, state and age (the printed mag adds a surname initial).</p>"
+          }
+        },
+        "v4_p_share": {
+          "type": "qa",
+          "settings": {
+            "question": "Is there somewhere safe for my child to share their drawings?",
+            "answer": "<p>theINmag's <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a> shows real kids' creations from across Australia with only a first name, hometown, state and age, never full names, schools, addresses or faces. A parent or guardian ticks consent before anything is sent, a real person reviews every submission and nothing is auto-published. You can ask for a creation to come down at any time by emailing <a href=\"mailto:heyhey@theinmag.com.au\">heyhey@theinmag.com.au</a>.</p>"
+          }
+        },
+        "v4_p_screen": {
+          "type": "qa",
+          "settings": {
+            "question": "What's a screen-free activity for kids after school, on rainy days or in the school holidays?",
+            "answer": "<p>A magazine made by kids does the trick. Families use theINmag as a screen-free wind-down, a school-holidays ritual or a bedtime read. A favourite move is to flip to a random page and ask \"what does this make you want to create?\" and the pencils come out. Kids also flick through planning what they will send IN next. The <a href=\"/pages/freebies\" title=\"Freebies page\">Freebies page</a> adds printable activities with no email or account needed.</p>"
+          }
+        },
+        "cat_free": {
+          "type": "category",
+          "settings": {
+            "name": "Free stuff"
+          }
+        },
+        "v4_f_free": {
+          "type": "qa",
+          "settings": {
+            "question": "Is there a free kids' magazine I can get?",
+            "answer": "<p>Yes. theINmag's free e-mag is a sampler of favourite spreads from our early issues, sent when you join our <a href=\"/pages/newsletter\" title=\"email list\">email list</a>. Pop in an email address, first name optional, tick the box, and it lands in your inbox, followed each month by theINside scoop with real kid creations and fresh teaching ideas. Unsubscribe anytime, and your details are never shared.</p>"
+          }
+        },
+        "v4_f_sample": {
+          "type": "qa",
+          "settings": {
+            "question": "Can I see a free sample of theINmag before I buy?",
+            "answer": "<p>You can, several ways. Join our <a href=\"/pages/newsletter\" title=\"email list\">email list</a> and we send you a free e-mag, a sampler of favourite spreads from our early issues. Browse real kids' creations in the <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a>, read published kids' writing in the <a href=\"/pages/real-kids-voices\" title=\"Real kids' voices library\">Real kids' voices library</a>, and read the career interviews on <a href=\"/pages/real-jobs-real-people\" title=\"Real jobs, real people\">Real jobs, real people</a>, all free with no login. Then read what families say on our <a href=\"/pages/reviews\" title=\"reviews page\">reviews page</a>.</p>"
+          }
+        },
+        "v4_f_world": {
+          "type": "qa",
+          "settings": {
+            "question": "Is there a free digital magazine for kids that works anywhere in the world?",
+            "answer": "<p>theINmag's free e-mag is emailed when you join our <a href=\"/pages/newsletter\" title=\"email list\">email list</a>, so it reads the same in Perth, Singapore or Oslo. It is a sampler of favourite spreads from our early issues: real Australian kids' art, writing, comics and photos, no ads. The <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a> and the <a href=\"/pages/real-kids-voices\" title=\"Real kids' voices library\">Real kids' voices library</a> are also free to read anywhere.</p>"
+          }
+        },
+        "v4_f_print": {
+          "type": "qa",
+          "settings": {
+            "question": "Are there free printables for kids?",
+            "answer": "<p>Yes. theINmag's <a href=\"/pages/freebies\" title=\"Freebies page\">Freebies page</a> has printable PDFs that are 100% free with no email or account needed, for home or classroom. Categories cover lesson planning, puzzles and games, writing and literacy, animals and nature, photography, art and creativity, inspiration and quotes, wellbeing and mindfulness, and problem solving and numeracy, including the IN-task planner, Finish the Story and Design Your Dream Zoo.</p>"
+          }
+        },
+        "v4_f_news": {
+          "type": "qa",
+          "settings": {
+            "question": "Is there a theINmag newsletter?",
+            "answer": "<p>There is. theINside scoop is theINmag's free monthly newsletter with real kid creations and fresh teaching ideas, and joining gets you the free e-mag, a sampler of favourite spreads from our early issues. Unsubscribe anytime, and details are never shared. It sits alongside the <a href=\"/blogs/field-notes\" title=\"Field notes blog\">Field notes blog</a>, which covers creativity, mindset, homeschooling, open tasks and career pathways.</p>"
+          }
+        },
+        "v4_f_comps": {
+          "type": "qa",
+          "settings": {
+            "question": "What competitions can my kid enter in Australia?",
+            "answer": "<p>theINmag keeps a free <a href=\"/pages/competitions\" title=\"competitions directory\">competitions directory</a> of real Australian competitions for kids, updated weekly, spanning art, photography, film, writing, poetry, spelling, dance, music, STEM, maths, performance and social good. Filter by age group, state or national, free or paid entry, and online, postal or school entry. Adults can suggest a competition and the team checks it before it goes on the board.</p>"
+          }
+        },
+        "v4_f_workshops": {
+          "type": "qa",
+          "settings": {
+            "question": "Does theINmag run in-person workshops for kids?",
+            "answer": "<p>Yes. Founders Ryan and Tam run creative workshops where kids meet the team, explore the issues, brainstorm their interests, create characters called mINions, hear stories written by kids and make art. Upcoming dates, places and the small family fee are on the <a href=\"/pages/workshops\" title=\"workshops page\">workshops page</a>, booked online and paid on the day. Parents join in; it is not a drop-off. Bring a sketchpad and pencil case if you have them.</p>"
+          }
+        },
+        "cat_ideas": {
+          "type": "category",
+          "settings": {
+            "name": "Getting published & creative ideas"
+          }
+        },
+        "v4_g_writing": {
+          "type": "qa",
+          "settings": {
+            "question": "Where can my kid get their writing published?",
+            "answer": "<p>Start close to home: a school newsletter, a local library competition or a community paper gives a child a first real audience. For a printed magazine, theINmag publishes Australian kids' writing of every kind, free to send in with a parent's consent. Writing competitions are another route; theINmag keeps a free, weekly-updated <a href=\"/pages/competitions\" title=\"competitions directory\">competitions directory</a> of real Australian ones. Whatever the outlet, the win is the same: a real reader.</p>"
+          }
+        },
+        "v4_g_art": {
+          "type": "qa",
+          "settings": {
+            "question": "Where can kids get their art published or displayed?",
+            "answer": "<p>A fridge gallery is the classic, and a rotating frame or clothesline of clips in the kitchen turns it into a proper exhibition. Beyond the house, local libraries and councils often run kids' art shows, and theINmag's <a href=\"/pages/competitions\" title=\"competitions directory\">competitions directory</a> lists real Australian art and photography competitions. For publication, theINmag prints kids' art in a real magazine and shares creations to a safe <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a>, showing only a first name, hometown, state and age.</p>"
+          }
+        },
+        "v4_g_writecomp": {
+          "type": "qa",
+          "settings": {
+            "question": "What kids' writing competitions are there in Australia?",
+            "answer": "<p>Plenty, and they change every year, so check dates before your child starts. theINmag's free <a href=\"/pages/competitions\" title=\"competitions directory\">competitions directory</a> lists real Australian writing, poetry and spelling competitions for kids, filtered by age group, state or national, free or paid entry and how to enter, and it is checked weekly. Sending in to theINmag itself is not a competition: there is no closing date, no fee, and every creation is read by a real person.</p>"
+          }
+        },
+        "v4_g_artcomp": {
+          "type": "qa",
+          "settings": {
+            "question": "What art competitions can kids enter in Australia?",
+            "answer": "<p>theINmag's free <a href=\"/pages/competitions\" title=\"competitions directory\">competitions directory</a> lists real Australian art, photography and film competitions for kids, with filters for age group, state or national, free or paid entry, and online, postal or school entry, and it is verified weekly against each organiser's page. Adults can suggest one that is missing. Alongside competitions, kids can send a drawing to theINmag at any time of year to be considered for print and shared in the live gallery.</p>"
+          }
+        },
+        "v4_g_reluctant": {
+          "type": "qa",
+          "settings": {
+            "question": "How do I encourage a reluctant writer?",
+            "answer": "<p>Give them a reason and a reader. Kids resist writing when it has no audience and no choice, so let them pick the topic, keep it short, and show them writing by other kids rather than polished adult models, so the target feels reachable. theINmag's <a href=\"/pages/real-kids-voices\" title=\"Real kids' voices library\">Real kids' voices library</a> has free pieces by Australian kids aged 5 to 13 for exactly this, and sending a piece to theINmag gives a reluctant writer a real magazine to aim at.</p>"
+          }
+        },
+        "v4_g_activities": {
+          "type": "qa",
+          "settings": {
+            "question": "What are good creative activities for kids at home or in the school holidays?",
+            "answer": "<p>Open-ended beats step-by-step: a box from the recycling, a \"finish the story\" prompt, a photo walk, or a one-question challenge every kid can get into at their own level. theINmag's <a href=\"/pages/freebies\" title=\"Freebies page\">Freebies page</a> has free printable prompts and planners with no email needed, and the mag itself works as a flip-to-a-page starter: ask \"what does this make you want to create?\" Then send the result IN.</p>"
+          }
+        },
+        "v4_g_display": {
+          "type": "qa",
+          "settings": {
+            "question": "How do I display or celebrate my kid's art?",
+            "answer": "<p>Pick a spot people actually gather, usually the kitchen, and make the display easy to change: a string with clips, a cork board or a rotating frame. Photograph the rest before it goes, and keep the pieces that show a jump. For a bigger stage, theINmag prints kids' art in a real magazine and shares creations to a safe <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a>, and reviews describe kids showing their printed page to grandparents and classmates.</p>"
+          }
+        },
+        "v4_g_age8": {
+          "type": "qa",
+          "settings": {
+            "question": "Why does my kid stop drawing and creating around age 8, and what can I do?",
+            "answer": "<p>Many kids go quiet creatively in the middle primary years, when they start comparing their drawings to adult standards and decide they are \"not good at art\". The fix is low-stakes making with a real audience: effort praised over polish, other kids' creations as the benchmark, and somewhere for the result to go. theINmag's post <a href=\"/blogs/field-notes/why-your-kid-stops-creating-around-age-8\" title=\"Why Your Kid Stops Creating Around Age 8\">Why Your Kid Stops Creating Around Age 8</a> unpacks the research, and its pages are made by kids of exactly that age.</p>"
+          }
+        },
+        "v4_g_draw": {
+          "type": "qa",
+          "settings": {
+            "question": "What do I do when my kid says they don't know what to draw?",
+            "answer": "<p>Hand them a constraint, not a blank page: draw your dream day, a silly creature, a pet portrait, or your future self. theINmag's <a href=\"/pages/freebies\" title=\"Freebies page\">Freebies page</a> has free printable drawing prompts like these, its post <a href=\"/blogs/field-notes/5-things-to-draw-when-you-dont-know-what-to-draw\" title=\"5 Things to Draw When You Don’t Know What to Draw\">5 Things to Draw When You Don’t Know What to Draw</a> is written for kids, and flipping through a mag made by other kids is a reliable spark. Whatever they make can be sent IN.</p>"
+          }
+        },
+        "v4_g_safe": {
+          "type": "qa",
+          "settings": {
+            "question": "Is it safe to share my child's art online, and how do I do it well?",
+            "answer": "<p>Share the creation, not the child: no face, no full name, no school, no location more precise than a hometown. Pick places that review before publishing and let you take things down. theINmag's <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a> works that way, showing only a first name, hometown, state and age, with every submission reviewed by a real person, parental consent up front and takedowns on request.</p>"
           }
         },
         "cat_why_theinmag": {
@@ -359,7 +788,7 @@
           "type": "qa",
           "settings": {
             "question": "What does getting a creation published do for a child?",
-            "answer": "<p>It gives their idea a real audience, and that changes everything. Knowing someone will see it, they care more and try harder. Being chosen tells a child their ideas matter, and that belief outlasts the creation.</p>"
+            "answer": "<p>It gives their idea a real audience, and that changes everything. Knowing someone will see it, kids care more and try harder. Being chosen tells a child their ideas matter, and that belief outlasts the creation. Families in reviews describe kids proudly showing their printed page to relatives and classmates, and creations are also shared to the <a href=\"/pages/gallery\" title=\"live gallery\">live gallery</a>.</p>"
           }
         },
         "qa_45_why_does_giving_a_kid_a_voice_matter": {
@@ -373,21 +802,39 @@
           "type": "qa",
           "settings": {
             "question": "Isn't my kid too old for this?",
-            "answer": "<p>Interestingly, the magazine has been 'aging up' lately, with submissions rolling in from teenagers. It's been fun to see. So, the spread is now from 4 years old to around 16. Incredible!</p><p>---</p>"
+            "answer": "<p>Interestingly, the magazine has been 'aging up' lately, with submissions rolling in from teenagers. It's been fun to see. So, the spread is now from 4 years old to around 16. Incredible!</p>"
           }
         }
       },
       "block_order": [
+        "cat_about_the_mag",
+        "v4_a_what",
+        "v4_a_who",
+        "qa_38_what_s_actually_inside_it_is_it_really_a",
+        "v4_a_diff",
+        "qa_36_what_age_group_is_theinmag_for",
+        "v4_a_legit",
+        "v4_a_reviews",
+        "v4_a_adfree",
+        "v4_a_aussie",
+        "v4_a_sustain",
+        "qa_39_what_s_the_difference_between_print_and_",
+        "v4_a_mag09",
         "cat_sending_in",
         "qa_01_how_does_my_kid_get_published_in_theinma",
+        "v4_a_where",
         "qa_02_where_and_how_do_we_send_in_a_drawing_or",
+        "v4_send_what_can",
         "qa_03_can_my_grandkids_send_in_their_creations",
         "qa_04_is_my_child_too_old_or_too_young_to_subm",
         "qa_05_what_happens_after_we_hit_submit",
         "qa_06_what_if_our_creation_isn_t_picked",
         "qa_07_is_this_safe_for_my_kid",
         "qa_08_can_i_take_my_kid_s_creation_down_later",
+        "v4_send_owns",
         "cat_membership",
+        "v4_mem_how",
+        "v4_mem_cost",
         "qa_09_i_only_meant_to_order_once_will_i_be_cha",
         "qa_10_i_bought_a_4_issue_or_8_issue_membership",
         "qa_11_will_my_child_definitely_get_all_the_iss",
@@ -397,6 +844,7 @@
         "qa_15_my_membership_is_running_out_how_do_i_re",
         "qa_16_how_often_does_the_magazine_come_out_how",
         "qa_17_what_if_my_kid_already_has_the_current_i",
+        "v4_mem_refund",
         "cat_delivery_and_your_order",
         "qa_18_where_is_my_magazine_when_should_it_arri",
         "qa_19_can_i_get_a_tracking_number_or_link",
@@ -405,25 +853,68 @@
         "qa_22_my_mags_went_to_our_old_address_can_they",
         "qa_23_how_do_i_update_my_delivery_address",
         "qa_24_i_didn_t_get_an_order_confirmation_did_m",
+        "v4_del_back",
+        "v4_del_shop",
         "cat_gifts",
+        "v4_gift_birthday",
+        "v4_gift_xmas",
         "qa_25_how_do_i_gift_a_membership_to_my_grandch",
         "qa_26_can_you_time_the_first_issue_to_arrive_j",
         "qa_27_can_i_add_a_gift_note",
         "qa_28_i_forgot_to_enter_the_child_s_address_ca",
         "qa_29_will_they_get_the_current_issue_or_the_n",
+        "cat_international",
+        "qa_40_do_you_ship_overseas",
+        "v4_i_expat",
+        "v4_i_grandparent",
+        "v4_i_travel",
         "cat_schools_and_teachers",
+        "v4_t_use",
+        "v4_t_examples",
+        "v4_t_mentor",
+        "v4_t_persuasive",
+        "v4_t_jobs",
+        "v4_t_curric",
+        "qa_34_do_you_have_resources_for_the_classroom_",
+        "v4_t_bulk",
+        "qa_35_can_we_get_a_digital_copy_to_share_acros",
+        "v4_t_students",
+        "v4_t_visit",
         "qa_30_can_i_get_a_tax_invoice_or_pdf_receipt",
         "qa_31_can_we_order_with_a_purchase_order",
         "qa_32_we_need_to_set_you_up_as_a_supplier_or_f",
         "qa_33_we_subscribed_but_have_only_had_some_iss",
-        "qa_34_do_you_have_resources_for_the_classroom_",
-        "qa_35_can_we_get_a_digital_copy_to_share_acros",
-        "cat_about_the_mag",
-        "qa_36_what_age_group_is_theinmag_for",
-        "qa_37_how_often_does_it_come_out",
-        "qa_38_what_s_actually_inside_it_is_it_really_a",
-        "qa_39_what_s_the_difference_between_print_and_",
-        "qa_40_do_you_ship_overseas",
+        "v4_t_stock",
+        "cat_homeschool",
+        "v4_h_resource",
+        "v4_h_portfolio",
+        "v4_h_publish",
+        "cat_parents",
+        "v4_p_drawing",
+        "v4_p_writing",
+        "v4_p_reluctant",
+        "v4_p_author",
+        "v4_p_share",
+        "v4_p_screen",
+        "cat_free",
+        "v4_f_free",
+        "v4_f_sample",
+        "v4_f_world",
+        "v4_f_print",
+        "v4_f_news",
+        "v4_f_comps",
+        "v4_f_workshops",
+        "cat_ideas",
+        "v4_g_writing",
+        "v4_g_art",
+        "v4_g_writecomp",
+        "v4_g_artcomp",
+        "v4_g_reluctant",
+        "v4_g_activities",
+        "v4_g_display",
+        "v4_g_age8",
+        "v4_g_draw",
+        "v4_g_safe",
         "cat_why_theinmag",
         "qa_41_does_creativity_actually_help_my_kid_lea",
         "qa_42_what_is_a_rich_open_task_and_why_does_it",
