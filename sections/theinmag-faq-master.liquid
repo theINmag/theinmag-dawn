@@ -179,8 +179,8 @@
           {%- if group_open -%}</div></section>{%- endif -%}
           <section class="theinmag-faqm__group" aria-label="{{ block.settings.name | escape }}">
             {%- comment -%} Brand-pun IN lift (design system 5.4, .theinmag-in in base.css): the Post
-                 font's uppercase flattens "theINmag" and "Send IN", so the IN is wrapped. {%- endcomment -%}
-            <h2 class="theinmag-faqm__group-title">{{ block.settings.name | replace: 'theINmag', 'the<span class="theinmag-in">IN</span>mag' | replace: 'Sending IN', 'Sending <span class="theinmag-in">IN</span>' }}</h2>
+                 font's uppercase flattens "theINmag", so its IN is wrapped. ONLY inside theINmag (Ryan, 4 Oct 2026). {%- endcomment -%}
+            <h2 class="theinmag-faqm__group-title">{{ block.settings.name | replace: 'theINmag', 'the<span class="theinmag-in">IN</span>mag' }}</h2>
             <div class="theinmag-faqm__list">
           {%- assign group_open = true -%}
         {%- elsif block.type == 'qa' -%}
