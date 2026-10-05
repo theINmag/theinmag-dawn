@@ -49,6 +49,7 @@
   assign auto_rjrp_cap = section.settings.auto_rjrp_cap | default: 1
   assign auto_pool_size = section.settings.auto_pool_size | default: 8
   assign auto_take = section.settings.auto_take | default: 4
+  assign auto_topic_cap = section.settings.auto_topic_cap | default: 2
 
   assign auto_handles_csv = ''
   assign auto_pool_count = 0
@@ -106,9 +107,12 @@
 
   assign auto_pool_handles = auto_handles_csv | split: '|'
 
-  # Build the rotated render list: take auto_take handles starting at
-  # offset = minute-of-hour mod pool.size, wrapping. Newest-first bias
-  # preserved; cards refresh across visits as the minute rotates.
+  # Build the rotated render list: walk the pool circularly from
+  # offset = minute-of-hour mod pool.size and take auto_take handles,
+  # skipping any article whose primary topic already has auto_topic_cap
+  # cards in the window. Without the cap a batch of same-topic posts
+  # (the 31 Aug Real Kids Voices drop) filled all four cards; the
+  # homepage must show the blog's RANGE, not one series.
   assign auto_render_csv = ''
   if auto_pool_handles.size > 0
     assign actual_take = auto_take
@@ -117,16 +121,47 @@
     endif
     assign minute_seed = 'now' | date: '%M' | times: 1
     assign rot_offset = minute_seed | modulo: auto_pool_handles.size
-    for slot_n in (1..actual_take)
-      assign slot_idx = forloop.index0
-      assign pool_idx = rot_offset | plus: slot_idx | modulo: auto_pool_handles.size
+    assign chosen_count = 0
+    assign chosen_topics = ''
+    for step_n in (1..auto_pool_handles.size)
+      if chosen_count >= actual_take
+        break
+      endif
+      assign pool_idx = rot_offset | plus: forloop.index0 | modulo: auto_pool_handles.size
       assign h = auto_pool_handles[pool_idx]
+      assign cand = auto_target_blog.articles | where: 'handle', h | first
+      assign cand_topic = cand.metafields.field_notes.primary_topic
+      if cand_topic == blank
+        assign cand_topic = cand.tags.first | default: 'other'
+      endif
+      assign topic_key = '[[' | append: cand_topic | append: ']]'
+      assign stripped = chosen_topics | replace: topic_key, ''
+      assign topic_used = chosen_topics.size | minus: stripped.size | divided_by: topic_key.size
+      if topic_used >= auto_topic_cap
+        continue
+      endif
+      assign chosen_topics = chosen_topics | append: topic_key
+      assign chosen_count = chosen_count | plus: 1
       if auto_render_csv == ''
         assign auto_render_csv = h
       else
         assign auto_render_csv = auto_render_csv | append: '|' | append: h
       endif
     endfor
+    # If the cap left slots empty (tiny blog), top up in pool order.
+    if chosen_count < actual_take
+      for h in auto_pool_handles
+        if chosen_count >= actual_take
+          break
+        endif
+        assign probe = '|' | append: h | append: '|'
+        assign wrapped = '|' | append: auto_render_csv | append: '|'
+        unless wrapped contains probe
+          assign auto_render_csv = auto_render_csv | append: '|' | append: h
+          assign chosen_count = chosen_count | plus: 1
+        endunless
+      endfor
+    endif
   endif
 
   assign auto_render_handles = auto_render_csv | split: '|'
@@ -246,6 +281,8 @@
                   <img
                     class="theinmag-blog-feed__image"
                     src="{{ image_src }}"
+                    srcset="{{ article.image | image_url: width: 480 }} 480w, {{ article.image | image_url: width: 720 }} 720w, {{ article.image | image_url: width: 960 }} 960w, {{ article.image | image_url: width: 1200 }} 1200w"
+                    sizes="(min-width: 990px) 25vw, (min-width: 600px) 50vw, 100vw"
                     alt="{{ image_alt | escape }}"
                     loading="lazy"
                     width="1200"
@@ -929,11 +966,21 @@
       "type": "range",
       "id": "auto_pool_size",
       "label": "Pool size (newest N to choose from)",
-      "info": "Window rotation picks 'take' cards from the pool of N newest matches.",
+      "info": "Window rotation picks 'take' cards from the pool of N newest matches. Keep this deep enough (20+) to reach past a same-day batch of posts.",
       "min": 4,
-      "max": 20,
+      "max": 40,
       "step": 1,
-      "default": 8
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "auto_topic_cap",
+      "label": "Max cards per topic",
+      "info": "Caps how many cards share one primary topic (field_notes.primary_topic) so a batch of same-series posts cannot fill the row.",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 2
     },
     {
       "type": "range",
