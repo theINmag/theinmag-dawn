@@ -248,6 +248,20 @@
     .theinmag-hero__pane { aspect-ratio: auto; }
   }
 
+  /* Below the desktop split the pane is sized by aspect ratio alone, so on
+     any viewport shorter than 1.25x its width (phone landscape, split-screen
+     windows, the 650x773 app pane that caught this on 2026-10-05) the hero
+     ran past the fold and the headline + CTAs sat out of sight. Cap the pane
+     to the first screen; the artwork crops (object-fit: cover) and the
+     bottom-anchored content stays visible. The floor keeps room for the
+     headline, subhead and two CTAs on very short viewports. */
+  @media (max-width: 989px) {
+    .theinmag-hero__pane {
+      max-height: calc(100svh - 120px);
+      min-height: 440px;
+    }
+  }
+
   /* Mobile: hide the kid-reading photo (left pane). Artwork is the
      only hero image; text overlays it directly. */
   @media (max-width: 989px) {

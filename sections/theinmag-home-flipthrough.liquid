@@ -707,6 +707,10 @@
           leafTurn.style.transform = 'rotateY(0deg)';
           leafTurn.style.boxShadow = '';
         }
+        // Drop the overlay pictures so a later flick can never flash the
+        // spread from the PREVIOUS turn while its new halves are decoding.
+        if (leafStaticImg) leafStaticImg.removeAttribute('src');
+        if (leafTurnImg) leafTurnImg.removeAttribute('src');
         busy = false;
       }
 
@@ -730,17 +734,19 @@
           return;
         }
 
-        // Paint both halves of the OUTGOING spread over the frame as real
-        // <img>s (no transition yet). The outgoing base stays visible beneath
-        // until the covers are decoded, so nothing can flash through.
-        var src = out.getAttribute('src');
+        // Load both halves of the OUTGOING spread into the overlay <img>s but
+        // keep the overlays HIDDEN until they have decoded. An <img> keeps
+        // painting its old picture until a new src is ready, so showing the
+        // overlays first flashed the previous turn's spread for a few frames
+        // (the "flickers back a page" glitch). Use the exact candidate the
+        // base is already displaying so the decode is a cache hit.
+        var src = out.currentSrc || out.getAttribute('src');
         leafStatic.style.transition = 'none';
         leafTurn.style.transition = 'none';
-        leafStatic.style.opacity = '1';
-        leafTurn.style.opacity = '1';
+        leafStatic.style.opacity = '0';
+        leafTurn.style.opacity = '0';
         leafTurn.style.transform = 'rotateY(0deg)';
-        leafStaticImg.src = src;
-        leafTurnImg.src = src;
+        leafTurn.style.boxShadow = '';
         if (dir > 0) {
           // Next: the RIGHT page lifts; the LEFT half is held static.
           leafStatic.style.left = '0';
@@ -756,19 +762,28 @@
           leafTurnImg.style.left = '0';
           leafTurn.style.transformOrigin = 'right center';
         }
-        void leafTurn.offsetWidth;
+        leafStaticImg.src = src;
+        leafTurnImg.src = src;
 
-        // Reveal the incoming spread only after BOTH cover halves are decoded
-        // and a frame has painted. Awaiting the real overlay <img>s (not a
-        // throwaway probe) is what finally kills the intermittent flash; a 500ms
-        // safety means it can never stall (e.g. rAF paused on a hidden tab).
         var revealed = false;
+        var commit = function () {
+          i = to;
+          update();
+          warm(to + 1);
+          warm(to - 1);
+        };
+        // Turn path: overlays are decoded. Show them (still no transition),
+        // swap the base beneath in the same frame, then start the turn.
         var reveal = function () {
           if (revealed) return;
           revealed = true;
+          leafStatic.style.opacity = '1';
+          leafTurn.style.opacity = '1';
+          void leafTurn.offsetWidth;
           inn.classList.remove('is-parked');
           inn.classList.add('is-active');
           out.classList.remove('is-active');
+          void leafTurn.offsetWidth;
 
           leafStatic.style.transition = '';
           leafTurn.style.transition = '';
@@ -778,12 +793,19 @@
           leafTurn.style.boxShadow = dir > 0
             ? '-20px 0 30px rgba(42, 31, 61, 0.20)'
             : '20px 0 30px rgba(42, 31, 61, 0.20)';
-
-          i = to;
-          update();
-          warm(to + 1);
-          warm(to - 1);
+          commit();
           window.setTimeout(function () { finishFlip(out); }, 640);
+        };
+        // Safety path: decode did not resolve in time (hidden tab, slow
+        // network). Swap cleanly with NO overlays rather than risk a flash.
+        var plainSwap = function () {
+          if (revealed) return;
+          revealed = true;
+          inn.classList.remove('is-parked');
+          inn.classList.add('is-active');
+          out.classList.remove('is-active');
+          commit();
+          finishFlip(out);
         };
         var afterDecode = function () {
           window.requestAnimationFrame(function () {
@@ -798,7 +820,7 @@
         } else {
           window.setTimeout(afterDecode, 60);
         }
-        window.setTimeout(reveal, 500);
+        window.setTimeout(plainSwap, 700);
       }
 
       if (prev) prev.addEventListener('click', function () { go(-1); });
