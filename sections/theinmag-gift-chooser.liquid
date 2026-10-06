@@ -1,21 +1,32 @@
 {%- comment -%}
   theinmag-gift-chooser
   The decision section of /pages/gifts. Three white cards on a warm
-  wave-peach field (Print Membership, Digital Membership, a single
-  mag), then a cream "how gifting works" panel with three numbered
-  steps and a seasonal Christmas order-by line.
+  wave-peach field (Print Membership, the Digital Stack, a single mag),
+  then a cream "how gifting works" panel with three numbered steps and
+  a seasonal Christmas order-by line.
 
   Every price on this section is LIVE: the Membership variant prices
-  come off all_products['membership'] and the single-mag card follows
-  the highest-numbered issue whose PRINT variant is in stock and which
-  is not a pre-order (the same rule as theinmag-funnel-strip), so it
-  never headlines a sold-out issue and nothing here goes stale at a
-  drop. No issue number, price or date is typed into copy.
+  come off all_products['membership'], the Stack price and the issue
+  count off the Digital Stack product and the issues collection, and
+  the single-mag card follows the highest-numbered issue whose PRINT
+  variant is in stock and which is not a pre-order (the same rule as
+  theinmag-funnel-strip), so it never headlines a sold-out issue and
+  nothing here goes stale at a drop. No issue number, price, count or
+  date is typed into copy.
+
+  Card 1 leads with the Rolling price (Ryan, 7 Oct 2026: Rolling is the
+  Membership we want gift-givers on; 4 and 8 issue lock-ins are offered
+  underneath). Card 2 is the Digital Stack rather than a digital
+  Membership (every issue, instant, best margin, simplest to fulfil).
 
   Yellow stamp appears once (the lead card). The other two cards use
   the outlined purple secondary so the hierarchy reads at a glance.
   Decision cards STACK on phones rather than riding a scroll rail:
   a buyer has to compare all three, and a rail hides two of them.
+
+  Optional kid-pattern field: set bg_filename to an /assets/ image and
+  it paints over the wave-peach at bg_opacity (a <span>, never an empty
+  <div>, because Dawn hides empty divs).
 
   Christmas line shows 1 Oct to 20 Dec only (same window as
   theinmag-faq-master's [christmas_line]); tighten the wording in
@@ -30,31 +41,38 @@
   assign intro = section.settings.intro
 
   assign membership = all_products['membership']
+  assign price_rolling = ''
   assign price_print_4 = ''
   assign price_print_8 = ''
-  assign price_digital_4 = ''
-  assign digital_image = blank
   for v in membership.variants
-    if v.option1 == 'Print' and v.option2 == '4-Issue'
+    if v.option1 == 'Print' and v.option2 == 'Rolling'
+      assign price_rolling = v.price | money_without_trailing_zeros
+    elsif v.option1 == 'Print' and v.option2 == '4-Issue'
       assign price_print_4 = v.price | money_without_trailing_zeros
     elsif v.option1 == 'Print' and v.option2 == '8-Issue'
       assign price_print_8 = v.price | money_without_trailing_zeros
-    elsif v.option1 == 'Digital' and v.option2 == '4-Issue'
-      assign price_digital_4 = v.price | money_without_trailing_zeros
-      if v.featured_image != blank
-        assign digital_image = v.featured_image
-      endif
     endif
   endfor
   assign print_image = membership.featured_image
 
+  assign stack_handle = section.settings.stack_handle | default: 'digital-stack'
+  assign stack = all_products[stack_handle]
+  assign stack_price = ''
+  if stack != blank and stack.id != blank
+    assign stack_price = stack.price | money_without_trailing_zeros
+  endif
+
   assign issues_collection = section.settings.issues_collection | default: 'single-issues'
+  assign stack_count = 0
   assign current_product = null
   assign current_best_num = 0
   assign current_price = ''
   for p in collections[issues_collection].products
     assign p_num = p.metafields.single_mag.issue_number.value | plus: 0
     assign p_pre = p.metafields.theinmag.is_pre_order | default: false
+    if p_num > 0 and p_pre == false
+      assign stack_count = stack_count | plus: 1
+    endif
     if p_num > 0 and p_pre == false and p_num > current_best_num
       assign p_print_price = ''
       for v in p.variants
@@ -78,7 +96,8 @@
   assign single_link = section.settings.single_link | default: '/pages/shop'
 
   assign lead_points = section.settings.lead_points | newline_to_br | split: '<br />'
-  assign digital_points = section.settings.digital_points | newline_to_br | split: '<br />'
+  assign stack_points_raw = section.settings.stack_points | replace: '[count]', stack_count
+  assign stack_points = stack_points_raw | newline_to_br | split: '<br />'
   assign single_points = section.settings.single_points | newline_to_br | split: '<br />'
 
   assign xmas_month = 'now' | date: '%m' | times: 1
@@ -92,6 +111,12 @@
     endif
   endif
 
+  assign bg_src = ''
+  if section.settings.bg_filename != blank
+    assign bg_src = section.settings.bg_filename | strip | asset_url
+  endif
+  assign bg_opacity = section.settings.bg_opacity | default: 35 | times: 0.01
+
   assign section_style = '--tgc-pt: ' | append: section.settings.padding_top | append: 'px; --tgc-pb: ' | append: section.settings.padding_bottom | append: 'px;'
 -%}
 
@@ -101,6 +126,10 @@
   aria-labelledby="theinmag-gift-chooser-heading"
   style="{{ section_style }}"
 >
+  {%- if bg_src != blank -%}
+    <span class="theinmag-gift-chooser__bg" aria-hidden="true" style="--tgc-bg: url('{{ bg_src }}'); --tgc-bg-opacity: {{ bg_opacity }};"></span>
+  {%- endif -%}
+
   <div class="theinmag-gift-chooser__inner">
 
     <header class="theinmag-gift-chooser__head">
@@ -132,12 +161,12 @@
         <div class="theinmag-gift-chooser__body">
           <p class="theinmag-gift-chooser__card-eyebrow">{{ section.settings.lead_eyebrow }}</p>
           <h3 class="theinmag-gift-chooser__card-title">{{ section.settings.lead_title }}</h3>
-          {%- if price_print_4 != blank -%}
+          {%- if price_rolling != blank -%}
             <p class="theinmag-gift-chooser__price">
-              <strong class="theinmag-gift-chooser__amount">{{ price_print_4 }}</strong>
-              <span class="theinmag-gift-chooser__price-note">for 4 mags, shipping included</span>
-              {%- if price_print_8 != blank -%}
-                <span class="theinmag-gift-chooser__price-alt">or {{ price_print_8 }} for 8</span>
+              <strong class="theinmag-gift-chooser__amount">{{ price_rolling }}</strong>
+              <span class="theinmag-gift-chooser__price-note">an issue, shipping included</span>
+              {%- if price_print_4 != blank and price_print_8 != blank -%}
+                <span class="theinmag-gift-chooser__price-alt">Billed before each mag, stop any time. Or lock in 4 for {{ price_print_4 }}, 8 for {{ price_print_8 }}.</span>
               {%- endif -%}
             </p>
           {%- endif -%}
@@ -147,42 +176,45 @@
               {%- if pt != blank -%}<li>{{ pt }}</li>{%- endif -%}
             {%- endfor -%}
           </ul>
-          <a class="theinmag-btn theinmag-btn--primary theinmag-gift-chooser__cta" href="/products/membership?fmt=Print&length=4-Issue">{{ section.settings.lead_cta }}</a>
+          <a class="theinmag-btn theinmag-btn--primary theinmag-gift-chooser__cta" href="/products/membership?fmt=Print&length=Rolling">{{ section.settings.lead_cta }}</a>
         </div>
       </li>
 
+      {%- if stack != blank and stack.id != blank -%}
       <li class="theinmag-gift-chooser__card">
         <div class="theinmag-gift-chooser__media">
-          {%- if digital_image != blank -%}
+          {%- if stack.featured_image != blank -%}
+            {%- assign stack_image = stack.featured_image -%}
             <img
-              src="{{ digital_image | image_url: width: 900 }}"
-              srcset="{{ digital_image | image_url: width: 480 }} 480w, {{ digital_image | image_url: width: 900 }} 900w, {{ digital_image | image_url: width: 1200 }} 1200w"
+              src="{{ stack_image | image_url: width: 900 }}"
+              srcset="{{ stack_image | image_url: width: 480 }} 480w, {{ stack_image | image_url: width: 900 }} 900w, {{ stack_image | image_url: width: 1200 }} 1200w"
               sizes="(min-width: 990px) 30vw, 100vw"
-              width="{{ digital_image.width }}"
-              height="{{ digital_image.height }}"
-              alt="{{ section.settings.digital_image_alt | escape }}"
+              width="{{ stack_image.width }}"
+              height="{{ stack_image.height }}"
+              alt="{{ section.settings.stack_image_alt | escape }}"
               loading="lazy"
             >
           {%- endif -%}
         </div>
         <div class="theinmag-gift-chooser__body">
-          <p class="theinmag-gift-chooser__card-eyebrow">{{ section.settings.digital_eyebrow }}</p>
-          <h3 class="theinmag-gift-chooser__card-title">{{ section.settings.digital_title }}</h3>
-          {%- if price_digital_4 != blank -%}
+          <p class="theinmag-gift-chooser__card-eyebrow">{{ section.settings.stack_eyebrow }}</p>
+          <h3 class="theinmag-gift-chooser__card-title">{{ section.settings.stack_title }}</h3>
+          {%- if stack_price != blank -%}
             <p class="theinmag-gift-chooser__price">
-              <strong class="theinmag-gift-chooser__amount">{{ price_digital_4 }}</strong>
-              <span class="theinmag-gift-chooser__price-note">for 4 mags, emailed</span>
+              <strong class="theinmag-gift-chooser__amount">{{ stack_price }}</strong>
+              <span class="theinmag-gift-chooser__price-note">once, for every issue so far</span>
             </p>
           {%- endif -%}
           <ul class="theinmag-gift-chooser__points" role="list">
-            {%- for point in digital_points -%}
+            {%- for point in stack_points -%}
               {%- assign pt = point | strip -%}
               {%- if pt != blank -%}<li>{{ pt }}</li>{%- endif -%}
             {%- endfor -%}
           </ul>
-          <a class="theinmag-btn theinmag-btn--secondary theinmag-gift-chooser__cta" href="/products/membership?fmt=Digital&length=4-Issue">{{ section.settings.digital_cta }}</a>
+          <a class="theinmag-btn theinmag-btn--secondary theinmag-gift-chooser__cta" href="{{ stack.url }}">{{ section.settings.stack_cta }}</a>
         </div>
       </li>
+      {%- endif -%}
 
       <li class="theinmag-gift-chooser__card">
         <div class="theinmag-gift-chooser__media">
@@ -257,9 +289,24 @@
     color: var(--color-inky-purple-navy);
     padding: var(--tgc-pt, 72px) clamp(20px, 5vw, 64px) var(--tgc-pb, 72px);
     position: relative;
+    overflow: hidden;
+  }
+
+  .theinmag-gift-chooser__bg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background-image: var(--tgc-bg);
+    background-size: cover;
+    background-position: center;
+    opacity: var(--tgc-bg-opacity, 0.35);
+    pointer-events: none;
+    z-index: 0;
   }
 
   .theinmag-gift-chooser__inner {
+    position: relative;
+    z-index: 1;
     max-width: 1180px;
     margin: 0 auto;
   }
@@ -386,6 +433,7 @@
   .theinmag-gift-chooser__price-alt {
     flex-basis: 100%;
     font-size: 13.5px;
+    line-height: 1.5;
     color: rgba(42, 31, 61, 0.62);
   }
 
@@ -413,13 +461,16 @@
     color: var(--color-sage-dark);
   }
 
-  .theinmag-gift-chooser__cta {
+  .theinmag-gift-chooser__body .theinmag-gift-chooser__cta {
     margin-top: auto;
     padding-top: 0;
   }
 
-  .theinmag-gift-chooser__body .theinmag-gift-chooser__cta {
+  .theinmag-gift-chooser__body .theinmag-gift-chooser__points + .theinmag-gift-chooser__cta {
     margin-top: 22px;
+  }
+
+  .theinmag-gift-chooser__body .theinmag-gift-chooser__cta {
     width: 100%;
     justify-content: center;
     text-align: center;
@@ -546,24 +597,28 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Prices and the single-mag issue are read live from the products. Nothing here needs editing at a drop."
+      "content": "Prices, the Stack's issue count and the single-mag issue are read live from the products. Nothing here needs editing at a drop."
     },
     { "type": "header", "content": "Heading" },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Pick the gift" },
     { "type": "text", "id": "heading", "label": "Heading (question form)", "default": "Which gift suits them?" },
     { "type": "textarea", "id": "intro", "label": "Intro line", "default": "Three ways to give it. Every one is made by Aussie kids, ad-free, and theirs to keep." },
+    { "type": "header", "content": "Field background (optional)" },
+    { "type": "text", "id": "bg_filename", "label": "Kid pattern filename in /assets/", "info": "Paints over the peach field. Leave blank for the plain field." },
+    { "type": "range", "id": "bg_opacity", "label": "Pattern opacity", "min": 5, "max": 100, "step": 5, "unit": "%", "default": 35 },
     { "type": "header", "content": "Card 1: Print Membership (yellow)" },
     { "type": "text", "id": "lead_eyebrow", "label": "Eyebrow", "default": "Most gift-givers pick this" },
     { "type": "text", "id": "lead_title", "label": "Title", "default": "Print Membership" },
     { "type": "textarea", "id": "lead_points", "label": "Points (one per line)", "default": "Posted to the child in February, June and October\nArrives with their name on it\nYour message goes in with the first mag" },
-    { "type": "text", "id": "lead_cta", "label": "Button label", "default": "Give a Print Membership" },
+    { "type": "text", "id": "lead_cta", "label": "Button label", "default": "Give a Membership" },
     { "type": "text", "id": "lead_image_alt", "label": "Image alt text", "default": "A hand holding a fanned stack of printed theINmag issues." },
-    { "type": "header", "content": "Card 2: Digital Membership" },
-    { "type": "text", "id": "digital_eyebrow", "label": "Eyebrow", "default": "Last-minute? Emailed in minutes" },
-    { "type": "text", "id": "digital_title", "label": "Title", "default": "Digital Membership" },
-    { "type": "textarea", "id": "digital_points", "label": "Points (one per line)", "default": "The current issue lands in your inbox within minutes\nForward it, or print a page to tuck into the card\nA new issue each drop, on any screen" },
-    { "type": "text", "id": "digital_cta", "label": "Button label", "default": "Give a Digital Membership" },
-    { "type": "text", "id": "digital_image_alt", "label": "Image alt text", "default": "Two kids reading a digital issue of theINmag on a tablet." },
+    { "type": "header", "content": "Card 2: the Digital Stack" },
+    { "type": "text", "id": "stack_handle", "label": "Stack product handle", "default": "digital-stack" },
+    { "type": "text", "id": "stack_eyebrow", "label": "Eyebrow", "default": "Last-minute? Every issue, in minutes" },
+    { "type": "text", "id": "stack_title", "label": "Title", "default": "The Digital Stack" },
+    { "type": "textarea", "id": "stack_points", "label": "Points (one per line, [count] = live issue count)", "default": "All [count] issues as PDFs, emailed within minutes\nForward it to the family, or print a page for the card\nTheirs to keep, on any screen" },
+    { "type": "text", "id": "stack_cta", "label": "Button label", "default": "Give the Digital Stack" },
+    { "type": "text", "id": "stack_image_alt", "label": "Image alt text", "default": "The Digital Stack: every issue of theINmag on a tablet." },
     { "type": "header", "content": "Card 3: single mag (live issue)" },
     { "type": "text", "id": "single_eyebrow", "label": "Eyebrow", "default": "Try one first" },
     { "type": "text", "id": "single_title", "label": "Title", "default": "A single mag" },

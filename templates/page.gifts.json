@@ -17,7 +17,7 @@
         "aeo_h1_text": "Gift a kids magazine Membership in Australia: theINmag is made by kids, ad-free, and posted to the child three times a year",
         "headline": "A gift with\ntheir name on it",
         "emphasis_word": "name",
-        "subhead": "A real magazine, posted to the child three times a year. Made by Aussie kids, ad-free, theirs to keep.",
+        "subhead": "A real magazine, posted to your special child three times a year. Filled with ideas by real Aussie kids, ad-free, theirs to keep.",
         "cta_primary_label": "Last-minute? Go digital",
         "cta_primary_link": "/products/membership?fmt=Digital&length=4-Issue",
         "cta_secondary_label": "Give a Membership",
@@ -71,11 +71,16 @@
           "settings": {
             "short_name": "A mag they could be in",
             "headline": "Every page is by a real Aussie kid. Theirs could be next.",
-            "body": "Members get first dibs to send [[IN]] a drawing, story or joke for the next issue, free. If it is published, their first name, town and age go in print. That is usually the bit they remember."
+            "body": "Members get first dibs to send in a drawing, story or joke for the next issue, free. If it is published, their first name, town and age go in print. That is usually the bit they remember."
           }
         }
       },
-      "block_order": ["p1", "p2", "p3", "p4"]
+      "block_order": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ]
     },
     "chooser": {
       "type": "theinmag-gift-chooser",
@@ -86,13 +91,8 @@
         "lead_eyebrow": "Most gift-givers pick this",
         "lead_title": "Print Membership",
         "lead_points": "Posted to the child in February, June and October\nArrives with their name on it\nYour message goes in with the first mag",
-        "lead_cta": "Give a Print Membership",
+        "lead_cta": "Give a Membership",
         "lead_image_alt": "A hand holding a fanned stack of printed theINmag issues.",
-        "digital_eyebrow": "Last-minute? Emailed in minutes",
-        "digital_title": "Digital Membership",
-        "digital_points": "The current issue lands in your inbox within minutes\nForward it, or print a page to tuck into the card\nA new issue each drop, on any screen",
-        "digital_cta": "Give a Digital Membership",
-        "digital_image_alt": "Two kids reading a digital issue of theINmag on a tablet.",
         "single_eyebrow": "Try one first",
         "single_title": "A single mag",
         "single_points": "A real magazine to wrap\nPosts within three business days\nEvery page by a real Aussie kid",
@@ -109,7 +109,14 @@
         "show_xmas": true,
         "xmas_line": "Christmas: order by around 15 December for standard delivery in time. We confirm the exact date once Australia Post publishes its send-by dates.",
         "padding_top": 72,
-        "padding_bottom": 72
+        "padding_bottom": 72,
+        "stack_handle": "digital-stack",
+        "stack_eyebrow": "Last-minute? Every issue, in minutes",
+        "stack_title": "The Digital Stack",
+        "stack_points": "All [count] issues as PDFs, emailed within minutes\nForward it to the family, or print a page for the card\nTheirs to keep, on any screen",
+        "stack_cta": "Give the Digital Stack",
+        "stack_image_alt": "The Digital Stack: every issue of theINmag on a tablet.",
+        "bg_opacity": 35
       }
     },
     "pull_quote": {
@@ -163,7 +170,7 @@
           "type": "faq_item",
           "settings": {
             "question": "Can you time the first mag to land before a birthday?",
-            "answer": "<p>Tell us the date in the order notes and we will do our best to have the first mag arrive just before it.</p><p>If the day is very close, choose digital. It is emailed within minutes, and you can print a favourite page to tuck into the card.</p>"
+            "answer": "<p>Tell us the date in the order notes and we will do our best to have the first mag arrive just before it.</p><p>If the day is very close, give the Digital Stack. It is emailed within minutes, and you can print a favourite page to tuck into the card.</p>"
           }
         },
         "q5": {
@@ -177,7 +184,7 @@
           "type": "faq_item",
           "settings": {
             "question": "What is the best last-minute gift option?",
-            "answer": "<p>Digital. The current issue is emailed to you within minutes of ordering, so you can forward it to the family or print a page for the card. A Digital Membership then lands in the inbox at every drop.</p>"
+            "answer": "<p>The Digital Stack. Every issue so far as PDFs, emailed to you within minutes of ordering, so you can forward it to the family or print a page for the card. Theirs to keep, nothing to renew.</p>"
           }
         },
         "q7": {
@@ -202,8 +209,25 @@
           }
         }
       },
-      "block_order": ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9"]
+      "block_order": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6",
+        "q7",
+        "q8",
+        "q9"
+      ]
     }
   },
-  "order": ["page_meta", "hero", "pillars", "chooser", "pull_quote", "faq"]
+  "order": [
+    "page_meta",
+    "hero",
+    "pillars",
+    "chooser",
+    "pull_quote",
+    "faq"
+  ]
 }
