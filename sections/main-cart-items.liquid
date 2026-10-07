@@ -24,6 +24,8 @@
   <script src="{{ 'cart.js' | asset_url }}" defer="defer"></script>
 {%- endunless -%}
 
+{%- render 'theinmag-membership-plan-guard' -%}
+
 <script src="{{ 'quantity-popover.js' | asset_url }}" defer="defer"></script>
 
 <cart-items class="gradient color-{{ section.settings.color_scheme }} isolate{% if cart == empty %} is-empty{% else %} section-{{ section.id }}-padding{% endif %}">
@@ -36,6 +38,7 @@
     <div class="theinmag-main-cart__shipping-bar-wrap">
       {% render 'theinmag-cart-shipping-bar' %}
     </div>
+
     <div class="title-wrapper-with-link">
       <h1 class="title title--primary">{{ 'sections.cart.title' | t }}</h1>
       <a href="/pages/shop" class="underlined-link">
@@ -518,6 +521,8 @@
         {{ 'accessibility.loading' | t }}
       </p>
     </form>
+
+    {% render 'theinmag-cart-presale-combine' %}
   </div>
 </cart-items>
 

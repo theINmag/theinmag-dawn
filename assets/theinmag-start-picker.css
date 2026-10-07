@@ -32,12 +32,16 @@
   border: 1.5px solid var(--color-soft-pink);
   border-radius: 22px;
   box-shadow: 0 24px 60px rgba(42, 31, 61, 0.30), 0 6px 18px rgba(42, 31, 61, 0.14);
-  padding: clamp(18px, 4vw, 30px);
+  /* Compacted 2026-10-01 (Ryan): the confirm button must sit inside the
+     viewport on open at 1440x800 and on a small phone. Padding, gaps, tile
+     size and chip padding all came down; no font size did. */
+  padding: clamp(14px, 3vw, 22px);
   max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: 12px;
 }
 .theinmag-start-picker__close {
   position: absolute;
@@ -69,7 +73,7 @@
   padding-left: 28px;
 }
 .theinmag-start-picker__eyebrow {
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 11px;
@@ -78,7 +82,7 @@
   color: var(--color-purple-dark);
 }
 .theinmag-start-picker__title {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   font-family: var(--font-heading);
   font-weight: 400;
   font-size: clamp(24px, 4vw, 32px);
@@ -103,8 +107,15 @@
 }
 .theinmag-start-picker__tiles[data-count='2'] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  max-width: 400px;
+  max-width: 320px;
   margin: 0 auto;
+  width: 100%;
+}
+/* Single mode: one start, so one tile, held to the width of a tile in the
+   three-up layout rather than a poster. */
+.theinmag-start-picker__tiles[data-count='1'] {
+  grid-template-columns: minmax(0, 160px);
+  justify-content: center;
   width: 100%;
 }
 .theinmag-start-picker__tile {
@@ -195,6 +206,15 @@
   padding: 3px 8px;
   border-radius: 6px;
 }
+/* Future-issue stamp (issue after next): same rubber-stamp shape, purple
+   ink, so it cannot be read as SOLD OUT even without colour. Sits over a
+   blurred old cover. */
+.theinmag-start-picker__stamp--future span {
+  border-color: var(--color-purple-dark);
+  color: var(--color-purple-dark);
+  font-size: clamp(12px, 3.2vw, 16px);
+}
+.theinmag-start-picker__coming:empty { display: none; }
 /* Coming stamp for the unreleased issue: peach pill, matches the
    pre-order stamp on the shop hero. */
 .theinmag-start-picker__coming {
@@ -237,11 +257,35 @@
 .theinmag-start-picker__plan {
   background: #ffffff;
   border-radius: var(--radius-lg);
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
+.theinmag-start-picker__plan-head {
+  display: flex;
+  justify-content: flex-start;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.theinmag-start-picker__plan-head .theinmag-start-picker__plan-label { flex: 0 0 auto; }
+/* Same voice as the note under the chips, sat directly after the label
+   with a normal word gap (Ryan, 2026-10-01: not pushed to the right edge);
+   on a narrow phone it wraps its own words, never drops under. */
+.theinmag-start-picker__plan-aside {
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+  text-wrap: pretty;
+}
+.theinmag-start-picker__plan-aside[hidden],
+.theinmag-start-picker__plan-note[hidden] { display: none; }
 .theinmag-start-picker__plan-label {
   margin: 0;
   font-family: var(--font-body);
@@ -254,7 +298,7 @@
 .theinmag-start-picker__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -269,7 +313,7 @@
   font-weight: 600;
   font-size: 12.5px;
   line-height: 1;
-  padding: 7px 10px;
+  padding: 5px 9px;
   border-radius: var(--radius-pill);
 }
 .theinmag-start-picker__chip small {
@@ -285,6 +329,124 @@
   text-decoration: line-through;
 }
 .theinmag-start-picker__chip--more { background: transparent; border: 1.5px solid rgba(42, 31, 61, 0.18); font-weight: 500; }
+/* Add-on chip: peach, the pre-order pill's colour, inky text (peach's own
+   pair-dark fails contrast at this size). */
+.theinmag-start-picker__chip--addon { background: var(--color-peach); }
+
+/* ---------- Add-on card (single mode) ----------
+   One toggle button. State reads three ways, none of them colour alone:
+   the box fills, a tick appears, and the word flips Add -> Added. */
+.theinmag-start-picker__addon {
+  appearance: none;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 2px dashed rgba(247, 160, 146, 0.75);
+  border-radius: var(--radius-lg);
+  padding: 8px 10px 8px 8px;
+  text-align: left;
+  color: var(--color-inky-purple-navy);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: border-color var(--transition-standard), background var(--transition-standard), box-shadow var(--transition-hover);
+}
+.theinmag-start-picker__addon[hidden] { display: none; }
+.theinmag-start-picker__addon:hover,
+.theinmag-start-picker__addon:focus-visible {
+  border-color: var(--color-purple-dark);
+  outline: none;
+}
+.theinmag-start-picker__addon[aria-pressed='true'] {
+  border-style: solid;
+  border-color: var(--color-purple-dark);
+  background: rgba(93, 58, 122, 0.08);
+  box-shadow: 0 8px 22px rgba(42, 31, 61, 0.12);
+}
+.theinmag-start-picker__addon-cover {
+  display: block;
+  width: 52px;
+  aspect-ratio: 1435 / 1875;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-lavender);
+  box-shadow: 0 2px 6px rgba(42, 31, 61, 0.16);
+}
+.theinmag-start-picker__addon-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.theinmag-start-picker__addon-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.theinmag-start-picker__addon-title {
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.2;
+}
+.theinmag-start-picker__addon-body {
+  font-weight: 500;
+  font-size: 12.5px;
+  line-height: 1.35;
+  opacity: 0.85;
+  text-wrap: pretty;
+}
+.theinmag-start-picker__addon-price {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.theinmag-start-picker__addon-price strong {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+.theinmag-start-picker__addon-rrp {
+  font-weight: 500;
+  font-size: 12px;
+  opacity: 0.75;
+  margin-left: 4px;
+}
+.theinmag-start-picker__addon-check {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 44px;
+}
+.theinmag-start-picker__addon-box {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 2px solid var(--color-purple-dark);
+  background: #ffffff;
+  position: relative;
+  transition: background var(--transition-standard);
+}
+.theinmag-start-picker__addon-box::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 6px;
+  height: 11px;
+  border: solid #ffffff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(42deg);
+  opacity: 0;
+}
+.theinmag-start-picker__addon[aria-pressed='true'] .theinmag-start-picker__addon-box { background: var(--color-purple-dark); }
+.theinmag-start-picker__addon[aria-pressed='true'] .theinmag-start-picker__addon-box::after { opacity: 1; }
+.theinmag-start-picker__addon-word {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 .theinmag-start-picker__plan-note {
   margin: 0;
   font-family: var(--font-body);
@@ -299,7 +461,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
 }
 .theinmag-start-picker__confirm {
   appearance: none;
@@ -312,8 +474,8 @@
   font-size: 18px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  padding: 14px 24px;
-  min-height: 52px;
+  padding: 12px 24px;
+  min-height: 48px;
   border-radius: var(--radius-button);
   box-shadow: var(--shadow-button-yellow);
   cursor: pointer;
@@ -349,8 +511,8 @@
   font-size: 13px;
   text-decoration: underline;
   text-underline-offset: 3px;
-  padding: 8px 12px;
-  min-height: 44px;
+  padding: 6px 12px;
+  min-height: 36px;
   cursor: pointer;
   opacity: 0.8;
 }
@@ -358,18 +520,32 @@
 .theinmag-start-picker__cancel:focus-visible { opacity: 1; outline: none; }
 
 @media (max-width: 599px) {
-  .theinmag-start-picker__inner { gap: 12px; }
-  .theinmag-start-picker__plan { padding: 10px 12px; gap: 6px; }
+  .theinmag-start-picker__inner { gap: 10px; }
   .theinmag-start-picker__sub { font-size: 13.5px; }
+  /* Phone: even compacted, the whole dialog does not fit a 375x667 screen
+     without shrinking text, so the action bar sticks to the bottom of the
+     scrolling card and the confirm button is always in view (Ryan,
+     2026-10-01). Bleeds to the card edges over the inner padding. */
+  .theinmag-start-picker__actions {
+    position: sticky;
+    bottom: -14px;
+    margin: 0 -14px -14px;
+    padding: 8px 14px 10px;
+    background: var(--color-cream);
+    border-top: 1px solid rgba(42, 31, 61, 0.08);
+    z-index: 1;
+  }
 }
 @media (max-width: 359px) {
   .theinmag-start-picker__inner .theinmag-start-picker__tiles { gap: 6px; }
   .theinmag-start-picker__inner .theinmag-start-picker__tile { padding: 6px 5px 8px; }
+  .theinmag-start-picker__inner .theinmag-start-picker__addon { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 8px; }
+  .theinmag-start-picker__inner .theinmag-start-picker__addon-cover { width: 44px; }
 }
 @media (min-width: 600px) {
-  .theinmag-start-picker__inner { gap: 20px; }
-  .theinmag-start-picker__tiles { gap: 14px; }
-  .theinmag-start-picker__tile { padding: 10px 10px 12px; }
+  .theinmag-start-picker__inner { gap: 14px; }
+  .theinmag-start-picker__tiles { gap: 12px; }
+  .theinmag-start-picker__tile { padding: 8px 8px 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .theinmag-start-picker__tile[aria-pressed='true'] { transform: none; }

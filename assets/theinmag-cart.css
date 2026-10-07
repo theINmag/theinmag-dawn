@@ -1040,6 +1040,61 @@ cart-drawer.is-empty .drawer__footer {
 }
 
 /* ---------------------------------------------------------------
+   Pre-sale crossover notice (cart-level, one parcel / hold + combine)
+   Renders only when the cart holds a pre-sale AND an in-stock item.
+   Calm sky/teal palette to read as reassurance, not the sandy-orange
+   per-line pre-sale warning.
+   --------------------------------------------------------------- */
+.theinmag-cart-combine {
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--color-sky, #C9E5E8);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  color: var(--color-inky-purple-navy);
+}
+.theinmag-cart-combine__icon {
+  flex: 0 0 auto;
+  font-size: 20px;
+  line-height: 1.2;
+}
+.theinmag-cart-combine__copy {
+  flex: 1 1 auto;
+}
+.theinmag-cart-combine__heading {
+  margin: 0 0 4px;
+  font-family: var(--font-heading, var(--font-body));
+  font-weight: var(--font-heading-weight, 400);
+  font-size: 17px;
+  line-height: 1.2;
+  color: var(--color-teal-dark, #2D6878);
+}
+.theinmag-cart-combine__body {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.theinmag-cart-combine__body a {
+  color: var(--color-teal-dark, #2D6878);
+  font-weight: 600;
+  text-decoration: underline;
+}
+@media screen and (min-width: 750px) {
+  .theinmag-cart-combine {
+    padding: 16px 20px;
+  }
+  .theinmag-cart-combine__heading {
+    font-size: 16.5px;
+  }
+  .theinmag-cart-combine__body {
+    font-size: 14px;
+  }
+}
+
+/* ---------------------------------------------------------------
    Bolded Format value (line item)
    Target only the Format option so other option values stay regular.
    --------------------------------------------------------------- */

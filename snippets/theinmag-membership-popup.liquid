@@ -149,6 +149,13 @@
     >
       <input type="hidden" name="id" data-variant-id-input value="{{ first_variant.id }}">
       <input type="hidden" name="quantity" value="1">
+      {%- comment -%}
+        Subscription selling-plan input. Disabled (so not submitted) unless the
+        chosen variant carries a selling plan (Rolling), exactly like the hero
+        form. Without this, a Rolling add from the popup is a one-time purchase
+        with no recurring contract. See theinmag-membership-form.js lines 236-244.
+      {%- endcomment -%}
+      <input type="hidden" name="selling_plan" data-popup-selling-plan disabled>
       <input type="hidden" name="properties[_starting_mag]" data-prop-starting-mag value="{{ lead_issue }}">
       <input type="hidden" name="properties[_remaining_after_first]" data-prop-remaining value="3">
       <input type="hidden" name="properties[_mags_included]" data-prop-mags-included value="">
@@ -555,6 +562,7 @@
     const propStarting = form.querySelector('[data-prop-starting-mag]');
     const propRemaining = form.querySelector('[data-prop-remaining]');
     const propIncluded = form.querySelector('[data-prop-mags-included]');
+    const sellingPlanInput = form.querySelector('[data-popup-selling-plan]');
 
     const perMagEl = dialog.querySelector('[data-per-mag]');
     const saveEl = dialog.querySelector('[data-save]');
@@ -564,6 +572,7 @@
     const currentIssue = '{{ current_issue }}';
     const safeDefaultStart = '{{ lead_issue }}';
     let chosenStart = null; /* Print pick from the start picker */
+    let chosenAddOn = null; /* back-issue add-on from the picker (single mode) */
     function picker() { return window.theinmagStartPicker || null; }
 
     function selected(optionName) {
@@ -614,13 +623,35 @@
         if (printStartHint) printStartHint.hidden = true;
       } else {
         const st0 = picker() ? picker().state() : null;
-        const pickerDefault = st0 ? (st0.currentSoldOut ? (st0.prevAvailable ? st0.prevIssue : st0.nextIssue) : st0.currentIssue) : safeDefaultStart;
+        const pickerDefault = st0
+          ? (st0.startMode === 'single' ? st0.nextIssue : (st0.currentSoldOut ? (st0.prevAvailable ? st0.prevIssue : st0.nextIssue) : st0.currentIssue))
+          : safeDefaultStart;
         startMag = chosenStart || pickerDefault;
         if (digitalStartNote) digitalStartNote.hidden = true;
-        if (printStartHint) printStartHint.hidden = !!chosenStart;
+        if (printStartHint) {
+          /* Single mode (pre-drop window): the dialog opens on Add to cart
+             anyway and says which mags and when, so no hint (Ryan,
+             2026-10-01, matching the PDP). Choice mode keeps its line. */
+          const single = !!(st0 && st0.startMode === 'single');
+          printStartHint.hidden = single || !!chosenStart;
+          printStartHint.textContent = 'Next, you\'ll pick which mag arrives first.';
+        }
       }
 
       const variant = findVariant(format, length);
+      /* Attach the selling plan only when the chosen variant has one (Rolling),
+         so Shopify creates a subscription. A disabled input is not submitted, so
+         4-Issue and 8-Issue stay one-time purchases. */
+      if (sellingPlanInput) {
+        var planAlloc = variant && variant.selling_plan_allocations && variant.selling_plan_allocations[0];
+        if (planAlloc) {
+          sellingPlanInput.value = planAlloc.selling_plan_id;
+          sellingPlanInput.disabled = false;
+        } else {
+          sellingPlanInput.value = '';
+          sellingPlanInput.disabled = true;
+        }
+      }
       if (variant) {
         if (variantInput) variantInput.value = variant.id;
         if (priceDisplay) {
@@ -727,26 +758,56 @@
         ? cartDrawer.getSectionsToRender().map(function (s) { return s.id; }).join(',')
         : '';
 
-      const body = new FormData(form);
-      if (sectionIds) {
-        body.append('sections', sectionIds);
-        body.append('sections_url', window.location.pathname);
+      /* Two lines when the buyer took the back-issue add-on (picker single
+         mode): the membership from the form's own inputs plus the back
+         issue's Print variant as its own line carrying _addon_with. One
+         call, so the cart never holds one without the other. */
+      let request;
+      if (chosenAddOn && selected('format') === 'Print') {
+        const membershipLine = {
+          id: parseInt(variantInput ? variantInput.value : '', 10),
+          quantity: 1,
+          properties: {
+            _starting_mag: propStarting ? propStarting.value : '',
+            _remaining_after_first: propRemaining ? propRemaining.value : '',
+            _mags_included: propIncluded ? propIncluded.value : ''
+          }
+        };
+        if (sellingPlanInput && !sellingPlanInput.disabled && sellingPlanInput.value) {
+          membershipLine.selling_plan = parseInt(sellingPlanInput.value, 10);
+        }
+        const payload = { items: [membershipLine, { id: chosenAddOn.variantId, quantity: 1, properties: { _addon_with: chosenStart } }] };
+        if (sectionIds) { payload.sections = sectionIds; payload.sections_url = window.location.pathname; }
+        request = fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        const body = new FormData(form);
+        if (sectionIds) {
+          body.append('sections', sectionIds);
+          body.append('sections_url', window.location.pathname);
+        }
+        request = fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: body
+        });
       }
 
-      fetch('/cart/add.js', {
-        method: 'POST',
-        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-        body: body
-      })
+      request
         .then(function (r) {
           if (!r.ok) throw new Error('Add failed');
           return r.json();
         })
         .then(function (data) {
           closePopup();
-          const prettyTitle = (data.product_title || 'Membership').replace(/^theINmag\s*[-–]\s*/i, '');
+          const firstItem = data.items && data.items[0] ? data.items[0] : data;
+          let prettyTitle = (firstItem.product_title || 'Membership').replace(/^theINmag\s*[-–]\s*/i, '');
+          if (data.items && data.items.length > 1 && chosenAddOn) prettyTitle += ' + ' + chosenAddOn.issue;
           flashFeedback(prettyTitle + ' added to your cart');
-          refreshCartCount(data.product_title);
+          refreshCartCount(firstItem.product_title);
           if (cartDrawer && data.sections && typeof cartDrawer.renderContents === 'function') {
             cartDrawer.renderContents(data);
           }
@@ -769,8 +830,10 @@
           length: selected('length'),
           confirmLabel: 'Add to cart',
           opener: submitBtn,
+          allowAddOn: true,
           onPick: function (result) {
             chosenStart = result.startMag;
+            chosenAddOn = result.addOn || null;
             update();
             addToCart();
           }

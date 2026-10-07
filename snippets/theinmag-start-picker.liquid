@@ -27,7 +27,36 @@
   order, with a struck chip for any sold-out issue the membership skips.
   That is the write-up Ryan asked to make really clear.
 
-  Behaviour, API and the ?soldout=1 preview override: assets/theinmag-start-picker.js
+  TWO START MODES (added 2026-10-01, Ryan's brief via Pat):
+    choice   the dialog above: prev / current / next, the buyer picks.
+    single   inside the back-start cutoff before a drop, while the current
+             print run is gone: the back issue is no longer offered as a
+             START (it would post now and the next issue would follow a
+             fortnight later in a second parcel). The starts offered are
+             the NEXT issue (pre-selected, the honest default) and the
+             issue AFTER next (blurred old cover, FUTURE ISSUE stamp) for
+             a buyer who wants to skip the coming drop; a next2 start
+             writes _starting_mag / _mags_included from that issue on, so
+             fulfilment parks it as a pure future. The back issue is
+             offered as an ADD-ON that rides in the same parcel as the
+             next issue, so it is offered ONLY while the next issue is the
+             picked start (Pat's rule, 2026-10-01). Fulfilment holds such
+             an order as one Pakenham parcel (tag hold-mag0911).
+  The cutoff is sp_back_start_cutoff_days (14). It self-flips every
+  cycle off next_release_date; nothing to edit on drop day. A single-mode
+  pick still writes _starting_mag and _mags_included exactly as a "next"
+  pick does today; the add-on is a SEPARATE cart line (the back issue's
+  own Print variant) carrying _addon_with = the start issue.
+
+  ADD-ON PRICE: by default the card shows the back issue's LIVE Print price
+  (sp_addon_deal_price = 0), so display and charge cannot drift. A special
+  price is opt-in: set sp_addon_deal_price AND create the matching automatic
+  Buy X Get Y discount in admin ("Mag09 member add-on": buy any Print
+  membership, get 1 Mag09 Print at the difference off). Change both together
+  or the dialog lies.
+
+  Behaviour, API and the ?soldout=1 / ?startmode=single|choice preview
+  overrides: assets/theinmag-start-picker.js
   Styles: assets/theinmag-start-picker.css
 {%- endcomment -%}
 
@@ -49,12 +78,33 @@
     assign sp_next = 'Mag' | append: sp_next_num
   endif
 
+  assign sp_next2_num = sp_num | plus: 2
+  if sp_next2_num < 10
+    assign sp_next2 = 'Mag0' | append: sp_next2_num
+  else
+    assign sp_next2 = 'Mag' | append: sp_next2_num
+  endif
+  comment
+    The issue after next has no cover yet, so its tile wears an OLD cover,
+    blurred, under a FUTURE ISSUE stamp (Ryan, 2026-10-01). Two issues back
+    from the current one, so it can never be mistaken for the current or
+    the next cover.
+  endcomment
+  assign sp_old_num = sp_num | minus: 2
+  if sp_old_num < 10
+    assign sp_old = 'Mag0' | append: sp_old_num
+  else
+    assign sp_old = 'Mag' | append: sp_old_num
+  endif
+
   assign sp_cur_handle = sp_current | downcase
   assign sp_prev_handle = sp_prev | downcase
   assign sp_next_handle = sp_next | downcase
+  assign sp_old_handle = sp_old | downcase
   assign sp_cur_prod = all_products[sp_cur_handle]
   assign sp_prev_prod = all_products[sp_prev_handle]
   assign sp_next_prod = all_products[sp_next_handle]
+  assign sp_old_prod = all_products[sp_old_handle]
 
   assign sp_cur_print_available = false
   for v in sp_cur_prod.variants
@@ -88,7 +138,68 @@
   assign sp_cur_cover = sp_cur_prod.featured_image
   assign sp_prev_cover = sp_prev_prod.featured_image
   assign sp_next_cover = sp_next_prod.featured_image
+  assign sp_old_cover = sp_old_prod.featured_image
+  if sp_old_cover == blank
+    assign sp_old_cover = sp_prev_cover
+  endif
   assign sp_teaser = 'next-issue-teaser.jpg' | asset_url
+
+  comment
+    Start mode. Days to the drop are rounded to nearest (the +43200 absorbs
+    the October DST hour, same fix as the announcement bar). No lower
+    floor on purpose: if the drop-day rollover runs late the count goes
+    negative and single mode HOLDS until the metafields flip, rather than
+    re-opening back-issue starts on the morning of the drop.
+  endcomment
+  assign sp_back_start_cutoff_days = 14
+  assign sp_days_to_drop = 999
+  if sp_release_iso != blank
+    assign sp_now_s = 'now' | date: '%s' | times: 1
+    assign sp_rel_s = sp_release_iso | date: '%s' | times: 1
+    assign sp_days_to_drop = sp_rel_s | minus: sp_now_s | plus: 43200 | divided_by: 86400
+  endif
+  assign sp_next_exists = false
+  if sp_next_prod.id != blank
+    assign sp_next_exists = true
+  endif
+  assign sp_start_mode = 'choice'
+  if sp_cur_sold_out and sp_next_exists and sp_days_to_drop <= sp_back_start_cutoff_days
+    assign sp_start_mode = 'single'
+  endif
+
+  comment
+    Add-on: the back issue's own Print variant, offered only in single mode
+    and only while it is actually in stock. Price shown here; charged by the
+    automatic discount in admin (see the header comment).
+  endcomment
+  assign sp_addon_variant_id = ''
+  assign sp_addon_rrp = 0
+  for v in sp_prev_prod.variants
+    if v.option1 == 'Print' and v.available
+      assign sp_addon_variant_id = v.id
+      assign sp_addon_rrp = v.price
+    endif
+  endfor
+  comment
+    Special price, in cents. 0 = no special: the card shows the back issue's
+    live Print price and nothing else, and the cart charges the same, so
+    there is nothing to keep in step. Set it (e.g. 2000) ONLY once the
+    matching automatic Buy X Get Y discount exists in admin; the card then
+    reads "$20 usually $23.95". Ryan, 2026-10-01: draft runs at 0.
+  endcomment
+  assign sp_addon_deal_price = 0
+  assign sp_addon_price = sp_addon_rrp
+  assign sp_addon_has_deal = false
+  if sp_addon_deal_price > 0 and sp_addon_deal_price < sp_addon_rrp
+    assign sp_addon_price = sp_addon_deal_price
+    assign sp_addon_has_deal = true
+  endif
+  assign sp_addon_offered = false
+  if sp_start_mode == 'single' and sp_prev_available and sp_addon_variant_id != blank
+    assign sp_addon_offered = true
+  endif
+  assign sp_addon_price_text = sp_addon_price | money
+  assign sp_addon_rrp_text = sp_addon_rrp | money
 -%}
 
 {{ 'theinmag-start-picker.css' | asset_url | stylesheet_tag }}
@@ -103,6 +214,16 @@
   data-prev-available="{% if sp_prev_available %}true{% else %}false{% endif %}"
   data-release="{{ sp_release_text | escape }}"
   data-release-iso="{{ sp_release_iso }}"
+  data-start-mode="{{ sp_start_mode }}"
+  data-next2="{{ sp_next2 }}"
+  data-days-to-drop="{{ sp_days_to_drop }}"
+  data-addon="{% if sp_addon_offered %}true{% else %}false{% endif %}"
+  data-addon-issue="{{ sp_prev }}"
+  data-addon-variant="{{ sp_addon_variant_id }}"
+  data-addon-price="{{ sp_addon_price }}"
+  data-addon-rrp="{{ sp_addon_rrp }}"
+  data-addon-price-text="{{ sp_addon_price_text | escape }}"
+  data-addon-rrp-text="{{ sp_addon_rrp_text | escape }}"
   aria-labelledby="theinmag-start-picker-title"
 >
   <div class="theinmag-start-picker__inner">
@@ -159,10 +280,62 @@
         <span class="theinmag-start-picker__name">{{ sp_next }}</span>
         <span class="theinmag-start-picker__status" data-status>Drops {{ sp_release_text }}</span>
       </button>
+
+      {%- comment -%}
+        NEXT2 (single mode only): the issue after next, for a buyer who
+        wants to skip the coming drop. Old cover, blurred, FUTURE ISSUE
+        stamp in words (not grey alone; Ryan is colourblind). The JS fills
+        the date and shows the tile only in single mode.
+      {%- endcomment -%}
+      <button type="button" class="theinmag-start-picker__tile" data-tile data-issue="{{ sp_next2 }}" aria-pressed="false" hidden>
+        <span class="theinmag-start-picker__cover theinmag-start-picker__cover--blur">
+          {%- if sp_old_cover != blank -%}
+            <img src="{{ sp_old_cover | image_url: width: 480 }}" width="480" height="627" alt="" loading="eager" fetchpriority="low" aria-hidden="true">
+          {%- endif -%}
+          <span class="theinmag-start-picker__stamp theinmag-start-picker__stamp--future" aria-hidden="true"><span>Future issue</span></span>
+          <span class="theinmag-start-picker__coming" aria-hidden="true" data-next2-pill></span>
+        </span>
+        <span class="theinmag-start-picker__name">{{ sp_next2 }}</span>
+        <span class="theinmag-start-picker__status" data-status>Drops later</span>
+      </button>
     </div>
 
+    {%- comment -%}
+      ADD-ON (single mode only). One toggle button, aria-pressed carries the
+      state. The state reads without colour: the box fills AND gains a tick
+      AND the word flips Add -> Added (Ryan is colourblind). Hidden until the
+      JS confirms single mode, so the choice-mode dialog is unchanged.
+    {%- endcomment -%}
+    {%- if sp_addon_offered -%}
+    <button type="button" class="theinmag-start-picker__addon" data-addon-toggle aria-pressed="false" hidden>
+      <span class="theinmag-start-picker__addon-cover" aria-hidden="true">
+        {%- if sp_prev_cover != blank -%}
+          <img src="{{ sp_prev_cover | image_url: width: 240 }}" width="240" height="314" alt="" loading="eager" fetchpriority="low">
+        {%- endif -%}
+      </span>
+      <span class="theinmag-start-picker__addon-text">
+        <span class="theinmag-start-picker__addon-title">Want {{ sp_prev }} too?</span>
+        <span class="theinmag-start-picker__addon-body">Our only back issue still in print. We'll pop it in the same parcel as {{ sp_next }}.</span>
+        <span class="theinmag-start-picker__addon-price"><strong>{{ sp_addon_price_text }}</strong>{% if sp_addon_has_deal %} <span class="theinmag-start-picker__addon-rrp">usually {{ sp_addon_rrp_text }}</span>{% endif %}</span>
+      </span>
+      <span class="theinmag-start-picker__addon-check" aria-hidden="true">
+        <span class="theinmag-start-picker__addon-box"></span>
+        <span class="theinmag-start-picker__addon-word" data-addon-word>Add</span>
+      </span>
+    </button>
+    {%- endif -%}
+
     <div class="theinmag-start-picker__plan" data-plan>
-      <p class="theinmag-start-picker__plan-label">What you'll get</p>
+      {%- comment -%}
+        Header row: the label, and for a future start the one-line
+        "Watch out for the postie." beside it (Ryan, 2026-10-01: the drop
+        date lives on the tile, not repeated here). Back-issue and
+        current-issue picks keep their fuller note under the chips.
+      {%- endcomment -%}
+      <div class="theinmag-start-picker__plan-head">
+        <p class="theinmag-start-picker__plan-label">What you'll get</p>
+        <p class="theinmag-start-picker__plan-aside" data-plan-aside hidden></p>
+      </div>
       <ul class="theinmag-start-picker__chips" data-chips role="list"></ul>
       <p class="theinmag-start-picker__plan-note" data-plan-note></p>
     </div>

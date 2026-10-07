@@ -1,0 +1,73 @@
+{%- comment -%}
+  theinmag-cart-presale-combine.liquid
+
+  Cart-level notice for the PRE-SALE CROSSOVER case: the cart holds at
+  least one pre-sale (future) physical item AND at least one in-stock
+  physical item at the same time. Sets the expectation that the whole
+  order is held and posted together on the drop date, so we do not have
+  to email each such customer to ask.
+
+  Renders NOTHING unless both conditions are met, so a cart with only
+  pre-sale items, or only in-stock items, never sees it.
+
+  GENERALISED, not hardcoded to any one issue. The pre-sale signal is
+  the product metafield theinmag.is_pre_order (the same flag the shop
+  hero, issue strip and flip-through read), set true on the upcoming
+  issue each cycle and flipped false on drop day. So this fires for
+  every future pre-sale automatically, with no per-cycle edit here.
+
+  What the SITE can and cannot do (be honest): this message only sets
+  the expectation. It does NOT auto-hold the order. Holding and
+  combining stays a manual/tag step on Pat's end at fulfilment.
+
+  Drop date prefers shop.metafields.theinmag.next_release_date
+  (YYYY-MM-DD); falls back to "on release day".
+
+  No render args. Reads cart directly.
+{%- endcomment -%}
+
+{%- liquid
+  assign has_presale_physical = false
+  assign has_instock_physical = false
+
+  for line in cart.items
+    if line.requires_shipping
+      assign line_pre = line.product.metafields.theinmag.is_pre_order | default: false
+      if line_pre
+        assign has_presale_physical = true
+      else
+        assign has_instock_physical = true
+      endif
+    endif
+  endfor
+
+  assign show_combine = false
+  if has_presale_physical and has_instock_physical
+    assign show_combine = true
+  endif
+
+  # Expected-arrival clause. Renders the drop date from next_release_date
+  # (YYYY-MM-DD) as "15 October" style inside a parenthetical, so it updates
+  # itself every pre-sale cycle. Falls back to nothing (a clean date-free
+  # sentence) if the metafield is ever blank.
+  assign expected_clause = ''
+  assign next_release = shop.metafields.theinmag.next_release_date.value
+  if next_release != blank
+    assign arrival_date = next_release | date: '%-d %B'
+    assign expected_clause = ' (expected ' | append: arrival_date | append: ')'
+  endif
+-%}
+
+{%- if show_combine -%}
+  <aside class="theinmag-cart-combine" role="note" aria-label="Pre-sale delivery">
+    <span class="theinmag-cart-combine__icon" aria-hidden="true">📦</span>
+    <div class="theinmag-cart-combine__copy">
+      <p class="theinmag-cart-combine__heading">Everything in one parcel</p>
+      <p class="theinmag-cart-combine__body">
+        Your cart has a pre-sale issue, so we'll post it all together when it arrives{{ expected_clause }}.
+        Saves us postage, and every bit counts for a small business. Want your in-stock issue now?
+        Email <a href="mailto:heyhey@theinmag.com.au">heyhey@theinmag.com.au</a>.
+      </p>
+    </div>
+  </aside>
+{%- endif -%}

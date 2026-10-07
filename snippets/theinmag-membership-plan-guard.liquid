@@ -1,0 +1,32 @@
+{%- comment -%}
+  theinmag-membership-plan-guard
+
+  Emits the Rolling-variant -> Appstle selling-plan map for the membership
+  product, then loads the cart guard that repairs any planless subscription
+  line. Rendered on the cart page (main-cart-items) and the cart drawer.
+
+  The map is built live from the membership product's selling plan
+  allocations, so it self-updates if variant or plan ids ever change. The
+  guard JS carries a hardcoded fallback for the case where this map is empty.
+
+  See assets/theinmag-membership-plan-guard.js for the mechanism and why it
+  exists (the 2026-09 planless-subscription leak).
+{%- endcomment -%}
+{%- liquid
+  assign membership_product = all_products['membership']
+-%}
+<script type="application/json" data-theinmag-membership-plan-map>
+{
+{%- assign emitted = 0 -%}
+{%- for v in membership_product.variants -%}
+  {%- assign sp_id = v.selling_plan_allocations.first.selling_plan.id -%}
+  {%- comment -%} Rolling only: 4-Issue / 8-Issue are one-time by design and must never be repaired into a subscription, even if a plan is ever attached to them. {%- endcomment -%}
+  {%- if sp_id and v.option2 == 'Rolling' -%}
+    {%- if emitted > 0 %},{% endif -%}
+    "{{ v.id }}": {{ sp_id }}
+    {%- assign emitted = emitted | plus: 1 -%}
+  {%- endif -%}
+{%- endfor -%}
+}
+</script>
+<script src="{{ 'theinmag-membership-plan-guard.js' | asset_url }}" defer="defer"></script>

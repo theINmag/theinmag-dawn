@@ -112,6 +112,22 @@
     }
   }
 
+  // GA4 newsletter_signup (2026-10-03): makes a signup measurable per page,
+  // so blog and competitions readers who join theINside scoop finally show
+  // up in GA4 (read by the built-in pagePath dimension, no registration
+  // needed, same pattern as stack_cta_click). Never sends the email.
+  // Guarded no-op if gtag is absent; analytics must never break a signup.
+  function trackSignupGA4() {
+    try {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'newsletter_signup', {
+          signup_form: 'newsletter_page',
+          page_path: window.location.pathname
+        });
+      }
+    } catch (err) { /* never block a successful signup */ }
+  }
+
   function onSubmit(e) {
     e.preventDefault();
     setError('');
@@ -139,6 +155,7 @@
     submitToKlaviyo(email, firstName)
       .then(function () {
         identifyToKlaviyo(email, firstName);
+        trackSignupGA4();
         submitBtn.disabled = false;
         showSuccess();
       })

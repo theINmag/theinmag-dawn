@@ -528,7 +528,7 @@
         </p>
 
         <p class="theinmag-membership-hero__microcopy">
-          Free shipping over $40 - Sustainably printed in Australia - 120+ pages, zero ads
+          Free shipping over $40 &middot; Sustainably printed in Australia &middot; 120+ pages, zero ads
         </p>
       </form>
 
@@ -1476,6 +1476,12 @@
     font-family: var(--font-body);
     font-size: 12px;
     line-height: 1.5;
+    /* Inherited 0.6px tracking pushed "ads" onto its own line at the
+       widget's desktop width (479px, line needed ~500px). Zero tracking
+       holds the whole line; pretty wrapping stops a lone last word where
+       it still has to wrap (Ryan, 2026-10-01). */
+    letter-spacing: 0;
+    text-wrap: pretty;
     color: var(--color-inky-purple-navy);
     opacity: 0.78;
     margin: var(--space-sm) 0 0;

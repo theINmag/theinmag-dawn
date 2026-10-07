@@ -191,22 +191,42 @@
                 Gift section lives in the centre column (see top of file),
                 not here above the button.
               {%- endcomment -%}
+              {%- comment -%}
+                Membership subscription guard (server-side). A line whose variant
+                can be a subscription (selling_plan_allocations > 0, i.e. a Rolling
+                variant) but which carries NO plan on the line is a planless
+                subscription: it would check out as a one-time order with no
+                recurring contract. Block the standard checkout button and suppress
+                the express (Shop Pay / PayPal / Google Pay) buttons so it cannot
+                reach checkout, including with JS off. The JS guard
+                (theinmag-membership-plan-guard.js) repairs the line and reloads,
+                after which this flag is false and the normal buttons return.
+              {%- endcomment -%}
+              {%- assign theinmag_planless_sub = false -%}
+              {%- for line_item in cart.items -%}
+                {%- if line_item.variant.selling_plan_allocations.size > 0 and line_item.selling_plan_allocation == nil -%}
+                  {%- assign theinmag_planless_sub = true -%}
+                {%- endif -%}
+              {%- endfor -%}
               <div class="cart__ctas" {{ block.shopify_attributes }}>
                 <button
                   type="submit"
                   id="checkout"
                   class="cart__checkout-button button"
                   name="checkout"
-                  {% if cart == empty %}
+                  {% if cart == empty or theinmag_planless_sub %}
                     disabled
                   {% endif %}
                   form="cart"
                 >
                   {{ 'sections.cart.checkout' | t }}
                 </button>
+                {%- if theinmag_planless_sub -%}
+                  <p class="theinmag-cart-plan-guard-note">Setting up your membership. This will refresh in a moment; if it does not, remove the membership and re-add it from its page.</p>
+                {%- endif -%}
               </div>
 
-              {%- if additional_checkout_buttons -%}
+              {%- if additional_checkout_buttons and theinmag_planless_sub == false -%}
                 <div class="cart__dynamic-checkout-buttons additional-checkout-buttons">
                   {{ content_for_additional_checkout_buttons }}
                 </div>

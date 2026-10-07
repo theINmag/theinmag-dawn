@@ -1001,6 +1001,22 @@
       }
     };
 
+    // GA4 newsletter_signup (2026-10-03): makes a signup measurable per page,
+    // so blog and competitions readers who join theINside scoop finally show
+    // up in GA4 (read by the built-in pagePath dimension, no registration
+    // needed, same pattern as stack_cta_click). Never sends the email.
+    // Guarded no-op if gtag is absent; analytics must never break a signup.
+    var trackSignupGA4 = function () {
+      try {
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'newsletter_signup', {
+            signup_form: 'footer',
+            page_path: window.location.pathname
+          });
+        }
+      } catch (err) { /* never block a successful signup */ }
+    };
+
     form.addEventListener('submit', function (event) {
       event.preventDefault();
 
@@ -1066,6 +1082,7 @@
         .then(function (response) {
           if (response.ok || response.status === 202) {
             identifyToKlaviyo(email, firstName);
+            trackSignupGA4();
             setStatus('You are IN. Free e-mag heading to your inbox.', 'success');
             form.reset();
           } else {
