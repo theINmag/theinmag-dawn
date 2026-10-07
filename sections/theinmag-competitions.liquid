@@ -5,7 +5,9 @@
   ../theinmag-docs/competitions-page-build-spec.md.
 
   Architecture:
-    1. Three-button entry choice (art / writing / everything)
+    1. Four-button entry choice (everything / writing / art / science).
+       The art tile opens the 'arts' group (art + photofilm + performance),
+       because its sub-line promises photo, film, dance and music.
     2. Static-stage scroll zone - 100vh on desktop with the comp list
        scrolling INTERNALLY in the 2/3 column, so the page itself
        doesn't move while the user browses. Mobile collapses to natural
@@ -191,7 +193,8 @@
       <p class="theinmag-comps__tagline">{{ tagline_text }}</p>
 
       {%- comment -%}
-        DOM ORDER IS THE MOBILE ORDER: everything, writing, art.
+        DOM ORDER IS THE MOBILE ORDER: everything, writing, art, science.
+        (science added 2026-10-08: STEM had no door on the gate at all.)
         Ryan's call 2026-08-12 - on phone the "everything" tile leads,
         on desktop it stays in the middle. Mobile is the fragile,
         majority-real-traffic view, so mobile gets the natural DOM order
@@ -218,6 +221,13 @@
           <span class="theinmag-comps__choice-btn-stack">
             <span class="theinmag-comps__choice-btn-label">art</span>
             <span class="theinmag-comps__choice-btn-sub">art · photo · film · dance · music</span>
+          </span>
+        </button>
+        <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--stem" data-choice="stem">
+          <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
+          <span class="theinmag-comps__choice-btn-stack">
+            <span class="theinmag-comps__choice-btn-label">science</span>
+            <span class="theinmag-comps__choice-btn-sub">science · maths · coding · robots</span>
           </span>
         </button>
       </div>
@@ -275,6 +285,7 @@
       <div class="theinmag-comps__filter-group" data-filter-group>
         <select class="theinmag-comps__select" data-filter="category" aria-label="Category">
           <option value="all">all categories</option>
+          <option value="arts">all the arts</option>
           <option value="art">art</option>
           <option value="writing">writing</option>
           <option value="photofilm">photo &amp; film</option>
@@ -1020,7 +1031,7 @@
   }
   @media (min-width: 750px) {
     .theinmag-comps__choice-grid {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: clamp(16px, 2vw, 28px);
     }
   }
@@ -1063,6 +1074,7 @@
     .theinmag-comps__choice-btn--writing { order: 1; }
     .theinmag-comps__choice-btn--all { order: 2; }
     .theinmag-comps__choice-btn--art { order: 3; }
+    .theinmag-comps__choice-btn--stem { order: 4; }
   }
 
   /* Mobile L/R alternation - everything on left, writing on right, art on left.
@@ -1070,13 +1082,16 @@
      mobile order changed to everything / writing / art, the reversed card is
      now --writing (it used to be --all when everything sat in the middle). */
   @media (max-width: 749px) {
-    .theinmag-comps .theinmag-comps__choice-btn--writing {
+    .theinmag-comps .theinmag-comps__choice-btn--writing,
+    .theinmag-comps .theinmag-comps__choice-btn--stem {
       grid-template-columns: 1fr minmax(110px, 38%);
     }
-    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-character {
+    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-character,
+    .theinmag-comps .theinmag-comps__choice-btn--stem .theinmag-comps__choice-btn-character {
       order: 2;
     }
-    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-stack {
+    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-stack,
+    .theinmag-comps .theinmag-comps__choice-btn--stem .theinmag-comps__choice-btn-stack {
       order: 1;
     }
   }
@@ -1093,6 +1108,11 @@
   .theinmag-comps__choice-btn--all {
     background-color: var(--comps-peach-light);
     transform: rotate(1.2deg);
+  }
+  /* Science takes purple, the same pair the stem tile covers use below. */
+  .theinmag-comps__choice-btn--stem {
+    background-color: var(--comps-purple-light);
+    transform: rotate(-0.8deg);
   }
 
   .theinmag-comps__choice-btn:hover,
@@ -2560,6 +2580,15 @@
       applyPromotion();
     }
 
+    /* Group values in the category select. 'arts' is what the art choice
+       tile opens: its sub-line promises art, photo, film, dance and music,
+       so it has to show the photofilm and performance tiles too (until
+       2026-10-08 it set plain 'art' and hid all of them). Any value not in
+       here is a single category slug matched as-is. */
+    var CATEGORY_GROUPS = {
+      arts: ['art', 'photofilm', 'performance']
+    };
+
     function applyFilters() {
       var q = (searchInput.value || '').trim().toLowerCase();
       var cat = selectCategory.value;
@@ -2586,7 +2615,14 @@
            must surface under every category pick (a kid who filters to writing
            should still see that they can send writing in to the magazine). Only
            that one tile carries the tag, so no other tile is affected. */
-        if (ok && cat !== 'all' && tags.indexOf(cat) === -1 && tags.indexOf('everything') === -1) ok = false;
+        if (ok && cat !== 'all' && tags.indexOf('everything') === -1) {
+          var wanted = CATEGORY_GROUPS[cat] || [cat];
+          var hit = false;
+          for (var w = 0; w < wanted.length; w++) {
+            if (tags.indexOf(wanted[w]) !== -1) { hit = true; break; }
+          }
+          if (!hit) ok = false;
+        }
         if (ok && age !== 'all' && tags.indexOf(age) === -1 && tags.indexOf('all-ages') === -1) ok = false;
         /* State: the tile's own state OR the national escape hatch, exactly
            the shape the age filter uses with all-ages. 43 of the 60 comps are
@@ -2885,7 +2921,10 @@
     function commitChoice(category) {
       releasePromotion();
       if (selectCategory) {
-        selectCategory.value = (category === 'art' || category === 'writing') ? category : 'all';
+        /* Choice tile -> select value. The art tile opens the whole arts
+           group (see CATEGORY_GROUPS), not the narrow 'art' option. */
+        var CHOICE_TO_CATEGORY = { art: 'arts', writing: 'writing', stem: 'stem' };
+        selectCategory.value = CHOICE_TO_CATEGORY[category] || 'all';
         applyFilters();
       }
       root.dataset.choiceState = 'chosen';
@@ -2895,6 +2934,7 @@
     choiceBtns.forEach(function (btn) {
       btn.addEventListener('click', function () {
         var c = btn.getAttribute('data-choice');
+        trackComps('comps_choice', c);
         if (prefersReducedMotion) {
           commitChoice(c);
         } else {
