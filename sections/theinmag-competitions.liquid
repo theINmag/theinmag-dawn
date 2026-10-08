@@ -5,7 +5,7 @@
   ../theinmag-docs/competitions-page-build-spec.md.
 
   Architecture:
-    1. Four-button entry choice (everything / writing / art / science).
+    1. Three-button entry choice (everything / writing / art). Science tile removed 2026-10-08 (Ryan: not a big part of the mag yet; maybe later).
        The art tile opens the 'arts' group (art + photofilm + performance),
        because its sub-line promises photo, film, dance and music.
     2. Static-stage scroll zone - 100vh on desktop with the comp list
@@ -193,8 +193,8 @@
       <p class="theinmag-comps__tagline">{{ tagline_text }}</p>
 
       {%- comment -%}
-        DOM ORDER IS THE MOBILE ORDER: everything, writing, art, science.
-        (science added 2026-10-08: STEM had no door on the gate at all.)
+        DOM ORDER IS THE MOBILE ORDER: everything, writing, art.
+        (a science tile was added and removed the same day, 2026-10-08; STEM comps stay reachable via "everything" and the category filter.)
         Ryan's call 2026-08-12 - on phone the "everything" tile leads,
         on desktop it stays in the middle. Mobile is the fragile,
         majority-real-traffic view, so mobile gets the natural DOM order
@@ -221,13 +221,6 @@
           <span class="theinmag-comps__choice-btn-stack">
             <span class="theinmag-comps__choice-btn-label">art</span>
             <span class="theinmag-comps__choice-btn-sub">art · photo · film · dance · music</span>
-          </span>
-        </button>
-        <button type="button" class="theinmag-comps__choice-btn theinmag-comps__choice-btn--stem" data-choice="stem">
-          <span class="theinmag-comps__choice-btn-character" data-choice-character aria-hidden="true"></span>
-          <span class="theinmag-comps__choice-btn-stack">
-            <span class="theinmag-comps__choice-btn-label">science</span>
-            <span class="theinmag-comps__choice-btn-sub">science · maths · coding · robots</span>
           </span>
         </button>
       </div>
@@ -1031,7 +1024,7 @@
   }
   @media (min-width: 750px) {
     .theinmag-comps__choice-grid {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: clamp(16px, 2vw, 28px);
     }
   }
@@ -1074,7 +1067,6 @@
     .theinmag-comps__choice-btn--writing { order: 1; }
     .theinmag-comps__choice-btn--all { order: 2; }
     .theinmag-comps__choice-btn--art { order: 3; }
-    .theinmag-comps__choice-btn--stem { order: 4; }
   }
 
   /* Mobile L/R alternation - everything on left, writing on right, art on left.
@@ -1082,16 +1074,13 @@
      mobile order changed to everything / writing / art, the reversed card is
      now --writing (it used to be --all when everything sat in the middle). */
   @media (max-width: 749px) {
-    .theinmag-comps .theinmag-comps__choice-btn--writing,
-    .theinmag-comps .theinmag-comps__choice-btn--stem {
+    .theinmag-comps .theinmag-comps__choice-btn--writing {
       grid-template-columns: 1fr minmax(110px, 38%);
     }
-    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-character,
-    .theinmag-comps .theinmag-comps__choice-btn--stem .theinmag-comps__choice-btn-character {
+    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-character {
       order: 2;
     }
-    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-stack,
-    .theinmag-comps .theinmag-comps__choice-btn--stem .theinmag-comps__choice-btn-stack {
+    .theinmag-comps .theinmag-comps__choice-btn--writing .theinmag-comps__choice-btn-stack {
       order: 1;
     }
   }
@@ -1108,11 +1097,6 @@
   .theinmag-comps__choice-btn--all {
     background-color: var(--comps-peach-light);
     transform: rotate(1.2deg);
-  }
-  /* Science takes purple, the same pair the stem tile covers use below. */
-  .theinmag-comps__choice-btn--stem {
-    background-color: var(--comps-purple-light);
-    transform: rotate(-0.8deg);
   }
 
   .theinmag-comps__choice-btn:hover,
@@ -1496,18 +1480,22 @@
      remaining tile was fixed by trimming ITS copy by 8 characters, rather than
      making all 64 tiles 19px taller for one row.
 
-     Desktop is deliberately untouched: it fits every pitch in 2 lines already. */
+     Desktop used to keep a 2-line clamp on the theory that it fit every pitch.
+     It did at 1440px (579px column) and nowhere narrower: at 1024px the column
+     is 335px and all 77 tiles truncated (Elie at Flickerfest asked how to read
+     the rest, 2026-10-08). The clamp is now 5 at every width, set once in the
+     base .theinmag-comps__tile-pitch rule further down. */
   @media (max-width: 599px) {
     .theinmag-comps__tile {
       grid-template-columns: 64px 1fr;
       align-items: start;
     }
   }
-  /* NOTE the matching -webkit-line-clamp override lives AFTER the base
-     .theinmag-comps__tile-pitch rule further down, not here. Same specificity
-     means source order decides, and the base rule is declared later in this
-     file, so a clamp set here is silently ignored. Caught by measuring the
-     rendered page (the column widened but the clamp stayed at 2). */
+  /* NOTE there is no per-width line-clamp override any more: the base
+     .theinmag-comps__tile-pitch rule carries the clamp for every width. If one
+     is ever needed again it must sit AFTER that base rule, not here. Same
+     specificity means source order decides, and a clamp set up here is
+     silently ignored (caught once by measuring the rendered page). */
   .theinmag-comps__tile:hover,
   .theinmag-comps__tile:focus-visible {
     transform: translateY(-2px);
@@ -1648,7 +1636,11 @@
     line-height: 1.2;
     color: var(--comps-cream-dark);
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    /* 3 lines, was 2. Measured 2026-10-08: at 375px four titles need a third
+       line (Flickerfest FlickerUp cut to "...Australian National Youth..."), and
+       the 71-character Australian Geographic junior title needs three at
+       1024px as well. Three clears every title at every width. */
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -1658,20 +1650,20 @@
     color: var(--comps-cream-dark);
     opacity: 0.8;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    /* 5 lines at EVERY width (was 2 on desktop, 5 on phone). Measured on the
+       live page 2026-10-08 with the clamp lifted, lines the longest pitch
+       needs per viewport: 375px 5, 600px 5, 750px 3, 1024px 4, 1280px 3,
+       1440px 2. The old desktop 2 was only true at 1440px; at 1024px every one
+       of the 77 tiles ended in an ellipsis. Five is the smallest clamp that
+       shows every pitch whole everywhere, and it still caps runaway copy. The
+       grid keeps rows aligned, so a 3-line tile beside a 4-line one is fine. */
+    -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  /* PHONE: 5 lines, paired with the narrower 64px logo rail set in the
-     max-width:599px block above. Two lines at 241px is about 62 characters and
-     truncated every single tile; five clears all 64. Desktop keeps 2 lines
-     because it fits every pitch already.
-     This MUST sit after the base rule above: same specificity, so source order
-     decides, and declaring it up with the grid change did nothing. */
+  /* PHONE: paired with the narrower 64px logo rail set in the max-width:599px
+     block above (that rail is what bought the text width; see the note there). */
   @media (max-width: 599px) {
-    .theinmag-comps__tile-pitch {
-      -webkit-line-clamp: 5;
-    }
     /* The cover carries aspect-ratio 1/1 AND height:100%. At 96px in a short
        tile that read as roughly square; once the tile grew to fit 5 lines,
        height:100% won and stretched it into a tall narrow white column with a
@@ -1767,6 +1759,22 @@
   }
   @media (min-width: 600px) {
     .theinmag-comps__tile-cta { display: inline-flex; }
+  }
+  /* PHONE: the same yellow "enter" pill, a size down, sitting under the copy
+     in the text column. Added 2026-10-08 at Ryan's ask: the whole tile is the
+     link, but on a phone nothing said so, while the laptop tile had a button.
+     grid-column 2 keeps it off the 64px logo rail; justify-self start stops it
+     stretching to the column width. The pill is aria-hidden decoration, the
+     <a> itself is still the accessible link. */
+  @media (max-width: 599px) {
+    .theinmag-comps__tile-cta {
+      display: inline-flex;
+      grid-column: 2;
+      justify-self: start;
+      align-self: start;
+      padding: 8px 14px;
+      font-size: 15px;
+    }
   }
   .theinmag-comps__tile:hover .theinmag-comps__tile-cta,
   .theinmag-comps__tile:focus-visible .theinmag-comps__tile-cta {
