@@ -1,0 +1,479 @@
+{%- comment -%}
+  theinmag-stockist-kit
+  The stockist kit: free promo assets for the shops that stock theINmag.
+  Built 2026-10-14 (Webster, MOCK on preview only). Copy by Fable.
+
+  Three groups, one section:
+    1. Covers  - AUTOMATIC. Loops the issues collection (default
+       single-issues), newest first, and offers each product's featured
+       image as a flat cover. A new issue appears with zero edits the moment
+       its product is in the collection, so stockists can tease a pre-order.
+       Inside spreads (product media 2+) sit behind a native details toggle.
+    2. Logos   - blocks of type "logo".
+    3. Promo   - blocks of type "photo" or "video".
+
+  Downloads: every file URL is served from the shop's own domain
+  (/cdn/shop/...), so the HTML download attribute is honoured (same origin)
+  and the file saves with a clean name instead of opening a tab. Each block
+  takes an image_picker (Shopify Files, the production path) OR an asset
+  filename fallback (theme /assets/, used by the mock).
+
+  Kid-IP rule: covers are used whole. Promo photos with an identifiable
+  kid's face are NOT to be added without Ryan's say-so (consent check).
+{%- endcomment -%}
+
+{%- liquid
+  assign coll_handle = section.settings.issues_collection | default: 'single-issues'
+  assign coll = collections[coll_handle]
+  assign logos = section.blocks | where: 'type', 'logo'
+  assign promos = section.blocks | where: 'type', 'photo'
+  assign videos = section.blocks | where: 'type', 'video'
+  assign sk_style = '--sk-pt: ' | append: section.settings.padding_top | append: 'px; --sk-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+
+  comment
+    Sort issues newest first by single_mag.issue_number (direct read in a
+    loop, sort: cannot follow the deep metafield path).
+  endcomment
+  assign nums = ''
+  for p in coll.products limit: 50
+    assign n = p.metafields.single_mag.issue_number.value | plus: 0
+    if n > 0 and p.featured_image
+      assign padded = n | prepend: '000' | slice: -3, 3
+      assign nums = nums | append: padded | append: ':' | append: p.handle | append: ','
+    endif
+  endfor
+  assign issue_keys = nums | split: ',' | sort | reverse
+  assign in_lift = 'the<span class="theinmag-in">IN</span>mag'
+  assign logos_h = section.settings.logos_heading | escape | replace: 'theINmag', in_lift
+-%}
+
+<section class="theinmag-stockist-kit" style="{{ sk_style }}" aria-labelledby="sk-h1">
+  {%- comment -%} Intro band: copy left, fanned latest covers right {%- endcomment -%}
+  <div class="theinmag-stockist-kit__intro">
+    <div class="theinmag-stockist-kit__intro-copy">
+      <p class="theinmag-stockist-kit__eyebrow">Stockists only</p>
+      <h1 id="sk-h1" class="theinmag-stockist-kit__h1">{{ section.settings.heading }}</h1>
+      <p class="theinmag-stockist-kit__lede">{{ section.settings.intro }}</p>
+      <ul class="theinmag-stockist-kit__jumps" role="list">
+        <li><a href="#sk-covers">Covers</a></li>
+        {%- if logos.size > 0 -%}<li><a href="#sk-logos">Logos</a></li>{%- endif -%}
+        {%- if promos.size > 0 or videos.size > 0 -%}<li><a href="#sk-promo">Photos and video</a></li>{%- endif -%}
+        <li><a href="#sk-how">How to use</a></li>
+      </ul>
+    </div>
+    <div class="theinmag-stockist-kit__fan" aria-hidden="true">
+      {%- for key in issue_keys limit: 3 -%}
+        {%- assign h = key | split: ':' | last -%}
+        {%- assign p = all_products[h] -%}
+        <span class="theinmag-stockist-kit__fan-cover theinmag-stockist-kit__fan-cover--{{ forloop.index }}">
+          {{ p.featured_image | image_url: width: 520 | image_tag: alt: '', loading: 'eager', widths: '260, 520' }}
+        </span>
+      {%- endfor -%}
+    </div>
+  </div>
+
+  {%- comment -%} 1. Covers {%- endcomment -%}
+  <div class="theinmag-stockist-kit__group" id="sk-covers">
+    <div class="theinmag-stockist-kit__group-head">
+      <h2 class="theinmag-stockist-kit__h2">{{ section.settings.covers_heading }}</h2>
+      <p class="theinmag-stockist-kit__note">{{ section.settings.covers_note }}</p>
+    </div>
+    <ul class="theinmag-stockist-kit__covers" role="list">
+      {%- for key in issue_keys -%}
+        {%- assign h = key | split: ':' | last -%}
+        {%- assign p = all_products[h] -%}
+        {%- assign n = key | split: ':' | first | plus: 0 -%}
+        {%- if n < 10 -%}{%- assign label = 'Mag0' | append: n -%}{%- else -%}{%- assign label = 'Mag' | append: n -%}{%- endif -%}
+        {%- assign is_pre = p.metafields.theinmag.is_pre_order | default: false -%}
+        {%- assign ext = p.featured_image.src | split: '?' | first | split: '.' | last | downcase -%}
+        <li class="theinmag-stockist-kit__cover">
+          <a class="theinmag-stockist-kit__cover-media" href="{{ p.featured_image | image_url }}" target="_blank" rel="noopener" aria-label="View the {{ label }} cover full size">
+            {{ p.featured_image | image_url: width: 600 | image_tag: alt: '', loading: 'lazy', widths: '300, 450, 600', sizes: '(min-width: 990px) 240px, 45vw' }}
+            {%- if is_pre == true -%}<span class="theinmag-stockist-kit__flag">Coming next</span>{%- endif -%}
+          </a>
+          <div class="theinmag-stockist-kit__cover-body">
+            <p class="theinmag-stockist-kit__cover-title">{{ label }}</p>
+            <p class="theinmag-stockist-kit__meta">{{ ext | upcase }}, {{ p.featured_image.width }} x {{ p.featured_image.height }} px</p>
+            <a class="theinmag-btn theinmag-btn--secondary theinmag-stockist-kit__dl" href="{{ p.featured_image | image_url }}" download="theINmag-{{ label }}-cover.{{ ext }}" aria-label="Download the {{ label }} cover">
+              {{- section.settings.button_download -}}
+            </a>
+            {%- assign spread_count = 0 -%}
+            {%- for m in p.media offset: 1 -%}{%- if m.media_type == 'image' and m.preview_image.width > m.preview_image.height -%}{%- assign spread_count = spread_count | plus: 1 -%}{%- endif -%}{%- endfor -%}
+            {%- if spread_count > 0 -%}
+              <details class="theinmag-stockist-kit__inside">
+                <summary>Inside pages ({{ spread_count }})</summary>
+                <ul class="theinmag-stockist-kit__spreads" role="list">
+                  {%- assign si = 0 -%}
+                  {%- for m in p.media offset: 1 -%}
+                    {%- if m.media_type == 'image' and m.preview_image.width > m.preview_image.height -%}
+                      {%- assign si = si | plus: 1 -%}
+                      <li>
+                        <a href="{{ m | image_url }}" download="theINmag-{{ label }}-inside-{{ si }}.jpg" aria-label="Download {{ label }} inside spread {{ si }}">
+                          {{ m | image_url: width: 360 | image_tag: alt: '', loading: 'lazy' }}
+                        </a>
+                      </li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+                <p class="theinmag-stockist-kit__hint">Tap a spread to download it.</p>
+              </details>
+            {%- endif -%}
+          </div>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+
+  {%- comment -%} 2. Logos {%- endcomment -%}
+  {%- if logos.size > 0 -%}
+    <div class="theinmag-stockist-kit__band">
+      <div class="theinmag-stockist-kit__group" id="sk-logos">
+        <div class="theinmag-stockist-kit__group-head">
+          <h2 class="theinmag-stockist-kit__h2">{{ logos_h }}</h2>
+          <p class="theinmag-stockist-kit__note">{{ section.settings.logos_note }}</p>
+        </div>
+        <ul class="theinmag-stockist-kit__logos" role="list">
+          {%- for block in logos -%}
+            {%- liquid
+              if block.settings.image
+                assign src = block.settings.image | image_url
+                assign w = block.settings.image.width
+                assign hgt = block.settings.image.height
+              else
+                assign src = block.settings.asset_filename | strip | asset_url
+                assign w = block.settings.px_w
+                assign hgt = block.settings.px_h
+              endif
+              assign fname = block.settings.download_name | default: 'theINmag-logo.png'
+            -%}
+            <li class="theinmag-stockist-kit__logo" {{ block.shopify_attributes }}>
+              <div class="theinmag-stockist-kit__logo-stage theinmag-stockist-kit__logo-stage--{{ block.settings.stage }}">
+                <img src="{{ src }}" alt="{{ block.settings.label | escape }}" loading="lazy" width="{{ w }}" height="{{ hgt }}">
+              </div>
+              <div class="theinmag-stockist-kit__logo-body">
+                <p class="theinmag-stockist-kit__cover-title">{{ block.settings.label }}</p>
+                {%- if w != blank -%}<p class="theinmag-stockist-kit__meta">PNG, transparent, {{ w }} x {{ hgt }} px</p>{%- endif -%}
+                <a class="theinmag-btn theinmag-btn--secondary theinmag-stockist-kit__dl" href="{{ src }}" download="{{ fname }}" aria-label="Download {{ block.settings.label | escape }}">{{ section.settings.button_download }}</a>
+              </div>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} 3. Photos and video {%- endcomment -%}
+  {%- if promos.size > 0 or videos.size > 0 -%}
+    <div class="theinmag-stockist-kit__group" id="sk-promo">
+      <div class="theinmag-stockist-kit__group-head">
+        <h2 class="theinmag-stockist-kit__h2">{{ section.settings.promo_heading }}</h2>
+        <p class="theinmag-stockist-kit__note">{{ section.settings.promo_note }}</p>
+      </div>
+      <ul class="theinmag-stockist-kit__promo" role="list">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'photo' -%}
+            {%- liquid
+              if block.settings.image
+                assign src = block.settings.image | image_url
+                assign thumb = block.settings.image | image_url: width: 800
+              else
+                assign src = block.settings.asset_filename | strip | asset_url
+                assign thumb = src
+              endif
+            -%}
+            <li class="theinmag-stockist-kit__shot" {{ block.shopify_attributes }}>
+              <a class="theinmag-stockist-kit__shot-media" href="{{ src }}" download="{{ block.settings.download_name | default: 'theINmag-photo.jpg' }}" aria-label="Download photo: {{ block.settings.label | escape }}">
+                <img src="{{ thumb }}" alt="{{ block.settings.label | escape }}" loading="lazy">
+                <span class="theinmag-stockist-kit__shot-cta" aria-hidden="true">Download</span>
+              </a>
+              <p class="theinmag-stockist-kit__shot-label">{{ block.settings.label }}</p>
+            </li>
+          {%- elsif block.type == 'video' -%}
+            {%- liquid
+              assign vsrc = block.settings.video_url | strip
+              unless vsrc contains '/'
+                assign vsrc = vsrc | asset_url
+              endunless
+              assign poster = ''
+              if block.settings.poster_filename != blank
+                assign poster = block.settings.poster_filename | strip | asset_url
+              endif
+            -%}
+            <li class="theinmag-stockist-kit__shot theinmag-stockist-kit__shot--video" {{ block.shopify_attributes }}>
+              <div class="theinmag-stockist-kit__shot-media">
+                <video src="{{ vsrc }}" {% if poster != blank %}poster="{{ poster }}"{% endif %} muted loop playsinline preload="none" controls aria-label="{{ block.settings.label | escape }}"></video>
+              </div>
+              <p class="theinmag-stockist-kit__shot-label">
+                {{ block.settings.label }}
+                <a class="theinmag-stockist-kit__inline-dl" href="{{ vsrc }}" download="{{ block.settings.download_name | default: 'theINmag-clip.mp4' }}">Download MP4</a>
+              </p>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} How to use {%- endcomment -%}
+  <div class="theinmag-stockist-kit__group" id="sk-how">
+    <div class="theinmag-stockist-kit__how">
+      <h2 class="theinmag-stockist-kit__h2">{{ section.settings.how_heading }}</h2>
+      <ul class="theinmag-stockist-kit__points" role="list">
+        {%- assign pts = section.settings.how_points | newline_to_br | split: '<br />' -%}
+        {%- for pt in pts -%}{%- assign t = pt | strip -%}{%- if t != blank -%}<li>{{ t | replace: 'heyhey@theinmag.com.au', '<a href="mailto:heyhey@theinmag.com.au">heyhey@theinmag.com.au</a>' }}</li>{%- endif -%}{%- endfor -%}
+      </ul>
+      <p class="theinmag-stockist-kit__tag">{{ section.settings.tag_line }}</p>
+      <div class="theinmag-stockist-kit__socials">
+        <a class="theinmag-btn theinmag-btn--primary" href="https://www.instagram.com/the.inmag/" target="_blank" rel="noopener">Instagram @the.inmag</a>
+        <a class="theinmag-btn theinmag-btn--secondary" href="https://www.facebook.com/theINmagazine" target="_blank" rel="noopener">Facebook @theINmagazine</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "{{ shop.url }}" },
+    { "@type": "ListItem", "position": 2, "name": "Stockists", "item": "{{ shop.url }}/pages/instock" },
+    { "@type": "ListItem", "position": 3, "name": {{ section.settings.heading | json }}, "item": "{{ shop.url }}{{ request.path }}" }
+  ]
+}
+</script>
+
+<style>
+  .theinmag-stockist-kit {
+    background: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    padding: var(--sk-pt, 48px) 0 var(--sk-pb, 80px);
+    overflow-x: clip;
+  }
+  .theinmag-stockist-kit__intro,
+  .theinmag-stockist-kit__group {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 3vw, 32px);
+  }
+  .theinmag-stockist-kit__intro {
+    display: grid;
+    gap: 32px;
+    align-items: center;
+    padding-bottom: clamp(32px, 5vw, 64px);
+  }
+  .theinmag-stockist-kit__eyebrow {
+    font: 600 13px/1.4 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-purple-dark);
+    margin: 0 0 12px;
+  }
+  .theinmag-stockist-kit__h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(38px, 6vw, 64px);
+    line-height: 1.05;
+    margin: 0 0 16px;
+    font-synthesis: none;
+  }
+  .theinmag-stockist-kit__lede {
+    font: 400 clamp(16px, 1.7vw, 19px)/1.6 var(--font-body);
+    max-width: 46ch;
+    margin: 0 0 24px;
+    text-wrap: pretty;
+  }
+  .theinmag-stockist-kit__jumps {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    list-style: none; margin: 0; padding: 0;
+  }
+  .theinmag-stockist-kit__jumps a {
+    display: inline-flex; align-items: center; min-height: 44px;
+    padding: 0 16px;
+    border-radius: var(--radius-pill);
+    background: #fff;
+    box-shadow: var(--shadow-card);
+    color: var(--color-inky-purple-navy);
+    font: 600 14px/1 var(--font-body);
+    text-decoration: none;
+  }
+  .theinmag-stockist-kit__jumps a:hover,
+  .theinmag-stockist-kit__jumps a:focus-visible { background: var(--color-lavender); }
+
+  .theinmag-stockist-kit__fan {
+    position: relative;
+    height: clamp(240px, 34vw, 400px);
+  }
+  .theinmag-stockist-kit__fan-cover {
+    position: absolute; top: 50%; left: 50%;
+    width: clamp(150px, 20vw, 250px);
+    box-shadow: 0 12px 32px rgba(42, 31, 61, 0.22);
+    background: #fff;
+  }
+  .theinmag-stockist-kit__fan-cover img { display: block; width: 100%; height: auto; }
+  .theinmag-stockist-kit__fan-cover--1 { transform: translate(-50%, -50%) rotate(2deg); z-index: 3; }
+  .theinmag-stockist-kit__fan-cover--2 { transform: translate(-95%, -48%) rotate(-7deg); z-index: 2; }
+  .theinmag-stockist-kit__fan-cover--3 { transform: translate(-5%, -46%) rotate(8deg); z-index: 1; }
+
+  .theinmag-stockist-kit__group { padding-top: clamp(32px, 5vw, 56px); padding-bottom: clamp(32px, 5vw, 56px); scroll-margin-top: 120px; }
+  .theinmag-stockist-kit__group-head { margin-bottom: 24px; max-width: 640px; }
+  .theinmag-stockist-kit__h2 {
+    font-family: var(--font-heading);
+    font-size: clamp(26px, 4.5vw, 40px);
+    line-height: 1.15;
+    margin: 0 0 8px;
+    font-synthesis: none;
+  }
+  .theinmag-stockist-kit__note { font: 400 16px/1.6 var(--font-body); margin: 0; text-wrap: pretty; }
+
+  /* Covers */
+  .theinmag-stockist-kit__covers {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .theinmag-stockist-kit__cover {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .theinmag-stockist-kit__cover-media { position: relative; display: block; background: var(--color-lavender); }
+  .theinmag-stockist-kit__cover-media img { display: block; width: 100%; height: auto; aspect-ratio: auto; }
+  .theinmag-stockist-kit__flag {
+    position: absolute; left: 10px; top: 10px;
+    background: var(--color-inky-purple-navy); color: #fff;
+    font: 600 12px/1 var(--font-body); letter-spacing: 0.04em;
+    padding: 6px 10px; border-radius: var(--radius-pill);
+  }
+  .theinmag-stockist-kit__cover-body { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .theinmag-stockist-kit__cover-title { font: 700 17px/1.2 var(--font-body); margin: 0; }
+  .theinmag-stockist-kit__meta { font: 400 13px/1.4 var(--font-body); color: #55506a; margin: 0 0 6px; }
+  .theinmag-stockist-kit__dl { align-self: flex-start; margin-top: auto; }
+  .theinmag-stockist-kit__dl::before { content: "\2193"; margin-right: 6px; font-weight: 700; }
+  .theinmag-stockist-kit__inside { margin-top: 8px; font: 600 14px/1.4 var(--font-body); }
+  .theinmag-stockist-kit__inside summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--color-teal-dark); text-decoration: underline; text-underline-offset: 3px; }
+  .theinmag-stockist-kit__spreads { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .theinmag-stockist-kit__spreads img { display: block; width: 100%; height: auto; border-radius: 6px; }
+  .theinmag-stockist-kit__hint { font: 400 12px/1.4 var(--font-body); color: #55506a; margin: 6px 0 0; }
+
+  /* Logos band: lavender chapter */
+  .theinmag-stockist-kit__band { background: var(--color-lavender); margin: clamp(16px, 3vw, 32px) 0; }
+  .theinmag-stockist-kit__logos {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: 16px; grid-template-columns: 1fr;
+  }
+  .theinmag-stockist-kit__logo { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-card); overflow: hidden; display: flex; flex-direction: column; }
+  .theinmag-stockist-kit__logo-stage {
+    aspect-ratio: 16 / 9; display: grid; place-items: center; padding: 24px;
+    background-color: #f4f1f7;
+    background-image: linear-gradient(45deg, #e9e4ef 25%, transparent 25%), linear-gradient(-45deg, #e9e4ef 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e9e4ef 75%), linear-gradient(-45deg, transparent 75%, #e9e4ef 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+  }
+  .theinmag-stockist-kit__logo-stage--dark { background: var(--color-inky-purple-navy); }
+  .theinmag-stockist-kit__logo-stage img { max-width: 80%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+  .theinmag-stockist-kit__logo-body { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+
+  /* Promo */
+  .theinmag-stockist-kit__promo { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .theinmag-stockist-kit__shot-media { position: relative; display: block; border-radius: var(--radius-lg); overflow: hidden; aspect-ratio: 1 / 1; background: var(--color-lavender); }
+  .theinmag-stockist-kit__shot-media img,
+  .theinmag-stockist-kit__shot-media video { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .theinmag-stockist-kit__shot-cta {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 28px 12px 10px;
+    background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0));
+    color: #fff; font: 600 13px/1 var(--font-body); letter-spacing: 0.04em;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  }
+  .theinmag-stockist-kit__shot-cta::before { content: "\2193  "; white-space: pre; }
+  .theinmag-stockist-kit__shot-label { font: 500 14px/1.4 var(--font-body); margin: 8px 2px 0; }
+  .theinmag-stockist-kit__inline-dl { display: inline-block; margin-left: 6px; color: var(--color-teal-dark); font-weight: 600; }
+
+  /* How to use */
+  .theinmag-stockist-kit__how {
+    background: #fff; border-radius: var(--radius-xl); box-shadow: var(--shadow-card);
+    padding: clamp(24px, 4vw, 48px);
+    max-width: 760px; margin: 0 auto;
+  }
+  .theinmag-stockist-kit__points { list-style: none; margin: 16px 0; padding: 0; display: grid; gap: 12px; }
+  .theinmag-stockist-kit__points li { position: relative; padding-left: 30px; font: 400 16px/1.55 var(--font-body); }
+  .theinmag-stockist-kit__points li::before { content: "\2713"; position: absolute; left: 0; top: 0; font-weight: 700; color: var(--color-purple-dark); }
+  .theinmag-stockist-kit__points a { color: var(--color-teal-dark); }
+  .theinmag-stockist-kit__tag { font: 600 16px/1.5 var(--font-body); margin: 8px 0 16px; }
+  .theinmag-stockist-kit__socials { display: flex; flex-wrap: wrap; gap: 12px; }
+
+  @media (min-width: 750px) {
+    .theinmag-stockist-kit .theinmag-stockist-kit__intro { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+    .theinmag-stockist-kit .theinmag-stockist-kit__covers { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .theinmag-stockist-kit .theinmag-stockist-kit__logos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .theinmag-stockist-kit .theinmag-stockist-kit__promo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (min-width: 990px) {
+    .theinmag-stockist-kit .theinmag-stockist-kit__covers { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .theinmag-stockist-kit .theinmag-stockist-kit__logos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .theinmag-stockist-kit .theinmag-stockist-kit__promo { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "theINmag stockist kit",
+  "tag": "div",
+  "class": "theinmag-stockist-kit-section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Page heading (H1)", "default": "Your stockist kit" },
+    { "type": "textarea", "id": "intro", "label": "Intro", "default": "Covers, logos, photos and short clips of theINmag, ready to download and use in your shop, on your website and on your socials. All free for stockists, no need to ask." },
+    { "type": "text", "id": "issues_collection", "label": "Issues collection handle", "default": "single-issues", "info": "Covers are pulled automatically from this collection, newest first." },
+    { "type": "text", "id": "covers_heading", "label": "Covers heading", "default": "Which covers can I use?" },
+    { "type": "text", "id": "covers_note", "label": "Covers note", "default": "Flat cover images for every issue, newest first. The next cover lands here before drop day so you can tease it early." },
+    { "type": "text", "id": "logos_heading", "label": "Logos heading", "default": "theINmag logos" },
+    { "type": "text", "id": "logos_note", "label": "Logos note", "default": "Transparent PNGs in colour and one-colour versions. Please don't stretch, recolour or redraw the logo." },
+    { "type": "text", "id": "promo_heading", "label": "Photos heading", "default": "Photos and short videos" },
+    { "type": "text", "id": "promo_note", "label": "Photos note", "default": "Real photos and short clips of the mag in hands and on shelves, fine to post as they are." },
+    { "type": "text", "id": "how_heading", "label": "How-to heading", "default": "How to use these" },
+    { "type": "textarea", "id": "how_points", "label": "How-to points (one per line)", "default": "Free to use to promote theINmag in your shop, on your site and socials.\nThe cover art belongs to the kid artists. Use covers whole, never crop or alter the art.\nTag @the.inmag on Instagram and @theINmagazine on Facebook so we can share it.\nNeed something that isn't here? Email heyhey@theinmag.com.au." },
+    { "type": "text", "id": "tag_line", "label": "Closing line", "default": "Tag us when you post and we'll reshare it and send families your way." },
+    { "type": "text", "id": "button_download", "label": "Download button label", "default": "Download" },
+    { "type": "range", "id": "padding_top", "label": "Padding top", "min": 0, "max": 120, "step": 8, "unit": "px", "default": 48 },
+    { "type": "range", "id": "padding_bottom", "label": "Padding bottom", "min": 0, "max": 160, "step": 8, "unit": "px", "default": 80 }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Colour logo" },
+        { "type": "image_picker", "id": "image", "label": "Logo file (Shopify Files)" },
+        { "type": "text", "id": "asset_filename", "label": "Or theme asset filename" },
+        { "type": "number", "id": "px_w", "label": "Asset width (px)" },
+        { "type": "number", "id": "px_h", "label": "Asset height (px)" },
+        { "type": "text", "id": "download_name", "label": "Saved file name", "default": "theINmag-logo.png" },
+        { "type": "select", "id": "stage", "label": "Preview background", "default": "check", "options": [ { "value": "check", "label": "Transparent grid" }, { "value": "dark", "label": "Dark (for white logos)" } ] }
+      ]
+    },
+    {
+      "type": "photo",
+      "name": "Photo",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Caption / alt", "default": "theINmag on a shop shelf" },
+        { "type": "image_picker", "id": "image", "label": "Photo (Shopify Files)", "info": "No identifiable kids' faces without Ryan's consent check." },
+        { "type": "text", "id": "asset_filename", "label": "Or theme asset filename" },
+        { "type": "text", "id": "download_name", "label": "Saved file name", "default": "theINmag-photo.jpg" }
+      ]
+    },
+    {
+      "type": "video",
+      "name": "Video clip",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Caption", "default": "Flick-through clip" },
+        { "type": "text", "id": "video_url", "label": "MP4 URL or theme asset filename" },
+        { "type": "text", "id": "poster_filename", "label": "Poster image (theme asset filename)" },
+        { "type": "text", "id": "download_name", "label": "Saved file name", "default": "theINmag-clip.mp4" }
+      ]
+    }
+  ],
+  "presets": [ { "name": "theINmag stockist kit" } ]
+}
+{% endschema %}

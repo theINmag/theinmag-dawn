@@ -1,0 +1,100 @@
+{
+  "sections": {
+    "kit": {
+      "type": "theinmag-stockist-kit",
+      "blocks": {
+        "logo_colour": {
+          "type": "logo",
+          "settings": {
+            "label": "Colour logo with tagline",
+            "asset_filename": "full_logo.png",
+            "px_w": 928,
+            "px_h": 542,
+            "download_name": "theINmag-logo-colour.png",
+            "stage": "check"
+          }
+        },
+        "logo_header": {
+          "type": "logo",
+          "settings": {
+            "label": "Colour logo, wordmark only",
+            "asset_filename": "header_logo.png",
+            "px_w": 800,
+            "px_h": 264,
+            "download_name": "theINmag-logo-wordmark.png",
+            "stage": "check"
+          }
+        },
+        "logo_mono": {
+          "type": "logo",
+          "settings": {
+            "label": "One-colour logo",
+            "asset_filename": "theinmag-kit-logo-mono.png",
+            "px_w": 753,
+            "px_h": 248,
+            "download_name": "theINmag-logo-mono.png",
+            "stage": "check"
+          }
+        },
+        "logo_in": {
+          "type": "logo",
+          "settings": {
+            "label": "IN mark",
+            "asset_filename": "theINlogo.png",
+            "px_w": 512,
+            "px_h": 512,
+            "download_name": "theINmag-IN-mark.png",
+            "stage": "check"
+          }
+        },
+        "photo_shelf": {
+          "type": "photo",
+          "settings": {
+            "label": "theINmag on a shop counter",
+            "asset_filename": "theinmag-stockist-shelf.jpg",
+            "download_name": "theINmag-on-the-counter.jpg"
+          }
+        },
+        "clip_flick": {
+          "type": "video",
+          "settings": {
+            "label": "Flick-through clip, 11 seconds",
+            "video_url": "mag09-02-flick-through1.mp4",
+            "download_name": "theINmag-flick-through.mp4",
+            "poster_filename": "theinmag-kit-flick-poster.jpg"
+          }
+        },
+        "photo_digital": {
+          "type": "photo",
+          "settings": {
+            "label": "The digital edition on a tablet",
+            "asset_filename": "digi_membership.jpg",
+            "download_name": "theINmag-digital-edition.jpg"
+          }
+        },
+        "photo_van": {
+          "type": "photo",
+          "settings": {
+            "label": "Ryan and Tam with the theINmag van",
+            "asset_filename": "HERO_behind-the-mag-van.jpg",
+            "download_name": "theINmag-van.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "logo_colour",
+        "logo_header",
+        "logo_mono",
+        "logo_in",
+        "photo_shelf",
+        "clip_flick",
+        "photo_digital",
+        "photo_van"
+      ],
+      "settings": {}
+    }
+  },
+  "order": [
+    "kit"
+  ]
+}
