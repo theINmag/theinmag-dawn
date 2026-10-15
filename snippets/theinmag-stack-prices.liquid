@@ -1,0 +1,20 @@
+{%- comment -%}
+  theinmag-stack-prices (documentation only, renders nothing)
+
+  The Digital Stack price tokens [stack_price] [stack_anchor] [stack_saving]
+  are computed by an identical Liquid block at the top of every section that
+  accepts them (theinmag-mission, theinmag-for-parents-shop-trio). Liquid's
+  {% render %} scopes variables, so the block is copied, not rendered; this
+  file is the one documented source of the maths. Keep the copies identical.
+
+    stack_price_str    e.g. "$69"        the Stack product's live price
+    stack_anchor_str   e.g. "$114.45"    every released issue bought digital, one at a time
+    stack_saving_str   e.g. "$45.45"     anchor minus price
+
+  Real issues only (issue_number > 0), pre-orders excluded, same as
+  theinmag-stack-module. money_without_trailing_zeros drops ".00".
+
+  WHY (2026-10-15): the homepage tile said $104 / $65 and For Teachers said
+  $65 / Save $39 after the Stack moved to $69 with 11 issues. No Stack price
+  is ever typed into a template again; use the tokens.
+{%- endcomment -%}

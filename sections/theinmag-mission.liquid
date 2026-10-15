@@ -36,6 +36,30 @@
     assign drop_date_label = next_release_date | date: '%-d %B'
   endif
 -%}
+{%- liquid
+  # Live Digital Stack price tokens: [stack_price] [stack_anchor] [stack_saving]
+  # (maths mirrors theinmag-stack-module; see snippets/theinmag-stack-prices.liquid)
+  assign sp_stack = all_products['digital-stack']
+  assign sp_anchor = 0
+  for sp_issue in collections['single-issues'].products
+    assign sp_num = sp_issue.metafields.single_mag.issue_number.value | default: 0
+    assign sp_pre = sp_issue.metafields.theinmag.is_pre_order | default: false
+    if sp_num > 0 and sp_pre == false
+      for sp_v in sp_issue.variants
+        if sp_v.option1 == 'Digital'
+          assign sp_anchor = sp_anchor | plus: sp_v.price
+          break
+        endif
+      endfor
+    endif
+  endfor
+  assign sp_price = sp_stack.price | default: 0
+  assign sp_saving = sp_anchor | minus: sp_price
+  assign stack_price_str = sp_price | money_without_trailing_zeros
+  assign stack_anchor_str = sp_anchor | money_without_trailing_zeros
+  assign stack_saving_str = sp_saving | money_without_trailing_zeros
+-%}
+
 
 {%- comment -%}
   Character is now sourced from the sitewide kid-character pool. The
@@ -151,11 +175,13 @@
                 <span class="theinmag-mission__product-tagline">{{ tagline_out }}</span>
               {%- endif -%}
               {%- if block.settings.price != blank -%}
+                {%- assign price_out = block.settings.price | replace: '[stack_price]', stack_price_str | replace: '[stack_anchor]', stack_anchor_str | replace: '[stack_saving]', stack_saving_str -%}
+                {%- assign compare_out = block.settings.compare_price | replace: '[stack_price]', stack_price_str | replace: '[stack_anchor]', stack_anchor_str | replace: '[stack_saving]', stack_saving_str -%}
                 <span class="theinmag-mission__product-price">
-                  {%- if block.settings.compare_price != blank -%}
-                    <s class="theinmag-mission__product-compare">{{ block.settings.compare_price }}</s>
+                  {%- if compare_out != blank -%}
+                    <s class="theinmag-mission__product-compare">{{ compare_out }}</s>
                   {%- endif -%}
-                  {{ block.settings.price }}</span>
+                  {{ price_out }}</span>
               {%- endif -%}
             </div>
           </a>
@@ -901,7 +927,7 @@
           "type": "text",
           "id": "price",
           "label": "Price (optional)",
-          "info": "Free-form text - e.g. \"$23.95\", \"From $89\", \"Build yours\"."
+          "info": "Free-form text - e.g. \"$23.95\", \"From $89\", \"Build yours\". Tokens [stack_price] [stack_anchor] [stack_saving] read the live Digital Stack; never type a Stack price."
         },
         {
           "type": "url",
@@ -913,7 +939,7 @@
           "type": "text",
           "id": "compare_price",
           "label": "Compare-at price (optional)",
-          "info": "Shown struck through before the price, e.g. $104 on the Digital Stack tile."
+          "info": "Shown struck through before the price. Use [stack_anchor] on the Digital Stack tile (live sum of every issue bought digitally)."
         },
         {
           "type": "image_picker",

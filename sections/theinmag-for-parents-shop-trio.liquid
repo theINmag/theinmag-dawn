@@ -14,6 +14,29 @@
   Block fields cover both shapes (some fields only render in one
   weight) so the admin keeps editing all three tiles from one schema.
 {%- endcomment -%}
+{%- liquid
+  # Live Digital Stack price tokens: [stack_price] [stack_anchor] [stack_saving]
+  # (maths mirrors theinmag-stack-module; see snippets/theinmag-stack-prices.liquid)
+  assign sp_stack = all_products['digital-stack']
+  assign sp_anchor = 0
+  for sp_issue in collections['single-issues'].products
+    assign sp_num = sp_issue.metafields.single_mag.issue_number.value | default: 0
+    assign sp_pre = sp_issue.metafields.theinmag.is_pre_order | default: false
+    if sp_num > 0 and sp_pre == false
+      for sp_v in sp_issue.variants
+        if sp_v.option1 == 'Digital'
+          assign sp_anchor = sp_anchor | plus: sp_v.price
+          break
+        endif
+      endfor
+    endif
+  endfor
+  assign sp_price = sp_stack.price | default: 0
+  assign sp_saving = sp_anchor | minus: sp_price
+  assign stack_price_str = sp_price | money_without_trailing_zeros
+  assign stack_anchor_str = sp_anchor | money_without_trailing_zeros
+  assign stack_saving_str = sp_saving | money_without_trailing_zeros
+-%}
 
 {%- liquid
   # Don't use `| default:` on the heading - empty string from a
@@ -111,7 +134,7 @@
             {%- endif -%}
 
             {%- if block.settings.price != blank -%}
-              <p class="theinmag-for-parents-shop-trio__price">{{ block.settings.price }}</p>
+              <p class="theinmag-for-parents-shop-trio__price">{{ block.settings.price | replace: '[stack_price]', stack_price_str | replace: '[stack_anchor]', stack_anchor_str | replace: '[stack_saving]', stack_saving_str }}</p>
             {%- endif -%}
 
             {%- if block.settings.trust_dots != blank -%}
@@ -119,7 +142,7 @@
             {%- endif -%}
 
             {%- if block.settings.badge != blank -%}
-              <p class="theinmag-for-parents-shop-trio__badge">{{ block.settings.badge }}</p>
+              <p class="theinmag-for-parents-shop-trio__badge">{{ block.settings.badge | replace: '[stack_price]', stack_price_str | replace: '[stack_anchor]', stack_anchor_str | replace: '[stack_saving]', stack_saving_str }}</p>
             {%- endif -%}
 
             {%- if block.settings.cta_label != blank -%}
