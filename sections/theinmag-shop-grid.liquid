@@ -472,6 +472,29 @@
             if grid_has_presale
               assign note_line = section.settings.scarcity_line_live
             endif
+            # Tokens so no issue number or date is ever typed here (found stale
+            # on drop day 2026-10-15: "Mag11 pre-orders open 15 September" was
+            # still live after Mag11 had dropped). [current_issue] [next_issue]
+            # [next_drop_date] read the shop metafields the rollover flips.
+            assign sg_cur_n = shop.metafields.theinmag.current_issue_number.value | default: 'Mag10' | remove: 'Mag' | plus: 0
+            assign sg_next_n = sg_cur_n | plus: 1
+            if sg_cur_n < 10
+              assign sg_cur = 'Mag0' | append: sg_cur_n
+            else
+              assign sg_cur = 'Mag' | append: sg_cur_n
+            endif
+            if sg_next_n < 10
+              assign sg_next = 'Mag0' | append: sg_next_n
+            else
+              assign sg_next = 'Mag' | append: sg_next_n
+            endif
+            assign sg_next_drop = shop.metafields.theinmag.next_release_date.value
+            if sg_next_drop != blank
+              assign sg_next_drop = sg_next_drop | date: '%-d %B %Y'
+            else
+              assign sg_next_drop = 'the next drop'
+            endif
+            assign note_line = note_line | replace: '[current_issue]', sg_cur | replace: '[next_issue]', sg_next | replace: '[next_drop_date]', sg_next_drop
           -%}
           <li class="theinmag-shop-grid__note">
             <span class="theinmag-shop-grid__note-arrow" aria-hidden="true">
@@ -2551,14 +2574,15 @@
       "type": "text",
       "id": "scarcity_line_pre",
       "label": "Second line, before the next issue opens for pre-order",
-      "info": "Swaps itself for the line below the moment any issue in this grid goes to pre-sale, so a date here cannot go stale.",
-      "default": "Mag11 pre-orders open 15 September."
+      "info": "Swaps itself for the line below the moment any issue in this grid goes to pre-sale. Use the tokens [current_issue], [next_issue] and [next_drop_date] (live from the shop metafields); never type an issue number or date.",
+      "default": "[next_issue] drops [next_drop_date]. Pre-orders open about a month out."
     },
     {
       "type": "text",
       "id": "scarcity_line_live",
       "label": "Second line, once pre-orders are open",
-      "default": "In stock ships now. Mag11 follows on drop week."
+      "info": "Same tokens as above.",
+      "default": "In stock ships now. [next_issue] follows on drop week."
     },
     {
       "type": "header",
