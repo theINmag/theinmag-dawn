@@ -5,7 +5,7 @@
   Dawn's stock `featured-collection` block.
 
   - Smart ordering: Membership first (unless already in cart), then
-    Mag10 / 9 / 8 / 7 / 6, then Snack Pack + Digital Stack as backup.
+    the current issue and the four before it (live metafield), then Snack Pack + Digital Stack as backup.
     Picks the first N that aren't in the cart already.
   - Renders the SAME tile as /shop (the theinmag-bundle-tile snippet in
     'shop' context) so each tile carries Print + Digital "Add" rows with
@@ -31,7 +31,25 @@
 
 {%- liquid
   assign max_tiles = section.settings.max_tiles | default: 4
-  assign priority_handles = 'membership,digital-stack,mag10,mag09,mag08,mag07,mag06,snack-pack' | split: ','
+  # Issue handles follow the live current issue (shop metafield), newest first,
+  # so the row rolls over on drop day with no edit here (2026-10-15: it was a
+  # hardcoded Mag10..Mag06 list and still led with Mag10 after the Mag11 drop).
+  assign cf_cur = shop.metafields.theinmag.current_issue_number.value | default: 'Mag10' | remove: 'Mag' | plus: 0
+  assign priority_handles_str = 'membership,digital-stack'
+  for cf_i in (0..4)
+    assign cf_n = cf_cur | minus: cf_i
+    if cf_n < 1
+      break
+    endif
+    if cf_n < 10
+      assign cf_h = 'mag0' | append: cf_n
+    else
+      assign cf_h = 'mag' | append: cf_n
+    endif
+    assign priority_handles_str = priority_handles_str | append: ',' | append: cf_h
+  endfor
+  assign priority_handles_str = priority_handles_str | append: ',snack-pack'
+  assign priority_handles = priority_handles_str | split: ','
 
   assign cart_handles = ''
   for item in cart.items
