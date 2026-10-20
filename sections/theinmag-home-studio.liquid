@@ -1,0 +1,293 @@
+{%- comment -%}
+  theinmag-home-studio  (2026-10-20, Webster) - HOMEPAGE CONCEPT, preview only
+  Ryan: the homepage "looks pretty boring". This is a concept stack that
+  borrows from architecture studio sites, kept warm and kid-made:
+    - Studio Gang:     one big plain-English statement (Inter 700, the
+                       editorial register, so Post is saved for the tiles) whose key words ARE
+                       the navigation (magazine, gallery, videos, schools).
+    - Herzog & de Meuron: a row of outlined topic chips as the index.
+    - Kennedy Nolan:   full-bleed photography with a tiny two-line caption
+                       (category / project) in white on a scrim.
+    - Snohetta:        case-study tiles: name + one line on why it matters,
+                       numbered like a project index.
+  Plus a live strip of REAL kids' creations from the gallery feed (first
+  name only, no ages, never invented words), rendered client-side from the
+  same Worker feed /pages/gallery uses.
+  Restrained motion: tiles rise in once on scroll; images ease 3% on hover;
+  all off for prefers-reduced-motion.
+  Wired via templates/page.home-concept.json for review at
+  /pages/<any>?view=home-concept on the preview theme. Not on the homepage.
+{%- endcomment -%}
+{%- liquid
+  assign statement = section.settings.statement
+  assign statement = statement | replace: '[magazine]', '<a href="/products/membership">magazine</a>'
+  assign statement = statement | replace: '[gallery]', '<a href="/pages/gallery">gallery</a>'
+  assign statement = statement | replace: '[videos]', '<a href="/pages/videos">free videos</a>'
+  assign statement = statement | replace: '[schools]', '<a href="/pages/for-teachers">schools</a>'
+-%}
+
+<section class="theinmag-home-studio" aria-labelledby="hs-h-{{ section.id }}">
+
+  <div class="theinmag-home-studio__open">
+    <h1 id="hs-h-{{ section.id }}" class="theinmag-home-studio__statement">{{ statement }}</h1>
+    <nav class="theinmag-home-studio__chips" aria-label="Explore theINmag">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'chip' -%}
+          <a class="theinmag-home-studio__chip" href="{{ block.settings.url }}" {{ block.shopify_attributes }}>{{ block.settings.label }}</a>
+        {%- endif -%}
+      {%- endfor -%}
+    </nav>
+  </div>
+
+  {%- if section.settings.feature_image != blank -%}
+    <a class="theinmag-home-studio__feature" href="{{ section.settings.feature_url }}">
+      <img src="{{ section.settings.feature_image | asset_url }}" alt="{{ section.settings.feature_alt | escape }}" loading="eager" width="1600" height="1000">
+      <span class="theinmag-home-studio__feature-scrim" aria-hidden="true"></span>
+      <span class="theinmag-home-studio__caption">
+        <span>{{ section.settings.feature_kicker }}</span>
+        <span>{{ section.settings.feature_title }}</span>
+      </span>
+      <span class="theinmag-home-studio__feature-cta">{{ section.settings.feature_cta }} <span aria-hidden="true">&rarr;</span></span>
+    </a>
+  {%- endif -%}
+
+  <div class="theinmag-home-studio__projects">
+    <h2 class="theinmag-home-studio__projects-heading">{{ section.settings.projects_heading }}</h2>
+    <ol class="theinmag-home-studio__grid">
+      {%- assign n = 0 -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'project' -%}
+          {%- assign n = n | plus: 1 -%}
+          <li class="theinmag-home-studio__tile theinmag-home-studio__tile--{{ n }}" data-hs-rise {{ block.shopify_attributes }}>
+            <a href="{{ block.settings.url }}">
+              <span class="theinmag-home-studio__tile-media">
+                <img src="{{ block.settings.image | asset_url }}" alt="{{ block.settings.alt | escape }}" loading="lazy" width="1200" height="900">
+              </span>
+              <span class="theinmag-home-studio__tile-text">
+                <span class="theinmag-home-studio__tile-num">{{ n | prepend: '0' | slice: -2, 2 }}</span>
+                <span class="theinmag-home-studio__tile-name">{{ block.settings.name }}</span>
+                <span class="theinmag-home-studio__tile-line">{{ block.settings.line }}</span>
+              </span>
+            </a>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ol>
+  </div>
+
+  <div class="theinmag-home-studio__made">
+    <div class="theinmag-home-studio__made-head">
+      <h2 class="theinmag-home-studio__made-heading">{{ section.settings.made_heading }}</h2>
+      <a class="theinmag-home-studio__made-link" href="/pages/gallery">{{ section.settings.made_link }} <span aria-hidden="true">&rarr;</span></a>
+    </div>
+    <ul class="theinmag-home-studio__strip" data-hs-feed="{{ section.settings.feed_url }}" aria-live="polite"></ul>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var root = document.currentScript.previousElementSibling;
+    /* rise-in once */
+    var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var tiles = root.querySelectorAll('[data-hs-rise]');
+    if (!still && 'IntersectionObserver' in window) {
+      tiles.forEach(function (t) { t.classList.add('is-waiting'); });
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.remove('is-waiting'); io.unobserve(e.target); } });
+      }, { rootMargin: '0px 0px -10% 0px' });
+      tiles.forEach(function (t) { io.observe(t); });
+    }
+    /* real creations from the gallery feed: first name only, no ages */
+    var strip = root.querySelector('[data-hs-feed]');
+    if (!strip) return;
+    fetch(strip.getAttribute('data-hs-feed')).then(function (r) { return r.json(); }).then(function (d) {
+      var items = (d.creations || []).filter(function (c) { return !c.is_text_only && c.images && c.images.length && c.first_name; }).slice(0, 10);
+      function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+      strip.innerHTML = items.map(function (c) {
+        var src = c.images[0] + (c.images[0].indexOf('?') > -1 ? '&' : '?') + 'width=480';
+        return '<li class="theinmag-home-studio__made-item"><a href="/pages/gallery"><img src="' + esc(src) + '" alt="' + esc(c.alt_text || ('A creation by ' + c.first_name)) + '" loading="lazy" width="480" height="560"><span>' + esc(c.first_name) + '</span></a></li>';
+      }).join('');
+    }).catch(function () { root.querySelector('.theinmag-home-studio__made').hidden = true; });
+  })();
+</script>
+
+{% stylesheet %}
+  .theinmag-home-studio { background: var(--color-cream); color: var(--color-inky-purple-navy); }
+
+  .theinmag-home-studio__open {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(48px, 9vw, 120px) clamp(16px, 3vw, 32px) clamp(32px, 5vw, 56px);
+  }
+  .theinmag-home-studio__statement {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: clamp(30px, 4.4vw, 58px);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    margin: 0 0 clamp(24px, 3vw, 36px);
+    max-width: 24ch;
+    text-wrap: pretty;
+  }
+  .theinmag-home-studio__statement a {
+    color: var(--color-purple-dark);
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 6px;
+    text-decoration-color: var(--color-yellow);
+  }
+  .theinmag-home-studio__statement a:hover { text-decoration-color: var(--color-purple-dark); }
+  .theinmag-home-studio__chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .theinmag-home-studio__chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 2px solid var(--color-inky-purple-navy);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--color-inky-purple-navy);
+    text-decoration: none;
+    transition: background-color var(--transition-standard), color var(--transition-standard);
+  }
+  .theinmag-home-studio__chip:hover,
+  .theinmag-home-studio__chip:focus-visible { background: var(--color-inky-purple-navy); color: var(--color-cream); outline: none; }
+
+  .theinmag-home-studio__feature {
+    position: relative;
+    display: block;
+    height: clamp(420px, 78vh, 820px);
+    overflow: hidden;
+    color: #FFFFFF;
+    text-decoration: none;
+  }
+  .theinmag-home-studio__feature img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: scale 1.2s ease; }
+  .theinmag-home-studio__feature:hover img { scale: 1.03; }
+  .theinmag-home-studio__feature-scrim { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.5) 100%); }
+  .theinmag-home-studio__caption {
+    position: absolute;
+    top: clamp(16px, 3vw, 32px);
+    left: clamp(16px, 3vw, 32px);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(14px, 1.3vw, 16px);
+    line-height: 1.35;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+  }
+  .theinmag-home-studio__feature-cta {
+    position: absolute;
+    left: clamp(16px, 3vw, 32px);
+    bottom: clamp(16px, 3vw, 32px);
+    font-family: var(--font-heading);
+    font-size: clamp(26px, 3.6vw, 44px);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+
+  .theinmag-home-studio__projects {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: clamp(56px, 8vw, 112px) clamp(16px, 3vw, 32px) clamp(40px, 6vw, 80px);
+  }
+  .theinmag-home-studio__projects-heading {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.12);
+  }
+  .theinmag-home-studio__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(28px, 4vw, 48px) clamp(20px, 3vw, 40px); }
+  .theinmag-home-studio__tile a { display: block; color: var(--color-inky-purple-navy); text-decoration: none; }
+  .theinmag-home-studio__tile-media { display: block; overflow: hidden; border-radius: var(--radius-lg); aspect-ratio: 4 / 3; background: var(--color-lavender); }
+  .theinmag-home-studio__tile-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: scale 0.8s ease; }
+  .theinmag-home-studio__tile a:hover img { scale: 1.03; }
+  .theinmag-home-studio__tile a:focus-visible { outline: 3px solid var(--color-inky-purple-navy); outline-offset: 6px; border-radius: var(--radius-lg); }
+  .theinmag-home-studio__tile-text { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; padding-top: 14px; }
+  .theinmag-home-studio__tile-num { grid-row: 1 / 3; font-family: var(--font-body); font-weight: 700; font-size: 14px; opacity: 0.6; padding-top: 4px; }
+  .theinmag-home-studio__tile-name { font-family: var(--font-heading); font-size: clamp(24px, 2.6vw, 32px); line-height: 1.1; }
+  .theinmag-home-studio__tile-line { font-family: var(--font-body); font-size: 16px; line-height: 1.5; margin-top: 4px; max-width: 44ch; }
+  .theinmag-home-studio__tile { transition: opacity 0.7s ease, translate 0.7s ease; }
+  .theinmag-home-studio__tile.is-waiting { opacity: 0; translate: 0 24px; }
+
+  @media (min-width: 750px) {
+    .theinmag-home-studio .theinmag-home-studio__grid { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    .theinmag-home-studio .theinmag-home-studio__tile--1 { grid-column: 1 / 8; }
+    .theinmag-home-studio .theinmag-home-studio__tile--2 { grid-column: 8 / 13; margin-top: clamp(40px, 8vw, 120px); }
+    .theinmag-home-studio .theinmag-home-studio__tile--2 .theinmag-home-studio__tile-media { aspect-ratio: 4 / 5; }
+    .theinmag-home-studio .theinmag-home-studio__tile--3 { grid-column: 2 / 7; }
+    .theinmag-home-studio .theinmag-home-studio__tile--3 .theinmag-home-studio__tile-media { aspect-ratio: 4 / 5; }
+    .theinmag-home-studio .theinmag-home-studio__tile--4 { grid-column: 7 / 13; margin-top: clamp(40px, 8vw, 120px); }
+  }
+
+  .theinmag-home-studio__made { padding: 0 0 clamp(56px, 8vw, 112px); }
+  .theinmag-home-studio__made[hidden] { display: none; }
+  .theinmag-home-studio__made-head {
+    max-width: 1320px;
+    margin: 0 auto 20px;
+    padding: 0 clamp(16px, 3vw, 32px);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px 24px;
+  }
+  .theinmag-home-studio__made-heading { font-family: var(--font-heading); font-weight: 400; font-size: clamp(26px, 4vw, 40px); margin: 0; }
+  .theinmag-home-studio__made-link { font-family: var(--font-body); font-weight: 700; color: var(--color-inky-purple-navy); text-underline-offset: 4px; }
+  .theinmag-home-studio__strip {
+    list-style: none;
+    margin: 0;
+    padding: 0 clamp(16px, 3vw, 32px) 8px;
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .theinmag-home-studio__strip::-webkit-scrollbar { display: none; }
+  .theinmag-home-studio__made-item { flex: 0 0 clamp(180px, 22vw, 260px); scroll-snap-align: start; }
+  .theinmag-home-studio__made-item a { display: block; color: var(--color-inky-purple-navy); text-decoration: none; }
+  .theinmag-home-studio__made-item img { width: 100%; aspect-ratio: 6 / 7; object-fit: cover; border-radius: var(--radius-md); display: block; background: #FFFFFF; }
+  .theinmag-home-studio__made-item span { display: block; font-family: var(--font-body); font-weight: 700; font-size: 15px; padding-top: 8px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-home-studio__tile.is-waiting { opacity: 1; translate: none; }
+    .theinmag-home-studio__feature img, .theinmag-home-studio__tile-media img { transition: none; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Home studio (concept)",
+  "tag": "div",
+  "settings": [
+    { "type": "textarea", "id": "statement", "label": "Statement (H1)", "info": "[magazine], [gallery], [videos], [schools] become links." },
+    { "type": "text", "id": "feature_image", "label": "Feature photo (asset filename)" },
+    { "type": "text", "id": "feature_alt", "label": "Feature alt" },
+    { "type": "text", "id": "feature_kicker", "label": "Caption line 1" },
+    { "type": "text", "id": "feature_title", "label": "Caption line 2" },
+    { "type": "text", "id": "feature_cta", "label": "Feature call to action" },
+    { "type": "text", "id": "feature_url", "label": "Feature URL" },
+    { "type": "text", "id": "projects_heading", "label": "Projects label" },
+    { "type": "text", "id": "made_heading", "label": "Creations heading" },
+    { "type": "text", "id": "made_link", "label": "Creations link label" },
+    { "type": "text", "id": "feed_url", "label": "Gallery feed URL", "default": "https://theinmag-gallery-review.heyhey-53f.workers.dev/gallery-data.json" }
+  ],
+  "blocks": [
+    { "type": "chip", "name": "Chip", "settings": [
+      { "type": "text", "id": "label", "label": "Label" },
+      { "type": "text", "id": "url", "label": "URL" } ] },
+    { "type": "project", "name": "Project tile", "limit": 4, "settings": [
+      { "type": "text", "id": "image", "label": "Image (asset filename)" },
+      { "type": "text", "id": "alt", "label": "Alt" },
+      { "type": "text", "id": "name", "label": "Name" },
+      { "type": "text", "id": "line", "label": "One line" },
+      { "type": "text", "id": "url", "label": "URL" } ] }
+  ]
+}
+{% endschema %}

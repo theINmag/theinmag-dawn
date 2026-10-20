@@ -2,11 +2,15 @@
   theinmag-video-hub  (2026-10-20, Webster; round 3 same day)
   First section of /pages/videos, the grown-ups' video hub.
 
-  Round 3 (Ryan): less writing at the top.
-    1. SPLIT HERO. Copy left, the videographer's portrait still of Ryan
-       at the "passions / interests" whiteboard right (object-fit cover,
-       focal point on his face and pointing hand, never stretched). On
-       phones the photo sits above the copy at a shorter 4:3 crop.
+  Round 4 (Ryan): the split hero felt half-finished, so the hero is
+  FULL-BLEED media with the copy over a scrim.
+    1. HERO MEDIA. A muted, looping, playsinline background video
+       (video_url, Shopify Files mp4) over a poster image (the whiteboard
+       still until Quentin's loop arrives). Phones get video_mobile_url
+       if set, otherwise the poster only. prefers-reduced-motion never
+       loads the video. The poster is the LCP image; the video fades in
+       on "playing". object-fit cover, never stretched.
+  Round 3 notes still apply:
     2. H1 "Plan IN tasks with us" (IN in the brand .theinmag-in style),
        with a Subscribe button beside it: the official YouTube play mark
        (red #FF0000, white triangle, unaltered) on an inky pill, our own
@@ -50,8 +54,20 @@
         src="{{ hero_src }}"
         width="1012" height="1800"
         fetchpriority="high"
+        style="object-position: {{ section.settings.poster_focus | default: '50% 22%' }};"
         alt="{{ section.settings.image_alt | escape }}"
       >
+      {%- if section.settings.video_url != blank -%}
+        <video
+          class="theinmag-video-hub__bgvideo"
+          muted loop playsinline preload="none"
+          aria-hidden="true"
+          data-hero-video
+          data-src="{{ section.settings.video_url }}"
+          {% if section.settings.video_mobile_url != blank %}data-src-mobile="{{ section.settings.video_mobile_url }}"{% endif %}
+        ></video>
+      {%- endif -%}
+      <span class="theinmag-video-hub__scrim" aria-hidden="true"></span>
     </div>
     <div class="theinmag-video-hub__copy">
       <p class="theinmag-video-hub__eyebrow">{{ section.settings.eyebrow }}</p>
@@ -68,14 +84,40 @@
       <p class="theinmag-video-hub__line">{{ section.settings.hero_line }}</p>
       <nav class="theinmag-video-hub__jumps" aria-label="Jump to a series">
         {%- if section.settings.jump_1_label != blank -%}
-          <a class="theinmag-btn theinmag-btn--secondary" href="{{ section.settings.jump_1_url }}">{{ section.settings.jump_1_label }}</a>
+          <a class="theinmag-btn theinmag-btn--secondary-on-image" href="{{ section.settings.jump_1_url }}">{{ section.settings.jump_1_label }}</a>
         {%- endif -%}
         {%- if section.settings.jump_2_label != blank -%}
-          <a class="theinmag-btn theinmag-btn--secondary" href="{{ section.settings.jump_2_url }}">{{ section.settings.jump_2_label }}</a>
+          <a class="theinmag-btn theinmag-btn--secondary-on-image" href="{{ section.settings.jump_2_url }}">{{ section.settings.jump_2_label }}</a>
         {%- endif -%}
       </nav>
     </div>
   </div>
+
+  {%- liquid
+    assign start_rec = ''
+    for rec in records
+      assign sf = rec | split: '^^'
+      if sf[2] == 'start' and sf[1] != blank
+        assign start_rec = rec
+        break
+      endif
+    endfor
+  -%}
+  {%- if start_rec != blank -%}
+    {%- assign sf = start_rec | split: '^^' -%}
+    <div class="theinmag-video-hub__start">
+      <div class="theinmag-video-hub__start-inner">
+        <div class="theinmag-video-hub__start-copy">
+          <h2 class="theinmag-video-hub__start-heading">{{ section.settings.start_heading | default: 'New here? Start with this.' }}</h2>
+          <p class="theinmag-video-hub__start-line">{{ sf[9] }}</p>
+        </div>
+        <button type="button" class="theinmag-video-hub__start-player" data-start-video="{{ sf[1] }}" aria-label="Play: {{ sf[3] | escape }}">
+          <img src="https://i.ytimg.com/vi/{{ sf[1] }}/hqdefault.jpg" width="480" height="360" loading="lazy" alt="">
+          <span class="theinmag-video-hub__start-play" aria-hidden="true"><svg viewBox="0 0 68 48" width="64" height="45" focusable="false"><rect width="68" height="48" rx="12" fill="#FF0000"/><path d="M27 15v18l16-9z" fill="#FFFFFF"/></svg></span>
+        </button>
+      </div>
+    </div>
+  {%- endif -%}
 
   <div class="theinmag-video-hub__searchband">
     <form class="theinmag-video-hub__search" role="search" onsubmit="return false;" id="videos">
@@ -95,6 +137,33 @@
   </div>
 </section>
 
+<script>
+  (function () {
+    var v = document.querySelector('[data-hero-video]');
+    if (v) {
+      var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var phone = window.matchMedia && window.matchMedia('(max-width: 749px)').matches;
+      var src = phone ? v.getAttribute('data-src-mobile') : v.getAttribute('data-src');
+      if (!still && src) {
+        v.addEventListener('playing', function () { v.classList.add('is-playing'); });
+        v.src = src;
+        var p = v.play();
+        if (p && p.catch) p.catch(function () {});
+      }
+    }
+    var b = document.querySelector('[data-start-video]');
+    if (b) b.addEventListener('click', function () {
+      var f = document.createElement('iframe');
+      f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(b.getAttribute('data-start-video')) + '?autoplay=1&rel=0&playsinline=1';
+      f.title = b.getAttribute('aria-label').replace('Play: ', '');
+      f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      f.setAttribute('allowfullscreen', '');
+      f.className = 'theinmag-video-hub__start-iframe';
+      b.replaceWith(f);
+    });
+  })();
+</script>
+
 {%- comment -%} Search index: built from the same registry, so new videos and their keywords appear here with no extra work. {%- endcomment -%}
 <script type="application/json" data-video-index>
 [
@@ -110,6 +179,9 @@
       endif
       assign thumb = f[8] | append: '-640.jpg' | asset_url
       assign hh = f[0] | strip
+      if f[2] == 'start'
+        continue
+      endif
     -%}
     {%- unless first -%},{%- endunless -%}{%- assign first = false -%}
     {"url": {{ '/pages/' | append: hh | json }}, "title": {{ f[3] | json }}, "show": {{ sn | json }}, "area": {{ f[14] | json }}, "minutes": {{ f[7] | json }}, "thumb": {{ thumb | json }}, "live": {{ live_ts }}, "out": {{ f[5] | split: ',' | first | split: ' (' | first | json }}, "kw": {{ f[3] | append: ' ' | append: sn | append: ' ' | append: f[14] | append: ' ' | append: f[9] | append: ' ' | append: f[15] | downcase | json }}}
@@ -253,7 +325,7 @@
             {%- liquid
               assign f = rec | split: '^^'
               assign live_ts = f[4] | date: '%s' | plus: 0
-              if now_num < live_ts
+              if now_num < live_ts or f[2] == 'start'
                 continue
               endif
               assign pos = pos | plus: 1
@@ -273,19 +345,41 @@
 {% stylesheet %}
   .theinmag-video-hub { background: var(--color-cream); color: var(--color-inky-purple-navy); }
 
-  /* ---------- split hero ---------- */
-  .theinmag-video-hub__hero { display: flex; flex-direction: column; }
-  .theinmag-video-hub__media { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--color-inky-purple-navy); }
-  .theinmag-video-hub__image {
+  /* ---------- full-bleed hero ---------- */
+  .theinmag-video-hub__hero {
+    position: relative;
+    min-height: clamp(560px, 86vh, 800px);
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    background: var(--color-inky-purple-navy);
+  }
+  .theinmag-video-hub__media { position: absolute; inset: 0; }
+  .theinmag-video-hub__image,
+  .theinmag-video-hub__bgvideo {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 35% 30%;
+  }
+  .theinmag-video-hub__bgvideo { opacity: 0; transition: opacity 0.6s ease; }
+  .theinmag-video-hub__bgvideo.is-playing { opacity: 1; }
+  .theinmag-video-hub__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, rgba(20, 14, 30, 0.85) 0%, rgba(20, 14, 30, 0.55) 38%, rgba(20, 14, 30, 0.1) 70%, rgba(20, 14, 30, 0) 100%);
   }
   .theinmag-video-hub__copy {
-    padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 56px) clamp(28px, 5vw, 56px);
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 3vw, 32px) clamp(32px, 6vw, 72px);
+    color: #FFFFFF;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
   }
   .theinmag-video-hub__eyebrow {
     font-family: var(--font-body);
@@ -299,16 +393,16 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 14px 16px;
+    gap: 14px 18px;
     margin: 0 0 16px;
   }
   .theinmag-video-hub__heading {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(36px, 4vw, 48px);
+    font-size: clamp(38px, 5.4vw, 64px);
     line-height: 1.05;
     margin: 0;
-    color: var(--color-inky-purple-navy);
+    color: #FFFFFF;
   }
   .theinmag-video-hub__sub {
     display: inline-flex;
@@ -317,41 +411,59 @@
     min-height: 48px;
     padding: 0 20px 0 16px;
     border-radius: var(--radius-pill);
-    background: var(--color-inky-purple-navy);
-    color: #FFFFFF;
+    background: #FFFFFF;
+    color: var(--color-inky-purple-navy);
     font-family: var(--font-body);
     font-weight: 700;
     font-size: 16px;
     text-decoration: none;
-    box-shadow: 0 4px 0 rgba(42, 31, 61, 0.35);
+    text-shadow: none;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
     transition: translate var(--transition-standard), box-shadow var(--transition-standard);
   }
   .theinmag-video-hub__sub-mark { display: block; flex: 0 0 auto; }
-  .theinmag-video-hub__sub:hover { translate: 0 2px; box-shadow: 0 2px 0 rgba(42, 31, 61, 0.35); }
-  .theinmag-video-hub__sub:focus-visible { outline: 3px solid var(--color-yellow-shadow); outline-offset: 3px; }
+  .theinmag-video-hub__sub:hover { translate: 0 2px; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); }
+  .theinmag-video-hub__sub:focus-visible { outline: 3px solid var(--color-yellow); outline-offset: 3px; }
   .theinmag-video-hub__line {
     font-family: var(--font-body);
     font-size: clamp(17px, 1.7vw, 19px);
     line-height: 1.6;
-    max-width: 50ch;
+    max-width: 52ch;
     margin: 0 0 22px;
   }
   .theinmag-video-hub__jumps { display: flex; flex-wrap: wrap; gap: 10px; }
+  .theinmag-video-hub__jumps .theinmag-btn { text-shadow: none; }
 
+  /* ---------- start here ---------- */
+  .theinmag-video-hub__start { padding: clamp(32px, 5vw, 56px) clamp(16px, 3vw, 32px) 0; }
+  .theinmag-video-hub__start-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    gap: 20px;
+    align-items: center;
+  }
+  .theinmag-video-hub__start-heading { font-family: var(--font-heading); font-weight: 400; font-size: clamp(26px, 4vw, 40px); line-height: 1.1; margin: 0 0 8px; }
+  .theinmag-video-hub__start-line { font-family: var(--font-body); font-size: 18px; line-height: 1.55; margin: 0; }
+  .theinmag-video-hub__start-player,
+  .theinmag-video-hub__start-iframe {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+    padding: 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-inky-purple-navy);
+    box-shadow: 0 14px 36px rgba(42, 31, 61, 0.22);
+    cursor: pointer;
+  }
+  .theinmag-video-hub__start-player img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .theinmag-video-hub__start-play { position: absolute; left: 50%; top: 50%; translate: -50% -50%; }
+  .theinmag-video-hub__start-player:focus-visible { outline: 3px solid var(--color-inky-purple-navy); outline-offset: 3px; }
   @media (min-width: 990px) {
-    .theinmag-video-hub .theinmag-video-hub__hero {
-      flex-direction: row-reverse;
-      align-items: stretch;
-      min-height: clamp(560px, 72vh, 720px);
-    }
-    .theinmag-video-hub .theinmag-video-hub__media { flex: 0 0 42%; aspect-ratio: auto; }
-    .theinmag-video-hub .theinmag-video-hub__copy {
-      flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding-left: max(32px, calc((100vw - 1180px) / 2 + 32px));
-    }
+    .theinmag-video-hub .theinmag-video-hub__start-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 48px; }
   }
 
   /* ---------- search ---------- */
@@ -471,7 +583,11 @@
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "free for teachers, parents and homeschoolers" },
     { "type": "text", "id": "heading", "label": "H1", "default": "Plan IN tasks with us", "info": "A standalone IN is styled in the brand IN treatment." },
     { "type": "textarea", "id": "hero_line", "label": "One line under the H1" },
-    { "type": "text", "id": "image_filename", "label": "Hero photo (asset filename)", "default": "videos-hero-ryan-whiteboard.jpg" },
+    { "type": "text", "id": "image_filename", "label": "Hero poster image (asset filename)", "default": "videos-hero-ryan-whiteboard.jpg" },
+    { "type": "text", "id": "poster_focus", "label": "Poster focal point (CSS object-position)", "default": "50% 22%" },
+    { "type": "text", "id": "video_url", "label": "Background loop video URL (Shopify Files mp4)", "info": "Muted, looping. Blank = poster only." },
+    { "type": "text", "id": "video_mobile_url", "label": "Phone loop video URL (optional)", "info": "Blank = phones see the poster only." },
+    { "type": "text", "id": "start_heading", "label": "Start here heading", "default": "New here? Start with this." },
     { "type": "text", "id": "image_alt", "label": "Hero photo alt text", "default": "Ryan pointing at a whiteboard of kids' passions and interests while a group of kids watches" },
     { "type": "text", "id": "subscribe_label", "label": "Subscribe button label", "default": "Subscribe" },
     { "type": "text", "id": "subscribe_url", "label": "Subscribe URL", "default": "https://www.youtube.com/channel/UCgPTt7iKbW5J_3eC9d8QRXA?sub_confirmation=1" },

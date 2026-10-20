@@ -24,7 +24,11 @@
         "popin_role": "Learning specialist and classroom teacher",
         "signature_font": "post",
         "popin_label": "Join free",
-        "popin_url": "/pages/newsletter"
+        "popin_url": "/pages/newsletter",
+        "poster_focus": "50% 22%",
+        "video_url": "",
+        "video_mobile_url": "",
+        "start_heading": "New here? Start with this."
       }
     },
     "picnic": {
@@ -46,7 +50,7 @@
         "logo_filename": "picnic-planning-logo-anim.webp",
         "intro_2": "Grab the free planner, press play, and we'll plan this lesson together.",
         "logo_static_filename": "picnic-planning-logo-static.png",
-        "character_ids": "35,37,38,10,20,47,26"
+        "character_ids": ""
       }
     },
     "fieldnotes": {
@@ -129,12 +133,23 @@
         "q5",
         "q6"
       ]
+    },
+    "courses": {
+      "type": "theinmag-video-teaser",
+      "settings": {
+        "eyebrow": "coming later",
+        "heading": "Want to go deeper?",
+        "copy": "Ryan is building short courses on planning rich, open tasks for your own kids. Join free and you'll hear about them first.",
+        "cta_label": "Join free",
+        "cta_url": "/pages/newsletter"
+      }
     }
   },
   "order": [
     "hero",
     "picnic",
     "fieldnotes",
+    "courses",
     "faq"
   ]
 }

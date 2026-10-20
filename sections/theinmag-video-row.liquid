@@ -137,6 +137,9 @@
           if r_handle == exclude_handle
             continue
           endif
+          if f[2] == 'start'
+            continue
+          endif
           assign r_live_ts = f[4] | date: '%s' | plus: 0
           assign r_coming = false
           if force_live != true and now_num < r_live_ts
