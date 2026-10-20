@@ -80,13 +80,14 @@
       <h2 class="theinmag-home-studio__made-heading">{{ section.settings.made_heading }}</h2>
       <a class="theinmag-home-studio__made-link" href="/pages/gallery">{{ section.settings.made_link }} <span aria-hidden="true">&rarr;</span></a>
     </div>
-    <ul class="theinmag-home-studio__strip" data-hs-feed="{{ section.settings.feed_url }}" aria-live="polite"></ul>
+    <ul class="theinmag-home-studio__strip" data-hs-feed="{{ section.settings.feed_url }}"></ul>
   </div>
 </section>
 
 <script>
   (function () {
-    var root = document.currentScript.previousElementSibling;
+    var root = document.getElementById('shopify-section-{{ section.id }}');
+    if (!root) return;
     /* rise-in once */
     var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var tiles = root.querySelectorAll('[data-hs-rise]');
@@ -100,8 +101,9 @@
     /* real creations from the gallery feed: first name only, no ages */
     var strip = root.querySelector('[data-hs-feed]');
     if (!strip) return;
-    fetch(strip.getAttribute('data-hs-feed')).then(function (r) { return r.json(); }).then(function (d) {
+    fetch(strip.getAttribute('data-hs-feed')).then(function (r) { if (!r.ok) throw new Error('feed ' + r.status); return r.json(); }).then(function (d) {
       var items = (d.creations || []).filter(function (c) { return !c.is_text_only && c.images && c.images.length && c.first_name; }).slice(0, 10);
+      if (!items.length) { root.querySelector('.theinmag-home-studio__made').hidden = true; return; }
       function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
       strip.innerHTML = items.map(function (c) {
         var src = c.images[0] + (c.images[0].indexOf('?') > -1 ? '&' : '?') + 'width=480';
@@ -165,7 +167,7 @@
   }
   .theinmag-home-studio__feature img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: scale 1.2s ease; }
   .theinmag-home-studio__feature:hover img { scale: 1.03; }
-  .theinmag-home-studio__feature-scrim { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.5) 100%); }
+  .theinmag-home-studio__feature-scrim { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.25) 22%, rgba(0,0,0,0) 40%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.65) 100%); }
   .theinmag-home-studio__caption {
     position: absolute;
     top: clamp(16px, 3vw, 32px);

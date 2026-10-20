@@ -69,6 +69,11 @@
       {%- endif -%}
       <span class="theinmag-video-hub__scrim" aria-hidden="true"></span>
     </div>
+    {%- if section.settings.video_url != blank -%}
+      <button type="button" class="theinmag-video-hub__pause" data-hero-pause aria-pressed="false" hidden>
+        <span data-hero-pause-label>Pause background video</span>
+      </button>
+    {%- endif -%}
     <div class="theinmag-video-hub__copy">
       <p class="theinmag-video-hub__eyebrow">{{ section.settings.eyebrow }}</p>
       <div class="theinmag-video-hub__titlerow">
@@ -145,7 +150,13 @@
       var phone = window.matchMedia && window.matchMedia('(max-width: 749px)').matches;
       var src = phone ? v.getAttribute('data-src-mobile') : v.getAttribute('data-src');
       if (!still && src) {
-        v.addEventListener('playing', function () { v.classList.add('is-playing'); });
+        var pb = document.querySelector('[data-hero-pause]');
+        v.addEventListener('playing', function () { v.classList.add('is-playing'); if (pb) pb.hidden = false; });
+        if (pb) pb.addEventListener('click', function () {
+          var lab = pb.querySelector('[data-hero-pause-label]');
+          if (v.paused) { v.play(); pb.setAttribute('aria-pressed', 'false'); lab.textContent = 'Pause background video'; }
+          else { v.pause(); pb.setAttribute('aria-pressed', 'true'); lab.textContent = 'Play background video'; }
+        });
         v.src = src;
         var p = v.play();
         if (p && p.catch) p.catch(function () {});
@@ -160,6 +171,7 @@
       f.setAttribute('allowfullscreen', '');
       f.className = 'theinmag-video-hub__start-iframe';
       b.replaceWith(f);
+      f.focus();
     });
   })();
 </script>
@@ -369,7 +381,7 @@
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(to top, rgba(20, 14, 30, 0.85) 0%, rgba(20, 14, 30, 0.55) 38%, rgba(20, 14, 30, 0.1) 70%, rgba(20, 14, 30, 0) 100%);
+      linear-gradient(to top, rgba(20, 14, 30, 0.88) 0%, rgba(20, 14, 30, 0.72) 38%, rgba(20, 14, 30, 0.2) 70%, rgba(20, 14, 30, 0) 100%);
   }
   .theinmag-video-hub__copy {
     position: relative;
@@ -433,6 +445,25 @@
   }
   .theinmag-video-hub__jumps { display: flex; flex-wrap: wrap; gap: 10px; }
   .theinmag-video-hub__jumps .theinmag-btn { text-shadow: none; }
+  /* WCAG 2.2.2: moving background video gets a pause control. */
+  .theinmag-video-hub__pause {
+    position: absolute;
+    right: clamp(12px, 2vw, 24px);
+    bottom: clamp(12px, 2vw, 24px);
+    z-index: 2;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 2px solid #FFFFFF;
+    border-radius: var(--radius-pill);
+    background: rgba(0, 0, 0, 0.55);
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .theinmag-video-hub__pause[hidden] { display: none; }
+  .theinmag-video-hub__pause:focus-visible { outline: 3px solid var(--color-yellow); outline-offset: 3px; }
 
   /* ---------- start here ---------- */
   .theinmag-video-hub__start { padding: clamp(32px, 5vw, 56px) clamp(16px, 3vw, 32px) 0; }
