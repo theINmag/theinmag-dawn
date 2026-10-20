@@ -16,8 +16,9 @@
 
   Background "forest" (#2c634f, the green of the YouTube overlays) is
   the Picnic Planning chapter: cream text on it is 6.5:1 (AA), yellow 4.3:1 (large text only, so yellow is used only for the big wordmark).
-  The Picnic logo is an image setting (logo_filename); blank = a Post
-  wordmark until Ryan's character-free logo file arrives. The Field Notes
+  The Picnic logo is Quentin's animated WebP (logo_filename) with a still
+  PNG for reduced motion (logo_static_filename); its tagline is WHITE, so
+  it is only ever used on the forest ground. Blank = a Post wordmark. The Field Notes
   logo is sage and sits bare on cream, larger since round 2.
 
   Hover preview (pointer devices only): cards whose record has a
@@ -70,9 +71,13 @@
     <header class="theinmag-video-row__header">
       {%- if section.settings.logo == 'picnic' -%}
         {%- if section.settings.logo_filename != blank -%}
-          <span class="theinmag-video-row__logo theinmag-video-row__logo--picnic">
-            <img src="{{ section.settings.logo_filename | asset_url }}" loading="lazy" alt="Picnic Planning">
-          </span>
+          {%- comment -%} Animated WebP (tagline flicks between handwritten fonts); still PNG for reduced motion. White tagline: forest ground only. {%- endcomment -%}
+          <picture class="theinmag-video-row__logo theinmag-video-row__logo--picnic">
+            {%- if section.settings.logo_static_filename != blank -%}
+              <source media="(prefers-reduced-motion: reduce)" srcset="{{ section.settings.logo_static_filename | asset_url }}">
+            {%- endif -%}
+            <img src="{{ section.settings.logo_filename | asset_url }}" width="600" height="516" loading="lazy" alt="Picnic Planning: rich, open tasks">
+          </picture>
         {%- else -%}
           <span class="theinmag-video-row__wordmark" aria-hidden="true">Picnic<br>Planning</span>
         {%- endif -%}
@@ -237,7 +242,8 @@
   }
   .theinmag-video-row__logo { display: block; width: 168px; flex: 0 0 auto; }
   .theinmag-video-row__logo--fieldnotes { width: 240px; margin: -16px 0 -8px -12px; }
-  .theinmag-video-row__logo--picnic { width: 220px; }
+  .theinmag-video-row__logo--picnic { width: 200px; }
+  .theinmag-video-row__logo--picnic img { display: block; width: 100%; height: auto; }
   .theinmag-video-row__wordmark {
     display: block;
     flex: 0 0 auto;
@@ -300,7 +306,7 @@
       gap: 32px;
     }
     .theinmag-video-row .theinmag-video-row__logo--fieldnotes { width: 360px; margin: -28px -8px -20px -24px; }
-    .theinmag-video-row .theinmag-video-row__logo--picnic { width: 280px; }
+    .theinmag-video-row .theinmag-video-row__logo--picnic { width: 260px; }
     .theinmag-video-row--pair .theinmag-video-row__rail.theinmag-video-row__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 860px; }
     .theinmag-video-row .theinmag-video-row__rail {
       grid-auto-flow: row;
@@ -464,6 +470,7 @@
     { "type": "textarea", "id": "intro", "label": "One line under the heading" },
     { "type": "textarea", "id": "intro_2", "label": "Second line (bold)" },
     { "type": "text", "id": "logo_filename", "label": "Picnic Planning logo (asset filename)", "info": "Blank shows a text wordmark." },
+    { "type": "text", "id": "logo_static_filename", "label": "Picnic Planning logo still (reduced motion)" },
     { "type": "text", "id": "link_label", "label": "Link label" },
     { "type": "text", "id": "link_url", "label": "Link URL" },
     { "type": "select", "id": "background", "label": "Background", "default": "cream",
