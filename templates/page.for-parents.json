@@ -220,7 +220,12 @@
           }
         }
       },
-      "block_order": ["post-1", "post-2", "post-3", "post-4"]
+      "block_order": [
+        "post-1",
+        "post-2",
+        "post-3",
+        "post-4"
+      ]
     },
     "founders": {
       "type": "theinmag-for-parents-founders",
@@ -420,6 +425,27 @@
         "padding_top": 32,
         "padding_bottom": 64
       }
+    },
+    "latest_videos": {
+      "type": "theinmag-video-row",
+      "settings": {
+        "show": "latest_each",
+        "limit": 2,
+        "exclude_current": false,
+        "logo": "none",
+        "logo_filename": "",
+        "heading": "Have you seen our newest videos?",
+        "intro": "Free IN task planning sessions and Field Notes for the grown-ups. The newest of each lands here the day it goes live.",
+        "intro_2": "",
+        "link_label": "see every video",
+        "link_url": "/pages/videos",
+        "background": "cream",
+        "anchor": "latest-videos",
+        "preview_as_live": false,
+        "preview_handle": "",
+        "padding_top": 56,
+        "padding_bottom": 64
+      }
     }
   },
   "order": [
@@ -429,6 +455,7 @@
     "pillars",
     "statement",
     "comps",
+    "latest_videos",
     "field-notes",
     "founders",
     "pull-quote",

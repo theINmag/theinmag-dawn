@@ -113,6 +113,38 @@
   endif
 
   comment
+    Video loop (2026-10-20): if this post is the paired post of a video in
+    snippets/theinmag-videos-data (post_handle field), that video shows
+    here automatically once it is live, no metafield needed. The video's
+    own watch page (/pages/<handle>) carries the VideoObject, so this post
+    does NOT emit one for registry videos (one video, one video-result
+    page). A metafield-only video (not in the registry) keeps the post's
+    own VideoObject as before.
+  endcomment
+  assign art_slug = article.handle | split: '/' | last
+  assign reg_video_handle = ''
+  capture vdata_art
+    render 'theinmag-videos-data'
+  endcapture
+  assign vrecs_art = vdata_art | strip | split: '@@'
+  assign now_art = 'now' | date: '%s' | plus: 0
+  for vr in vrecs_art
+    assign vf = vr | split: '^^'
+    assign vf_post = vf[13] | strip
+    if vf_post != blank and vf_post == art_slug
+      assign vf_live = vf[4] | date: '%s' | plus: 0
+      if now_art >= vf_live
+        assign reg_video_handle = vf[0] | strip
+        if youtube_id == blank
+          assign youtube_id = vf[1]
+          assign youtube_url = 'https://www.youtube.com/watch?v=' | append: vf[1]
+        endif
+      endif
+      break
+    endif
+  endfor
+
+  comment
     Series hub back-link (2026-08-28): maps this post's primary_topic to
     its series hub page so every post links back up to its collection
     (the cluster loop). Mapping lives in section settings hub_1..hub_3.
@@ -870,8 +902,15 @@
               allowfullscreen
             ></iframe>
           </div>
-          <a class="theinmag-article__video-link" href="{{ youtube_url }}" target="_blank" rel="noopener">watch on YouTube</a>
+          <a class="theinmag-article__video-link" href="{{ youtube_url }}" target="_blank" rel="noopener">watch on YouTube<span class="visually-hidden"> (opens in a new tab)</span></a>
         </aside>
+        <div class="theinmag-article__video-more">
+          <h2 class="theinmag-article__video-more-heading">Want to see more?</h2>
+          <div class="theinmag-article__video-more-links">
+            <a class="theinmag-btn theinmag-btn--primary" href="/pages/videos">see every video</a>
+            <a class="theinmag-btn theinmag-btn--secondary" href="https://www.youtube.com/channel/UCgPTt7iKbW5J_3eC9d8QRXA?sub_confirmation=1" target="_blank" rel="noopener">subscribe on YouTube<span class="visually-hidden"> (opens in a new tab)</span></a>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -885,6 +924,7 @@
       endif
       assign video_upload = article.published_at | default: article.created_at
     -%}
+    {%- if reg_video_handle == blank -%}
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -902,6 +942,7 @@
       }
     }
     </script>
+    {%- endif -%}
   {%- endif -%}
 
   <section class="theinmag-article__recommend" aria-labelledby="theinmag-article-rec-heading">
@@ -1191,20 +1232,7 @@
 }
 </script>
 
-{%- if youtube_id != blank -%}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "VideoObject",
-  "name": {{ display_title | json }},
-  "description": {{ quick_answer | default: article.excerpt_or_content | strip_html | truncate: 300 | json }},
-  "thumbnailUrl": "https://i.ytimg.com/vi/{{ youtube_id }}/hqdefault.jpg",
-  "uploadDate": {{ article.published_at | date: '%Y-%m-%d' | json }},
-  "embedUrl": "https://www.youtube-nocookie.com/embed/{{ youtube_id }}",
-  "url": {{ youtube_url | json }}
-}
-</script>
-{%- endif -%}
+{%- comment -%} 2026-10-20: a second, thinner VideoObject block used to be emitted here as well as the one beside the embed. Removed: one VideoObject per video, and none for registry videos (their watch page owns it). {%- endcomment -%}
 
 {%- if has_faqs -%}
 <script type="application/ld+json">
@@ -2118,6 +2146,27 @@
 
   .theinmag-article__video-link:hover {
     text-decoration: underline;
+  }
+
+  .theinmag-article__video-more {
+    margin: 0 0 clamp(32px, 4vw, 56px);
+    padding: clamp(18px, 3vw, 24px);
+    background: #FFFFFF;
+    border-radius: var(--radius-lg, 20px);
+    box-shadow: var(--shadow-card);
+    text-align: center;
+  }
+  .theinmag-article__video-more-heading {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-weight: 700;
+    font-size: clamp(19px, 2.2vw, 22px);
+    margin: 0 0 14px;
+  }
+  .theinmag-article__video-more-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
   }
 
   /* Video companion relocated below the mosaic: keep it centred and

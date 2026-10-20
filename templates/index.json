@@ -483,6 +483,27 @@
       "settings": {
         "featured_issue_handle": "mag11"
       }
+    },
+    "latest_videos": {
+      "type": "theinmag-video-row",
+      "settings": {
+        "show": "latest_each",
+        "limit": 2,
+        "exclude_current": false,
+        "logo": "none",
+        "logo_filename": "",
+        "heading": "Have you seen our newest videos?",
+        "intro": "Free IN task planning sessions and Field Notes for the grown-ups. The newest of each lands here the day it goes live.",
+        "intro_2": "",
+        "link_label": "see every video",
+        "link_url": "/pages/videos",
+        "background": "cream",
+        "anchor": "latest-videos",
+        "preview_as_live": false,
+        "preview_handle": "",
+        "padding_top": 56,
+        "padding_bottom": 64
+      }
     }
   },
   "order": [
@@ -494,6 +515,7 @@
     "theinmag_philosophy",
     "theinmag_meet_tam",
     "theinmag_reviews",
+    "latest_videos",
     "theinmag_blog_feed",
     "theinmag_faq"
   ]

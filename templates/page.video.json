@@ -1,0 +1,50 @@
+{
+  "sections": {
+    "main": {
+      "type": "theinmag-video-watch",
+      "settings": {
+        "preview_handle": "",
+        "preview_as_live": false,
+        "planner_image": "videos-planner-closeup.jpg",
+        "planner_heading": "Want the planner Ryan fills in?",
+        "planner_copy": "The free IN task planner turns any kid's question into a rich, open task. Print it, or grab a plain sheet of A4.",
+        "planner_label": "get the free IN task planner",
+        "planner_url": "/planner",
+        "mag_heading": "Where do the questions come from?",
+        "mag_copy": "Real kids, in theINmag. Kids 5-13 send us their art, stories and questions, and we print them three times a year.",
+        "mag_label": "see what's inside a Membership",
+        "mag_url": "/products/membership",
+        "mag_heading_fn": "What do kids make when they're IN task?",
+        "mag_copy_fn": "Every page of theINmag is made by kids 5-13: their art, stories, jokes and ideas, printed three times a year.",
+        "planner_image_alt": "A filled-in IN task planner on a picnic table",
+        "sub_heading": "Want the next one?",
+        "sub_copy": "Subscribe and new sessions land in your feed the day they go live.",
+        "sub_label": "subscribe on YouTube",
+        "sub_url": "https://www.youtube.com/channel/UCgPTt7iKbW5J_3eC9d8QRXA?sub_confirmation=1"
+      }
+    },
+    "more": {
+      "type": "theinmag-video-row",
+      "settings": {
+        "show": "all",
+        "limit": 3,
+        "exclude_current": true,
+        "logo": "none",
+        "heading": "What should I watch next?",
+        "intro": "",
+        "link_label": "see every video",
+        "link_url": "/pages/videos",
+        "background": "mint",
+        "anchor": "more-videos",
+        "preview_as_live": false,
+        "padding_top": 56,
+        "padding_bottom": 72,
+        "preview_handle": ""
+      }
+    }
+  },
+  "order": [
+    "main",
+    "more"
+  ]
+}

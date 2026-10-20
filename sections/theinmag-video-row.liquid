@@ -1,0 +1,486 @@
+{%- comment -%}
+  theinmag-video-row  (2026-10-20, Webster)
+  A row of video cards read from snippets/theinmag-videos-data. Used:
+    - twice on the /pages/videos hub (one per show, as its chapter)
+    - at the foot of every watch page ("more videos", current excluded)
+    - on the homepage and the parents / homeschoolers / teachers pages
+      with show = latest_each: the newest LIVE video of each series, so
+      those pages update themselves the moment a new record goes live
+  Archetype: show header (logo + question H2 + one line) over a card
+  rail. Desktop 3-up grid; phone a scroll-snap rail with a peek of the
+  next card (design system 3.5). Cards are real DOM, never JS-injected.
+
+  Background is one of the pair-lights or cream. Body text stays
+  inky-purple-navy on every ground (mint pair-dark fails AA at body
+  size, design system 2.1).
+
+  Background "forest" (#2c634f, the green of the YouTube overlays) is
+  the Picnic Planning chapter: cream text on it is 6.5:1 (AA), yellow 4.3:1 (large text only, so yellow is used only for the big wordmark).
+  The Picnic logo is an image setting (logo_filename); blank = a Post
+  wordmark until Ryan's character-free logo file arrives. The Field Notes
+  logo is sage and sits bare on cream, larger since round 2.
+
+  Hover preview (pointer devices only): cards whose record has a
+  preview_url get a muted looping <video> on hover / focus, loaded on
+  first hover, never on touch. "sound on" unmutes after a real click,
+  which is the only way browsers allow audio.
+{%- endcomment -%}
+{%- liquid
+  capture vdata
+    render 'theinmag-videos-data'
+  endcapture
+  assign records = vdata | strip | split: '@@'
+  assign now_ts = 'now' | date: '%s'
+  assign now_num = now_ts | plus: 0
+  assign force_live = section.settings.preview_as_live
+  assign show_filter = section.settings.show
+  assign limit = section.settings.limit | default: 6
+  assign bg = section.settings.background | default: 'cream'
+  assign exclude_handle = ''
+  if section.settings.exclude_current and template.suffix == 'video'
+    comment
+      Same resolution as theinmag-video-watch: the page's own handle when
+      it is a video, otherwise (draft preview only) preview_handle, then the
+      first record. Reads the watch section's preview_handle via its own
+      matching setting here.
+    endcomment
+    assign exclude_handle = records | first | split: '^^' | first | strip
+    if section.settings.preview_handle != blank
+      assign exclude_handle = section.settings.preview_handle
+    endif
+    for r in records
+      assign rh = r | split: '^^' | first | strip
+      if rh == page.handle
+        assign exclude_handle = rh
+        break
+      endif
+    endfor
+  endif
+  assign shown = 0
+  assign seen_shows = ''
+-%}
+
+<section
+  id="{{ section.settings.anchor | default: section.id }}"
+  class="theinmag-video-row theinmag-video-row--{{ bg }}{% if show_filter == 'latest_each' %} theinmag-video-row--pair{% endif %}"
+  style="--vrow-pt: {{ section.settings.padding_top }}px; --vrow-pb: {{ section.settings.padding_bottom }}px;"
+  {% if section.settings.heading != blank %}aria-labelledby="vrow-h-{{ section.id }}"{% endif %}
+>
+  <div class="theinmag-video-row__inner">
+    <header class="theinmag-video-row__header">
+      {%- if section.settings.logo == 'picnic' -%}
+        {%- if section.settings.logo_filename != blank -%}
+          <span class="theinmag-video-row__logo theinmag-video-row__logo--picnic">
+            <img src="{{ section.settings.logo_filename | asset_url }}" loading="lazy" alt="Picnic Planning">
+          </span>
+        {%- else -%}
+          <span class="theinmag-video-row__wordmark" aria-hidden="true">Picnic<br>Planning</span>
+        {%- endif -%}
+      {%- elsif section.settings.logo == 'fieldnotes' -%}
+        <span class="theinmag-video-row__logo theinmag-video-row__logo--fieldnotes">
+          <img src="{{ 'fieldnotes_logo_sage.png' | asset_url }}" width="800" height="320" loading="lazy" alt="Field Notes">
+        </span>
+      {%- endif -%}
+      <div class="theinmag-video-row__heading-wrap">
+        {%- if section.settings.heading != blank -%}
+          <h2 id="vrow-h-{{ section.id }}" class="theinmag-video-row__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.intro != blank -%}
+          <p class="theinmag-video-row__intro">{{ section.settings.intro }}</p>
+        {%- endif -%}
+        {%- if section.settings.intro_2 != blank -%}
+          <p class="theinmag-video-row__intro theinmag-video-row__intro--second">{{ section.settings.intro_2 }}</p>
+        {%- endif -%}
+        {%- if section.settings.link_label != blank and section.settings.link_url != blank -%}
+          <a class="theinmag-video-row__more" href="{{ section.settings.link_url }}">{{ section.settings.link_label }} <span aria-hidden="true">&rarr;</span></a>
+        {%- endif -%}
+      </div>
+    </header>
+
+    <div class="theinmag-video-row__rail" role="list">
+      {%- comment -%} Two passes: live videos first (newest at top of the data file), then the ones still to come. {%- endcomment -%}
+      {%- for pass in (1..2) -%}
+      {%- for rec in records -%}
+        {%- liquid
+          assign f = rec | split: '^^'
+          assign r_handle = f[0] | strip
+          if r_handle == exclude_handle
+            continue
+          endif
+          assign r_live_ts = f[4] | date: '%s' | plus: 0
+          assign r_coming = false
+          if force_live != true and now_num < r_live_ts
+            assign r_coming = true
+          endif
+          if pass == 1 and r_coming
+            continue
+          endif
+          if pass == 2 and r_coming == false
+            continue
+          endif
+          if show_filter == 'latest_each'
+            if seen_shows contains f[2]
+              continue
+            endif
+            assign seen_shows = seen_shows | append: f[2] | append: ','
+          elsif show_filter != 'all' and f[2] != show_filter
+            continue
+          endif
+          if shown >= limit
+            break
+          endif
+          assign shown = shown | plus: 1
+        -%}
+        <div class="theinmag-video-row__item" role="listitem">
+          {%- render 'theinmag-video-card', rec: rec, now_ts: now_ts, force_live: force_live -%}
+        </div>
+      {%- endfor -%}
+      {%- endfor -%}
+    </div>
+    <p class="theinmag-video-row__empty" data-video-empty hidden>No videos here match that yet. Try another word.</p>
+  </div>
+</section>
+
+<script>
+  /* Cached pages: flip "out soon" cards to live once their time passes. */
+  (function () {
+    var now = Date.now() / 1000;
+    document.querySelectorAll('#{{ section.settings.anchor | default: section.id }} .theinmag-video-card.is-coming').forEach(function (c) {
+      var t = parseInt(c.getAttribute('data-live-from'), 10);
+      if (t && now >= t) c.classList.remove('is-coming');
+    });
+  })();
+
+  /* Hover preview: one shared handler for every row on the page. */
+  (function () {
+    if (window.__theinmagVideoHover) return;
+    window.__theinmagVideoHover = true;
+    var fine = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!fine || still) return;
+    function ensure(card) {
+      var v = card.querySelector('video.theinmag-video-card__clip');
+      if (v) return v;
+      v = document.createElement('video');
+      v.className = 'theinmag-video-card__clip';
+      v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
+      v.setAttribute('aria-hidden', 'true');
+      v.src = card.getAttribute('data-preview');
+      card.querySelector('.theinmag-video-card__media').appendChild(v);
+      return v;
+    }
+    function start(card) {
+      if (card.classList.contains('is-coming')) return;
+      var v = ensure(card);
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {});
+      card.classList.add('is-previewing');
+      var b = card.querySelector('.theinmag-video-card__sound');
+      if (b) b.hidden = false;
+    }
+    function stop(card) {
+      var v = card.querySelector('video.theinmag-video-card__clip');
+      if (v) { v.pause(); v.muted = true; }
+      card.classList.remove('is-previewing');
+      var b = card.querySelector('.theinmag-video-card__sound');
+      if (b) { b.hidden = true; b.setAttribute('aria-pressed', 'false'); b.querySelector('span').textContent = 'sound on'; }
+    }
+    document.querySelectorAll('.theinmag-video-card[data-preview]').forEach(function (card) {
+      card.addEventListener('mouseenter', function () { start(card); });
+      card.addEventListener('mouseleave', function () { stop(card); });
+      card.addEventListener('focusin', function () { start(card); });
+      card.addEventListener('focusout', function (e) { if (!card.contains(e.relatedTarget)) stop(card); });
+      var b = card.querySelector('.theinmag-video-card__sound');
+      if (b) b.addEventListener('click', function () {
+        var v = ensure(card);
+        v.muted = !v.muted;
+        b.setAttribute('aria-pressed', v.muted ? 'false' : 'true');
+        b.querySelector('span').textContent = v.muted ? 'sound on' : 'sound off';
+      });
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .theinmag-video-row {
+    position: relative;
+    background-color: var(--color-cream);
+    color: var(--color-inky-purple-navy);
+    padding: var(--vrow-pt, 64px) 0 var(--vrow-pb, 72px);
+  }
+  .theinmag-video-row--mint { background-color: var(--color-mint); }
+  .theinmag-video-row--lavender { background-color: var(--color-lavender); }
+  .theinmag-video-row--sky { background-color: var(--color-sky); }
+  /* The YouTube overlay green, used only for the Picnic Planning chapter. */
+  .theinmag-video-row--forest {
+    --vrow-forest: #2c634f;
+    background-color: var(--vrow-forest);
+    color: var(--color-cream);
+  }
+  .theinmag-video-row--forest .theinmag-video-row__heading,
+  .theinmag-video-row--forest .theinmag-video-row__intro,
+  .theinmag-video-row--forest .theinmag-video-row__more,
+  .theinmag-video-row--forest .theinmag-video-row__empty { color: var(--color-cream); }
+  .theinmag-video-row--forest .theinmag-video-row__more:focus-visible { outline: 3px solid var(--color-cream); outline-offset: 3px; }
+
+  .theinmag-video-row__inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 3vw, 32px);
+  }
+
+  .theinmag-video-row__header {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: clamp(20px, 3vw, 32px);
+  }
+  .theinmag-video-row__logo { display: block; width: 168px; flex: 0 0 auto; }
+  .theinmag-video-row__logo--fieldnotes { width: 240px; margin: -16px 0 -8px -12px; }
+  .theinmag-video-row__logo--picnic { width: 220px; }
+  .theinmag-video-row__wordmark {
+    display: block;
+    flex: 0 0 auto;
+    font-family: var(--font-heading);
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 0.95;
+    color: var(--color-yellow);
+    rotate: -3deg;
+  }
+  .theinmag-video-row__intro--second { font-weight: 600; }
+  .theinmag-video-row__empty {
+    font-family: var(--font-body);
+    font-size: 16px;
+    margin: 8px 0 0;
+  }
+  .theinmag-video-row__logo img { display: block; width: 100%; height: auto; }
+  .theinmag-video-row__heading {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(26px, 4.5vw, 40px);
+    line-height: 1.15;
+    margin: 0 0 8px;
+    text-wrap: pretty;
+  }
+  .theinmag-video-row__intro {
+    font-family: var(--font-body);
+    font-size: clamp(16px, 1.6vw, 18px);
+    line-height: 1.6;
+    max-width: 60ch;
+    margin: 0 0 10px;
+  }
+  .theinmag-video-row__more {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--color-inky-purple-navy);
+    text-underline-offset: 4px;
+  }
+
+  /* Phone: scroll-snap rail with a peek of the next card. */
+  .theinmag-video-row__rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 82%;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: clamp(16px, 3vw, 32px);
+    margin: 0 calc(-1 * clamp(16px, 3vw, 32px));
+    padding: 4px clamp(16px, 3vw, 32px) 12px;
+    scrollbar-width: none;
+  }
+  .theinmag-video-row__rail::-webkit-scrollbar { display: none; }
+  .theinmag-video-row__item { scroll-snap-align: start; min-width: 0; }
+
+  @media (min-width: 750px) {
+    .theinmag-video-row__header {
+      flex-direction: row;
+      align-items: center;
+      gap: 32px;
+    }
+    .theinmag-video-row .theinmag-video-row__logo--fieldnotes { width: 360px; margin: -28px -8px -20px -24px; }
+    .theinmag-video-row .theinmag-video-row__logo--picnic { width: 280px; }
+    .theinmag-video-row--pair .theinmag-video-row__rail.theinmag-video-row__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 860px; }
+    .theinmag-video-row .theinmag-video-row__rail {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-auto-columns: auto;
+      overflow: visible;
+      margin: 0;
+      padding: 0;
+      gap: clamp(20px, 2.4vw, 32px);
+    }
+  }
+
+  /* ---------- card (snippets/theinmag-video-card) ---------- */
+  .theinmag-video-card { position: relative; height: 100%; }
+  .theinmag-video-card__clip {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity var(--transition-hover);
+  }
+  .theinmag-video-card.is-previewing .theinmag-video-card__clip { opacity: 1; }
+  .theinmag-video-card.is-previewing .theinmag-video-card__play { opacity: 0; }
+  .theinmag-video-card__sound {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: rgba(0, 0, 0, 0.62);
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .theinmag-video-card__sound[hidden] { display: none; }
+  .theinmag-video-card__sound:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; }
+  .theinmag-video-card__link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    color: var(--color-inky-purple-navy);
+    text-decoration: none;
+    transition: translate var(--transition-hover), box-shadow var(--transition-hover);
+  }
+  .theinmag-video-card__link:hover,
+  .theinmag-video-card__link:focus-visible {
+    translate: 0 -4px;
+    box-shadow: var(--shadow-card-hover);
+  }
+  .theinmag-video-card__link:focus-visible {
+    outline: 3px solid var(--color-inky-purple-navy);
+    outline-offset: 3px;
+  }
+  .theinmag-video-card__media {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    background: var(--color-inky-purple-navy);
+  }
+  .theinmag-video-card__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .theinmag-video-card__play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    display: block;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+    transition: scale var(--transition-hover);
+  }
+  .theinmag-video-card__play svg { display: block; }
+  .theinmag-video-card__link:hover .theinmag-video-card__play { scale: 1.08; }
+
+  /* "out Thu 5 Nov": white text on a dark scrim, never a coloured pill. */
+  .theinmag-video-card__soon {
+    display: none;
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 36px 14px 12px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0));
+  }
+  .theinmag-video-card__soon-text {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    color: #FFFFFF;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  }
+  .theinmag-video-card.is-coming .theinmag-video-card__soon { display: block; }
+  .theinmag-video-card.is-coming .theinmag-video-card__play { display: none; }
+
+  .theinmag-video-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px 20px;
+  }
+  .theinmag-video-card__meta {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.75;
+  }
+  .theinmag-video-card__title {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: clamp(18px, 1.8vw, 20px);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: pretty;
+  }
+  .theinmag-video-card__line {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Video row",
+  "tag": "div",
+  "class": "theinmag-video-row-section",
+  "settings": [
+    { "type": "select", "id": "show", "label": "Which videos", "default": "all",
+      "options": [
+        { "value": "all", "label": "All, newest first" },
+        { "value": "picnic", "label": "Picnic Planning" },
+        { "value": "fieldnotes", "label": "Field Notes" },
+        { "value": "latest_each", "label": "Newest of each series (homepage, for pages)" }
+      ] },
+    { "type": "range", "id": "limit", "label": "Max cards", "min": 1, "max": 12, "step": 1, "default": 6 },
+    { "type": "checkbox", "id": "exclude_current", "label": "Hide the video this watch page is about", "default": false },
+    { "type": "select", "id": "logo", "label": "Show logo", "default": "none",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "picnic", "label": "Picnic Planning" },
+        { "value": "fieldnotes", "label": "Field Notes" }
+      ] },
+    { "type": "text", "id": "heading", "label": "Heading (phrase as a question)" },
+    { "type": "textarea", "id": "intro", "label": "One line under the heading" },
+    { "type": "textarea", "id": "intro_2", "label": "Second line (bold)" },
+    { "type": "text", "id": "logo_filename", "label": "Picnic Planning logo (asset filename)", "info": "Blank shows a text wordmark." },
+    { "type": "text", "id": "link_label", "label": "Link label" },
+    { "type": "text", "id": "link_url", "label": "Link URL" },
+    { "type": "select", "id": "background", "label": "Background", "default": "cream",
+      "options": [
+        { "value": "cream", "label": "Cream" },
+        { "value": "mint", "label": "Light mint green" },
+        { "value": "lavender", "label": "Light lavender" },
+        { "value": "sky", "label": "Light sky blue" },
+        { "value": "forest", "label": "Forest green (YouTube overlay green)" }
+      ] },
+    { "type": "text", "id": "anchor", "label": "Anchor id (for in-page links)" },
+    { "type": "text", "id": "preview_handle", "label": "Draft preview: video the watch page is showing", "info": "Match the watch section's preview handle. Leave blank on live." },
+    { "type": "checkbox", "id": "preview_as_live", "label": "Draft preview: show every video as live", "default": false,
+      "info": "Draft review only. Leave OFF on the live theme." },
+    { "type": "range", "id": "padding_top", "label": "Padding top", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 },
+    { "type": "range", "id": "padding_bottom", "label": "Padding bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 72 }
+  ],
+  "presets": [ { "name": "Video row" } ]
+}
+{% endschema %}

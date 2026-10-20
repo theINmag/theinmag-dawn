@@ -31,7 +31,7 @@
         "cta_primary_link": "/pages/gallery",
         "cta_secondary_label": "Get the Membership",
         "cta_secondary_link": "/products/membership",
-        "dish_strip": "KID-LED \u00b7 MULTI-AGE \u00b7 RICH & AUTHENTIC LEARNING",
+        "dish_strip": "KID-LED · MULTI-AGE · RICH & AUTHENTIC LEARNING",
         "image_filename": "HERO_audiences-homeschoolers.jpg",
         "image_alt": "An Australian homeschool kid with their copy of theINmag at the kitchen table.",
         "show_trust_bar": false
@@ -475,7 +475,7 @@
             "title": "theINmag Membership",
             "tagline": "Your kid never misses an issue.",
             "price": "From $89 / 4 issues",
-            "trust_dots": "3 issues a year \u00b7 Free shipping over $40",
+            "trust_dots": "3 issues a year · Free shipping over $40",
             "cta_label": "Get the Membership",
             "image_filename": "product-membership.jpg",
             "image_alt": "A kid opening their copy of theINmag at the kitchen bench."
@@ -662,6 +662,27 @@
         "heading_override": "The whole library, for the home classroom",
         "body_override": "Every issue as instant PDFs. On the big screen for group time, the iPad for independent reading, or printed for the workbook pile. The sold-out ones included."
       }
+    },
+    "latest_videos": {
+      "type": "theinmag-video-row",
+      "settings": {
+        "show": "latest_each",
+        "limit": 2,
+        "exclude_current": false,
+        "logo": "none",
+        "logo_filename": "",
+        "heading": "Have you seen our newest videos?",
+        "intro": "Free IN task planning sessions and Field Notes for the grown-ups. The newest of each lands here the day it goes live.",
+        "intro_2": "",
+        "link_label": "see every video",
+        "link_url": "/pages/videos",
+        "background": "cream",
+        "anchor": "latest-videos",
+        "preview_as_live": false,
+        "preview_handle": "",
+        "padding_top": 56,
+        "padding_bottom": 64
+      }
     }
   },
   "order": [
@@ -678,6 +699,7 @@
     "branching-out",
     "comps",
     "curriculum-accordion",
+    "latest_videos",
     "field-notes",
     "founders",
     "pull-quote",

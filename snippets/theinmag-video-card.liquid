@@ -1,0 +1,90 @@
+{%- comment -%}
+  theinmag-video-card  (2026-10-20, Webster; round 2 same day)
+  One video card: real thumbnail (16:9, self-hosted), red YouTube play
+  stamp (design system 6.19), "SHOW · AREA · N MIN" meta, title, one line.
+  The whole card links to the video's watch page on OUR site, never to
+  YouTube, so the watch page earns the visit and the real embed counts
+  the view there.
+
+  Params:
+    rec        one record string from theinmag-videos-data (fields ^^)
+    now_ts     current epoch seconds (pass 'now' | date: '%s')
+    force_live true = treat every video as live (draft preview only)
+    heading_tag 'h3' (default) or 'h2'
+
+  Search: data-search carries title + area + keywords + card line in
+  lower case, so the hub search box (theinmag-video-hub) can filter cards
+  with no extra markup. Kid credits never appear on cards.
+
+  Hover preview: when the record has a preview_url (silent MP4 on Shopify
+  Files), pointer devices get a muted looping clip on hover/focus, with a
+  "sound on" toggle that sits OUTSIDE the link (no nested controls). Touch
+  devices never load it. Script lives in theinmag-video-row.
+
+  Before live_from the card shows a white-on-scrim "out <day>" label
+  (never a coloured pill on photography) and no play stamp.
+{%- endcomment -%}
+{%- liquid
+  assign f = rec | split: '^^'
+  assign v_handle = f[0] | strip
+  assign v_show = f[2]
+  assign v_title = f[3]
+  assign v_live_ts = f[4] | date: '%s' | plus: 0
+  assign v_live_label = f[5]
+  assign v_minutes = f[7]
+  assign v_thumb = f[8]
+  assign v_line = f[9]
+  assign v_area = f[14]
+  assign v_keywords = f[15]
+  assign v_preview = f[16] | strip
+  assign is_coming = false
+  assign now_num = now_ts | plus: 0
+  if force_live != true and now_num < v_live_ts
+    assign is_coming = true
+  endif
+  if v_show == 'picnic'
+    assign show_name = 'Picnic Planning'
+  else
+    assign show_name = 'Field Notes'
+  endif
+  assign h_tag = heading_tag | default: 'h3'
+  assign thumb_small = v_thumb | append: '-640.jpg' | asset_url
+  assign thumb_large = v_thumb | append: '.jpg' | asset_url
+  assign search_text = v_title | append: ' ' | append: show_name | append: ' ' | append: v_area | append: ' ' | append: v_keywords | append: ' ' | append: v_line | downcase | escape
+-%}
+<article
+  class="theinmag-video-card{% if is_coming %} is-coming{% endif %}"
+  data-live-from="{{ v_live_ts }}"
+  data-search="{{ search_text }}"
+  data-show="{{ v_show }}"
+  {% if v_preview != blank %}data-preview="{{ v_preview }}"{% endif %}
+>
+  <a class="theinmag-video-card__link" href="/pages/{{ v_handle }}">
+    <span class="theinmag-video-card__media">
+      <img
+        src="{{ thumb_small }}"
+        srcset="{{ thumb_small }} 640w, {{ thumb_large }} 1280w"
+        sizes="(min-width: 750px) 33vw, 82vw"
+        width="640" height="360"
+        loading="lazy" decoding="async"
+        alt=""
+      >
+      <span class="theinmag-video-card__play" aria-hidden="true">
+        <svg viewBox="0 0 68 48" width="54" height="38" focusable="false"><rect width="68" height="48" rx="12" fill="#FF0000"/><path d="M27 15v18l16-9z" fill="#FFFFFF"/></svg>
+      </span>
+      <span class="theinmag-video-card__soon">
+        <span class="theinmag-video-card__soon-text">out {{ v_live_label | split: ',' | first | split: ' (' | first }}</span>
+      </span>
+    </span>
+    <span class="theinmag-video-card__body">
+      <span class="theinmag-video-card__meta">{{ show_name }}{% if v_area != blank %} <span aria-hidden="true">&middot;</span> {{ v_area }}{% endif %} <span aria-hidden="true">&middot;</span> {{ v_minutes }}</span>
+      <{{ h_tag }} class="theinmag-video-card__title">{{ v_title }}</{{ h_tag }}>
+      <span class="theinmag-video-card__line">{{ v_line }}</span>
+    </span>
+  </a>
+  {%- if v_preview != blank -%}
+    <button type="button" class="theinmag-video-card__sound" aria-pressed="false" hidden>
+      <span class="theinmag-video-card__sound-label">sound on</span>
+    </button>
+  {%- endif -%}
+</article>

@@ -1,0 +1,143 @@
+{
+  "sections": {
+    "hero": {
+      "type": "theinmag-video-hub",
+      "settings": {
+        "eyebrow": "free for teachers, parents and homeschoolers",
+        "heading": "Plan IN tasks with us.",
+        "hero_line": "Rich, open tasks that turn your kids' passions, interests and hobbies into real-life learning. Evidence-based, free, and built for littlies, middles and oldies learning side by side.",
+        "image_filename": "videos-hero-picnic-bench.jpg",
+        "image_alt": "Ryan writing a lesson plan at a picnic table in a leafy park",
+        "jump_1_label": "Browse the videos",
+        "jump_1_url": "#videos",
+        "jump_2_label": "",
+        "jump_2_url": "",
+        "subscribe_label": "Subscribe on YouTube",
+        "subscribe_url": "https://www.youtube.com/channel/UCgPTt7iKbW5J_3eC9d8QRXA?sub_confirmation=1",
+        "note_heading": "Why IN tasks?",
+        "note_body": "<p>Kids grow when they're actively engaged. Not sitting still and copying, but properly IN a task: chasing a question they care about, trying something, getting it wrong, trying again.</p><p>We want kids to be creative problem solvers, and that starts with how we pose the problem. A rich, open task has a low floor so every kid can start, and a high ceiling so nobody runs out of room.</p><p>That's what these videos are for. Pull up a chair (or a picnic rug) and let's plan one together.</p>",
+        "note_name": "Ryan",
+        "note_role": "Learning specialist and classroom teacher",
+        "join_heading": "How do I join IN?",
+        "join_lead": "Join the teachers, parents and homeschoolers who plan this way. Three ways to come along:",
+        "join_1_title": "Subscribe on YouTube",
+        "join_1_copy": "New planning sessions and Field Notes in your feed the day they go live.",
+        "join_2_title": "Grab the free IN task planner",
+        "join_2_copy": "The one Ryan fills in on camera. Print it or use plain A4.",
+        "join_2_url": "/planner",
+        "join_3_title": "Get our emails",
+        "join_3_copy": "Field notes, new videos and a free e-mag, straight to your inbox.",
+        "join_3_url": "/pages/newsletter",
+        "search_label": "Looking for something?",
+        "search_placeholder": "try measurement, wellbeing or homeschool"
+      }
+    },
+    "picnic": {
+      "type": "theinmag-video-row",
+      "settings": {
+        "show": "picnic",
+        "limit": 6,
+        "exclude_current": false,
+        "logo": "picnic",
+        "heading": "What is Picnic Planning?",
+        "intro": "Every session, Ryan plans one low floor, high ceiling task with you: easy for every kid to start, with room for the keenest to fly. It's built on the interests of your kids, not generic kids, and it works for littlies, middles and oldies in the same room.",
+        "link_label": "get the free IN task planner",
+        "link_url": "/planner",
+        "background": "forest",
+        "anchor": "picnic-planning",
+        "preview_as_live": false,
+        "padding_top": 64,
+        "padding_bottom": 72,
+        "logo_filename": "",
+        "intro_2": "Grab the free planner, press play, and we'll plan this lesson together."
+      }
+    },
+    "fieldnotes": {
+      "type": "theinmag-video-row",
+      "settings": {
+        "show": "fieldnotes",
+        "limit": 6,
+        "exclude_current": false,
+        "logo": "fieldnotes",
+        "heading": "What are Field Notes?",
+        "intro": "Ryan, out in the field, talking about the small things grown-ups say and do that shape how kids learn. Each one pairs with a field notes post that comes at the idea from another angle.",
+        "link_label": "read more from IN the field",
+        "link_url": "/pages/in-the-field",
+        "background": "cream",
+        "anchor": "field-notes",
+        "preview_as_live": false,
+        "padding_top": 72,
+        "padding_bottom": 56
+      }
+    },
+    "faq": {
+      "type": "theinmag-faq",
+      "settings": {
+        "heading": "Questions <em>grown-ups</em> ask us",
+        "show_cta": true,
+        "cta_label": "get the free IN task planner",
+        "cta_link": "/planner",
+        "padding_top": 56,
+        "padding_bottom": 88
+      },
+      "blocks": {
+        "q1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Who are these videos for?",
+            "answer": "<p>Teachers, parents and homeschoolers of kids 5-13. The Picnic Planning lessons are built for mixed groups, so littlies, middles and oldies can work on the same task at the same time.</p>"
+          }
+        },
+        "q2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Are the videos free?",
+            "answer": "<p>Yes. Every video is free to watch here and on YouTube, and so is the IN task planner Ryan uses in them.</p>"
+          }
+        },
+        "q3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What is a rich, open task?",
+            "answer": "<p>One real question with lots of ways in and no single path to the answer. Every kid starts where they are and goes as far as they can. \"How fast can you run 100 metres?\" is one.</p>"
+          }
+        },
+        "q4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do I need to print the planner?",
+            "answer": "<p>No. Ryan fills it in on camera, but a plain sheet of A4 works just as well.</p>"
+          }
+        },
+        "q5": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Where do the lesson questions come from?",
+            "answer": "<p>Real kids. Each Picnic Planning lesson starts from a question a kid sent to theINmag, the magazine made by kids, for kids.</p>"
+          }
+        },
+        "q6": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How do I hear about new videos?",
+            "answer": "<p>Subscribe on <a href=\"https://www.youtube.com/channel/UCgPTt7iKbW5J_3eC9d8QRXA?sub_confirmation=1\" target=\"_blank\" rel=\"noopener\">YouTube</a>, <a href=\"/pages/newsletter\">get our emails</a>, or check back here. New videos land on this page the day they go live.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6"
+      ]
+    }
+  },
+  "order": [
+    "hero",
+    "picnic",
+    "fieldnotes",
+    "faq"
+  ]
+}
