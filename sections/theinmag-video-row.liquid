@@ -69,6 +69,7 @@
 >
   <div class="theinmag-video-row__inner">
     <header class="theinmag-video-row__header">
+      <div class="theinmag-video-row__brand">
       {%- if section.settings.logo == 'picnic' -%}
         {%- if section.settings.logo_filename != blank -%}
           {%- comment -%} Animated WebP (tagline flicks between handwritten fonts); still PNG for reduced motion. White tagline: forest ground only. {%- endcomment -%}
@@ -81,11 +82,35 @@
         {%- else -%}
           <span class="theinmag-video-row__wordmark" aria-hidden="true">Picnic<br>Planning</span>
         {%- endif -%}
+        {%- if section.settings.character_ids != blank -%}
+          {%- comment -%}
+            Random kid-drawn mINion beside the logo, a different one each load.
+            ONLY the vetted list in character_ids (names checked against
+            theinmag-pat/signatures/minion-signature-previews.html, 20 Oct
+            2026): 35 Axolotl, 37 Chick, 38 Purple square, 10 Dragon, 20 Cat,
+            47 Kiwi, 26 Carrot. Never 16 (Wind-up bomb) or 53. Decorative:
+            empty alt, aria-hidden. Bob animation is off for reduced motion
+            (the sitewide blanket rule in base.css also covers it).
+          {%- endcomment -%}
+          {%- liquid
+            assign char_urls = ''
+            assign char_ids = section.settings.character_ids | split: ','
+            for cid in char_ids
+              assign cfile = 'character-' | append: cid | strip | append: '.png'
+              assign curl = cfile | asset_url
+              assign char_urls = char_urls | append: curl | append: '|'
+            endfor
+          -%}
+          <span class="theinmag-video-row__char" aria-hidden="true" data-video-char="{{ char_urls }}">
+            <img alt="" width="600" height="600" loading="lazy" hidden>
+          </span>
+        {%- endif -%}
       {%- elsif section.settings.logo == 'fieldnotes' -%}
         <span class="theinmag-video-row__logo theinmag-video-row__logo--fieldnotes">
           <img src="{{ 'fieldnotes_logo_sage.png' | asset_url }}" width="800" height="320" loading="lazy" alt="Field Notes">
         </span>
       {%- endif -%}
+      </div>
       <div class="theinmag-video-row__heading-wrap">
         {%- if section.settings.heading != blank -%}
           <h2 id="vrow-h-{{ section.id }}" class="theinmag-video-row__heading">{{ section.settings.heading }}</h2>
@@ -153,6 +178,17 @@
     document.querySelectorAll('#{{ section.settings.anchor | default: section.id }} .theinmag-video-card.is-coming').forEach(function (c) {
       var t = parseInt(c.getAttribute('data-live-from'), 10);
       if (t && now >= t) c.classList.remove('is-coming');
+    });
+  })();
+
+  /* Random vetted character per load. */
+  (function () {
+    document.querySelectorAll('#{{ section.settings.anchor | default: section.id }} [data-video-char]').forEach(function (slot) {
+      var urls = slot.getAttribute('data-video-char').split('|').filter(Boolean);
+      if (!urls.length) return;
+      var img = slot.querySelector('img');
+      img.src = urls[Math.floor(Math.random() * urls.length)];
+      img.hidden = false;
     });
   })();
 
@@ -240,6 +276,8 @@
     gap: 14px;
     margin-bottom: clamp(20px, 3vw, 32px);
   }
+  .theinmag-video-row__brand { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+  .theinmag-video-row__brand:empty { display: none; }
   .theinmag-video-row__logo { display: block; width: 168px; flex: 0 0 auto; }
   .theinmag-video-row__logo--fieldnotes { width: 240px; margin: -16px 0 -8px -12px; }
   .theinmag-video-row__logo--picnic { width: 200px; }
@@ -254,6 +292,28 @@
     rotate: -3deg;
   }
   .theinmag-video-row__intro--second { font-weight: 600; }
+  .theinmag-video-row__char {
+    display: block;
+    flex: 0 0 auto;
+    width: 96px;
+    align-self: center;
+    margin-left: -8px;
+  }
+  .theinmag-video-row__char img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* white sticker edge so dark drawings (kiwi, square) read on the forest green */
+    filter: drop-shadow(2px 0 0 #FFFFFF) drop-shadow(-2px 0 0 #FFFFFF) drop-shadow(0 2px 0 #FFFFFF) drop-shadow(0 -2px 0 #FFFFFF) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
+    animation: theinmag-vrow-bob 4s ease-in-out infinite;
+  }
+  @keyframes theinmag-vrow-bob {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-6px) rotate(3deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-video-row__char img { animation: none; }
+  }
   .theinmag-video-row__empty {
     font-family: var(--font-body);
     font-size: 16px;
@@ -307,6 +367,7 @@
     }
     .theinmag-video-row .theinmag-video-row__logo--fieldnotes { width: 360px; margin: -28px -8px -20px -24px; }
     .theinmag-video-row .theinmag-video-row__logo--picnic { width: 260px; }
+    .theinmag-video-row .theinmag-video-row__char { width: 140px; margin-left: -24px; }
     .theinmag-video-row--pair .theinmag-video-row__rail.theinmag-video-row__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 860px; }
     .theinmag-video-row .theinmag-video-row__rail {
       grid-auto-flow: row;
@@ -471,6 +532,7 @@
     { "type": "textarea", "id": "intro_2", "label": "Second line (bold)" },
     { "type": "text", "id": "logo_filename", "label": "Picnic Planning logo (asset filename)", "info": "Blank shows a text wordmark." },
     { "type": "text", "id": "logo_static_filename", "label": "Picnic Planning logo still (reduced motion)" },
+    { "type": "text", "id": "character_ids", "label": "Character ids beside the Picnic logo", "info": "Comma list of vetted character-N.png numbers. Check each NAME first; never 16 (bomb) or 53." },
     { "type": "text", "id": "link_label", "label": "Link label" },
     { "type": "text", "id": "link_url", "label": "Link URL" },
     { "type": "select", "id": "background", "label": "Background", "default": "cream",

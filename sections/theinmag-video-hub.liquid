@@ -1,24 +1,36 @@
 {%- comment -%}
-  theinmag-video-hub  (2026-10-20, Webster)
-  First section of /pages/videos, the grown-ups' video hub. Archetype:
-  full-bleed real photograph (a still from the calm-down Picnic
-  Planning shoot, Ryan planning at the bench) with white-on-scrim H1,
-  one line, and two quiet jump links to the show chapters below. The
-  chapters themselves are theinmag-video-row sections.
+  theinmag-video-hub  (2026-10-20, Webster; round 3 same day)
+  First section of /pages/videos, the grown-ups' video hub.
+
+  Round 3 (Ryan): less writing at the top.
+    1. SPLIT HERO. Copy left, the videographer's portrait still of Ryan
+       at the "passions / interests" whiteboard right (object-fit cover,
+       focal point on his face and pointing hand, never stretched). On
+       phones the photo sits above the copy at a shorter 4:3 crop.
+    2. H1 "Plan IN tasks with us" (IN in the brand .theinmag-in style),
+       with a Subscribe button beside it: the official YouTube play mark
+       (red #FF0000, white triangle, unaltered) on an inky pill, our own
+       type, so it reads YouTube without copying YouTube's UI.
+    3. Jump links to the two show chapters.
+    4. SEARCH just under the hero. Results render directly under the
+       input as you type: a short list of links built from a JSON copy
+       of the video registry (title, series, area, length, 40+ keywords).
+       Scored match, stopwords ignored, so parent phrasing ("how do I get
+       my kid to calm down") still lands.
+    5. JOIN POP-IN. A small card that slides in from the left after 12 s
+       or 40% scroll, once per visitor (localStorage, try/catch). Not a
+       modal: no focus trap, no scrim, focus is not stolen; Escape and the
+       close button dismiss it, and focus returns to where it was if it
+       was inside. Two-sentence note from Ryan, signature in Post (or
+       RyanHand if the setting is switched), one action: the free email
+       signup at /pages/newsletter. Never promises features that do not
+       exist yet. prefers-reduced-motion users get it without the slide.
 
   Schema: BreadcrumbList + CollectionPage whose ItemList points at each
-  LIVE watch page (videos still to come are left out until their time).
-
-  Round 2 (Ryan, 20 Oct): under the hero sit a personal note from Ryan
-  (Post signature, Inter body, never Caveat), a "join IN" card (YouTube
-  subscribe with the sub_confirmation prompt, the free planner, the
-  newsletter: joining framed without promising community features yet),
-  and a search box that filters every video card on the page by title,
-  learning area and keywords (data-search on each card).
+  LIVE watch page.
 
   Future-proofing: the hub is a plain page at /pages/videos. A later
-  members' area can sit beside it (or add a members row here) without
-  moving a single public URL. Nothing for the community is built now.
+  members' area can sit beside it without moving a public URL.
 {%- endcomment -%}
 {%- liquid
   capture vdata
@@ -26,74 +38,46 @@
   endcapture
   assign records = vdata | strip | split: '@@'
   assign now_num = 'now' | date: '%s' | plus: 0
-  assign hero_src = section.settings.image_filename | default: 'videos-hero-picnic-bench.jpg' | asset_url
+  assign hero_src = section.settings.image_filename | default: 'videos-hero-ryan-whiteboard.jpg' | asset_url
+  assign h1 = section.settings.heading | default: 'Plan IN tasks with us' | replace: ' IN ', ' <span class="theinmag-in">IN</span> '
 -%}
 
 <section class="theinmag-video-hub" aria-labelledby="theinmag-video-hub-h1">
   <div class="theinmag-video-hub__hero">
-    <img
-      class="theinmag-video-hub__image"
-      src="{{ hero_src }}"
-      width="1600" height="900"
-      fetchpriority="high"
-      alt="{{ section.settings.image_alt | escape }}"
-    >
-    <span class="theinmag-video-hub__scrim" aria-hidden="true"></span>
-    <div class="theinmag-video-hub__content">
+    <div class="theinmag-video-hub__media">
+      <img
+        class="theinmag-video-hub__image"
+        src="{{ hero_src }}"
+        width="1012" height="1800"
+        fetchpriority="high"
+        alt="{{ section.settings.image_alt | escape }}"
+      >
+    </div>
+    <div class="theinmag-video-hub__copy">
       <p class="theinmag-video-hub__eyebrow">{{ section.settings.eyebrow }}</p>
-      <h1 id="theinmag-video-hub-h1" class="theinmag-video-hub__heading">{{ section.settings.heading }}</h1>
-      <p class="theinmag-video-hub__line">{{ section.settings.hero_line }}</p>
-      <nav class="theinmag-video-hub__jumps" aria-label="Subscribe or jump to a show">
+      <div class="theinmag-video-hub__titlerow">
+        <h1 id="theinmag-video-hub-h1" class="theinmag-video-hub__heading">{{ h1 }}</h1>
         {%- if section.settings.subscribe_url != blank -%}
-          <a class="theinmag-btn theinmag-btn--primary" href="{{ section.settings.subscribe_url }}" target="_blank" rel="noopener">{{ section.settings.subscribe_label }}<span class="visually-hidden"> (opens YouTube in a new tab)</span></a>
+          <a class="theinmag-video-hub__sub" href="{{ section.settings.subscribe_url }}" target="_blank" rel="noopener">
+            <svg class="theinmag-video-hub__sub-mark" viewBox="0 0 28 20" width="28" height="20" aria-hidden="true" focusable="false"><rect width="28" height="20" rx="5" fill="#FF0000"/><path d="M11.2 5.7v8.6l7.4-4.3z" fill="#FFFFFF"/></svg>
+            <span>{{ section.settings.subscribe_label | default: 'Subscribe' }}</span>
+            <span class="visually-hidden"> on YouTube (opens in a new tab)</span>
+          </a>
         {%- endif -%}
+      </div>
+      <p class="theinmag-video-hub__line">{{ section.settings.hero_line }}</p>
+      <nav class="theinmag-video-hub__jumps" aria-label="Jump to a series">
         {%- if section.settings.jump_1_label != blank -%}
-          <a class="theinmag-btn theinmag-btn--secondary-on-image" href="{{ section.settings.jump_1_url }}">{{ section.settings.jump_1_label }}</a>
+          <a class="theinmag-btn theinmag-btn--secondary" href="{{ section.settings.jump_1_url }}">{{ section.settings.jump_1_label }}</a>
         {%- endif -%}
         {%- if section.settings.jump_2_label != blank -%}
-          <a class="theinmag-btn theinmag-btn--secondary-on-image" href="{{ section.settings.jump_2_url }}">{{ section.settings.jump_2_label }}</a>
+          <a class="theinmag-btn theinmag-btn--secondary" href="{{ section.settings.jump_2_url }}">{{ section.settings.jump_2_label }}</a>
         {%- endif -%}
       </nav>
     </div>
   </div>
 
-  <div class="theinmag-video-hub__intro">
-    <div class="theinmag-video-hub__intro-inner">
-      <article class="theinmag-video-hub__note" aria-labelledby="theinmag-video-hub-note-h">
-        <h2 id="theinmag-video-hub-note-h" class="theinmag-video-hub__note-heading">{{ section.settings.note_heading }}</h2>
-        <div class="theinmag-video-hub__note-body">{{ section.settings.note_body }}</div>
-        <p class="theinmag-video-hub__sign">
-          <span class="theinmag-video-hub__sign-name">{{ section.settings.note_name }}</span>
-          <span class="theinmag-video-hub__sign-role">{{ section.settings.note_role }}</span>
-        </p>
-      </article>
-
-      <aside class="theinmag-video-hub__join" aria-labelledby="theinmag-video-hub-join-h">
-        <h2 id="theinmag-video-hub-join-h" class="theinmag-video-hub__join-heading">{{ section.settings.join_heading }}</h2>
-        <p class="theinmag-video-hub__join-lead">{{ section.settings.join_lead }}</p>
-        <ol class="theinmag-video-hub__join-list">
-          <li>
-            <a class="theinmag-video-hub__join-link" href="{{ section.settings.subscribe_url }}" target="_blank" rel="noopener">
-              <span class="theinmag-video-hub__join-title">{{ section.settings.join_1_title }}<span class="visually-hidden"> (opens YouTube in a new tab)</span></span>
-              <span class="theinmag-video-hub__join-copy">{{ section.settings.join_1_copy }}</span>
-            </a>
-          </li>
-          <li>
-            <a class="theinmag-video-hub__join-link" href="{{ section.settings.join_2_url }}">
-              <span class="theinmag-video-hub__join-title">{{ section.settings.join_2_title }}</span>
-              <span class="theinmag-video-hub__join-copy">{{ section.settings.join_2_copy }}</span>
-            </a>
-          </li>
-          <li>
-            <a class="theinmag-video-hub__join-link" href="{{ section.settings.join_3_url }}">
-              <span class="theinmag-video-hub__join-title">{{ section.settings.join_3_title }}</span>
-              <span class="theinmag-video-hub__join-copy">{{ section.settings.join_3_copy }}</span>
-            </a>
-          </li>
-        </ol>
-      </aside>
-    </div>
-
+  <div class="theinmag-video-hub__searchband">
     <form class="theinmag-video-hub__search" role="search" onsubmit="return false;" id="videos">
       <label class="theinmag-video-hub__search-label" for="theinmag-video-search">{{ section.settings.search_label }}</label>
       <input
@@ -102,39 +86,144 @@
         type="search"
         autocomplete="off"
         placeholder="{{ section.settings.search_placeholder | escape }}"
+        aria-describedby="theinmag-video-search-status"
         data-video-search
       >
-      <p class="theinmag-video-hub__search-status" aria-live="polite" data-video-search-status></p>
+      <p id="theinmag-video-search-status" class="theinmag-video-hub__search-status" aria-live="polite" data-video-search-status></p>
+      <ul class="theinmag-video-hub__results" data-video-results hidden></ul>
     </form>
   </div>
 </section>
 
+{%- comment -%} Search index: built from the same registry, so new videos and their keywords appear here with no extra work. {%- endcomment -%}
+<script type="application/json" data-video-index>
+[
+  {%- assign first = true -%}
+  {%- for rec in records -%}
+    {%- liquid
+      assign f = rec | split: '^^'
+      assign live_ts = f[4] | date: '%s' | plus: 0
+      if f[2] == 'picnic'
+        assign sn = 'Picnic Planning'
+      else
+        assign sn = 'Field Notes'
+      endif
+      assign thumb = f[8] | append: '-640.jpg' | asset_url
+      assign hh = f[0] | strip
+    -%}
+    {%- unless first -%},{%- endunless -%}{%- assign first = false -%}
+    {"url": {{ '/pages/' | append: hh | json }}, "title": {{ f[3] | json }}, "show": {{ sn | json }}, "area": {{ f[14] | json }}, "minutes": {{ f[7] | json }}, "thumb": {{ thumb | json }}, "live": {{ live_ts }}, "out": {{ f[5] | split: ',' | first | split: ' (' | first | json }}, "kw": {{ f[3] | append: ' ' | append: sn | append: ' ' | append: f[14] | append: ' ' | append: f[9] | append: ' ' | append: f[15] | downcase | json }}}
+  {%- endfor -%}
+]
+</script>
+
 <script>
   (function () {
     var input = document.querySelector('[data-video-search]');
-    if (!input) return;
+    var list = document.querySelector('[data-video-results]');
     var status = document.querySelector('[data-video-search-status]');
+    var idxEl = document.querySelector('[data-video-index]');
+    if (!input || !list || !idxEl) return;
+    var videos = [];
+    try { videos = JSON.parse(idxEl.textContent); } catch (e) { return; }
+    var stop = ' a an and are as at be but by can do does for from get got how i in into is it its kid kids child children my me of on or our so the their them they this to too up we what when where which who why will with you your'.split(' ');
+    function norm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+    videos.forEach(function (v) { v.hay = ' ' + norm(v.kw) + ' '; v.head = ' ' + norm(v.title + ' ' + v.show + ' ' + v.area) + ' '; });
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function run() {
-      var words = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
-      var shown = 0;
-      document.querySelectorAll('.theinmag-video-row').forEach(function (row) {
-        if (row.closest('.theinmag-video-row-section') && row.id === 'more-videos') return;
-        var rowShown = 0;
-        row.querySelectorAll('.theinmag-video-card').forEach(function (card) {
-          var hay = card.getAttribute('data-search') || '';
-          var ok = words.every(function (w) { return hay.indexOf(w) !== -1; });
-          var item = card.closest('.theinmag-video-row__item') || card;
-          item.hidden = !ok;
-          if (ok) { rowShown++; shown++; }
+      var q = norm(input.value);
+      var words = q.split(' ').filter(function (w) { return w && stop.indexOf(w) === -1; });
+      if (!q || !words.length) { list.hidden = true; list.innerHTML = ''; status.textContent = ''; return; }
+      var now = Date.now() / 1000;
+      var hits = videos.map(function (v) {
+        var score = 0;
+        words.forEach(function (w) {
+          if (v.hay.indexOf(' ' + w) !== -1) score += 2 + (v.hay.split(' ' + w).length - 2) * 0.1;
+          else if (w.length > 3 && v.hay.indexOf(w) !== -1) score += 1;
+          if (v.head.indexOf(' ' + w) !== -1) score += 2;
         });
-        var empty = row.querySelector('[data-video-empty]');
-        if (empty) empty.hidden = rowShown > 0 || words.length === 0;
-      });
-      if (status) status.textContent = words.length ? (shown === 1 ? '1 video matches' : shown + ' videos match') : '';
+        if (v.hay.indexOf(' ' + q + ' ') !== -1 || v.hay.indexOf(q) !== -1) score += 3;
+        return { v: v, s: score };
+      }).filter(function (h) { return h.s > 0; }).sort(function (a, b) { return b.s - a.s; }).slice(0, 8);
+      if (!hits.length) {
+        list.hidden = true; list.innerHTML = '';
+        status.textContent = 'Nothing yet for that. Try another word, like maths, calm or homeschool.';
+        return;
+      }
+      status.textContent = hits.length === 1 ? '1 video matches' : hits.length + ' videos match';
+      list.innerHTML = hits.map(function (h) {
+        var v = h.v, soon = now < v.live;
+        return '<li><a class="theinmag-video-hub__result" href="' + esc(v.url) + '">' +
+          '<img src="' + esc(v.thumb) + '" width="96" height="54" alt="" loading="lazy">' +
+          '<span class="theinmag-video-hub__result-text"><span class="theinmag-video-hub__result-meta">' + esc(v.show) + (v.area ? ' &middot; ' + esc(v.area) : '') + ' &middot; ' + (soon ? 'out ' + esc(v.out) : esc(v.minutes)) + '</span>' +
+          '<span class="theinmag-video-hub__result-title">' + esc(v.title) + '</span></span></a></li>';
+      }).join('');
+      list.hidden = false;
     }
     input.addEventListener('input', run);
   })();
 </script>
+
+{%- if section.settings.popin_enabled -%}
+<aside
+  class="theinmag-video-hub__popin{% if section.settings.signature_font == 'ryanhand' %} theinmag-video-hub__popin--ryanhand{% endif %}"
+  role="dialog"
+  aria-modal="false"
+  aria-labelledby="theinmag-video-popin-h"
+  data-video-popin
+  hidden
+>
+  <button type="button" class="theinmag-video-hub__popin-close" data-video-popin-close aria-label="Close">
+    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+  </button>
+  <h2 id="theinmag-video-popin-h" class="theinmag-video-hub__popin-heading">{{ section.settings.popin_heading }}</h2>
+  <p class="theinmag-video-hub__popin-body">{{ section.settings.popin_body }}</p>
+  <p class="theinmag-video-hub__popin-sign">
+    <span class="theinmag-video-hub__popin-name">{{ section.settings.popin_name }}</span>
+    <span class="theinmag-video-hub__popin-role">{{ section.settings.popin_role }}</span>
+  </p>
+  <a class="theinmag-btn theinmag-btn--primary theinmag-video-hub__popin-cta" href="{{ section.settings.popin_url }}" data-video-popin-cta>{{ section.settings.popin_label }}</a>
+</aside>
+{%- if section.settings.signature_font == 'ryanhand' -%}
+<style>
+  @font-face { font-family: 'RyanHand'; src: url('{{ 'ryanhand-regular.woff2' | asset_url }}') format('woff2'); font-display: swap; }
+</style>
+{%- endif -%}
+<script>
+  (function () {
+    var KEY = 'theinmag_videos_popin_v1';
+    var pop = document.querySelector('[data-video-popin]');
+    if (!pop) return;
+    try { if (window.localStorage.getItem(KEY)) return; } catch (e) {}
+    var shown = false, lastFocus = null;
+    function remember() { try { window.localStorage.setItem(KEY, String(Date.now())); } catch (e) {} }
+    function show() {
+      if (shown) return;
+      shown = true;
+      window.removeEventListener('scroll', onScroll);
+      pop.hidden = false;
+      setTimeout(function () { pop.classList.add('is-in'); }, 30);
+      remember();
+    }
+    function hide() {
+      pop.classList.remove('is-in');
+      var hadFocus = pop.contains(document.activeElement);
+      setTimeout(function () { pop.hidden = true; }, 320);
+      if (hadFocus && lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    function onScroll() {
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      if (h > 0 && window.scrollY / h > 0.4) show();
+    }
+    document.addEventListener('focusin', function (e) { if (!pop.contains(e.target)) lastFocus = e.target; });
+    pop.querySelector('[data-video-popin-close]').addEventListener('click', hide);
+    pop.querySelector('[data-video-popin-cta]').addEventListener('click', remember);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) hide(); });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    setTimeout(show, {{ section.settings.popin_delay | default: 12 | times: 1000 }});
+  })();
+</script>
+{%- endif -%}
 
 {%- liquid
   assign page_url = shop.url | append: request.path
@@ -182,37 +271,21 @@
 </script>
 
 {% stylesheet %}
-  .theinmag-video-hub { background: var(--color-cream); }
-  .theinmag-video-hub__hero {
-    position: relative;
-    min-height: clamp(520px, 78vh, 760px);
-    display: flex;
-    align-items: flex-end;
-    overflow: hidden;
-    background: var(--color-inky-purple-navy);
-  }
+  .theinmag-video-hub { background: var(--color-cream); color: var(--color-inky-purple-navy); }
+
+  /* ---------- split hero ---------- */
+  .theinmag-video-hub__hero { display: flex; flex-direction: column; }
+  .theinmag-video-hub__media { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--color-inky-purple-navy); }
   .theinmag-video-hub__image {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 30% 35%;
+    object-position: 35% 30%;
   }
-  .theinmag-video-hub__scrim {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(20, 14, 30, 0.82) 0%, rgba(20, 14, 30, 0.45) 45%, rgba(20, 14, 30, 0) 75%);
-  }
-  .theinmag-video-hub__content {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 0 clamp(16px, 3vw, 32px) clamp(32px, 6vw, 72px);
-    color: #FFFFFF;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+  .theinmag-video-hub__copy {
+    padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 56px) clamp(28px, 5vw, 56px);
   }
   .theinmag-video-hub__eyebrow {
     font-family: var(--font-body);
@@ -220,129 +293,79 @@
     font-size: 13px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin: 0 0 10px;
+    margin: 0 0 12px;
+  }
+  .theinmag-video-hub__titlerow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 16px;
+    margin: 0 0 16px;
   }
   .theinmag-video-hub__heading {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(38px, 6vw, 64px);
+    font-size: clamp(36px, 4vw, 48px);
     line-height: 1.05;
-    margin: 0 0 14px;
-    max-width: 14ch;
-    color: #FFFFFF;
+    margin: 0;
+    color: var(--color-inky-purple-navy);
   }
+  .theinmag-video-hub__sub {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 20px 0 16px;
+    border-radius: var(--radius-pill);
+    background: var(--color-inky-purple-navy);
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    box-shadow: 0 4px 0 rgba(42, 31, 61, 0.35);
+    transition: translate var(--transition-standard), box-shadow var(--transition-standard);
+  }
+  .theinmag-video-hub__sub-mark { display: block; flex: 0 0 auto; }
+  .theinmag-video-hub__sub:hover { translate: 0 2px; box-shadow: 0 2px 0 rgba(42, 31, 61, 0.35); }
+  .theinmag-video-hub__sub:focus-visible { outline: 3px solid var(--color-yellow-shadow); outline-offset: 3px; }
   .theinmag-video-hub__line {
     font-family: var(--font-body);
-    font-size: clamp(16px, 1.7vw, 19px);
-    line-height: 1.55;
-    max-width: 52ch;
+    font-size: clamp(17px, 1.7vw, 19px);
+    line-height: 1.6;
+    max-width: 50ch;
     margin: 0 0 22px;
   }
-  .theinmag-video-hub__jumps {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .theinmag-video-hub__jumps .theinmag-btn { text-shadow: none; }
+  .theinmag-video-hub__jumps { display: flex; flex-wrap: wrap; gap: 10px; }
 
-  .theinmag-video-hub__intro {
+  @media (min-width: 990px) {
+    .theinmag-video-hub .theinmag-video-hub__hero {
+      flex-direction: row-reverse;
+      align-items: stretch;
+      min-height: clamp(560px, 72vh, 720px);
+    }
+    .theinmag-video-hub .theinmag-video-hub__media { flex: 0 0 42%; aspect-ratio: auto; }
+    .theinmag-video-hub .theinmag-video-hub__copy {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: max(32px, calc((100vw - 1180px) / 2 + 32px));
+    }
+  }
+
+  /* ---------- search ---------- */
+  .theinmag-video-hub__searchband {
     max-width: 1180px;
     margin: 0 auto;
-    padding: clamp(40px, 6vw, 80px) clamp(16px, 3vw, 32px) clamp(24px, 3vw, 40px);
-    color: var(--color-inky-purple-navy);
+    padding: clamp(28px, 4vw, 44px) clamp(16px, 3vw, 32px) clamp(20px, 3vw, 32px);
   }
-  .theinmag-video-hub__intro-inner {
-    display: grid;
-    gap: clamp(24px, 4vw, 48px);
-  }
-  .theinmag-video-hub__note-heading {
-    font-family: var(--font-heading);
-    font-weight: 400;
-    font-size: clamp(26px, 4.5vw, 40px);
-    line-height: 1.15;
-    margin: 0 0 16px;
-  }
-  .theinmag-video-hub__note-body {
-    font-family: var(--font-body);
-    font-size: clamp(17px, 1.8vw, 19px);
-    line-height: 1.7;
-    max-width: 60ch;
-  }
-  .theinmag-video-hub__note-body p { margin: 0 0 14px; }
-  .theinmag-video-hub__sign { margin: 18px 0 0; display: flex; flex-direction: column; gap: 2px; }
-  .theinmag-video-hub__sign-name {
-    font-family: var(--font-heading);
-    font-size: clamp(30px, 4vw, 40px);
-    line-height: 1;
-    rotate: -3deg;
-    transform-origin: left center;
-    display: inline-block;
-  }
-  .theinmag-video-hub__sign-role {
-    font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    margin-top: 6px;
-  }
-  .theinmag-video-hub__join {
-    background: #FFFFFF;
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-card);
-    padding: clamp(22px, 3vw, 32px);
-    align-self: start;
-  }
-  .theinmag-video-hub__join-heading {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: clamp(22px, 2.4vw, 26px);
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-    margin: 0 0 8px;
-  }
-  .theinmag-video-hub__join-lead { font-family: var(--font-body); font-size: 16px; line-height: 1.55; margin: 0 0 16px; }
-  .theinmag-video-hub__join-list { list-style: none; margin: 0; padding: 0; counter-reset: join; }
-  .theinmag-video-hub__join-list li { counter-increment: join; border-top: 1px solid rgba(0, 0, 0, 0.08); }
-  .theinmag-video-hub__join-link {
-    display: grid;
-    grid-template-columns: 36px 1fr;
-    column-gap: 12px;
-    padding: 14px 0;
-    min-height: 44px;
-    color: var(--color-inky-purple-navy);
-    text-decoration: none;
-  }
-  .theinmag-video-hub__join-link::before {
-    content: counter(join);
-    grid-row: 1 / 3;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-pill);
-    background: var(--color-yellow);
-    box-shadow: 0 2px 0 var(--color-yellow-shadow);
-    font-family: var(--font-heading);
-    font-size: 16px;
-    display: grid;
-    place-items: center;
-  }
-  .theinmag-video-hub__join-title { font-family: var(--font-body); font-weight: 700; font-size: 17px; text-decoration: underline; text-underline-offset: 4px; }
-  .theinmag-video-hub__join-copy { font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
-  .theinmag-video-hub__join-link:focus-visible { outline: 3px solid var(--color-inky-purple-navy); outline-offset: 3px; border-radius: 8px; }
-
-  .theinmag-video-hub__search { margin-top: clamp(32px, 5vw, 56px); scroll-margin-top: 110px; }
-  .theinmag-video-hub__search-label {
-    display: block;
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 17px;
-    margin-bottom: 8px;
-  }
+  .theinmag-video-hub__search { max-width: 640px; scroll-margin-top: 110px; }
+  .theinmag-video-hub__search-label { display: block; font-family: var(--font-body); font-weight: 700; font-size: 17px; margin-bottom: 8px; }
   .theinmag-video-hub__search-input {
     width: 100%;
-    max-width: 560px;
-    min-height: 48px;
-    padding: 10px 16px;
+    min-height: 50px;
+    padding: 10px 18px;
     font-family: var(--font-body);
     font-size: 17px;
     color: var(--color-inky-purple-navy);
@@ -352,18 +375,90 @@
   }
   .theinmag-video-hub__search-input:focus-visible { outline: 3px solid var(--color-yellow-shadow); outline-offset: 2px; }
   .theinmag-video-hub__search-status { font-family: var(--font-body); font-size: 14px; margin: 8px 0 0; min-height: 1.4em; }
-
-  @media (min-width: 990px) {
-    .theinmag-video-hub .theinmag-video-hub__intro-inner { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: start; }
+  .theinmag-video-hub__results {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 6px;
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
   }
-  @media (min-width: 990px) {
-    /* Desktop: deepen the left side so the H1 never fights the T-shirt print. */
-    .theinmag-video-hub .theinmag-video-hub__scrim {
-      background:
-        linear-gradient(to right, rgba(20, 14, 30, 0.7) 0%, rgba(20, 14, 30, 0.35) 45%, rgba(20, 14, 30, 0) 70%),
-        linear-gradient(to top, rgba(20, 14, 30, 0.6) 0%, rgba(20, 14, 30, 0) 55%);
-    }
-    .theinmag-video-hub .theinmag-video-hub__image { object-position: 60% 35%; }
+  .theinmag-video-hub__result {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px;
+    min-height: 44px;
+    border-radius: 12px;
+    color: var(--color-inky-purple-navy);
+    text-decoration: none;
+  }
+  .theinmag-video-hub__result:hover,
+  .theinmag-video-hub__result:focus-visible { background: var(--color-cream); outline: none; }
+  .theinmag-video-hub__result:focus-visible { box-shadow: inset 0 0 0 2px var(--color-inky-purple-navy); }
+  .theinmag-video-hub__result img { flex: 0 0 96px; width: 96px; height: 54px; object-fit: cover; border-radius: 8px; }
+  .theinmag-video-hub__result-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .theinmag-video-hub__result-meta { font-family: var(--font-body); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.8; }
+  .theinmag-video-hub__result-title { font-family: var(--font-body); font-weight: 700; font-size: 16px; line-height: 1.3; }
+
+  /* ---------- join pop-in (not a modal) ---------- */
+  .theinmag-video-hub__popin {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 40;
+    max-width: 360px;
+    padding: 22px 22px 22px;
+    background: #FFFFFF;
+    color: var(--color-inky-purple-navy);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-modal);
+    transform: translateX(calc(-100% - 32px));
+    transition: transform 0.32s ease;
+  }
+  .theinmag-video-hub__popin.is-in { transform: translateX(0); }
+  .theinmag-video-hub__popin[hidden] { display: none; }
+  .theinmag-video-hub__popin-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-inky-purple-navy);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .theinmag-video-hub__popin-close:focus-visible { outline: 3px solid var(--color-inky-purple-navy); outline-offset: -3px; }
+  .theinmag-video-hub__popin-heading {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1.25;
+    margin: 0 36px 8px 0;
+  }
+  .theinmag-video-hub__popin-body { font-family: var(--font-body); font-size: 15.5px; line-height: 1.55; margin: 0 0 12px; }
+  .theinmag-video-hub__popin-sign { margin: 0 0 16px; display: flex; flex-direction: column; }
+  .theinmag-video-hub__popin-name {
+    font-family: var(--font-heading);
+    font-size: 30px;
+    line-height: 1;
+    display: inline-block;
+    rotate: -4deg;
+    transform-origin: left center;
+  }
+  .theinmag-video-hub__popin--ryanhand .theinmag-video-hub__popin-name { font-family: 'RyanHand', var(--font-heading); font-size: 34px; }
+  .theinmag-video-hub__popin-role { font-family: var(--font-body); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-top: 6px; }
+  .theinmag-video-hub__popin-cta { width: 100%; }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-video-hub__popin { transition: none; transform: none; }
+  }
+  @media (min-width: 750px) {
+    .theinmag-video-hub .theinmag-video-hub__popin { left: 24px; right: auto; bottom: 24px; width: 360px; }
   }
 {% endstylesheet %}
 
@@ -373,36 +468,31 @@
   "tag": "div",
   "class": "theinmag-video-hub-section",
   "settings": [
-    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "for teachers, parents and homeschoolers" },
-    { "type": "text", "id": "heading", "label": "H1", "default": "Videos for the grown-ups." },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "free for teachers, parents and homeschoolers" },
+    { "type": "text", "id": "heading", "label": "H1", "default": "Plan IN tasks with us", "info": "A standalone IN is styled in the brand IN treatment." },
     { "type": "textarea", "id": "hero_line", "label": "One line under the H1" },
-    { "type": "text", "id": "image_filename", "label": "Hero photo (asset filename)", "default": "videos-hero-picnic-bench.jpg" },
-    { "type": "text", "id": "image_alt", "label": "Hero photo alt text", "default": "Ryan writing a lesson plan at a picnic table in a leafy park" },
-    { "type": "text", "id": "subscribe_label", "label": "Subscribe button label", "default": "Subscribe on YouTube" },
+    { "type": "text", "id": "image_filename", "label": "Hero photo (asset filename)", "default": "videos-hero-ryan-whiteboard.jpg" },
+    { "type": "text", "id": "image_alt", "label": "Hero photo alt text", "default": "Ryan pointing at a whiteboard of kids' passions and interests while a group of kids watches" },
+    { "type": "text", "id": "subscribe_label", "label": "Subscribe button label", "default": "Subscribe" },
     { "type": "text", "id": "subscribe_url", "label": "Subscribe URL", "default": "https://www.youtube.com/channel/UCgPTt7iKbW5J_3eC9d8QRXA?sub_confirmation=1" },
-    { "type": "text", "id": "jump_1_label", "label": "Jump link 1 label" },
-    { "type": "text", "id": "jump_1_url", "label": "Jump link 1 URL" },
-    { "type": "text", "id": "jump_2_label", "label": "Jump link 2 label" },
-    { "type": "text", "id": "jump_2_url", "label": "Jump link 2 URL" },
-    { "type": "header", "content": "Note from Ryan" },
-    { "type": "text", "id": "note_heading", "label": "Heading" },
-    { "type": "richtext", "id": "note_body", "label": "Note" },
-    { "type": "text", "id": "note_name", "label": "Signed", "default": "Ryan" },
-    { "type": "text", "id": "note_role", "label": "Role line", "default": "Learning specialist and classroom teacher" },
-    { "type": "header", "content": "Join card" },
-    { "type": "text", "id": "join_heading", "label": "Heading" },
-    { "type": "textarea", "id": "join_lead", "label": "Lead" },
-    { "type": "text", "id": "join_1_title", "label": "Step 1 title (links to Subscribe URL)" },
-    { "type": "text", "id": "join_1_copy", "label": "Step 1 copy" },
-    { "type": "text", "id": "join_2_title", "label": "Step 2 title" },
-    { "type": "text", "id": "join_2_copy", "label": "Step 2 copy" },
-    { "type": "text", "id": "join_2_url", "label": "Step 2 URL" },
-    { "type": "text", "id": "join_3_title", "label": "Step 3 title" },
-    { "type": "text", "id": "join_3_copy", "label": "Step 3 copy" },
-    { "type": "text", "id": "join_3_url", "label": "Step 3 URL" },
+    { "type": "text", "id": "jump_1_label", "label": "Jump link 1 label", "default": "Picnic Planning" },
+    { "type": "text", "id": "jump_1_url", "label": "Jump link 1 URL", "default": "#picnic-planning" },
+    { "type": "text", "id": "jump_2_label", "label": "Jump link 2 label", "default": "Field Notes" },
+    { "type": "text", "id": "jump_2_url", "label": "Jump link 2 URL", "default": "#field-notes" },
     { "type": "header", "content": "Search" },
-    { "type": "text", "id": "search_label", "label": "Search label", "default": "Looking for something?" },
-    { "type": "text", "id": "search_placeholder", "label": "Placeholder", "default": "try measurement, wellbeing or homeschool" }
+    { "type": "text", "id": "search_label", "label": "Search label", "default": "What are you looking for?" },
+    { "type": "text", "id": "search_placeholder", "label": "Placeholder", "default": "try maths, calm or homeschool" },
+    { "type": "header", "content": "Join pop-in" },
+    { "type": "checkbox", "id": "popin_enabled", "label": "Show the join pop-in", "default": true },
+    { "type": "range", "id": "popin_delay", "label": "Delay (seconds)", "min": 4, "max": 40, "step": 2, "default": 12 },
+    { "type": "text", "id": "popin_heading", "label": "Heading" },
+    { "type": "textarea", "id": "popin_body", "label": "Note (two or three sentences)" },
+    { "type": "text", "id": "popin_name", "label": "Signed", "default": "Ryan G." },
+    { "type": "text", "id": "popin_role", "label": "Role line", "default": "Learning specialist and classroom teacher" },
+    { "type": "select", "id": "signature_font", "label": "Signature font", "default": "post",
+      "options": [ { "value": "post", "label": "Post" }, { "value": "ryanhand", "label": "Ryan's handwriting (RyanHand)" } ] },
+    { "type": "text", "id": "popin_label", "label": "Button label", "default": "join free" },
+    { "type": "text", "id": "popin_url", "label": "Button URL", "default": "/pages/newsletter" }
   ]
 }
 {% endschema %}
