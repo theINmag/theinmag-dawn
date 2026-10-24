@@ -49,7 +49,7 @@
           "settings": {
             "short_name": "A magazine with heart",
             "headline": "Made entirely by Aussie kids.",
-            "body": "120+ pages of writing, art and ideas, all created by kids aged 5 to 13. Zero ads, just creativity. On your shelf it quietly says this is a shop that believes in kids, and in the community around it."
+            "body": "120+ pages of writing, art and ideas, all created by kids. Zero ads, just creativity. On your shelf it quietly says this is a shop that believes in kids, and in the community around it."
           }
         },
         "p2": {
@@ -105,7 +105,8 @@
         "bg_color": "cream",
         "padding_top": 24,
         "padding_bottom": 12
-      }
+      },
+      "disabled": true
     },
     "picker": {
       "type": "theinmag-shop-grid",
@@ -265,9 +266,9 @@
   "order": [
     "hero",
     "kit_band",
-    "why",
     "pricing_note",
     "picker",
+    "why",
     "spotlight",
     "inside",
     "map",
