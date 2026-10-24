@@ -47,19 +47,45 @@
   # Resolve featured comp index. Default is the configured featured_id
   # (e.g. banabae-artists). Fallback to spotlight_ids[0] if that ID
   # isn't in the database, then to index 0.
+  #
+  # 2026-10-24 (Ryan, via Compton): the configured featured_id is honoured
+  # ONLY while that comp is live now. It used to win unconditionally, so all
+  # three audience pages featured banabae-artists for three months after it
+  # closed on 19 July. Otherwise the featured comp is spotlight_ids[0], the
+  # build's first top pick, which is always a live comp, so this card and
+  # the competitions page top picks never disagree.
+  assign today_iso = 'now' | date: '%Y-%m-%d'
   assign featured_idx = -1
   for cid in comp_ids
     if cid == featured_id_setting
-      assign featured_idx = forloop.index0
+      assign f_exp = comp_expiry_dates[forloop.index0]
+      if comp_tile_states[forloop.index0] == 'live-now'
+        if f_exp == blank or f_exp >= today_iso
+          assign featured_idx = forloop.index0
+        endif
+      endif
       break
     endif
   endfor
+  # Fallback: the first top pick that is STILL open at render time. The build
+  # only knows it was live on the day of the push, so a pick that closed since
+  # (or the opening-soon card) is skipped, same expiry test as above.
   if featured_idx < 0 and spotlight_ids.size > 0
-    for cid in comp_ids
-      if cid == spotlight_ids[0]
-        assign featured_idx = forloop.index0
+    for sid in spotlight_ids
+      if featured_idx >= 0
         break
       endif
+      for cid in comp_ids
+        if cid == sid
+          assign s_exp = comp_expiry_dates[forloop.index0]
+          if comp_tile_states[forloop.index0] == 'live-now'
+            if s_exp == blank or s_exp >= today_iso
+              assign featured_idx = forloop.index0
+            endif
+          endif
+          break
+        endif
+      endfor
     endfor
   endif
   if featured_idx < 0

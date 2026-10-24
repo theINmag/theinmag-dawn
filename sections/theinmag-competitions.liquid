@@ -55,7 +55,10 @@
     - Closed tiles still render but at the bottom under a separator and
       with reduced opacity; good for SEO and "see last year's winners"
       energy per spec.
-    - Tile click target: full <a> wrapper opens website in new tab.
+    - Tile click target: full <a> wrapper opens the organiser's site in a new
+      tab. The one exception is theINmag's own open call (theinmag-send-in),
+      pinned fourth in the live stack since 2026-10-08, which opens
+      /pages/send-in in the same tab because it is our own page.
 {%- endcomment -%}
 
 {%- comment -%}
@@ -157,6 +160,21 @@
     endfor
   endcapture
 
+  comment
+    SEO year for the hidden H1: the current year, rolling to NEXT year from
+    1 December, when "competitions 2027" searches start and most listed
+    comps are next year's rounds. The {year} token in h1_text is replaced
+    here so the setting never goes stale. The TITLE TAG is an admin
+    metafield (update-competitions-seo.mjs) and cannot roll by itself:
+    Webster flips it by hand on 1 December each year.
+  endcomment
+  assign seo_year = 'now' | date: '%Y' | plus: 0
+  assign seo_month = 'now' | date: '%m' | plus: 0
+  if seo_month == 12
+    assign seo_year = seo_year | plus: 1
+  endif
+  assign h1_text = section.settings.h1_text | default: 'Competitions for kids in Australia {year}'
+  assign h1_text = h1_text | replace: '{year}', seo_year
   assign tagline_text = section.settings.tagline_text | default: 'real competitions. for real aussie kids. dive in.'
   assign list_question = section.settings.list_question | default: 'what competitions are open right now?'
 
@@ -185,11 +203,15 @@
   ============================================================ {%- endcomment -%}
   <header class="theinmag-comps__choice">
     <div class="theinmag-comps__choice-inner">
-      {%- comment -%} H1 + intro are visually-hidden but indexable. Heavy SEO lift here -
-        the visible page is intentionally minimal (tagline + 3 tiles), but the H1 + intro
-        contain the keywords parents actually search for. Established pattern, no SEO penalty. {%- endcomment -%}
-      <h1 id="theinmag-comps-h1" class="visually-hidden">Australian kids' competitions to enter in 2026</h1>
-      <p class="visually-hidden">A free directory of {{ comp_size }} real Australian competitions for kids in 2026 - art competitions, writing competitions, photography and film competitions, STEM and maths competitions, performance and music competitions, and social good competitions. Filter by age (4-6, 7-9, 10-12, 13-16), state (NSW, VIC, QLD, WA, SA, TAS, NT, ACT, national), entry cost (free, paid, paid-optional) and format (online, postal, school-entry, individual, team). Updated weekly by theINmag, Australia's magazine made by kids for kids.</p>
+      {%- comment -%}
+        H1 + intro are visually-hidden but indexable. The visible gate is
+        deliberately tagline + tiles only: a visible Post H1 was tried on the
+        preview on 2026-10-08 and Ryan pulled it the same day. The H1 wording
+        matches the page title's phrase ("competitions for kids", "Australia",
+        "2026"), the family of queries this page actually wins.
+      {%- endcomment -%}
+      <h1 id="theinmag-comps-h1" class="visually-hidden">{{ h1_text }}</h1>
+      <p class="visually-hidden">A free directory of {{ comp_size }} real Australian competitions for kids in {{ seo_year }}, pulled from all over the country into one spot - art competitions, writing competitions, photography and film competitions, STEM and maths competitions, performance and music competitions, and social good competitions. Filter by category, age (4-6, 7-9, 10-12, 13-16) and state (NSW, VIC, QLD, WA, SA, TAS, NT, ACT, national). Most are free to enter. Updated weekly by theINmag, Australia's magazine made by kids for kids.</p>
       <p class="theinmag-comps__tagline">{{ tagline_text }}</p>
 
       {%- comment -%}
@@ -344,16 +366,51 @@
           <h3 class="theinmag-comps__group-heading" data-group-heading="everywhere" hidden>open to kids everywhere</h3>
 
           {%- comment -%} ---------- Live / opening / TBC tiles, top stack ---------- {%- endcomment -%}
-          {%- for id in comp_ids -%}
-            {%- assign idx = forloop.index0 -%}
-            {%- comment -%}
-              comp_live_states, not comp_tile_states: a comp whose closing date
-              has passed since the last build drops out of this stack and into
-              the annual-again stack below, as the page renders. See the
-              render-time badge expiry note at the top of this file.
-            {%- endcomment -%}
+          {%- comment -%}
+            Render order for the live stack. The build script sorts the data
+            (live-now by closing date, then opens-soon, later, tbc), and that
+            order is kept EXCEPT for one tile: theINmag's own open call
+            (id theinmag-send-in, Compton's data, listed in the same neutral
+            voice as the rest) is pinned to the FOURTH slot. It is rolling, so
+            the date sort buried it around 13th, below the fold on every
+            device, on a page where 975 clicks a month leave for organisers
+            and about 50 come into the site. Fourth keeps the three most
+            urgent comps on top and still lands ours on the first screen.
+            Done in Liquid, not JS, so the no-JS and crawler order match.
+
+            comp_live_states, not comp_tile_states: a comp whose closing date
+            has passed since the last build drops out of this stack and into
+            the annual-again stack below, as the page renders. See the
+            render-time badge expiry note at the top of this file.
+          {%- endcomment -%}
+          {%- liquid
+            assign live_idx_csv = ''
+            assign own_idx = -1
+            for cid in comp_ids
+              assign i = forloop.index0
+              if comp_live_states[i] == 'annual-again'
+                continue
+              endif
+              if cid == 'theinmag-send-in'
+                assign own_idx = i
+                continue
+              endif
+              assign live_idx_csv = live_idx_csv | append: i | append: ','
+            endfor
+            assign live_order = live_idx_csv | split: ','
+            if own_idx > -1
+              assign own_arr = own_idx | append: '' | split: ','
+              assign live_head = live_order | slice: 0, 3
+              assign live_tail = live_order | slice: 3, live_order.size
+              assign live_order = live_head | concat: own_arr | concat: live_tail
+            endif
+          -%}
+          {%- for item in live_order -%}
+            {%- assign idx = item | plus: 0 -%}
+            {%- assign id = comp_ids[idx] -%}
             {%- assign tile_state = comp_live_states[idx] -%}
-            {%- if tile_state == 'annual-again' -%}{%- continue -%}{%- endif -%}
+            {%- assign is_ours = false -%}
+            {%- if id == 'theinmag-send-in' -%}{%- assign is_ours = true -%}{%- endif -%}
             {%- comment -%}
               Anything reaching here is NOT expired, so the built labels are
               already correct and no expired_* swap is needed in this stack.
@@ -380,11 +437,10 @@
               and the list scrolls internally.
             {%- endcomment -%}
             <a
-              class="theinmag-comps__tile theinmag-comps__tile--{{ cat_slug }}"
+              class="theinmag-comps__tile theinmag-comps__tile--{{ cat_slug }}{% if is_ours %} theinmag-comps__tile--ours{% endif %}"
               id="comp-{{ id }}"
               href="{{ comp_url }}"
-              target="_blank"
-              rel="noopener noreferrer"
+              {%- unless is_ours %} target="_blank" rel="noopener noreferrer"{% endunless %}
               data-tile-id="{{ id }}"
               data-tags="{{ comp_tags[idx] }}"
               data-search="{{ comp_search_blobs[idx] | escape }}"
@@ -409,7 +465,11 @@
                 {%- endif -%}
               </span>
               <span class="theinmag-comps__tile-body">
-                <span class="theinmag-comps__tile-chip">{{ comp_categories[idx] | downcase }}</span>
+                {%- if is_ours -%}
+                  <span class="theinmag-comps__tile-chip theinmag-comps__tile-chip--ours">ours &middot; get published</span>
+                {%- else -%}
+                  <span class="theinmag-comps__tile-chip">{{ comp_categories[idx] | downcase }}</span>
+                {%- endif -%}
                 <span class="theinmag-comps__tile-title">{{ comp_name }}</span>
                 <span class="theinmag-comps__tile-pitch">{{ comp_pitch }}</span>
                 {%- comment -%}
@@ -560,11 +620,23 @@
                   {%- endcomment -%}
                   {%- unless spot_rendered == 0 %} aria-hidden="true" tabindex="-1"{% endunless -%}
                 >
-                  <span class="theinmag-comps__featured-cover">
-                    <span class="theinmag-comps__featured-badge">top picks</span>
-                    {%- assign spot_logo = comp_logos[spot_idx] -%}
+                  {%- comment -%}
+                    2026-10-24 (Ryan, via Compton): the image fills the whole cover
+                    instead of sitting as a small white square. The build samples
+                    each logo: a solid-edged logo sits whole (contain) on its own
+                    edge colour, so it reads as one full-bleed panel; a photo
+                    fills the cover (cover crops, never stretches); a transparent
+                    logo or SVG sits whole on white. spotlight_kinds marks the
+                    third card "opening" (opening soon) versus "best".
+                  {%- endcomment -%}
+                  {%- assign spot_logo = comp_pick_images[spot_idx] | default: comp_logos[spot_idx] -%}
+                  {%- assign spot_fit = comp_logo_fits[spot_idx] | default: 'contain' -%}
+                  {%- assign spot_bg = comp_logo_bgs[spot_idx] -%}
+                  {%- assign spot_kind = spotlight_kinds[forloop.index0] | default: 'best' -%}
+                  <span class="theinmag-comps__featured-cover{% if spot_logo != blank %} theinmag-comps__featured-cover--image{% endif %}"{% if spot_logo != blank and spot_fit == 'contain' %} style="background-color: {{ spot_bg | default: '#FFFFFF' }};"{% endif %}>
+                    <span class="theinmag-comps__featured-badge">{% if spot_kind == 'opening' %}opening soon{% else %}top picks{% endif %}</span>
                     {%- if spot_logo != blank -%}
-                      <img class="theinmag-comps__featured-logo" src="{{ spot_logo | asset_url }}" alt="{{ comp_names[spot_idx] | escape }} logo" loading="lazy" width="240" height="240">
+                      <img class="theinmag-comps__featured-logo theinmag-comps__featured-logo--{{ spot_fit }}" src="{{ spot_logo | asset_url }}" alt="{{ comp_names[spot_idx] | escape }}{% if spot_logo == comp_logos[spot_idx] %} logo{% endif %}" loading="lazy" width="240" height="240">
                     {%- else -%}
                       <span class="theinmag-comps__featured-letter">{{ comp_letters[spot_idx] }}</span>
                     {%- endif -%}
@@ -589,7 +661,7 @@
                     {%- endcomment -%}
                     <span class="theinmag-comps__featured-foot">
                       <span class="theinmag-comps__tile-state theinmag-comps__tile-state--{{ s_state }}"><span class="theinmag-comps__dot"></span> {{ comp_state_labels[spot_idx] }}</span>
-                      <span class="theinmag-comps__featured-cta">enter <span class="theinmag-comps__arrow">&rarr;</span></span>
+                      <span class="theinmag-comps__featured-cta">{% if s_state == 'live-now' %}enter{% else %}view{% endif %} <span class="theinmag-comps__arrow">&rarr;</span></span>
                     </span>
                   </span>
                 </a>
@@ -783,7 +855,8 @@
 
 {%- comment -%} ============================================================
      JSON-LD schemas - per CLAUDE.md AEO requirements.
-     ItemList of every comp + BreadcrumbList + FAQPage.
+     ItemList of every comp + BreadcrumbList. (The FAQPage JSON-LD moved to
+     sections/theinmag-competitions-faq.liquid on 2026-10-08, with the visible FAQ.)
 ============================================================ {%- endcomment -%}
 
 <script type="application/ld+json">
@@ -859,33 +932,6 @@
 }
 </script>
 
-{%- if section.settings.faq_q1 != blank or section.settings.faq_q2 != blank -%}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {%- assign faq_pairs = '1,2,3,4,5' | split: ',' -%}
-    {%- assign first_done = false -%}
-    {%- for n in faq_pairs -%}
-      {%- assign q_key = 'faq_q' | append: n -%}
-      {%- assign a_key = 'faq_a' | append: n -%}
-      {%- assign q = section.settings[q_key] -%}
-      {%- assign a = section.settings[a_key] -%}
-      {%- if q != blank and a != blank -%}
-        {%- if first_done -%},{%- endif -%}
-        {
-          "@type": "Question",
-          "name": {{ q | json }},
-          "acceptedAnswer": { "@type": "Answer", "text": {{ a | json }} }
-        }
-        {%- assign first_done = true -%}
-      {%- endif -%}
-    {%- endfor -%}
-  ]
-}
-</script>
-{%- endif -%}
 
 {%- stylesheet -%}
   /* ================================================================
@@ -992,7 +1038,7 @@
     gap: clamp(20px, 2.4vw, 36px);
   }
 
-  /* Tagline replaces the old H1. Inter 700 (matches blog title register
+  /* Tagline is the visible hero line (the H1 is visually-hidden). Inter 700 (matches blog title register
      per feedback_inter_for_blog_titles), sentence-case lowercase, periods
      preserved as deliberate beats.
      Mobile: nowrap + smaller font so it fits on one line per Ryan's
@@ -1589,6 +1635,15 @@
     padding: 0;
     background-color: transparent;
   }
+  /* theINmag's own open call, pinned fourth in the live stack. One quiet
+     tell that it is ours: a purple-dark hairline and a purple chip. Same
+     tile geometry as every other comp, same voice, no yellow field. */
+  .theinmag-comps__tile--ours {
+    box-shadow: 0 0 0 1.5px var(--comps-purple-dark), 0 2px 12px rgba(123, 79, 158, 0.12);
+  }
+  .theinmag-comps__tile-chip--ours {
+    color: var(--comps-purple-dark);
+  }
 
   /* Category-coloured covers */
   .theinmag-comps__tile--art .theinmag-comps__tile-cover { background-color: var(--comps-coral-light); }
@@ -1989,6 +2044,31 @@
     padding: clamp(8px, 1vw, 14px);
     background-color: #FFF;
     border-radius: 12px;
+  }
+  /* Full-bleed cover (2026-10-24). The image now owns the whole cover. A
+     logo stays whole (contain) with breathing room, on the backdrop colour
+     set inline from the build; a photo fills edge to edge (cover crops, it
+     never stretches). The category tint only shows for the letter fallback. */
+  .theinmag-comps__featured-cover--image {
+    padding: 0;
+    overflow: hidden;
+  }
+  .theinmag-comps__featured-logo--contain,
+  .theinmag-comps__featured-logo--cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    background-color: transparent;
+  }
+  .theinmag-comps__featured-logo--contain {
+    object-fit: contain;
+    padding: clamp(28px, 3.2vw, 44px) clamp(20px, 2.4vw, 32px) clamp(16px, 2vw, 26px);
+  }
+  .theinmag-comps__featured-logo--cover {
+    object-fit: cover;
+    padding: 0;
   }
 
   /* "top pick" badge - small editorial sticker top-left of the cover.
@@ -2476,6 +2556,15 @@
     .theinmag-comps .theinmag-comps__featured-logo {
       width: clamp(70px, 16vw, 110px);
       height: clamp(70px, 16vw, 110px);
+    }
+    /* Full-bleed cover keeps filling the (narrower) mobile cover. */
+    .theinmag-comps .theinmag-comps__featured-logo--contain,
+    .theinmag-comps .theinmag-comps__featured-logo--cover {
+      width: 100%;
+      height: 100%;
+    }
+    .theinmag-comps .theinmag-comps__featured-logo--contain {
+      padding: 30px 10px 10px;
     }
     .theinmag-comps .theinmag-comps__featured-pitch {
       -webkit-line-clamp: 2;
@@ -3395,6 +3484,13 @@
     },
     {
       "type": "text",
+      "id": "h1_text",
+      "label": "H1 (visually-hidden, SEO)",
+      "default": "Competitions for kids in Australia {year}",
+      "info": "Not shown on the page. Keep it matching the page title's phrase. {year} becomes the current year, or next year from 1 December."
+    },
+    {
+      "type": "text",
       "id": "tagline_text",
       "label": "Tagline",
       "default": "real competitions. for real aussie kids. dive in.",
@@ -3506,25 +3602,7 @@
       "id": "last_updated",
       "label": "Last updated label",
       "default": "May 2026"
-    },
-    {
-      "type": "header",
-      "content": "FAQ schema (optional - powers FAQPage JSON-LD)"
-    },
-    {
-      "type": "paragraph",
-      "content": "Add 4-5 question/answer pairs for AEO. Not rendered visually on this page; they feed FAQPage JSON-LD only."
-    },
-    { "type": "text", "id": "faq_q1", "label": "Q1", "default": "What kids competitions are running in Australia right now?" },
-    { "type": "textarea", "id": "faq_a1", "label": "A1", "default": "This page lists every real Australian kids' competition we have verified for 2026 - covering art, writing, photography, film, STEM, maths, performance, music, and social good. Pick a category, filter by age, state, cost or format, and click through to the official entry page. New comps are added most weeks." },
-    { "type": "text", "id": "faq_q2", "label": "Q2", "default": "Are kids competitions in Australia free to enter?" },
-    { "type": "textarea", "id": "faq_a2", "label": "A2", "default": "Most are free. Some charge a small entry fee (often $5-$20), and a few are paid-optional, where there is a free option alongside a paid stream with bigger prizes. Use the cost filter on this page to show only free competitions, only paid, or any combination." },
-    { "type": "text", "id": "faq_q3", "label": "Q3", "default": "Can my child enter competitions from any state in Australia?" },
-    { "type": "textarea", "id": "faq_a3", "label": "A3", "default": "Many are national, open to kids anywhere in Australia. Some are state-specific (NSW, VIC, QLD, WA, SA, TAS, NT, ACT) - usually run by a state government, library network, regional council or local arts organisation. Use the state filter to see only the ones your child is eligible for." },
-    { "type": "text", "id": "faq_q4", "label": "Q4", "default": "What kinds of kids competitions are listed here?" },
-    { "type": "textarea", "id": "faq_a4", "label": "A4", "default": "Art (painting, drawing, photography, film, dance, music), writing (short stories, poetry, picture books), STEM (maths, coding, science, engineering), spelling and reading challenges, plus competitions tied to social good causes like environment, water and First Nations culture. Six categories, all filterable on this page." },
-    { "type": "text", "id": "faq_q5", "label": "Q5", "default": "How often is this list of competitions updated?" },
-    { "type": "textarea", "id": "faq_a5", "label": "A5", "default": "Weekly. Closing dates, new competitions, and verified entry pages are checked on a regular sweep. The last-refreshed date sits at the bottom of this page so you always know how current the list is." }
+    }
   ],
   "presets": [
     {
