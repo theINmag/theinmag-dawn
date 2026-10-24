@@ -283,6 +283,9 @@ html[data-theinmag-gate-open] body > *:not(.theinmag-stockist-gate) {
   width: min(100%, 1120px);
   margin: 0 auto clamp(24px, 3.6vw, 42px);
   display: grid;
+  /* minmax(0, 1fr), not auto: an auto track sizes to its widest child's
+     min-content and pushed the order bar off the right edge on phones. */
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(14px, 2vw, 22px);
 }
 @media (min-width: 990px) {

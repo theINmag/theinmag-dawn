@@ -8,8 +8,6 @@
           "settings": {
             "label": "Colour logo with tagline",
             "asset_filename": "full_logo.png",
-            "px_w": 928,
-            "px_h": 542,
             "download_name": "theINmag-logo-colour.png",
             "stage": "check"
           }
@@ -17,10 +15,8 @@
         "logo_header": {
           "type": "logo",
           "settings": {
-            "label": "Colour logo, wordmark only",
+            "label": "Colour wordmark",
             "asset_filename": "header_logo.png",
-            "px_w": 800,
-            "px_h": 264,
             "download_name": "theINmag-logo-wordmark.png",
             "stage": "check"
           }
@@ -30,8 +26,6 @@
           "settings": {
             "label": "One-colour logo",
             "asset_filename": "theinmag-kit-logo-mono.png",
-            "px_w": 753,
-            "px_h": 248,
             "download_name": "theINmag-logo-mono.png",
             "stage": "check"
           }
@@ -41,43 +35,71 @@
           "settings": {
             "label": "IN mark",
             "asset_filename": "theINlogo.png",
-            "px_w": 512,
-            "px_h": 512,
             "download_name": "theINmag-IN-mark.png",
             "stage": "check"
           }
         },
-        "photo_shelf": {
-          "type": "photo",
+        "w_community": {
+          "type": "blurb",
           "settings": {
-            "label": "theINmag on a shop counter",
-            "asset_filename": "theinmag-stockist-shelf.jpg",
-            "download_name": "theINmag-on-the-counter.jpg"
+            "label": "Community creativity",
+            "text": "We stock theINmag because we want this to be a place where creativity is part of the neighbourhood. The mag is filled with creations by real Aussie kids: art, stories, comics, jokes. Real kids, real ideas, in print. Come in and have a flick through."
           }
         },
-        "clip_flick": {
-          "type": "video",
+        "w_local": {
+          "type": "blurb",
           "settings": {
-            "label": "Flick-through clip, 11 seconds",
-            "video_url": "mag09-02-flick-through1.mp4",
-            "download_name": "theINmag-flick-through.mp4",
-            "poster_filename": "theinmag-kit-flick-poster.jpg"
+            "label": "Local kids in print",
+            "text": "theINmag is a 120 page magazine made entirely by kids, and any kid can send in a creation. We stock it because we love the idea of a kid from around here opening it and finding their own creation inside. Can't beat that for inspiration!"
           }
         },
-        "photo_digital": {
-          "type": "photo",
+        "w_screen": {
+          "type": "blurb",
           "settings": {
-            "label": "The digital edition on a tablet",
-            "asset_filename": "digi_membership.jpg",
-            "download_name": "theINmag-digital-edition.jpg"
+            "label": "Off the screen",
+            "text": "Something truly wholesome for the counter, not another screen. theINmag is written, drawn and dreamt up by creative kids, printed in Australia, no ads. Pick one up, take it home, and watch it get passed around the table."
           }
         },
-        "photo_van": {
-          "type": "photo",
+        "w_one1": {
+          "type": "blurb",
           "settings": {
-            "label": "Ryan and Tam with the theINmag van",
-            "asset_filename": "HERO_behind-the-mag-van.jpg",
-            "download_name": "theINmag-van.jpg"
+            "label": "One line",
+            "text": "The magazine for creative kids. No ads, just creativity."
+          }
+        },
+        "w_one2": {
+          "type": "blurb",
+          "settings": {
+            "label": "One line",
+            "text": "The magazine publishing creative Aussie kids."
+          }
+        },
+        "w_warm": {
+          "type": "blurb",
+          "settings": {
+            "label": "Long, warm",
+            "text": "We chose to stock theINmag because it is the kind of thing we want in our community. Every one of its 120 plus pages is made by kids. Art, stories, comics, jokes, big ideas, all theirs. It gives kids a real audience and a real reason to make things, and it shows them what other kids are making across the country. It is printed sustainably here in Australia with no ads. Come check it out. We're the exclusive stockists in our area!"
+          }
+        },
+        "w_practical": {
+          "type": "blurb",
+          "settings": {
+            "label": "Long, practical",
+            "text": "theINmag is a print magazine made entirely by kids. Each issue is 120 plus pages of art, stories, comics, jokes and ideas, with no advertising. New issues come out in February, June and October. It is printed sustainably in Australia. Any kid can send in a creation through theinmag.com.au and have a chance of being published. We are the stockist for this area, so if you would like a copy, pop in or ask us to put one aside."
+          }
+        },
+        "w_cta": {
+          "type": "blurb",
+          "settings": {
+            "label": "Add to any post",
+            "text": "Your kid could be in the next issue. Send in a drawing, story, comic or joke at theinmag.com.au. Any kid, anywhere."
+          }
+        },
+        "w_tags": {
+          "type": "blurb",
+          "settings": {
+            "label": "Tags",
+            "text": "@the.inmag #theINmag #madebykids #kidsmagazine #shoplocal #australianmade"
           }
         }
       },
@@ -86,12 +108,22 @@
         "logo_header",
         "logo_mono",
         "logo_in",
-        "photo_shelf",
-        "clip_flick",
-        "photo_digital",
-        "photo_van"
+        "w_community",
+        "w_local",
+        "w_screen",
+        "w_one1",
+        "w_one2",
+        "w_warm",
+        "w_practical",
+        "w_cta",
+        "w_tags"
       ],
-      "settings": {}
+      "settings": {
+        "media_list": "photo theINmag-photo-dee-market-22.jpg | theINmag dee market 22\nclip https://theinmag.com.au/cdn/shop/videos/c/vp/5e8b807e58a94c299478cd1a1485ffb4/5e8b807e58a94c299478cd1a1485ffb4.HD-1080p-2.5Mbps-98718891.mp4 | The stack\nphoto theINmag-photo-lill-01.jpg | theINmag lill 01\nphoto theINmag-photo-dee-mag09-07.jpg | theINmag dee mag09 07\nphoto theINmag-photo-dee-garden-01.jpg | theINmag dee garden 01\nclip https://theinmag.com.au/cdn/shop/videos/c/vp/63289e11839946efa2049f6c3251265f/63289e11839946efa2049f6c3251265f.HD-1080p-3.3Mbps-98719015.mp4 | Pointing\nphoto theINmag-photo-lill-02.jpg | theINmag lill 02\nphoto theINmag-photo-dee-mag09-08.jpg | theINmag dee mag09 08\nphoto theINmag-photo-dee-market-23.jpg | theINmag dee market 23\nclip https://theinmag.com.au/cdn/shop/videos/c/vp/a7257f064a3f4b77854f14255b8b1f01/a7257f064a3f4b77854f14255b8b1f01.HD-1080p-2.5Mbps-98719036.mp4 | Purple spread\nphoto theINmag-photo-lill-03.jpg | theINmag lill 03\nphoto theINmag-photo-dee-garden-02.jpg | theINmag dee garden 02\nclip https://theinmag.com.au/cdn/shop/videos/c/vp/6c183ce065e7449c9f60b3895e2cb21c/6c183ce065e7449c9f60b3895e2cb21c.HD-1080p-3.3Mbps-98719086.mp4 | Two readers\nphoto theINmag-photo-dee-market-24.jpg | theINmag dee market 24\nclip https://theinmag.com.au/cdn/shop/videos/c/vp/10303f335ded475bb611a72de974b55e/10303f335ded475bb611a72de974b55e.HD-1080p-3.3Mbps-98718964.mp4 | Hands on the page\nphoto theINmag-photo-lill-05.jpg | theINmag lill 05\nphoto theINmag-photo-dee-mag09-11.jpg | theINmag dee mag09 11\nphoto theINmag-photo-dee-garden-03.jpg | theINmag dee garden 03\nphoto theINmag-photo-dee-mag09-12.jpg | theINmag dee mag09 12\nclip https://theinmag.com.au/cdn/shop/videos/c/vp/eca2283c8baf4522a7d9c994dbb86c95/eca2283c8baf4522a7d9c994dbb86c95.HD-1080p-2.5Mbps-98718987.mp4 | Jellyfish\nphoto theINmag-photo-lill-07.jpg | theINmag lill 07\nclip https://theinmag.com.au/cdn/shop/videos/c/vp/0ad0e426be0147b0bbb3fc9b9dddc7df/0ad0e426be0147b0bbb3fc9b9dddc7df.HD-1080p-3.3Mbps-98719051.mp4 | Reading and drawing\nphoto theINmag-photo-lill-08.jpg | theINmag lill 08\nphoto theINmag-photo-dee-market-26.jpg | theINmag dee market 26\nclip https://theinmag.com.au/cdn/shop/videos/c/vp/6005d563f8b1403db02aae96475a8f16/6005d563f8b1403db02aae96475a8f16.HD-1080p-2.5Mbps-98718948.mp4 | Fact finder\nphoto theINmag-photo-lill-09.jpg | theINmag lill 09\nphoto theINmag-photo-dee-mag09-15.jpg | theINmag dee mag09 15\nphoto theINmag-photo-dee-garden-05.jpg | theINmag dee garden 05\nclip https://theinmag.com.au/cdn/shop/videos/c/vp/b5b5fa58d0fe4418a89ec538dd89dac0/b5b5fa58d0fe4418a89ec538dd89dac0.HD-1080p-2.5Mbps-98718999.mp4 | Open on the table\nphoto theINmag-photo-lill-10.jpg | theINmag lill 10\nphoto theINmag-photo-dee-mag09-16.jpg | theINmag dee mag09 16\nphoto theINmag-photo-dee-market-27.jpg | theINmag dee market 27\nphoto theINmag-photo-lill-11.jpg | theINmag lill 11\nphoto theINmag-photo-dee-mag09-17.jpg | theINmag dee mag09 17\nphoto theINmag-photo-dee-garden-06.jpg | theINmag dee garden 06\nphoto theINmag-photo-lill-12.jpg | theINmag lill 12\nphoto theINmag-photo-dee-mag09-18.jpg | theINmag dee mag09 18\nphoto theINmag-photo-dee-market-28.jpg | theINmag dee market 28\nphoto theINmag-photo-lill-13.jpg | theINmag lill 13\nphoto theINmag-photo-dee-mag09-19.jpg | theINmag dee mag09 19\nphoto theINmag-photo-dee-mag09-20.jpg | theINmag dee mag09 20\nphoto theINmag-photo-dee-mag09-21.jpg | theINmag dee mag09 21\nasset theinmag-stockist-shelf.jpg | theINmag on a shop counter\nasset HERO_founders-atthemarket.jpg | Ryan and Tam with the mags at a market\nasset HERO_behind-the-mag-van.jpg | The theINmag van",
+        "photos_size_note": "About 15 MB.",
+        "clips_size_note": "About 21 MB.",
+        "kit_size_note": "About 57 MB. Best on wifi."
+      }
     }
   },
   "order": [

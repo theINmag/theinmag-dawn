@@ -373,6 +373,28 @@
               <div class="theinmag-shop-grid__checkout-content-inner">
                 <p class="theinmag-shop-grid__checkout-empty" data-checkout-empty>Nothing in your order yet. Add mags below and they land here.</p>
                 <ul class="theinmag-shop-grid__checkout-items" data-checkout-items role="list"></ul>
+                {%- comment -%}
+                  Pay by card or ask for an invoice (2026-10-24). Shown by
+                  theinmag-stockist-pricing.js ONLY once a stockist code has
+                  resolved to a real discount, so retail buyers never see it.
+                  Choosing invoice writes cart attribute _pay_by_invoice =
+                  stockist; that attribute is what a payment-hiding rule keys on
+                  to show the bank transfer method to stockists and schools only.
+                {%- endcomment -%}
+                <fieldset class="theinmag-shop-grid__paychoice" data-paychoice hidden>
+                  <legend class="theinmag-shop-grid__paychoice-legend">How would you like to pay?</legend>
+                  <label class="theinmag-shop-grid__paychoice-opt">
+                    <input type="radio" name="sk-paychoice" value="card" checked data-paychoice-card>
+                    <span><b>Card</b> now at checkout. Quickest, and we pack next day.</span>
+                  </label>
+                  <label class="theinmag-shop-grid__paychoice-opt">
+                    <input type="radio" name="sk-paychoice" value="invoice" data-paychoice-invoice>
+                    <span><b>Stockist Invoice - bank transfer.</b></span>
+                  </label>
+                  <p class="theinmag-shop-grid__paychoice-help" data-paychoice-help hidden>
+                    <b>One more step at checkout:</b> scroll to Payment and tick <b>{{ section.settings.invoice_method_name | default: 'Stockist Invoice - Bank Transfer' | escape }}</b> (it sits under Credit card), then place your order. We email your tax invoice. If you only see a card screen, choose Check out as guest.
+                  </p>
+                </fieldset>
                 <div class="theinmag-shop-grid__checkout-foot">
                   <div class="theinmag-shop-grid__checkout-summary">
                     <span class="theinmag-shop-grid__checkout-count" data-checkout-count></span>
@@ -2223,6 +2245,28 @@
     margin-top: 2px;
   }
   .theinmag-shop-grid__checkout-pay { display: flex; align-items: center; gap: 16px; flex: 0 0 auto; }
+  /* Order bar line: cover thumb + name + stepper (2026-10-24). */
+  .theinmag-shop-grid__checkout-bar .theinmag-shop-grid__checkout-item { align-items: center; padding: 10px 0; }
+  .theinmag-shop-grid__checkout-item-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .theinmag-shop-grid__checkout-item-thumb { width: 48px; height: 64px; object-fit: cover; border-radius: 4px; flex: 0 0 auto; box-shadow: 0 2px 6px rgba(42, 31, 61, 0.15); }
+  .theinmag-shop-grid__checkout-item-mid { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .theinmag-shop-grid__checkout-step { display: inline-flex; align-items: center; border: 1.5px solid rgba(42, 31, 61, 0.2); border-radius: 999px; overflow: hidden; width: max-content; }
+  .theinmag-shop-grid__checkout-step button { width: 34px; height: 32px; border: 0; background: transparent; font-size: 18px; line-height: 1; cursor: pointer; color: var(--color-inky-purple-navy, #2A1F3D); }
+  .theinmag-shop-grid__checkout-step button:hover { background: rgba(42, 31, 61, 0.06); }
+  .theinmag-shop-grid__checkout-step:focus-within { outline: 2px solid var(--color-purple-dark, #5D3A7A); outline-offset: 2px; }
+  .theinmag-shop-grid__checkout-step button:focus-visible,
+  .theinmag-shop-grid__checkout-step input:focus-visible { outline: none; background: rgba(93, 58, 122, 0.12); }
+  .theinmag-shop-grid__checkout-step input { width: 44px; height: 32px; border: 0; text-align: center; font: inherit; font-weight: 700; background: transparent; -moz-appearance: textfield; appearance: textfield; }
+  .theinmag-shop-grid__checkout-step input::-webkit-outer-spin-button,
+  .theinmag-shop-grid__checkout-step input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  /* Pay by card or invoice, stockists only (2026-10-24). */
+  .theinmag-shop-grid__paychoice { border: 0; margin: 12px 0 0; padding: 0 0 16px; display: flex; flex-direction: column; gap: 10px; }
+  .theinmag-shop-grid__paychoice[hidden] { display: none; }
+  .theinmag-shop-grid__paychoice-legend { font-weight: 700; padding: 0; margin-bottom: 4px; }
+  .theinmag-shop-grid__paychoice-opt { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; line-height: 1.4; }
+  .theinmag-shop-grid__paychoice-opt input { margin: 3px 0 0; width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--color-purple-dark, #5D3A7A); }
+  .theinmag-shop-grid__paychoice-help { margin: 4px 0 0; padding: 12px 14px; border-radius: 10px; background: rgba(93, 58, 122, 0.08); line-height: 1.45; }
+  .theinmag-shop-grid__paychoice-help[hidden] { display: none; }
   .theinmag-shop-grid__checkout-code-field {
     display: flex;
     align-items: center;
@@ -2490,6 +2534,13 @@
       "label": "Remembered-price version",
       "info": "A stockist's code and resolved price are remembered in their browser for 30 days so they never retype it. If you ever CHANGE an existing stockist's discount rate, bump this number by 1 and every remembered price is thrown away and re-resolved.",
       "default": "1"
+    },
+    {
+      "type": "text",
+      "id": "invoice_method_name",
+      "label": "Bank transfer method name (stockist invoice option)",
+      "info": "Must match the manual payment method's name in Settings > Payments exactly, so the instruction under the order bar names what stockists will see at checkout.",
+      "default": "Stockist Invoice - Bank Transfer"
     },
     {
       "type": "checkbox",

@@ -251,6 +251,10 @@
   var barPay = bar && bar.querySelector('[data-checkout-pay-total]');
   var barNote = bar && bar.querySelector('[data-checkout-note]');
   var barGo = bar && bar.querySelector('[data-checkout-go]');
+  var payChoice = bar && bar.querySelector('[data-paychoice]');
+  var payInvoice = bar && bar.querySelector('[data-paychoice-invoice]');
+  var payCard = bar && bar.querySelector('[data-paychoice-card]');
+  var payHelp = bar && bar.querySelector('[data-paychoice-help]');
 
   /* ---------------------------- rendering -------------------------- */
 
@@ -356,10 +360,31 @@
     });
   }
 
+  /* Card or invoice (2026-10-24). Only a stockist whose code has resolved to
+     a real discount sees the choice, so retail buyers never meet it. If the
+     code drops, the choice hides and falls back to card. */
+  function isStockistApplied() {
+    return state.status === 'applied' && state.rate > 0 && !!state.code;
+  }
+  function wantsInvoice() {
+    return isStockistApplied() && !!payInvoice && payInvoice.checked;
+  }
+  function paintPayChoice(count) {
+    if (!payChoice) return;
+    var show = isStockistApplied() && count > 0;
+    payChoice.hidden = !show;
+    /* Fall back to card only when the code itself drops. An empty cart
+       mid-edit keeps the stockist's choice. */
+    if (!isStockistApplied() && payCard) payCard.checked = true;
+    if (payHelp) payHelp.hidden = !wantsInvoice();
+  }
+
   function paintBar() {
     if (!bar) return;
     var cart = state.cart;
     var count = (cart && cart.item_count) || 0;
+
+    paintPayChoice(count);
 
     if (barEmpty) barEmpty.hidden = count > 0;
     if (barItems) barItems.hidden = count < 1;
@@ -393,12 +418,56 @@
         var li = document.createElement('li');
         li.className = 'theinmag-shop-grid__checkout-item';
 
+        /* Cover thumb + name + a quantity stepper (type or tap), 2026-10-24.
+           Stockists order by the dozen, so editing a line here beats
+           removing it and re-adding from the tile. */
+        var leftEl = document.createElement('span');
+        leftEl.className = 'theinmag-shop-grid__checkout-item-left';
+        if (it.image) {
+          var img = document.createElement('img');
+          img.className = 'theinmag-shop-grid__checkout-item-thumb';
+          img.src = it.image + (it.image.indexOf('?') > -1 ? '&' : '?') + 'width=96';
+          img.alt = '';
+          img.width = 48;
+          img.height = 64;
+          img.loading = 'lazy';
+          leftEl.appendChild(img);
+        }
         var nameEl = document.createElement('span');
         nameEl.className = 'theinmag-shop-grid__checkout-item-name';
-        var qtyEl = document.createElement('b');
-        qtyEl.textContent = it.quantity + '× ';
-        nameEl.appendChild(qtyEl);
-        nameEl.appendChild(document.createTextNode(name));
+        nameEl.textContent = name;
+
+        var step = document.createElement('span');
+        step.className = 'theinmag-shop-grid__checkout-step';
+        var minus = document.createElement('button');
+        minus.type = 'button';
+        minus.setAttribute('data-line-step', '-1');
+        minus.setAttribute('data-line-key', it.key);
+        minus.setAttribute('aria-label', 'One fewer ' + name);
+        minus.textContent = '\u2212';
+        var qtyIn = document.createElement('input');
+        qtyIn.type = 'number';
+        qtyIn.min = '0';
+        qtyIn.max = '999';
+        qtyIn.inputMode = 'numeric';
+        qtyIn.value = it.quantity;
+        qtyIn.setAttribute('data-line-qty', it.key);
+        qtyIn.setAttribute('aria-label', 'How many ' + name);
+        var plus = document.createElement('button');
+        plus.type = 'button';
+        plus.setAttribute('data-line-step', '1');
+        plus.setAttribute('data-line-key', it.key);
+        plus.setAttribute('aria-label', 'One more ' + name);
+        plus.textContent = '+';
+        step.appendChild(minus);
+        step.appendChild(qtyIn);
+        step.appendChild(plus);
+
+        var mid = document.createElement('span');
+        mid.className = 'theinmag-shop-grid__checkout-item-mid';
+        mid.appendChild(nameEl);
+        mid.appendChild(step);
+        leftEl.appendChild(mid);
 
         var rightEl = document.createElement('span');
         rightEl.className = 'theinmag-shop-grid__checkout-item-right';
@@ -424,7 +493,7 @@
         rmEl.innerHTML = '&times;';
         rightEl.appendChild(rmEl);
 
-        li.appendChild(nameEl);
+        li.appendChild(leftEl);
         li.appendChild(rightEl);
         barItems.appendChild(li);
       });
@@ -724,8 +793,64 @@
     });
   }
 
+  /* Only the newest request may paint, so fast taps never leave the bar
+     showing an older quantity than the cart holds. A refused change (e.g.
+     more than we have in stock) re-reads the real cart instead of painting
+     an error body as an empty order. Focus goes back to the same control
+     after the repaint, for keyboard users. */
+  var lineSeq = 0;
+  function setLineQty(key, qty, busyEl) {
+    if (!key || !(qty >= 0)) return;
+    var seq = ++lineSeq;
+    var focusSel = busyEl && busyEl.hasAttribute('data-line-step')
+      ? '[data-line-step="' + busyEl.getAttribute('data-line-step') + '"][data-line-key="' + key + '"]'
+      : '[data-line-qty="' + key + '"]';
+    var hadFocus = busyEl && document.activeElement === busyEl;
+    return fetch('/cart/change.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ id: key, quantity: qty })
+    })
+      .then(function (r) { return r.json().then(function (j) { return r.ok ? j : null; }); })
+      .then(function (cart) {
+        if (seq !== lineSeq) return;
+        if (!cart || !cart.items) return refreshCart();
+        state.cart = cart;
+        render();
+        if (root.__theinmagRefreshCartCount) root.__theinmagRefreshCartCount();
+      })
+      .catch(function () { if (seq === lineSeq) refreshCart(); })
+      .then(function () {
+        if (!hadFocus || !bar) return;
+        var again = bar.querySelector(focusSel);
+        if (again) again.focus();
+      });
+  }
+
   if (bar) {
+    bar.addEventListener('change', function (e) {
+      var q = e.target.closest('[data-line-qty]');
+      if (!q) return;
+      var n = Math.max(0, Math.min(999, parseInt(q.value, 10) || 0));
+      setLineQty(q.getAttribute('data-line-qty'), n, q);
+    });
+    bar.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target.closest('[data-line-qty]')) {
+        e.preventDefault();
+        e.target.blur();
+      }
+    });
     bar.addEventListener('click', function (e) {
+      var st = e.target.closest('[data-line-step]');
+      if (st) {
+        var k = st.getAttribute('data-line-key');
+        var input = bar.querySelector('[data-line-qty="' + k + '"]');
+        var cur = input ? parseInt(input.value, 10) || 0 : 0;
+        var next = Math.max(0, cur + parseInt(st.getAttribute('data-line-step'), 10));
+        if (input) input.value = next;
+        setLineQty(k, next, st);
+        return;
+      }
       var rm = e.target.closest('[data-checkout-remove]');
       if (rm) {
         var key = rm.getAttribute('data-checkout-remove');
@@ -736,8 +861,9 @@
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({ id: key, quantity: 0 })
         })
-          .then(function (r) { return r.json(); })
+          .then(function (r) { return r.json().then(function (j) { return r.ok ? j : null; }); })
           .then(function (cart) {
+            if (!cart || !cart.items) return refreshCart();
             state.cart = cart;
             render();
             if (root.__theinmagRefreshCartCount) root.__theinmagRefreshCartCount();
@@ -747,13 +873,48 @@
       }
       if (e.target.closest('[data-checkout-go]')) {
         /* The code is already on the cart, but carry it in the URL too so
-           checkout gets it even if the cart session was rebuilt. */
-        window.location.href = state.code
-          ? '/discount/' + encodeURIComponent(state.code) + '?redirect=/checkout'
-          : '/checkout';
+           checkout gets it even if the cart session was rebuilt.
+           Invoice: tag the cart first (_pay_by_invoice, read by the payment
+           rule and by Pat's invoice runner), and ask checkout to skip the
+           Shop Pay card-only overlay. Card clears the tag so switching back
+           is honest. A failed tag write still goes to checkout; the help
+           line already told them which method to pick. */
+        var invoice = wantsInvoice();
+        var target = invoice ? '/checkout?skip_shop_pay=true' : '/checkout';
+        var go = function () {
+          window.location.href = state.code
+            ? '/discount/' + encodeURIComponent(state.code) + '?redirect=' + encodeURIComponent(target)
+            : target;
+        };
+        if (barGo) barGo.disabled = true;
+        /* Never strand the stockist on a hung request: go anyway after 4s. */
+        var gone = false;
+        var goOnce = function () { if (!gone) { gone = true; go(); } };
+        setTimeout(goOnce, 4000);
+        fetch('/cart/update.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ attributes: {
+            _pay_by_invoice: invoice ? 'stockist' : '',
+            _stockist_code: invoice ? state.code : ''
+          } })
+        }).then(goOnce, goOnce);
       }
     });
   }
+
+  if (payChoice) {
+    payChoice.addEventListener('change', function () {
+      var c = (state.cart && state.cart.item_count) || 0;
+      paintPayChoice(c);
+    });
+  }
+
+  /* Back from checkout restores this page from the back-forward cache with
+     the checkout button still disabled. Repaint so it works again. */
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) render();
+  });
 
   document.addEventListener('theinmag:cart-updated', function () { refreshCart(); });
 
