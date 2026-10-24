@@ -119,6 +119,22 @@
 
   assign subhead = section.settings.subhead | default: '120+ pages of pure creativity. Made by Aussie kids, sustainably printed in Australia.'
 
+  comment
+    BANNER MODE (added 2026-10-24, Ryan: the competitions page carries this
+    hero under the hub to pull visitors into the mag). Same issue logic, cover
+    and states as above, so it still rolls itself at every drop; only the copy
+    changes: custom headline, one button to the issue, no price line, an h2
+    (the host page owns the h1), and a lazy image (it sits below the fold).
+  endcomment
+  assign banner_mode = section.settings.banner_mode | default: false
+  assign heading_tag = 'h1'
+  if banner_mode
+    assign heading_tag = 'h2'
+    if hero_state == 'onsale'
+      assign eyebrow = hero_mag | append: ' out now'
+    endif
+  endif
+
   assign primary_url = '/products/' | append: hero_handle
   assign target_product = all_products[hero_handle]
 
@@ -223,6 +239,19 @@
     endif
   endif
 
+  comment
+    Banner-mode copy goes AFTER the sold-out re-point, which rewrites
+    headline and primary_label (Fable caught this 2026-10-24).
+  endcomment
+  if banner_mode
+    if section.settings.banner_headline != blank
+      assign headline = section.settings.banner_headline
+    endif
+    if section.settings.banner_button_label != blank
+      assign primary_label = section.settings.banner_button_label
+    endif
+  endif
+
   if print_price == ''
     assign print_price = '$23.95'
   endif
@@ -265,8 +294,8 @@
           alt="{{ metafield_cover.alt | default: hero_image_alt | escape }}"
           width="1400"
           height="1400"
-          loading="eager"
-          fetchpriority="high"
+          {% if banner_mode %}loading="lazy"{% else %}loading="eager"
+          fetchpriority="high"{% endif %}
         >
       {%- elsif hero_image != blank -%}
         <img
@@ -277,8 +306,8 @@
           alt="{{ hero_image_alt | escape }}"
           width="1400"
           height="1400"
-          loading="eager"
-          fetchpriority="high"
+          {% if banner_mode %}loading="lazy"{% else %}loading="eager"
+          fetchpriority="high"{% endif %}
         >
       {%- else -%}
         <img
@@ -287,8 +316,8 @@
           alt="{{ hero_image_alt | escape }}"
           width="1400"
           height="1400"
-          loading="eager"
-          fetchpriority="high"
+          {% if banner_mode %}loading="lazy"{% else %}loading="eager"
+          fetchpriority="high"{% endif %}
           onerror="this.style.display='none'"
         >
       {%- endif -%}
@@ -308,20 +337,24 @@
         <span class="theinmag-shop-hero__character" data-theinmag-pool-character></span>
       {%- endif -%}
       <p class="theinmag-shop-hero__eyebrow{% if hero_state == 'soldout' %} theinmag-shop-hero__eyebrow--bold{% endif %}">{{ eyebrow }}</p>
-      <h1 id="theinmag-shop-hero-heading" class="theinmag-shop-hero__headline">{{ headline }}</h1>
+      <{{ heading_tag }} id="theinmag-shop-hero-heading" class="theinmag-shop-hero__headline">{{ headline }}</{{ heading_tag }}>
       {%- if hero_state == 'presale' and drop_date != blank -%}
         <p class="theinmag-shop-hero__drops">Drops {{ drop_date }}. Pre-order now.</p>
       {%- endif -%}
       <p class="theinmag-shop-hero__subhead">{{ subhead }}</p>
 
       {%- if show_rating -%}
-        <a href="#theinmag-reviews-heading" class="theinmag-shop-hero__rating" data-rating-jump aria-label="Read {{ jm_count }} customer reviews across our printed mags">
+        <a href="{% if banner_mode %}/pages/reviews{% else %}#theinmag-reviews-heading{% endif %}" class="theinmag-shop-hero__rating"{% unless banner_mode %} data-rating-jump{% endunless %} aria-label="Read {{ jm_count }} customer reviews across our printed mags">
           <span data-score="{{ jm_rating }}" class="jdgm-all-reviews-rating" aria-label="{{ jm_rating | round: 1 }} stars" role="img"></span>
           <span class="theinmag-shop-hero__rating-meta">{{ jm_rating | round: 1 }} - {{ jm_count }} reviews across our printed mags</span>
         </a>
       {%- endif -%}
 
-      {%- unless section.settings.show_price_ctas == false -%}
+      {%- if banner_mode -%}
+      <div class="theinmag-shop-hero__ctas">
+        <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--primary" href="{{ primary_url }}"{% if print_available %} data-format-intent="Print"{% endif %}>{{ primary_label }}</a>
+      </div>
+      {%- elsif section.settings.show_price_ctas != false -%}
       <p class="theinmag-shop-hero__price">{{ print_price }} print - {{ digital_price }} digital</p>
 
       <div class="theinmag-shop-hero__ctas">
@@ -336,7 +369,7 @@
         <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--primary" href="{{ primary_url }}"{% if print_available %} data-format-intent="Print"{% endif %}>{{ primary_label }}</a>
         <a class="theinmag-shop-hero__cta theinmag-shop-hero__cta--secondary" href="{{ secondary_url }}">{{ secondary_label }}</a>
       </div>
-      {%- endunless -%}
+      {%- endif -%}
     </div>
   </div>
 </section>
@@ -360,6 +393,7 @@
     ItemList       - the latest mag featured here (full grid ItemList is the
                      shop-grid section's responsibility once that ships).
 {%- endcomment -%}
+{%- unless banner_mode -%}
 <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -380,6 +414,7 @@
     "url": {{ shop.url | append: '/pages/shop' | json }}
   }
 </script>
+{%- endunless -%}
 
 {%- comment -%}
   ItemList JSON-LD is emitted by theinmag-shop-grid below this section
@@ -677,6 +712,27 @@
       "label": "Show price + Shop/See-inside buttons",
       "info": "Turn off to use this as a spotlight banner without the buy buttons (e.g. the stockist hub, where ordering happens in the picker above).",
       "default": true
+    },
+    {
+      "type": "header",
+      "content": "Banner mode"
+    },
+    {
+      "type": "checkbox",
+      "id": "banner_mode",
+      "label": "Banner mode (other pages)",
+      "info": "Custom headline and one button to the current issue, no price line, h2 not h1. Still rolls to each new issue by itself. Leave off on the shop page.",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "banner_headline",
+      "label": "Banner headline"
+    },
+    {
+      "type": "text",
+      "id": "banner_button_label",
+      "label": "Banner button label"
     },
     {
       "type": "checkbox",
