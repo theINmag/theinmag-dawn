@@ -14,6 +14,21 @@
   assign age_link_template = section.settings.age_link_label | default: 'More from kids age [age]'
   assign cta_label = section.settings.cta_label
   assign cta_url = section.settings.cta_url
+
+  comment
+    Print bridge (2026-10-26, Webster + Fable, weekly pass rec 2). The
+    gallery took ~1,350 search impressions and 75 landings a week but sent
+    almost nobody to the mag. The lightbox is where a visitor is most engaged
+    (they chose to open a creation), so the one bridge lives here: no top
+    banner (it would push the name search down, and kids must find their own
+    creations), no in-grid card (it breaks placeCards' index and buildCols).
+    The issue rolls with shop.metafields.theinmag.current_issue_number, so
+    nothing to edit at a drop.
+  endcomment
+  assign bridge_on = section.settings.show_print_bridge
+  assign bridge_issue = shop.metafields.theinmag.current_issue_number.value | default: 'Mag11'
+  assign bridge_handle = bridge_issue | downcase
+  assign bridge_label = section.settings.print_bridge_button | default: 'Peek inside [issue]' | replace: '[issue]', bridge_issue
 -%}
 
 <div
@@ -93,6 +108,20 @@
         <button class="theinmag-gallery-lightbox__cross-link" type="button" data-theinmag-gallery-lightbox-age hidden></button>
       </div>
 
+      {%- if bridge_on -%}
+        <div class="theinmag-gallery-lightbox__bridge">
+          <p class="theinmag-gallery-lightbox__bridge-line">Creations like this get printed in <span class="theinmag-gallery-lightbox__brand">the<span class="theinmag-in">IN</span>mag.</span></p>
+          <a
+            class="theinmag-gallery-lightbox__bridge-cta"
+            href="/products/{{ bridge_handle }}#see-inside"
+            data-theinmag-gallery-bridge
+          >
+            {{ bridge_label }}
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      {%- endif -%}
+
       {%- if cta_label != blank and cta_url != blank -%}
         <a class="theinmag-gallery-lightbox__cta" href="{{ cta_url }}">
           {{ cta_label }}
@@ -105,6 +134,20 @@
     </div>
   </div>
 </div>
+
+{%- if bridge_on -%}
+  <script>
+    (function () {
+      // Leading metric for the print bridge: same guarded gtag pattern as
+      // stack_cta_click, read by the built-in pagePath dimension.
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('[data-theinmag-gallery-bridge]');
+        if (!a || typeof window.gtag !== 'function') return;
+        try { window.gtag('event', 'gallery_bridge_click', { link_url: a.getAttribute('href') }); } catch (err) {}
+      });
+    })();
+  </script>
+{%- endif -%}
 
 {% schema %}
 {
@@ -129,6 +172,23 @@
       "label": "Age link template",
       "default": "More from kids age [age]",
       "info": "Placeholder: [age]"
+    },
+    {
+      "type": "header",
+      "content": "Print bridge"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_print_bridge",
+      "label": "Show the printed-in-theINmag line",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "print_bridge_button",
+      "label": "Button label",
+      "default": "Peek inside [issue]",
+      "info": "[issue] becomes the current issue, e.g. Mag11. Links to that issue's see-inside section."
     },
     {
       "type": "header",

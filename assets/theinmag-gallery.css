@@ -986,6 +986,57 @@
   box-shadow: 0 5px 0 rgba(0, 0, 0, 0.25);
 }
 
+/* Print bridge (2026-10-26): one line + one outlined button, sits above the
+   yellow Send IN CTA so the kids' ask stays the loudest thing in the box. */
+.theinmag-gallery-lightbox__bridge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.theinmag-gallery-lightbox__bridge-line {
+  font-family: var(--font-heading, 'Post Regular', Georgia, serif);
+  font-size: 19px;
+  line-height: 1.25;
+  color: #FFFFFF;
+  margin: 0;
+  text-wrap: pretty;
+}
+
+/* Keep theINmag on one line; it broke as "the / INmag" at 375px. */
+.theinmag-gallery-lightbox__brand {
+  white-space: nowrap;
+}
+
+.theinmag-gallery-lightbox__bridge-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  color: #FFFFFF;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.theinmag-gallery-lightbox__bridge-cta:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #FFFFFF;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theinmag-gallery-lightbox__bridge-cta { transition: none !important; }
+}
+
 .theinmag-gallery-lightbox__belongs-note {
   font-family: var(--font-body, 'Inter', system-ui, sans-serif);
   font-size: 11px;
