@@ -16,11 +16,11 @@
     Competitions + Membership tiles follow, each echoing their page.
 
   Copy rules: celebrates the ACT of sending, NOT publication. "creation" not
-    "work". No mention of emailing the grown-up (optional). The mag is a single
-    setting (considered_for_mag); the submission WINDOW drives the flip (1 Aug /
-    1 Dec / 1 Apr), not the drop date. Kaiden owns pinging Webster to change it;
-    source of truth kaiden/cycle-state.json -> submission_windows. "IN" via
-    .theinmag-in. No em dashes.
+    "work". No mention of emailing the grown-up (optional). The mag number works
+    itself out from the date: the submission WINDOW drives the flip (midnight
+    Melbourne time on 1 Mar / 1 Jul / 1 Nov), not the drop date. Windows source of
+    truth: kaiden/cycle-state.json -> submission_windows. "IN" via .theinmag-in.
+    No em dashes.
 {%- endcomment -%}
 
 {% render 'theinmag-character-pool' %}
@@ -29,17 +29,24 @@
 {%- include 'theinmag-competitions-data' -%}
 
 {%- comment -%}
-  The mag the submission is in the running for. Reads the shop metafield
-  theinmag.submission_open_mag first (Kaiden's drop system keeps it current, so
-  it flips itself on 1 Aug / 1 Dec / 1 Apr with no theme edit), and falls back to
-  the section setting if the metafield is empty.
+  The mag the submission is in the running for. Self-flipping, nothing to run:
+  Mag13's window opened 1 Nov 2026 and every window after it is 4 months long, so
+  the number follows from the month. Shopify can serve a cached page for an hour
+  or more, so the script at the bottom re-works it in the browser against
+  Melbourne time (the store's timezone) to flip right on midnight. If the windows
+  ever change length, change it here; the script reads these values.
 {%- endcomment -%}
-{%- assign meta_mag = shop.metafields.theinmag.submission_open_mag.value -%}
-{%- if meta_mag != blank -%}
-  {%- assign mag = meta_mag | strip -%}
-{%- else -%}
-  {%- assign mag = section.settings.considered_for_mag | strip -%}
-{%- endif -%}
+{%- liquid
+  assign anchor_mag = 13
+  assign anchor_year = 2026
+  assign anchor_month = 11
+  assign window_months = 4
+  assign now_year = 'now' | date: '%Y' | times: 1
+  assign now_month = 'now' | date: '%m' | times: 1
+  assign months_on = now_year | minus: anchor_year | times: 12 | plus: now_month | minus: anchor_month
+  assign windows_on = months_on | divided_by: window_months
+  assign mag_number = anchor_mag | plus: windows_on
+-%}
 
 <section class="theinmag-submitted" data-theinmag-submitted aria-labelledby="theinmag-submitted-heading">
 
@@ -69,7 +76,7 @@
           {{ section.settings.heading_lead }} <span class="theinmag-in">IN</span>!
         </h1>
         <p class="theinmag-submitted__sub">
-          {{ section.settings.sub_prefix }}{% if mag != blank %} <strong>{{ mag }}</strong>{% endif %}. {{ section.settings.sub_suffix }}
+          {{ section.settings.sub_prefix }} <strong data-theinmag-submitted-mag data-anchor-mag="{{ anchor_mag }}" data-anchor-year="{{ anchor_year }}" data-anchor-month="{{ anchor_month }}" data-window-months="{{ window_months }}">Mag{{ mag_number }}</strong>. {{ section.settings.sub_suffix }}
         </p>
         {%- if section.settings.cta_label != blank -%}
           <a href="{{ section.settings.cta_link }}" class="theinmag-submitted__cta button">
@@ -686,6 +693,20 @@
 <script>
   (function () {
     var root = document.querySelector('[data-theinmag-submitted]');
+
+    /* ---- mag number: re-worked here so a cached page still flips on midnight Melbourne time ---- */
+    var magEl = root && root.querySelector('[data-theinmag-submitted-mag]');
+    if (magEl) {
+      try {
+        var nowParts = {};
+        new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Melbourne', year: 'numeric', month: 'numeric' })
+          .formatToParts(new Date())
+          .forEach(function (p) { nowParts[p.type] = parseInt(p.value, 10); });
+        var monthsOn = (nowParts.year - parseInt(magEl.getAttribute('data-anchor-year'), 10)) * 12 + nowParts.month - parseInt(magEl.getAttribute('data-anchor-month'), 10);
+        var magNumber = parseInt(magEl.getAttribute('data-anchor-mag'), 10) + Math.floor(monthsOn / parseInt(magEl.getAttribute('data-window-months'), 10));
+        if (magNumber > 0) magEl.textContent = 'Mag' + magNumber;
+      } catch (e) { /* the number Liquid rendered stays */ }
+    }
     if (!root) return;
 
     /* ---- character switch (from the 404) ---- */
@@ -834,13 +855,6 @@
       "default": "You sent it"
     },
     { "type": "text", "id": "sub_prefix", "label": "Message - before the mag number", "default": "Your creation is now in the running for" },
-    {
-      "type": "text",
-      "id": "considered_for_mag",
-      "label": "Mag it is considered for",
-      "info": "Submission window, not drop date. Flips 1 Aug / 1 Dec / 1 Apr. Kaiden owns pinging Webster; source of truth kaiden/cycle-state.json.",
-      "default": "Mag12"
-    },
     { "type": "text", "id": "sub_suffix", "label": "Message - after the mag number", "default": "Fingers crossed! Our team can't wait to see it." },
     { "type": "text", "id": "cta_label", "label": "Button label", "default": "Send IN more!" },
     { "type": "text", "id": "cta_link", "label": "Button link", "default": "/pages/send-in" },
