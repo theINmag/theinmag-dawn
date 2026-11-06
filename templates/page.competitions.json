@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "main": {
@@ -7,10 +16,43 @@
     "funnel": {
       "type": "theinmag-funnel-strip",
       "settings": {
-        "heading": "The magazine for creative kids",
-        "subheading": ""
+        "heading": "The magazine publishing creative kids",
+        "subheading": "",
+        "tile_filename": "teacher_backgroundFAQ.jpg",
+        "tile_color": "#FFD99B",
+        "tile_wash": 55,
+        "show_character": true
+      },
+      "disabled": true
+    },
+    "faq": {
+      "type": "theinmag-competitions-faq",
+      "settings": {
+        "tile_filename": "teacher_backgroundFAQ.jpg",
+        "tile_color": "#FFD99B",
+        "tile_wash": 55
+      }
+    },
+    "mag_banner": {
+      "type": "theinmag-shop-hero",
+      "settings": {
+        "banner_mode": true,
+        "banner_headline": "Your kids' creations could be published in a printed magazine",
+        "subhead": "No ads, just pure creativity.",
+        "banner_button_label": "Check it out",
+        "hero_image_alt": "theINmag latest issue cover photo.",
+        "show_price_ctas": true,
+        "preview_sold_out": false,
+        "show_character": false,
+        "padding_top": 0,
+        "padding_bottom": 0
       }
     }
   },
-  "order": ["main", "funnel"]
+  "order": [
+    "main",
+    "mag_banner",
+    "funnel",
+    "faq"
+  ]
 }
