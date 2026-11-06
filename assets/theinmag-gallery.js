@@ -183,6 +183,18 @@
         }
       }
 
+      // TURN OFF BROWSER SCROLL ANCHORING ON THIS PAGE (found 2026-11-06 while
+      // fixing the iOS crash). In Chrome and Android WebViews, a reader who reaches
+      // the bottom of the loaded cards has the CTA strip / footer on screen as the
+      // anchor; every batch inserted above it makes the browser scroll down to
+      // keep the footer still, which keeps the sentinel in view, which loads the
+      // next batch: measured, one flick at the bottom rendered all 1,617 cards and
+      // threw the reader to the very end of the page. Safari has never anchored,
+      // so this makes every browser behave the way Safari already does, and the
+      // windowing code below does its own scroll correction where it is needed.
+      document.documentElement.style.overflowAnchor = 'none';
+      if (document.body) document.body.style.overflowAnchor = 'none';
+
       this.batch = parseInt(section.getAttribute('data-batch-size'), 10) || 24;
       this.all = creations;
       this.filtered = creations;
@@ -210,6 +222,14 @@
       this.sentinel = document.createElement('div');
       this.sentinel.className = 'theinmag-gallery-grid__sentinel';
       this.sentinel.setAttribute('aria-hidden', 'true');
+      // INLINE display, on purpose (THE 2026-11-06 iOS CRASH). The sentinel is an
+      // empty div, and Dawn's base.css `div:empty{display:none}` outranks the
+      // one-class `.theinmag-gallery-grid__sentinel` rule. A display:none element
+      // measures top = 0, so sentinelInLoadZone() was ALWAYS true and the very first
+      // fillWhileVisible() rendered the ENTIRE feed on load (1,617 cards, 1,957
+      // images, 229 swipe carousels, a 785,000px page). Infinite scroll had never
+      // actually run. An inline style beats any non-important stylesheet rule.
+      this.sentinel.style.display = 'block';
       this.columns.parentNode.insertBefore(this.sentinel, this.columns.nextSibling);
       this.updateSentinel();
 
@@ -217,6 +237,7 @@
       this.setupInfiniteScroll();
       this.bindResize();
       this.fillWhileVisible();
+      this.updateWindow();
       this.pumpVisibleMedia();
       this.hideLoader();
     },
@@ -239,6 +260,9 @@
       this.mediaObserver = new IntersectionObserver(function (entries) {
         for (var i = 0; i < entries.length; i++) {
           var media = entries[i].target;
+          // A card windowed out of the DOM can still have a queued entry; never
+          // set src on a detached image (it would fetch and decode for nothing).
+          if (!media.isConnected) continue;
           if (entries[i].isIntersecting) self.loadMedia(media);
           else self.unloadMedia(media);
         }
@@ -264,6 +288,204 @@
       for (var i = 0; i < imgs.length; i++) imgs[i].removeAttribute('src');
     },
 
+    // DOM WINDOWING (added 2026-11-06, the second half of the iOS crash fix).
+    // Image recycling (above) caps decoded-image memory, but every card a reader
+    // scrolls past used to stay in the DOM: its image elements, its text, and on
+    // phones its own horizontal swipe scroller, which iOS turns into a native
+    // scroll view and compositing layer. Reading the whole feed meant holding all
+    // 1,600+ of them, and the page had been building all of them on load anyway.
+    //
+    // HOW: each column is [head spacer][live cards][tail spacer]. A card more than
+    // WIN_OUT px above the viewport leaves the DOM and its height (plus its gap)
+    // is added to the head spacer; one more than WIN_OUT px below goes into the
+    // tail spacer. Each spacer keeps a stack of {index, height} so the card can be
+    // rebuilt from the feed data, in order, once the reader comes back within
+    // WIN_IN px. The gap between the two margins is hysteresis, so a card sitting
+    // on the boundary never flaps in and out. The column always measures exactly
+    // what it would with every card present, so nothing jumps and the scrollbar
+    // stays honest.
+    //
+    // WHY TWO SPACERS PER COLUMN, NOT ONE PER CARD: tried first, and measured at
+    // ~60ms per swap, because a column holding 1,600 siblings costs that much to
+    // lay out and every swap forced a layout. Run-length spacers keep each column
+    // to a couple of dozen children, and every update does one read pass then one
+    // write pass, so it never interleaves layout reads with DOM writes.
+    WIN_OUT: 3000,
+    WIN_IN: 2000,
+    colState: [],
+    cardGap: null,
+    winPending: false,
+
+    makeSpacer: function (where) {
+      var sp = document.createElement('div');
+      sp.className = 'theinmag-gallery-grid__spacer theinmag-gallery-grid__spacer--' + where;
+      sp.setAttribute('aria-hidden', 'true');
+      sp.setAttribute('data-theinmag-gallery-spacer', where);
+      // Inline display:block, same reason as the sentinel: an empty div is
+      // display:none under Dawn's base.css.
+      sp.style.cssText = 'display:block;height:0;margin:0;padding:0;';
+      return sp;
+    },
+
+    // The card's bottom margin (the masonry gap), read once per layout.
+    gap: function (card) {
+      if (this.cardGap === null) this.cardGap = parseFloat(window.getComputedStyle(card).marginBottom) || 0;
+      return this.cardGap;
+    },
+
+    liveCards: function (st) {
+      var out = [];
+      for (var el = st.head.nextElementSibling; el && el !== st.tail; el = el.nextElementSibling) {
+        // Cards only: anything else injected into a column (an app, an extension)
+        // has no feed index and must never be windowed or rebuilt.
+        if (el.hasAttribute('data-theinmag-gallery-card')) out.push(el);
+      }
+      return out;
+    },
+
+    isPinned: function (card) {
+      // Never pull the card out from under an open lightbox (the page cannot
+      // scroll while it is open, so in practice this is belt and braces). Focus
+      // is NOT pinned: a focused card is always on screen, because focusing
+      // scrolls it into view, and pinning it would let one stray focused card
+      // hold hundreds of others live after a jump to the top.
+      return !!(Lightbox.root && !Lightbox.root.hidden && Lightbox.currentCard === card);
+    },
+
+    releaseCard: function (card) {
+      if (this.mediaObserver) {
+        var medias = card.querySelectorAll('.theinmag-gallery-card__media');
+        for (var i = 0; i < medias.length; i++) this.mediaObserver.unobserve(medias[i]);
+      }
+      if (card.parentNode) card.parentNode.removeChild(card);
+    },
+
+    scheduleWindow: function () {
+      if (this.winPending) return;
+      var self = this;
+      this.winPending = true;
+      var raf = window.requestAnimationFrame || function (f) { return setTimeout(f, 16); };
+      raf(function () {
+        self.winPending = false;
+        self.updateWindow();
+        // Batch loading rides the same frame. It used to sit behind a 100ms
+        // throttle with no trailing call, so the LAST scroll event of a fling
+        // (on iOS, the end of momentum) could be dropped and leave a blank screen
+        // until the next touch. Found by the Fable build check, 2026-11-06.
+        self.fillWhileVisible();
+      });
+    },
+
+    updateWindow: function () {
+      if (!this.colState.length) return;
+      var vh = window.innerHeight;
+      var outTop = -this.WIN_OUT, outBot = vh + this.WIN_OUT;
+      var inTop = -this.WIN_IN, inBot = vh + this.WIN_IN;
+      var i, j, st, plan;
+
+      // PASS 1: read. One layout for the whole grid.
+      var plans = [];
+      for (i = 0; i < this.colState.length; i++) {
+        st = this.colState[i];
+        var cards = this.liveCards(st);
+        var rects = [];
+        for (j = 0; j < cards.length; j++) rects.push(cards[j].getBoundingClientRect());
+        var a = 0;
+        while (a < cards.length && rects[a].bottom < outTop && !this.isPinned(cards[a])) a++;
+        var b = cards.length;
+        while (b > a && rects[b - 1].top > outBot && !this.isPinned(cards[b - 1])) b--;
+        plans.push({
+          st: st, cards: cards, rects: rects, a: a, b: b,
+          headTop: st.head.getBoundingClientRect().top,
+          tailTop: st.tail.getBoundingClientRect().top
+        });
+      }
+      if (this.cardGap === null) {
+        for (i = 0; i < plans.length && this.cardGap === null; i++) if (plans[i].cards.length) this.gap(plans[i].cards[0]);
+      }
+      var g = this.cardGap || 0;
+
+      // PASS 2: write. Removals, then restorations worked out arithmetically from
+      // the stored heights (no re-measuring between DOM writes).
+      var restoredAbove = [];
+      for (i = 0; i < plans.length; i++) {
+        plan = plans[i]; st = plan.st;
+        var k, h;
+        for (k = 0; k < plan.a; k++) {
+          h = plan.rects[k].height + g;
+          st.headStack.push({ idx: +plan.cards[k].getAttribute('data-index'), h: h });
+          st.headH += h;
+          this.releaseCard(plan.cards[k]);
+        }
+        var tailRemoved = 0;
+        for (k = plan.cards.length - 1; k >= plan.b; k--) {
+          h = plan.rects[k].height + g;
+          // Farthest first, so the stack top is always the card nearest the live run.
+          st.tailStack.push({ idx: +plan.cards[k].getAttribute('data-index'), h: h });
+          st.tailH += h;
+          tailRemoved++;
+        }
+        // (Pushed farthest-first above means pushing in reverse DOM order; release
+        // them after recording so the indices read cleanly.)
+        for (k = plan.cards.length - 1; k >= plan.b; k--) this.releaseCard(plan.cards[k]);
+
+        // Cards still live in this column after the removals above. When there
+        // are none, the reader has jumped (back to the top, or a long drag), and a
+        // stacked card that would land far outside the band can move straight
+        // across to the other stack without ever being built.
+        var noneLive = (plan.b - plan.a) === 0;
+
+        // Restore at the head when the reader has come back up near it.
+        if (!plan.a && st.headStack.length) {
+          var headBottom = plan.headTop + st.headH;
+          while (st.headStack.length && headBottom > inTop) {
+            var e = st.headStack.pop();
+            var eTop = headBottom - e.h;
+            st.headH -= e.h; headBottom = eTop;
+            if (noneLive && eTop > outBot) { st.tailStack.push(e); st.tailH += e.h; continue; }
+            var c1 = this.buildCard(this.filtered[e.idx], e.idx);
+            st.el.insertBefore(c1, st.head.nextSibling);
+            this.observeMedia(c1);
+            restoredAbove.push({ card: c1, h: e.h, st: st });
+          }
+        }
+        // Restore at the tail when the reader has come back down near it.
+        if (!tailRemoved && st.tailStack.length) {
+          var tailTop = plan.tailTop;
+          while (st.tailStack.length && tailTop < inBot) {
+            var f = st.tailStack.pop();
+            var fBottom = tailTop + f.h;
+            st.tailH -= f.h; tailTop = fBottom;
+            if (noneLive && fBottom < outTop) { st.headStack.push(f); st.headH += f.h; continue; }
+            var c2 = this.buildCard(this.filtered[f.idx], f.idx);
+            st.el.insertBefore(c2, st.tail);
+            this.observeMedia(c2);
+          }
+        }
+        st.head.style.height = Math.max(0, st.headH) + 'px';
+        st.tail.style.height = Math.max(0, st.tailH) + 'px';
+      }
+
+      // PASS 3: a rebuilt card should measure exactly what it did before. If one
+      // ever does not (a font swap, say), absorb the difference into THAT
+      // column's head spacer, so nothing below it moves in any column and the
+      // page never has to scroll (a programmatic scroll would stop an iOS fling
+      // dead). Only if the head spacer cannot absorb it all is the remainder
+      // corrected by scrolling. Safari has no CSS scroll anchoring to lean on.
+      if (restoredAbove.length) {
+        var leftover = 0;
+        for (i = 0; i < restoredAbove.length; i++) {
+          var ra = restoredAbove[i];
+          var delta = (ra.card.getBoundingClientRect().height + g) - ra.h;
+          if (Math.abs(delta) < 0.5) continue;
+          ra.st.headH -= delta;
+          if (ra.st.headH < 0) { leftover = Math.max(leftover, -ra.st.headH); ra.st.headH = 0; }
+          ra.st.head.style.height = ra.st.headH + 'px';
+        }
+        if (leftover >= 1) window.scrollBy(0, leftover);
+      }
+    },
+
     // Synchronously load whatever media already sits in (or near) the first screen,
     // so the top of the gallery paints immediately without waiting on the observer's
     // first async callback.
@@ -281,7 +503,29 @@
     // this measurement accurate even before images finish loading.
     sentinelInLoadZone: function () {
       if (!this.sentinel || this.rendered >= this.filtered.length) return false;
-      return this.sentinel.getBoundingClientRect().top < (window.innerHeight + 800);
+      var zone = window.innerHeight + 800;
+      // Load by the SHORTEST column, not the tallest. Round-robin masonry drifts
+      // (one column collects the short text cards), and measured on desktop the
+      // columns were 3,500px apart after ~190 cards; loading by the sentinel, which
+      // sits under the TALLEST column, left the short column's slot blank on
+      // screen. Each column's tail spacer ends exactly where that column's content
+      // (live plus windowed) ends.
+      if (this.colState.length) {
+        var minBottom = Infinity;
+        for (var i = 0; i < this.colState.length; i++) {
+          var b = this.colState[i].tail.getBoundingClientRect().bottom;
+          if (b < minBottom) minBottom = b;
+        }
+        return minBottom < zone;
+      }
+      var r = this.sentinel.getBoundingClientRect();
+      var top = r.top;
+      // Belt and braces: if anything ever hides the sentinel again (an empty-div
+      // rule, a theme update), a hidden element measures 0 x 0 at top 0 and would
+      // read as "always in zone", rendering the whole feed. Measure the bottom of
+      // the columns instead, which is where the sentinel sits anyway.
+      if (!r.width && !r.height && this.columns) top = this.columns.getBoundingClientRect().bottom;
+      return top < zone;
     },
 
     // Keep rendering batches until the screen (plus margin) is full or all done.
@@ -290,6 +534,9 @@
     fillWhileVisible: function () {
       var guard = 0;
       while (this.sentinelInLoadZone() && guard < 500) { this.renderNextBatch(); guard++; }
+      // A fresh batch can run well past the viewport (24 cards is ~11,000px on a
+      // phone): window the far end straight away rather than paint all of it.
+      if (guard) this.updateWindow();
     },
 
     hideLoader: function () {
@@ -303,29 +550,58 @@
       // Dropping the old cards: stop observing their media so released/stale
       // elements are not tracked. Re-observation happens as new cards are placed.
       if (this.mediaObserver) this.mediaObserver.disconnect();
+      this.cardGap = null; // re-read: the gap is viewport-relative (clamp on vw)
       this.cols = [];
+      this.colState = [];
       this.columns.innerHTML = '';
       for (var i = 0; i < n; i++) {
         var col = document.createElement('div');
         col.className = 'theinmag-gallery-grid__col';
+        var head = this.makeSpacer('head');
+        var tail = this.makeSpacer('tail');
+        col.appendChild(head);
+        col.appendChild(tail);
         this.columns.appendChild(col);
         this.cols.push(col);
+        this.colState.push({ el: col, head: head, tail: tail, headStack: [], tailStack: [], headH: 0, tailH: 0 });
       }
     },
 
     // Round-robin: card k -> column (k % colCount). The first colCount cards
     // form the top row (newest across the top); the next form the second row.
     placeCards: function (cardEls) {
+      var toStack = [];
       for (var i = 0; i < cardEls.length; i++) {
-        this.cols[this.rendered % this.colCount].appendChild(cardEls[i]);
-        this.observeMedia(cardEls[i]);
+        var st = this.colState[this.rendered % this.colCount];
+        st.el.insertBefore(cardEls[i], st.tail);
+        // If this column already has cards windowed out below, the new card
+        // belongs AFTER them: measure it, then add it to the bottom of the tail
+        // stack (see the pass below) rather than rebuilding the whole stack.
+        if (st.tailStack.length) toStack.push({ card: cardEls[i], st: st });
+        else this.observeMedia(cardEls[i]);
         this.rendered++;
+      }
+      if (toStack.length) {
+        // One read pass for every height, then the writes.
+        var hs = [];
+        for (var k = 0; k < toStack.length; k++) hs.push(toStack[k].card.getBoundingClientRect().height + this.gap(toStack[k].card));
+        for (k = 0; k < toStack.length; k++) {
+          var t = toStack[k];
+          // Index 0 of the tail stack is the farthest card, so each newer (lower)
+          // card goes in at the front.
+          t.st.tailStack.unshift({ idx: +t.card.getAttribute('data-index'), h: hs[k] });
+          t.st.tailH += hs[k];
+          this.releaseCard(t.card);
+          t.st.tail.style.height = t.st.tailH + 'px';
+        }
       }
       this.updateSentinel();
     },
 
     updateSentinel: function () {
-      if (this.sentinel) this.sentinel.style.display = this.rendered >= this.filtered.length ? 'none' : '';
+      // 'block', never '': clearing the inline style hands the sentinel back to
+      // Dawn's div:empty{display:none} (see init).
+      if (this.sentinel) this.sentinel.style.display = this.rendered >= this.filtered.length ? 'none' : 'block';
     },
 
     bindControls: function () {
@@ -355,21 +631,31 @@
 
     bindResize: function () {
       var self = this;
+      this.lastWidth = window.innerWidth;
       window.addEventListener('resize', function () {
         clearTimeout(self.resizeTimer);
         self.resizeTimer = setTimeout(function () {
+          // Rebuild on any WIDTH change (a rotated phone or tablet, a resized
+          // window), not only a column-count change: card heights scale with the
+          // column width, so every windowed height on record goes stale. Height
+          // alone changing is the iOS URL bar showing and hiding: ignore it.
+          var w = window.innerWidth;
+          if (w === self.lastWidth) return;
+          self.lastWidth = w;
           var n = self.computeColCount();
-          if (n === self.colCount) return;
-          // Column count changed: re-render the same number of cards into the
-          // new column layout, preserving newest-first round-robin order.
+          // Re-render the same number of cards into the new layout, preserving
+          // newest-first round-robin order, ONE BATCH AT A TIME with windowing in
+          // between, so a deep reader's rotation never builds the whole feed in
+          // one go (measured: 1,618 cards in a single task before this).
           var shown = self.rendered;
           self.colCount = n;
           self.buildCols(n);
           self.rendered = 0;
           var target = Math.min(shown || self.batch, self.filtered.length);
-          var cards = [];
-          for (var i = 0; i < target; i++) cards.push(self.buildCard(self.filtered[i], i));
-          self.placeCards(cards);
+          while (self.rendered < target) {
+            self.renderNextBatch(Math.min(self.batch, target - self.rendered));
+            self.updateWindow();
+          }
           self.pumpVisibleMedia();
         }, 200);
       });
@@ -517,8 +803,8 @@
       }
     },
 
-    renderNextBatch: function () {
-      var end = Math.min(this.rendered + this.batch, this.filtered.length);
+    renderNextBatch: function (count) {
+      var end = Math.min(this.rendered + (count || this.batch), this.filtered.length);
       var cards = [];
       for (var i = this.rendered; i < end; i++) cards.push(this.buildCard(this.filtered[i], i));
       this.placeCards(cards);
@@ -529,12 +815,10 @@
       // A throttled scroll/resize listener is the reliable primary trigger;
       // the IntersectionObserver is a backup for layout changes without a scroll
       // (e.g. images settling). Both funnel into fillWhileVisible.
-      var lastRun = 0;
       function onScroll() {
-        var now = Date.now();
-        if (now - lastRun < 100) return;
-        lastRun = now;
-        self.fillWhileVisible();
+        // Windowing and batch loading run once per frame while the page scrolls
+        // (coalesced by rAF): a couple of dozen rect reads, so it is cheap.
+        self.scheduleWindow();
       }
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', onScroll, { passive: true });
@@ -736,6 +1020,8 @@
     init: function (gridSection, cards, initialBatch, batchSize) {
       var sentinel = gridSection.querySelector('[data-theinmag-gallery-sentinel]');
       if (!sentinel || cards.length <= initialBatch) return;
+      // Empty div: Dawn's div:empty{display:none} would hide it from the observer.
+      sentinel.style.display = 'block';
       var revealed = initialBatch, total = cards.length;
       if (!('IntersectionObserver' in window)) {
         for (var i = revealed; i < total; i++) cards[i].classList.remove('theinmag-gallery-card--hidden');

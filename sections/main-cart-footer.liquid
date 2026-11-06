@@ -48,10 +48,46 @@
   endfor
 -%}
 
+{%- liquid
+  # Gift step state for the wallet buttons (see snippets/theinmag-gift-step).
+  # Unanswered until Gift is set, and, for a gift with a Print membership,
+  # until the wrap question has been answered too.
+  assign tgs_footer_state = 'na'
+  if has_physical_item
+    assign tgs_footer_state = 'answered'
+    assign tgs_gift = cart.attributes['Gift']
+    if tgs_gift != 'Yes' and tgs_gift != 'No'
+      assign tgs_footer_state = 'unanswered'
+    elsif tgs_gift == 'Yes' and cart.attributes['_gift_wrap_asked'] != 'Yes'
+      assign tgs_cur = shop.metafields.theinmag.current_issue_number.value | remove: 'Mag' | plus: 0
+      assign tgs_mem = false
+      assign tgs_mem_now = false
+      assign tgs_other_now = false
+      for it in cart.items
+        if it.product.handle == 'membership'
+          if it.variant.title contains 'Print'
+            assign tgs_mem = true
+            assign tgs_st = it.properties['_starting_mag'] | remove: 'Mag' | plus: 0
+            if it.properties['_starting_mag'] == blank or tgs_st <= tgs_cur
+              assign tgs_mem_now = true
+            endif
+          endif
+        elsif it.requires_shipping
+          assign tgs_other_now = true
+        endif
+      endfor
+      if tgs_mem_now or tgs_mem and tgs_other_now
+        assign tgs_footer_state = 'unanswered'
+      endif
+    endif
+  endif
+-%}
+
 <div
   class="gradient color-{{ section.settings.color_scheme }}{% if cart == empty %} is-empty{% endif %}"
   id="main-cart-footer"
   data-id="{{ section.id }}"
+  data-gift-state="{{ tgs_footer_state }}"
 >
   <div class="page-width">
     <div class="cart__footer isolate section-{{ section.id }}-padding{% if has_physical_item %} theinmag-cart-footer--gift{% endif %}">
@@ -77,33 +113,10 @@
         textarea gated by settings.show_cart_note so the reminder still
         shows even if the note feature is off.
       {%- endcomment -%}
-      {%- if has_physical_item -%}
-        <cart-note class="theinmag-cart-note theinmag-gift-note">
-          <p class="theinmag-gift-note__heading">
-            <span class="theinmag-gift-note__icon" aria-hidden="true">🎁</span>
-            Is this a gift?
-          </p>
-          <p class="theinmag-gift-note__intro">
-            On the next page, enter the <strong>recipient's name and address</strong> (the kid getting the mag) - not yours. Otherwise the mag lands in your letterbox, not theirs.
-          </p>
-          {%- if settings.show_cart_note -%}
-            <label for="Cart-note" class="theinmag-gift-note__label">
-              Add a note <span class="theinmag-gift-note__optional">(optional)</span>
-            </label>
-            <span class="theinmag-cart-note__hint">We'll print it on the post label - up to 50 characters.</span>
-            <textarea
-              class="theinmag-cart-note__field"
-              name="note"
-              form="cart"
-              id="Cart-note"
-              maxlength="50"
-              placeholder="e.g. Happy 9th birthday Mia!"
-              data-theinmag-note-counter
-            >{{ cart.note }}</textarea>
-            <span class="theinmag-cart-note__counter" data-theinmag-note-counter-display>0 / 50</span>
-          {%- endif -%}
-        </cart-note>
-      {%- endif -%}
+      {%- comment -%} Gift step (2026-11-06): Yes/No, envelope message, first mag to the buyer for Print memberships. Replaces the old reminder + note card. Always rendered; hidden when there is no Print item. {%- endcomment -%}
+      {%- unless cart == empty -%}
+        {% render 'theinmag-gift-step', has_physical_item: has_physical_item %}
+      {%- endunless -%}
 
       <div class="cart__blocks">
         {% for block in section.blocks %}
@@ -230,6 +243,7 @@
                 <div class="cart__dynamic-checkout-buttons additional-checkout-buttons">
                   {{ content_for_additional_checkout_buttons }}
                 </div>
+                <p class="tgs-wallet-note">Shop Pay and PayPal show after one quick gift question. Tap Check out to start.</p>
               {%- endif -%}
 
               {%- comment -%}

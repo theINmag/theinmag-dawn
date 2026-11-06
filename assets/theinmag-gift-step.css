@@ -1,0 +1,493 @@
+/* theINmag gift step pop-up (snippets/theinmag-gift-step.liquid).
+   One question per slide. Phones: a bottom sheet. Desktop: a centred
+   card. Grandparent friendly: 17px+ text, 56px buttons, plain words,
+   state never shown by colour alone (Ryan is red-green colourblind). */
+
+.tgs[hidden] {
+  display: none;
+}
+
+/* ---------- slim summary on the cart page ---------- */
+.tgs-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  background: #FFFFFF;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--color-inky-purple-navy);
+}
+.tgs-summary[hidden] {
+  display: none;
+}
+.tgs-summary__icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.tgs-summary__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tgs-summary__change {
+  flex: 0 0 auto;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-purple-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* The summary sits in the old gift card's grid slot. */
+@media (min-width: 750px) {
+  #main-cart-footer:not(.is-empty) .cart__footer .tgs {
+    grid-column: 2;
+  }
+}
+@media (max-width: 749px) {
+  .cart__footer .tgs {
+    order: 2;
+    margin-bottom: 16px;
+  }
+}
+
+/* ---------- the pop-up ---------- */
+/* No scroll lock: people can scroll the cart behind the pop-up to check
+   their order (Ryan, 6 Nov). The modal still blocks clicks back there. */
+.tgd {
+  box-sizing: border-box;
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 28px 24px 24px;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: #FFFFFF;
+  box-shadow: var(--shadow-modal);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.5;
+  letter-spacing: normal; /* the site's wide body tracking is hard to read here */
+  color: var(--color-inky-purple-navy);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.tgd::backdrop {
+  background: rgba(42, 31, 61, 0.5);
+}
+
+/* Phones: a sheet that rises from the bottom, buttons in thumb reach */
+@media (max-width: 749px) {
+  .tgd {
+    width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: 92dvh;
+  }
+  .tgd[open] {
+    animation: tgd-rise 0.28s ease-out;
+  }
+}
+@keyframes tgd-rise {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.tgd__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-inky-purple-navy);
+  cursor: pointer;
+}
+.tgd__close:hover {
+  background: var(--color-lavender);
+}
+
+.tgd__step {
+  display: grid;
+  gap: 14px;
+}
+.tgd__step[hidden] {
+  display: none;
+}
+.tgd__step--center {
+  justify-items: center;
+  text-align: center;
+  padding: 8px 0 12px;
+}
+/* "Sounds good!" is a quick fade, not a slide */
+.tgd__step--center.is-in,
+.tgd__step--center.is-back {
+  animation: tgd-fade 0.2s ease-out;
+}
+@keyframes tgd-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.tgd__step.is-in {
+  animation: tgd-slide-in 0.28s ease-out;
+}
+.tgd__step.is-back {
+  animation: tgd-slide-back 0.28s ease-out;
+}
+@keyframes tgd-slide-in {
+  from { transform: translateX(36px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes tgd-slide-back {
+  from { transform: translateX(-36px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.tgd__minion {
+  display: block;
+  justify-self: center;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin: -4px 0 -6px;
+}
+.tgd__minion--small {
+  width: 80px;
+  height: 80px;
+}
+
+.tgd__title {
+  margin: 0;
+  padding: 0 40px;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(28px, 7vw, 34px);
+  line-height: 1.1;
+  text-align: center;
+  color: var(--color-inky-purple-navy);
+}
+.tgd__title:focus {
+  outline: none;
+}
+.tgd__text {
+  margin: 0;
+  text-align: center;
+}
+
+.tgd__actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+.tgd__actions[hidden] {
+  display: none;
+}
+.tgd__btn {
+  letter-spacing: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 18px;
+  border: 2px solid var(--color-inky-purple-navy);
+  border-radius: var(--radius-md);
+  background: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--color-inky-purple-navy);
+  cursor: pointer;
+}
+.tgd__btn--primary {
+  border-color: var(--color-purple-dark);
+  background: var(--color-purple-dark);
+  color: #FFFFFF;
+}
+.tgd__btn--go {
+  justify-self: center;
+  width: min(100%, 300px);
+  border-color: var(--color-yellow-shadow);
+  background: var(--color-yellow);
+  box-shadow: var(--shadow-button-yellow);
+}
+@media (hover: hover) {
+  .tgd__btn:hover {
+    background: var(--color-lavender);
+  }
+  .tgd__btn--primary:hover {
+    background: #4A2D62;
+  }
+  .tgd__btn--go:hover {
+    background: var(--color-yellow);
+    filter: brightness(1.04);
+  }
+}
+.tgd__btn:focus-visible,
+.tgd__close:focus-visible,
+.tgd__back:focus-visible,
+.tgd__input:focus-visible,
+.tgs-summary__change:focus-visible {
+  outline: 3px solid var(--color-purple-dark);
+  outline-offset: 2px;
+}
+
+.tgd__back {
+  justify-self: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.tgd__label {
+  display: block;
+  font-weight: 600;
+  font-size: 16px;
+}
+.tgd__input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1.5px solid rgba(42, 31, 61, 0.4);
+  border-radius: var(--radius-md);
+  background: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 17px; /* 16px+ stops iOS zooming in on focus */
+  color: var(--color-inky-purple-navy);
+}
+.tgd__textarea {
+  min-height: 64px;
+  resize: none;
+}
+.tgd__counter {
+  justify-self: end;
+  margin-top: -8px;
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.tgd__callout {
+  margin: 0;
+  padding: 16px;
+  background: var(--color-lavender);
+  border-left: 4px solid var(--color-purple-dark);
+  border-radius: var(--radius-md);
+  font-size: 18px;
+  text-align: left;
+}
+
+.tgd__wrap {
+  display: grid;
+  gap: 12px;
+}
+.tgd__wrap[hidden] {
+  display: none;
+}
+.tgd__wrap-heading {
+  margin: 0;
+  font-weight: 700;
+  font-size: 17px;
+}
+.tgd__field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.tgd__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.tgd__error {
+  display: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-coral-dark);
+}
+.tgd__input[aria-invalid="true"] {
+  border: 2px solid var(--color-coral-dark);
+}
+.tgd__input[aria-invalid="true"] + .tgd__error {
+  display: block;
+}
+
+/* Express wallet buttons wait for an answer (they skip the question). */
+#main-cart-footer[data-gift-state="unanswered"] .cart__dynamic-checkout-buttons {
+  display: none;
+}
+.tgs-wallet-note {
+  display: none;
+  margin: 10px 0 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+#main-cart-footer[data-gift-state="unanswered"] .tgs-wallet-note {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tgd[open],
+  .tgd__step.is-in,
+  .tgd__step.is-back {
+    animation: none;
+  }
+}
+
+/* Suburb suggestions after the address check */
+.tgd__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.tgd__suggest[hidden] {
+  display: none;
+}
+.tgd__suggest-lead {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.tgd__suggest-btn,
+.tgd__suggest-keep {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 2px solid var(--color-purple-dark);
+  border-radius: var(--radius-md);
+  background: var(--color-lavender);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--color-purple-dark);
+  cursor: pointer;
+}
+.tgd__suggest-keep {
+  border-color: rgba(42, 31, 61, 0.35);
+  background: #FFFFFF;
+  color: var(--color-inky-purple-navy);
+  font-weight: 500;
+}
+
+/* Type-to-fill suburb list */
+.tgd__suggest[role="listbox"] {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+.tgd__suggest-btn--row {
+  width: 100%;
+  text-align: left;
+  background: #FFFFFF;
+  border-color: rgba(42, 31, 61, 0.25);
+  color: var(--color-inky-purple-navy);
+  font-weight: 500;
+}
+@media (hover: hover) {
+  .tgd__suggest-btn--row:hover {
+    background: var(--color-lavender);
+  }
+}
+
+/* Street address search rows (Google Places), big enough for a thumb */
+.tgd__addr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  max-height: 340px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.tgd__addr-list[hidden] {
+  display: none;
+}
+.tgd__addr-opt {
+  display: grid;
+  flex-shrink: 0; /* the list scrolls; rows never squash */
+  gap: 2px;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 14px;
+  border: 2px solid rgba(42, 31, 61, 0.25);
+  border-radius: var(--radius-md);
+  background: #FFFFFF;
+  font: inherit;
+  letter-spacing: normal;
+  text-align: left;
+  color: var(--color-inky-purple-navy);
+  cursor: pointer;
+}
+.tgd__addr-opt[aria-selected="true"] {
+  border-color: var(--color-purple-dark);
+  background: var(--color-lavender);
+}
+@media (hover: hover) {
+  .tgd__addr-opt:hover {
+    background: var(--color-lavender);
+  }
+}
+.tgd__addr-main {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.tgd__addr-sub {
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--color-text-muted);
+}
+.tgd__addr-credit {
+  margin: 0;
+  font-size: 13px;
+  text-align: right;
+  color: #5E5E5E; /* one of Google's permitted attribution colours */
+}
+.tgd__addr-credit[hidden] {
+  display: none;
+}
+
+/* Phones: Dawn's .cart__footer > * + * adds 6.5rem between the cross-sell,
+   the gift summary and the totals, which left a big empty gap above
+   Check out (Ryan, 6 Nov). Tighten it. Lives here because this file loads
+   on every non-empty cart. */
+@media (max-width: 749px) {
+  #main-cart-footer .cart__footer > * + * {
+    margin-top: 20px;
+  }
+  #main-cart-footer .cart__footer .tgs {
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,220 @@
+{%- comment -%}
+  theINmag gift step: a one-question-at-a-time pop-up on /cart. Built
+  2026-11-06 (Ryan: "a little pop-up that basically just asks the
+  question... it means I can drop out at any time"). The mINion is a
+  random kid character per page load (Ryan, same day), never #16 or #53.
+
+  Opens when Check out is tapped on a cart with a Print item and the
+  question is unanswered. Steps: ask -> (no: "Sounds good!" fades, then checkout)
+  | (yes: envelope message -> [Print membership: first mag to me?] ->
+  reminder -> checkout). With no Print membership, Yes goes: message ->
+  "Sounds good!" -> checkout (a single mag goes wherever they type, Ryan
+  6 Nov, so there is no wrap question). The cart page itself only shows a slim summary
+  row once answered, with Change to reopen.
+
+  Saves to the order as cart attributes (Pat reads these):
+    Gift                Yes | No
+    First mag to buyer  Yes          (Print membership + chose it)
+    First mag posted to "Name, street, suburb STATE postcode"
+  plus _wrap_* copies of each field to refill on reload. The envelope
+  message is the cart note (printed on the post label).
+  Rendered on every non-empty cart (hidden when there is no Print item) so a Print item
+  added on /cart, e.g. through the membership popup, still gets asked.
+  Expects has_physical_item from the caller. Behaviour:
+  assets/theinmag-gift-step.js.
+
+  Street address searches Google Places (New) as you type (Ryan, 6 Nov).
+  data-places-key is a PUBLIC browser key (it ships in page source by
+  design), restricted to theinmag.com.au websites, Google Cloud project
+  project-e4e84849-85ac-48ac-9bf on theinmag1@gmail.com. Maps JS loads only
+  when the address form opens.
+{%- endcomment -%}
+{%- liquid
+  assign tgs_answer = cart.attributes['Gift']
+  comment
+    tgs_has_membership = a Print membership whose FIRST mag ships now. A
+    membership starting with a future issue never offers "Gifting it in
+    person?" (Ryan, 6 Nov): its first mag arrives at the drop.
+  endcomment
+  assign tgs_current_num = shop.metafields.theinmag.current_issue_number.value | remove: 'Mag' | plus: 0
+  comment
+    Also offered when a future-start membership sits beside something that
+    posts NOW (e.g. Mag11 single + membership from Mag12, Ryan 6 Nov): the
+    first parcel is the Mag11, and that is what comes to the buyer.
+  endcomment
+  assign tgs_has_membership = false
+  assign tgs_any_membership = false
+  assign tgs_ships_now_other = false
+  for it in cart.items
+    if it.product.handle == 'membership'
+      if it.variant.title contains 'Print'
+        assign tgs_any_membership = true
+        assign tgs_start = it.properties['_starting_mag']
+        if tgs_start == blank
+          assign tgs_has_membership = true
+        else
+          assign tgs_start_num = tgs_start | remove: 'Mag' | plus: 0
+          if tgs_start_num <= tgs_current_num
+            assign tgs_has_membership = true
+          endif
+        endif
+      endif
+    elsif it.requires_shipping
+      assign tgs_ships_now_other = true
+    endif
+  endfor
+  if tgs_any_membership and tgs_ships_now_other
+    assign tgs_has_membership = true
+  endif
+  assign tgs_wrap_on = false
+  if tgs_answer == 'Yes' and tgs_has_membership and cart.attributes['First mag to buyer'] == 'Yes' and cart.attributes['First mag posted to'] != blank
+    assign tgs_wrap_on = true
+  endif
+  assign tgs_wrap_state = cart.attributes['_wrap_state']
+-%}
+{{ 'theinmag-gift-step.css' | asset_url | stylesheet_tag }}
+<div
+  class="tgs"
+  data-tgs
+  data-answer="{{ tgs_answer | escape }}"
+  data-has-membership="{{ tgs_has_membership }}"
+  data-current-num="{{ tgs_current_num }}"
+  data-postcodes-url="{{ 'theinmag-au-postcodes.json' | asset_url }}"
+  data-places-key="AIzaSyCLef_nDtti_YXjOh54oWRs9onrlDCzunw"
+  data-wrap-asked="{{ cart.attributes['_gift_wrap_asked'] | escape }}"
+  data-tgd-minion-base="{{ 'character-1.png' | asset_img_url: '300x' }}"
+  {% unless has_physical_item %}hidden{% endunless %}
+>
+  {%- comment -%} Slim summary on the cart page, only once answered. {%- endcomment -%}
+  <div class="tgs-summary" data-tgs-summary{% if tgs_answer != 'Yes' and tgs_answer != 'No' %} hidden{% endif %}>
+    <span class="tgs-summary__icon" aria-hidden="true">🎁</span>
+    <span class="tgs-summary__text" data-tgs-summary-text>
+      {%- if tgs_answer == 'Yes' -%}{%- if cart.note != blank -%}Special envelope message: "{{ cart.note | escape }}"{%- if tgs_wrap_on -%}. First mag comes to you to hand over.{%- endif -%}{%- else -%}Gift for a kid.{%- if tgs_wrap_on %} First mag comes to you to hand over.{%- endif -%}{%- endif -%}{%- else -%}Not a gift.{%- endif -%}
+    </span>
+    <button type="button" class="tgs-summary__change" data-tgs-open>Change</button>
+  </div>
+
+  {%- comment -%} Values that ride the checkout POST (form="cart"). {%- endcomment -%}
+  <input type="hidden" name="attributes[Gift]" form="cart" value="{{ tgs_answer | escape }}" data-tgs-hidden-gift>
+  <input type="hidden" name="attributes[First mag to buyer]" form="cart" value="{% if tgs_wrap_on %}Yes{% endif %}" data-tgs-hidden-first>
+  <input type="hidden" name="attributes[First mag posted to]" form="cart" value="{% if tgs_wrap_on %}{{ cart.attributes['First mag posted to'] | escape }}{% endif %}" data-tgs-hidden-address>
+
+  <dialog class="tgd" data-tgd aria-labelledby="tgd-title-ask">
+    <button type="button" class="tgd__close" data-tgd-close aria-label="Close">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+    </button>
+
+    {%- comment -%} Step 1: the question {%- endcomment -%}
+    <section class="tgd__step" data-tgd-step="ask">
+      <img
+        class="tgd__minion"
+        src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-tgd-minion
+        width="120"
+        height="120"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+      >
+      <h2 class="tgd__title" id="tgd-title-ask">Is this a gift?</h2>
+      <div class="tgd__actions">
+        <button type="button" class="tgd__btn tgd__btn--primary" data-tgd-answer="Yes">Yes, I'm buying this for a kid</button>
+        <button type="button" class="tgd__btn" data-tgd-answer="No">No, it's for us</button>
+      </div>
+    </section>
+
+    {%- comment -%} No: a friendly beat, then straight to checkout {%- endcomment -%}
+    <section class="tgd__step tgd__step--center" data-tgd-step="no" hidden>
+      <img class="tgd__minion" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-tgd-minion width="120" height="120" alt="" aria-hidden="true" loading="lazy">
+      <h2 class="tgd__title" tabindex="-1">Sounds good!</h2>
+    </section>
+
+    {%- comment -%} Step 2: envelope message (the cart note) {%- endcomment -%}
+    <section class="tgd__step" data-tgd-step="message" hidden>
+      <h2 class="tgd__title" tabindex="-1">Leave a message on the envelope?</h2>
+      <p class="tgd__text" id="tgd-note-hint">Up to 50 characters. We'll print it on the post label.</p>
+      <label class="tgd__label" for="Cart-note">Your message</label>
+      <textarea
+        class="tgd__input tgd__textarea"
+        name="note"
+        form="cart"
+        id="Cart-note"
+        maxlength="50"
+        rows="2"
+        placeholder="Happy birthday Mia! Love Nan"
+        aria-describedby="tgd-note-hint tgd-note-count"
+        data-tgd-note
+      >{{ cart.note | escape }}</textarea>
+      <span class="tgd__counter" id="tgd-note-count" data-tgd-note-count>{{ cart.note | size }} of 50</span>
+      <div class="tgd__actions">
+        <button type="button" class="tgd__btn tgd__btn--primary" data-tgd-message="add">Add message</button>
+        <button type="button" class="tgd__btn" data-tgd-message="skip">No thanks</button>
+      </div>
+      <button type="button" class="tgd__back" data-tgd-back>Back</button>
+    </section>
+
+    {%- comment -%} Step 3 (Print membership only): first mag to the buyer {%- endcomment -%}
+    <section class="tgd__step" data-tgd-step="wrap" hidden>
+      <h2 class="tgd__title" tabindex="-1">Gifting it in person?</h2>
+      <p class="tgd__text">We'll post the first mag to you. The future issues go straight to the kid's letterbox.</p>
+      <div class="tgd__actions" data-tgd-wrap-choice>
+        <button type="button" class="tgd__btn tgd__btn--primary" data-tgd-wrap="yes">Yes, send the first one to me</button>
+        <button type="button" class="tgd__btn" data-tgd-wrap="no">No, send them all to the kid</button>
+      </div>
+
+      <div class="tgd__wrap" data-tgd-wrap-form hidden>
+        <p class="tgd__wrap-heading">Where should we post the first mag?</p>
+        <div class="tgd__field">
+          <label class="tgd__label" for="tgd-name">Your name</label>
+          <input class="tgd__input" id="tgd-name" type="text" autocomplete="name" data-tgd-field="name" value="{{ cart.attributes['_wrap_name'] | escape }}">
+          <span class="tgd__error" id="tgd-err-name">Please add your name.</span>
+        </div>
+        <div class="tgd__field">
+          <label class="tgd__label" for="tgd-street">Street address</label>
+          <input class="tgd__input" id="tgd-street" type="text" autocomplete="street-address" placeholder="Start typing your address" data-tgd-field="street" value="{{ cart.attributes['_wrap_street'] | escape }}">
+          <span class="tgd__error" id="tgd-err-street">Please add a street address.</span>
+          <div class="tgd__addr-list" id="tgd-addr-list" role="listbox" aria-label="Matching addresses" data-tgd-addr-suggest hidden></div>
+          <p class="tgd__addr-credit" data-tgd-addr-credit hidden translate="no">Google Maps</p>
+        </div>
+        <div class="tgd__field">
+          <label class="tgd__label" for="tgd-suburb">Suburb</label>
+          <input class="tgd__input" id="tgd-suburb" type="text" autocomplete="off" placeholder="Start typing, then tap your suburb" data-tgd-field="suburb" value="{{ cart.attributes['_wrap_suburb'] | escape }}">
+          <span class="tgd__error" id="tgd-err-suburb">Please add a suburb.</span>
+          <div class="tgd__suggest" data-tgd-suggest hidden></div>
+        </div>
+        <div class="tgd__row">
+          <div class="tgd__field">
+            <label class="tgd__label" for="tgd-state">State</label>
+            <select class="tgd__input" id="tgd-state" autocomplete="address-level1" data-tgd-field="state">
+              <option value="">Choose</option>
+              {%- assign tgs_states = 'ACT,NSW,NT,QLD,SA,TAS,VIC,WA' | split: ',' -%}
+              {%- for s in tgs_states -%}
+                <option value="{{ s }}"{% if tgs_wrap_state == s %} selected{% endif %}>{{ s }}</option>
+              {%- endfor -%}
+            </select>
+            <span class="tgd__error" id="tgd-err-state">Please choose a state.</span>
+          </div>
+          <div class="tgd__field">
+            <label class="tgd__label" for="tgd-postcode">Postcode</label>
+            <input class="tgd__input" id="tgd-postcode" type="text" inputmode="numeric" maxlength="4" autocomplete="postal-code" data-tgd-field="postcode" value="{{ cart.attributes['_wrap_postcode'] | escape }}">
+            <span class="tgd__error" id="tgd-err-postcode">Postcode needs 4 numbers.</span>
+          </div>
+        </div>
+        <button type="button" class="tgd__btn tgd__btn--primary" data-tgd-wrap-next>Next</button>
+      </div>
+      <button type="button" class="tgd__back" data-tgd-back>Back</button>
+    </section>
+
+    {%- comment -%} Step 4: the one thing to remember {%- endcomment -%}
+    <section class="tgd__step" data-tgd-step="done" hidden>
+      <img class="tgd__minion tgd__minion--small" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" data-tgd-minion width="80" height="80" alt="" aria-hidden="true" loading="lazy">
+      <h2 class="tgd__title" tabindex="-1">One last thing</h2>
+      <p class="tgd__callout" data-tgd-done-kid>At checkout, type <strong>the kid's name and address</strong> as the delivery address.</p>
+      <p class="tgd__text" data-tgd-done-wrap hidden>The first mag comes to you to hand over. The future issues go straight to the kid's letterbox.</p>
+      <div class="tgd__actions">
+        <button type="button" class="tgd__btn tgd__btn--go" data-tgd-go>Go to checkout</button>
+      </div>
+      <button type="button" class="tgd__back" data-tgd-back>Back</button>
+    </section>
+  </dialog>
+</div>
+<script src="{{ 'theinmag-gift-step.js' | asset_url }}" defer="defer"></script>

@@ -11,8 +11,9 @@
      live via PUB_SUB_EVENTS.cartUpdate.
 
   2) AJAX-add intercept. Any form with `data-theinmag-ajax-add` gets
-     its submit hijacked: POST /cart/add.js + flash a toast on top of
-     the pill + publish cartUpdate so the pill refreshes. Buy Now
+     its submit hijacked: POST /cart/add.js + show the add confirmation
+     card (with View cart) in the pill's place + publish cartUpdate so
+     the pill refreshes. Buy Now
      buttons (name="checkout") are NOT intercepted - they navigate to
      /checkout via Shopify's skip-cart pattern.
 
@@ -28,11 +29,16 @@
   space.
 {%- endcomment -%}
 
+{%- liquid
+  assign fc_on_cart = false
+  if template.name == 'cart'
+    assign fc_on_cart = true
+  endif
+-%}
 <div
-  class="theinmag-floating-cart{% if cart == empty %} is-empty{% endif %}"
+  class="theinmag-floating-cart{% if cart == empty %} is-empty{% endif %}{% if fc_on_cart %} is-on-cart{% endif %}"
   data-theinmag-floating-cart
   data-item-count="{{ cart.item_count }}"
-  aria-live="polite"
 >
   <a href="{{ routes.cart_url }}" class="theinmag-floating-cart__pill" data-fc-pill>
     <span class="theinmag-floating-cart__icon" aria-hidden="true">
@@ -60,10 +66,36 @@
       <line x1="11" y1="3" x2="3" y2="11"></line>
     </svg>
   </button>
-  <div class="theinmag-floating-cart__toast" data-fc-toast hidden role="status">
-    <span class="theinmag-floating-cart__toast-check" aria-hidden="true">✓</span>
-    <span data-fc-toast-text>Added to your cart</span>
+
+  {%- comment -%}
+    Add confirmation (6 Nov 2026, Ryan: "they should be able to just go
+    to the cart from there"). Was a non-tappable toast above the pill;
+    on the preview theme Shopify's preview bar also covered the pill, so
+    the only thing on screen after an add had no way to the cart. Now a
+    card that REPLACES the pill for a few seconds: what was added, the
+    running total, and a yellow View cart sticker. The whole card is
+    tappable (stretched link); the x collapses it back to the pill. On
+    /cart itself the card keeps the message only and the pill is hidden.
+  {%- endcomment -%}
+  <div class="theinmag-floating-cart__confirm" data-fc-confirm>
+    <span class="theinmag-floating-cart__confirm-mark" data-fc-confirm-mark aria-hidden="true">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M3 7.4 5.8 10 11 4"></path></svg>
+    </span>
+    <span class="theinmag-floating-cart__confirm-text">
+      <span class="theinmag-floating-cart__confirm-title" data-fc-confirm-text>Added to your cart</span>
+      <span class="theinmag-floating-cart__confirm-meta" data-fc-confirm-meta></span>
+    </span>
+    {%- unless fc_on_cart -%}
+      <a href="{{ routes.cart_url }}" class="theinmag-floating-cart__confirm-view" data-fc-confirm-view>View cart</a>
+    {%- endunless -%}
+    <button type="button" class="theinmag-floating-cart__confirm-close" data-fc-confirm-close aria-label="Close and keep shopping">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="11" height="11" aria-hidden="true">
+        <line x1="3" y1="3" x2="11" y2="11"></line>
+        <line x1="11" y1="3" x2="3" y2="11"></line>
+      </svg>
+    </button>
   </div>
+  <span class="visually-hidden" data-fc-announce role="status" aria-live="polite"></span>
 </div>
 
 <style>
@@ -182,48 +214,194 @@
     pointer-events: none;
   }
 
-  /* Toast bubble sits ABOVE the pill on add. */
-  .theinmag-floating-cart__toast {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
+  /* Shopify's preview bar (PBarNextFrameWrapper, preview themes only)
+     sits over the bottom 60-70px. --fc-lift is measured in JS so the
+     pill and the add confirmation clear it; it is 0 on the live site. */
+  .theinmag-floating-cart {
+    bottom: calc(16px + var(--fc-lift, 0px) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* On /cart the "View cart" pill points at the page you are on. */
+  .theinmag-floating-cart.is-on-cart {
+    pointer-events: none;
+  }
+  .theinmag-floating-cart.is-on-cart .theinmag-floating-cart__pill,
+  .theinmag-floating-cart.is-on-cart .theinmag-floating-cart__close {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* While the add confirmation shows, it takes the pill's place. */
+  .theinmag-floating-cart__pill,
+  .theinmag-floating-cart__close {
+    transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+  .theinmag-floating-cart.is-confirming .theinmag-floating-cart__pill,
+  .theinmag-floating-cart.is-confirming .theinmag-floating-cart__close {
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* A fresh add wins over an empty or dismissed pill. */
+  .theinmag-floating-cart.is-confirming {
+    opacity: 1;
+    pointer-events: auto;
     transform: translateX(-50%);
-    display: inline-flex;
+  }
+
+  /* Add confirmation card. Anchored to the pill's bottom edge so it
+     reads as the pill growing, not a second float. */
+  .theinmag-floating-cart__confirm {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: min(380px, calc(100vw - 24px));
+    box-sizing: border-box;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    background: rgba(251, 246, 234, 0.96);
+    gap: 12px;
+    padding: 12px 12px 12px 14px;
+    background: var(--color-cream);
     color: var(--color-inky-purple-navy);
     border: 1.5px solid var(--color-soft-pink);
-    border-radius: 14px;
+    border-radius: var(--radius-lg, 20px);
     font-family: var(--font-body);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1;
-    box-shadow: 0 12px 28px rgba(42, 31, 61, 0.18);
+    box-shadow: 0 14px 36px rgba(42, 31, 61, 0.22), 0 2px 8px rgba(42, 31, 61, 0.08);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
-    white-space: nowrap;
-    pointer-events: none;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    visibility: hidden;
+    transform: translate(-50%, 10px);
+    transition: opacity 0.22s ease, transform 0.28s ease, visibility 0s linear 0.28s;
   }
-  .theinmag-floating-cart__toast:not([hidden]) {
+  .theinmag-floating-cart__confirm.is-open {
     opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+    transition: opacity 0.22s ease, transform 0.28s ease, visibility 0s;
   }
-  .theinmag-floating-cart__toast-check {
+  .theinmag-floating-cart__confirm-mark {
+    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 16px;
-    height: 16px;
+    width: 26px;
+    height: 26px;
     border-radius: 999px;
     background: var(--color-sage-dark);
     color: #fff;
-    font-size: 10px;
+  }
+  .theinmag-floating-cart__confirm.is-error .theinmag-floating-cart__confirm-mark {
+    background: var(--color-inky-purple-navy);
+  }
+  .theinmag-floating-cart__confirm-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .theinmag-floating-cart__confirm-title {
+    font-size: 14px;
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .theinmag-floating-cart__confirm-meta {
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--color-inky-purple-navy);
+    opacity: 0.78;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .theinmag-floating-cart__confirm-meta:empty {
+    display: none;
+  }
+  /* Yellow sticker, same press-down as .theinmag-btn--primary. The
+     ::after stretches the link over the whole card so a tap anywhere
+     on it opens the cart. */
+  .theinmag-floating-cart__confirm-view {
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    margin-right: 14px;
+    background: var(--color-yellow);
+    color: var(--color-inky-purple-navy);
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    border-radius: var(--radius-button, 32px);
+    box-shadow: var(--shadow-button-yellow);
+    transition: background-color 0.15s ease, color 0.15s ease, translate 0.15s ease, box-shadow 0.15s ease;
+  }
+  .theinmag-floating-cart__confirm-view::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .theinmag-floating-cart__confirm-view:hover,
+  .theinmag-floating-cart__confirm-view:focus-visible {
+    background: var(--color-purple-dark);
+    color: #fff;
+    translate: 0 2px;
+    box-shadow: var(--shadow-button-pressed, 0 2px 0 #4A2D62);
+    outline: none;
+  }
+  .theinmag-floating-cart__confirm-view:focus-visible {
+    box-shadow: 0 0 0 3px rgba(123, 79, 158, 0.5);
+  }
+  .theinmag-floating-cart__confirm.is-error .theinmag-floating-cart__confirm-view {
+    display: none;
+  }
+  /* Close: same dark corner dot as the pill's, sits above the stretched
+     link so it closes rather than navigates. */
+  .theinmag-floating-cart__confirm-close {
+    position: absolute;
+    top: -10px;
+    right: -8px;
+    z-index: 2;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: var(--color-inky-purple-navy);
+    color: #fff;
+    border: 2px solid rgba(251, 246, 234, 0.96);
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(42, 31, 61, 0.25);
+  }
+  .theinmag-floating-cart__confirm-close::before {
+    /* 44px hit area around the 28px dot. */
+    content: '';
+    position: absolute;
+    inset: -8px;
+  }
+  .theinmag-floating-cart__confirm-close:hover,
+  .theinmag-floating-cart__confirm-close:focus-visible {
+    background: var(--color-purple-dark);
+    outline: none;
+  }
+  .theinmag-floating-cart__confirm-close:focus-visible {
+    box-shadow: 0 0 0 3px rgba(123, 79, 158, 0.5), 0 4px 12px rgba(42, 31, 61, 0.25);
+  }
+  /* On /cart there is no View cart button, so no right gutter needed. */
+  .theinmag-floating-cart.is-on-cart .theinmag-floating-cart__confirm {
+    padding-right: 26px;
   }
 
   /* When the cart has items, hide the per-PDP "your order"
@@ -242,8 +420,14 @@
     .theinmag-floating-cart__pill {
       transition: none;
     }
-    .theinmag-floating-cart__toast {
-      transition: opacity 0.15s ease;
+    .theinmag-floating-cart__confirm,
+    .theinmag-floating-cart__confirm.is-open {
+      transform: translate(-50%, 0);
+      transition: opacity 0.15s ease, visibility 0s;
+    }
+    .theinmag-floating-cart__confirm-view:hover,
+    .theinmag-floating-cart__confirm-view:focus-visible {
+      translate: 0 0;
     }
   }
 </style>
@@ -267,10 +451,29 @@
       var countEl = pill.querySelector('[data-fc-count]');
       var nounEl = pill.querySelector('[data-fc-noun]');
       var totalEl = pill.querySelector('[data-fc-total]');
-      var toastEl = pill.querySelector('[data-fc-toast]');
-      var toastText = pill.querySelector('[data-fc-toast-text]');
+      var confirmEl = pill.querySelector('[data-fc-confirm]');
+      var confirmText = pill.querySelector('[data-fc-confirm-text]');
+      var confirmMeta = pill.querySelector('[data-fc-confirm-meta]');
+      var confirmClose = pill.querySelector('[data-fc-confirm-close]');
+      var confirmView = pill.querySelector('[data-fc-confirm-view]');
+      var announceEl = pill.querySelector('[data-fc-announce]');
       var closeBtn = pill.querySelector('[data-fc-close]');
-      var toastTimer;
+      var confirmTimer;
+      // Keyboard users: an add made from the keyboard moves focus to
+      // View cart (the card is at the end of the DOM, so they would
+      // never tab to it in 6s), and closing hands focus back.
+      var usingKeyboard = false;
+      var returnFocusEl = null;
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab' || e.key === 'Enter' || e.key === ' ') {
+          usingKeyboard = true;
+          var a = document.activeElement;
+          if (a && a !== document.body && !(confirmEl && confirmEl.contains(a))) returnFocusEl = a;
+        }
+      }, true);
+      document.addEventListener('pointerdown', function () { usingKeyboard = false; }, true);
+      var CONFIRM_MS = 6000;
+      var lastCart = null;
       var DISMISS_KEY = 'tim-fc-dismissed';
 
       function isDismissed() {
@@ -295,6 +498,7 @@
       function refresh(cart, opts) {
         if (!cart) return;
         opts = opts || {};
+        lastCart = cart;
         var count = cart.item_count || 0;
         var total = cart.total_price || 0;
         if (countEl) countEl.textContent = count;
@@ -318,15 +522,84 @@
         }
       }
 
-      function flashToast(message) {
-        if (!toastEl || !toastText) return;
-        toastText.textContent = message;
-        toastEl.removeAttribute('hidden');
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(function () {
-          toastEl.setAttribute('hidden', '');
-        }, 2200);
+      // Lift the floats clear of Shopify's preview bar (preview themes
+      // only; the element does not exist on the live storefront).
+      function measureLift() {
+        var bar = document.getElementById('PBarNextFrameWrapper');
+        var h = bar ? Math.round(bar.getBoundingClientRect().height) : 0;
+        pill.style.setProperty('--fc-lift', (h > 0 && h < 200 ? h : 0) + 'px');
       }
+      measureLift();
+      setTimeout(measureLift, 1500);
+      setTimeout(measureLift, 5000);
+
+      function hideConfirm() {
+        clearTimeout(confirmTimer);
+        if (!confirmEl) return;
+        var hadFocus = confirmEl.contains(document.activeElement);
+        confirmEl.classList.remove('is-open');
+        pill.classList.remove('is-confirming');
+        if (hadFocus) {
+          var back = (returnFocusEl && document.contains(returnFocusEl) && !returnFocusEl.disabled) ? returnFocusEl : pill.querySelector('[data-fc-pill]');
+          if (back && back.focus) back.focus({ preventScroll: true });
+        }
+      }
+      function armConfirmTimer(ms) {
+        clearTimeout(confirmTimer);
+        confirmTimer = setTimeout(hideConfirm, ms);
+      }
+
+      // The add confirmation: what was added, the running total and a
+      // View cart button. Takes the pill's place for CONFIRM_MS, then
+      // the pill (which also says View cart) comes back.
+      function showConfirm(message, opts) {
+        if (!confirmEl || !confirmText) return;
+        opts = opts || {};
+        measureLift();
+        confirmText.textContent = message;
+        var cart = opts.cart || lastCart;
+        var meta = (!opts.error && cart && typeof cart.item_count === 'number' && cart.item_count)
+          ? cart.item_count + (cart.item_count === 1 ? ' item' : ' items') + ' · ' + formatMoney(cart.total_price)
+          : '';
+        if (confirmMeta) confirmMeta.textContent = meta;
+        confirmEl.classList.toggle('is-error', !!opts.error);
+        pill.classList.add('is-confirming');
+        confirmEl.classList.add('is-open');
+        armConfirmTimer(CONFIRM_MS);
+        if (announceEl) {
+          // Clear then set on the next frame so a repeat of the same
+          // message is still read out.
+          announceEl.textContent = '';
+          var said = message + (meta ? '. In your cart: ' + meta.replace(' · ', ', ') + '.' : '');
+          setTimeout(function () { announceEl.textContent = said; }, 60);
+        }
+        if (usingKeyboard && confirmView && !opts.error) {
+          setTimeout(function () { confirmView.focus({ preventScroll: true }); }, 30);
+        }
+      }
+      function addedMessage(title) {
+        var pretty = String(title || 'Item').replace(/^theINmag\s*[-\u2013]\s*/i, '');
+        return pill.classList.contains('is-on-cart') ? pretty + ' added to your cart' : pretty + ' added';
+      }
+
+      if (confirmEl) {
+        // Hold the card open while someone is pointing at or tabbing
+        // through it; give them a few seconds once they move away.
+        confirmEl.addEventListener('mouseenter', function () { clearTimeout(confirmTimer); });
+        confirmEl.addEventListener('focusin', function () { clearTimeout(confirmTimer); });
+        confirmEl.addEventListener('mouseleave', function () {
+          if (confirmEl.classList.contains('is-open')) armConfirmTimer(3000);
+        });
+        confirmEl.addEventListener('focusout', function (e) {
+          if (confirmEl.classList.contains('is-open') && !confirmEl.contains(e.relatedTarget)) armConfirmTimer(3000);
+        });
+      }
+      if (confirmClose) {
+        confirmClose.addEventListener('click', hideConfirm);
+      }
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && confirmEl && confirmEl.classList.contains('is-open')) hideConfirm();
+      });
 
       // Wire the dismiss button + restore the dismissed state from the
       // session. Body class mirrors the pill state so the flyout
@@ -350,11 +623,20 @@
           if (!event) return;
           var cart = event.cartData;
           var title = event.productTitle || (cart && cart.product_title) || '';
-          if (cart) refresh(cart, { newAdd: !!title });
-          if (title) {
-            var pretty = title.replace(/^theINmag\s*[-–]\s*/i, '');
-            flashToast(pretty + ' added to your cart');
+          if (cart && typeof cart.item_count !== 'number') {
+            // Not a full cart (Dawn's product-form sends the add.js line
+            // item). Fetch the real cart before touching the pill.
+            fetch('/cart.js', { headers: { Accept: 'application/json' } })
+              .then(function (r) { return r.json(); })
+              .then(function (full) {
+                refresh(full, { newAdd: !!title });
+                if (title) showConfirm(addedMessage(title), { cart: full });
+              })
+              .catch(function () { if (title) showConfirm(addedMessage(title)); });
+            return;
           }
+          if (cart) refresh(cart, { newAdd: !!title });
+          if (title) showConfirm(addedMessage(title), { cart: cart });
         });
       }
 
@@ -404,7 +686,7 @@
                   });
                 } else {
                   refresh(cart, { newAdd: true });
-                  flashToast((addResponse.product_title || 'Item').replace(/^theINmag\s*[-–]\s*/i, '') + ' added to your cart');
+                  showConfirm(addedMessage(addResponse.product_title), { cart: cart });
                 }
                 if (btn) {
                   if (label) label.textContent = 'Added ✓';
@@ -416,7 +698,7 @@
               });
           })
           .catch(function () {
-            flashToast('Could not add to cart. Try again.');
+            showConfirm('Could not add that to your cart. Try again.', { error: true });
             if (btn) {
               btn.disabled = false;
               var label = btn.querySelector('[data-cta-label]');

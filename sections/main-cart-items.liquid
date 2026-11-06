@@ -241,6 +241,16 @@
                           <li class="discounts__discount">
                             {{- 'icon-discount.svg' | inline_asset_content -}}
                             {{ discount.discount_application.title | escape }}
+                            {%- if discount.discount_application.type == 'discount_code' -%}
+                              <button
+                                type="button"
+                                class="theinmag-code-remove"
+                                data-theinmag-code-remove
+                                aria-label="Remove code {{ discount.discount_application.title | escape }}"
+                              >
+                                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                              </button>
+                            {%- endif -%}
                           </li>
                         {%- endfor -%}
                       </ul>
@@ -525,6 +535,53 @@
     {% render 'theinmag-cart-presale-combine' %}
   </div>
 </cart-items>
+
+{%- comment -%}
+  Remove-code X on a line's discount tag (2026-11-06, Ryan: a stockist
+  code such as IN-ALESI stuck to the cart with no way off). Clears the
+  code and the stockist cart attributes, then reloads. Only codes get the
+  X; automatic Bundle discounts cannot be removed. Delegated on document
+  because Dawn re-renders the cart lines. KNOWN LIMIT: a checkout session
+  that already had the code applied keeps it (Shopify stores it there);
+  the code's own x inside checkout removes it. A background fetch of
+  /checkout?discount= does NOT clear it (tested 6 Nov).
+{%- endcomment -%}
+<style>
+  .theinmag-code-remove {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin: -6px 0 -6px 4px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    cursor: pointer;
+    vertical-align: middle;
+  }
+  .theinmag-code-remove:hover { background: var(--color-lavender, #E8DEEF); }
+  .theinmag-code-remove:focus-visible { outline: 3px solid var(--color-purple-dark, #5D3A7A); outline-offset: 2px; }
+</style>
+<script>
+  (function () {
+    if (window.__theinmagCodeRemove) return;
+    window.__theinmagCodeRemove = true;
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('[data-theinmag-code-remove]');
+      if (!btn) return;
+      e.preventDefault();
+      btn.disabled = true;
+      fetch('/cart/update.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ discount: '', attributes: { _stockist_code: '', _pay_by_invoice: '' } })
+      }).then(function () { window.location.reload(); })
+        .catch(function () { btn.disabled = false; });
+    });
+  })();
+</script>
 
 {% schema %}
 {

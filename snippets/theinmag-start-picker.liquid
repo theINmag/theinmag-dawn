@@ -143,6 +143,16 @@
     assign sp_old_cover = sp_prev_cover
   endif
   assign sp_teaser = 'next-issue-teaser.jpg' | asset_url
+  comment
+    Placeholder for the NEXT tile until its real cover exists: Mag02's
+    cover, blurred (green and blue budgies), so it never looks like the
+    current issue sitting beside it (Ryan, 2026-11-06). Falls back to the
+    current cover only if Mag02 has no image.
+  endcomment
+  assign sp_next_placeholder = all_products['mag02'].featured_image
+  if sp_next_placeholder == blank
+    assign sp_next_placeholder = sp_cur_cover
+  endif
 
   comment
     Start mode. Days to the drop are rounded to nearest (the +43200 absorbs
@@ -262,7 +272,7 @@
 
       {%- comment -%}
         NEXT: real cover once the product exists, otherwise the teaser
-        asset, otherwise a blurred current cover. The teaser <img> hides
+        asset, otherwise a blurred placeholder (Mag02's cover). The teaser <img> hides
         itself on a 404 so the blurred fallback underneath shows.
       {%- endcomment -%}
       <button type="button" class="theinmag-start-picker__tile" data-tile data-issue="{{ sp_next }}" aria-pressed="false">
@@ -271,8 +281,8 @@
             <img src="{{ sp_next_cover | image_url: width: 480 }}" width="480" height="627" alt="{{ sp_next }} cover" loading="eager" fetchpriority="low">
           {%- else -%}
             <img src="{{ sp_teaser }}" width="480" height="627" alt="" loading="eager" fetchpriority="low" onerror="this.hidden=true;this.onerror=null;" style="position:absolute;inset:0;filter:none;transform:none;z-index:1;">
-            {%- if sp_cur_cover != blank -%}
-              <img src="{{ sp_cur_cover | image_url: width: 480 }}" width="480" height="627" alt="" loading="eager" fetchpriority="low" aria-hidden="true">
+            {%- if sp_next_placeholder != blank -%}
+              <img src="{{ sp_next_placeholder | image_url: width: 480 }}" width="480" height="627" alt="" loading="eager" fetchpriority="low" aria-hidden="true">
             {%- endif -%}
           {%- endif -%}
           <span class="theinmag-start-picker__coming" aria-hidden="true">{{ sp_release_short }}</span>
