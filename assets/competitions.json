@@ -1,89 +1,6 @@
 {
   "competitions": [
     {
-      "id": "qvmag-artstart",
-      "name": "ArtStart at the Queen Victoria Museum and Art Gallery",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "",
-      "status": "Confirmed 2026, open now",
-      "pitch": "For 25 years, teachers across Northern Tasmania have sent in student art. Selected pieces are hung, professionally presented, in a real museum gallery.",
-      "when": "Entries close late October, exhibition opens mid December",
-      "closing_date_2026": "2026-10-30",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
-      "where": "TAS (Northern Tasmania)",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12"
-      ],
-      "states": [
-        "tas",
-        "regional-only"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "school-entry"
-      ],
-      "website": "https://www.qvmag.tas.gov.au/Learn/Schools-educators/Art-competitions",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "A",
-      "logo_filename": "comp-logo-qvmag-artstart.jpg",
-      "audience": "all",
-      "description": "Original artwork on the exhibition theme, selected for a curated gallery show",
-      "who": "Kindergarten to Grade 6 students across Northern Tasmania, submitted by their teacher"
-    },
-    {
-      "id": "save-the-frogs",
-      "name": "Save The Frogs! Art Contest",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "International",
-      "status": "Confirmed 2026",
-      "pitch": "Frog conservation through art. Open to all ages and free to enter, so Aussie kids are welcome. Quirky, niche and surprisingly popular.",
-      "when": "Closes 1 November",
-      "closing_date_2026": "2026-11-01",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
-      "where": "International",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art",
-        "environment"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://savethefrogs.com/art/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "S",
-      "logo_filename": "comp-logo-save-the-frogs.jpg",
-      "audience": "all",
-      "description": "Frog-themed artwork on conservation",
-      "who": "Kids globally (junior and student categories)"
-    },
-    {
       "id": "nspc",
       "name": "National Schools Poster Competition (NSPC)",
       "category": "Social Good",
@@ -94,7 +11,7 @@
       "when": "Closes 10 November",
       "closing_date_2026": "2026-11-10",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -126,6 +43,51 @@
       "who": "Students Years 3-12 (multiple stages)"
     },
     {
+      "id": "elements-21st-century",
+      "name": "Elements of the 21st Century (ANSTO)",
+      "category": "STEM",
+      "category_slug": "stem",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Pick an element, then design its periodic table tile showing how we use it today. Hand-drawn or digital, from home or school. Run by ANSTO, with prize packs to win.",
+      "when": "Closes 20 November",
+      "closing_date_2026": "2026-11-20",
+      "opening_date_2026": "2026-09-28",
+      "schema_start_date": "2026-09-28",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "science",
+        "stem",
+        "art"
+      ],
+      "format": [
+        "online",
+        "school-entry",
+        "individual-entry"
+      ],
+      "website": "https://www.ansto.gov.au/education/competitions/elements-21st-century",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "live-now",
+      "first_letter": "E",
+      "logo_filename": "comp-logo-elements-21st-century.png",
+      "audience": "all",
+      "description": "Design a periodic table tile showing a modern use of an element, plus a short paragraph",
+      "who": "Primary and high school students, Foundation to Year 12"
+    },
+    {
       "id": "flickerfest-flickerup",
       "name": "Flickerfest FlickerUp (Australian National Youth Competition)",
       "category": "Photography & Film",
@@ -136,7 +98,7 @@
       "when": "FlickerUp entries close 23 November, festival January 2027 at Bondi",
       "closing_date_2026": "2026-11-23",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Paid - USD $17 per film",
       "cost_slug": "paid",
@@ -178,7 +140,7 @@
       "when": "Entries close 26 November",
       "closing_date_2026": "2026-11-26",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -249,6 +211,49 @@
       "audience": "all",
       "description": "Artwork on an aspect of Australia that matters to you",
       "who": "Gladstone region primary students, Prep to Year 6"
+    },
+    {
+      "id": "toyota-dream-car",
+      "name": "Toyota Dream Car Art Contest",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "",
+      "status": "Confirmed 2026",
+      "pitch": "Draw or paint your dream car by hand, then upload a photo. Winner and school each get a $2,500 gift card. Toyota keeps the rights to every entry.",
+      "when": "14 September to 18 December",
+      "closing_date_2026": "2026-12-18",
+      "opening_date_2026": "2026-09-14",
+      "schema_start_date": "2026-09-14",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art",
+        "design"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.toyota.com.au/explore/community/trust/projects/dreamcar",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "live-now",
+      "first_letter": "T",
+      "logo_filename": "comp-logo-toyota-dream-car.png",
+      "audience": "all",
+      "description": "Draw or paint your dream car by hand on A4 to A3 paper, then upload a scan or photo",
+      "who": "Australian residents aged 15 and under"
     },
     {
       "id": "live-well-die-well-art-prize",
@@ -335,6 +340,93 @@
       "who": "Kids 18 and under"
     },
     {
+      "id": "stem-birds-coding",
+      "name": "STEM Birds Australian Coding Competition",
+      "category": "STEM",
+      "category_slug": "stem",
+      "sub_category": "",
+      "status": "Confirmed 2027 round; open now, projects due 15 January 2027",
+      "pitch": "Code something for an Australian endangered species, from a Scratch Jr story at 5 to Python Turtle at 15. Winners get a 3D printed trophy and a STEM kit.",
+      "when": "Projects due 15 January 2027; winners announced 15 February 2027",
+      "closing_date_2026": "2027-01-15",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-11-03",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "coding",
+        "stem",
+        "animation",
+        "design"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://www.stembirds.com.au/stem-birds-australian-coding-competition",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "live-now",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-stem-birds-coding.png",
+      "audience": "all",
+      "description": "Kids code an animation, game, 3D design or Python program about protecting an Australian endangered species.",
+      "who": "Kids aged 5 to 15 living in Australia, individual entries"
+    },
+    {
+      "id": "sydney-easter-show",
+      "name": "Sydney Royal Easter Show - Junior Arts & Crafts",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "Royal Show",
+      "status": "Confirmed 2026",
+      "pitch": "Australia's biggest creativity showcase, running since 1869. Hundreds of junior classes, and winning entries hang in the Arts & Crafts Pavilion.",
+      "when": "Entries open November 2026, close 1 February 2027",
+      "closing_date_2026": "2027-02-01",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-11-03",
+      "where": "National (NSW)",
+      "cost_raw": "Paid (entry fees)",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "postal",
+        "individual-entry"
+      ],
+      "website": "https://www.rasnsw.com.au/competitions/arts-and-crafts/arts-and-crafts-details/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "live-now",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-sydney-easter-show.jpg",
+      "audience": "all",
+      "description": "500+ competition categories - art, photography, pottery, cake decorating, woodwork, quilting, knitting, soft toys",
+      "who": "Aussie kids - junior categories across all ages (typically 5+ to 18)"
+    },
+    {
       "id": "aca-cartoon-prize",
       "name": "Australian Cartoonists Association Prize (in theINmag)",
       "category": "Art",
@@ -345,7 +437,7 @@
       "when": "Every issue, year-round",
       "closing_date_2026": "Rolling",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -387,7 +479,7 @@
       "when": "Year-round Open Call",
       "closing_date_2026": "Year-round",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "International",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -419,52 +511,6 @@
       "who": "Anyone, any age"
     },
     {
-      "id": "premiers-reading",
-      "name": "State Premier's Reading Challenges",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "Reading",
-      "status": "Confirmed 2026",
-      "pitch": "Not a competition, a challenge. Read books from your state's list and earn a certificate signed by the Premier. A big motivator for reluctant readers.",
-      "when": "Term 1 to Term 3 (varies by state)",
-      "closing_date_2026": "Varies",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
-      "where": "NSW, QLD, VIC, WA, SA, TAS",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "nsw",
-        "qld",
-        "vic",
-        "wa",
-        "sa",
-        "tas"
-      ],
-      "fields": [
-        "reading"
-      ],
-      "format": [
-        "school-entry"
-      ],
-      "website": "https://online.education.nsw.gov.au/prc/home.html",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "live-now",
-      "first_letter": "S",
-      "logo_filename": "comp-logo-premiers-reading.jpg",
-      "audience": "all",
-      "description": "Read a set number of books from approved booklists",
-      "who": "All students K-Year 10 (varies by state)"
-    },
-    {
       "id": "theinmag-send-in",
       "name": "theINmag - publishing real creative kids",
       "category": "Everything",
@@ -475,7 +521,7 @@
       "when": "Open all year round",
       "closing_date_2026": "Rolling",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -511,48 +557,6 @@
       "who": "Aussie kids up to 16, every state and territory"
     },
     {
-      "id": "sydney-easter-show",
-      "name": "Sydney Royal Easter Show - Junior Arts & Crafts",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Royal Show",
-      "status": "Confirmed 2026",
-      "pitch": "Australia's biggest creativity showcase, running since 1869. Hundreds of junior classes, and winning entries hang in the Arts & Crafts Pavilion.",
-      "when": "Entries open November 2026, close 1 February 2027",
-      "closing_date_2026": "2027-02-01",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
-      "where": "National (NSW)",
-      "cost_raw": "Paid (entry fees)",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "art"
-      ],
-      "format": [
-        "postal",
-        "individual-entry"
-      ],
-      "website": "https://www.rasnsw.com.au/competitions/arts-and-crafts/arts-and-crafts-details/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "later",
-      "first_letter": "S",
-      "logo_filename": "comp-logo-sydney-easter-show.jpg",
-      "audience": "all",
-      "description": "500+ competition categories - art, photography, pottery, cake decorating, woodwork, quilting, knitting, soft toys",
-      "who": "Aussie kids - junior categories across all ages (typically 5+ to 18)"
-    },
-    {
       "id": "vsff-junior",
       "name": "Very Short Film Festival - Junior Category (VSFF)",
       "category": "Photography & Film",
@@ -585,12 +589,98 @@
       "website": "https://veryshortfilmfestival.com.au/school-film-competition/",
       "cross_tier": "N/A",
       "cross_signal": "",
-      "tile_state": "later",
+      "tile_state": "opens-soon",
       "first_letter": "V",
       "logo_filename": "comp-logo-vsff-junior.png",
       "audience": "all",
       "description": "Short film of 2 to 5 minutes incorporating the annual signature (2027 signature announced 1 November 2026)",
       "who": "Australian filmmakers aged 18 and under"
+    },
+    {
+      "id": "ras-ab-paterson-bush-poetry",
+      "name": "RAS AB Paterson Bush Poetry Award",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "Royal Show",
+      "status": "Confirmed 2027 round, entries open now",
+      "pitch": "Write an original bush poem of up to 50 lines. Primary and secondary categories, and winners are presented at the Sydney Royal Easter Show.",
+      "when": "Entries open now, close 5 February 2027; winners presented at the Sydney Royal Easter Show",
+      "closing_date_2026": "2027-02-05",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-11-03",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "writing",
+        "poetry"
+      ],
+      "format": [
+        "school-entry",
+        "individual-entry"
+      ],
+      "website": "https://www.rasnsw.com.au/education/ras-ab-paterson-bush-poetry-award/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "later",
+      "first_letter": "R",
+      "logo_filename": "comp-logo-ras-ab-paterson-bush-poetry.svg",
+      "audience": "all",
+      "description": "An original poem of 50 lines or fewer with a clearly recognisable Australian bush theme",
+      "who": "All school-aged Australian poets, Primary (K to 6) and Secondary (Years 7 to 12)"
+    },
+    {
+      "id": "dorothea-mackellar",
+      "name": "Dorothea Mackellar Poetry Awards",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "",
+      "status": "2027 round opens 1 March 2027 (organiser email)",
+      "pitch": "One of Australia's longest-running kids' poetry comps, named for the writer of My Country. Cash prizes, plus an annual anthology of the best poems.",
+      "when": "Opens 1 March 2027, closing date to be confirmed",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "2027-03-01",
+      "schema_start_date": "2027-03-01",
+      "where": "National",
+      "cost_raw": "Paid (small fee)",
+      "cost_slug": "paid",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "writing",
+        "poetry"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://dorothea.com.au/entry-information/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "later",
+      "first_letter": "D",
+      "logo_filename": "comp-logo-dorothea-mackellar.jpg",
+      "audience": "all",
+      "description": "Poem max 80 lines, any subject (optional theme)",
+      "who": "Aussie students K-Year 12"
     },
     {
       "id": "harmony-day-poster",
@@ -603,7 +693,7 @@
       "when": "2027 round closes 26 April 2027; online entries not yet open",
       "closing_date_2026": "2027-04-26",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -644,14 +734,16 @@
       "when": "Online entries close late July, sat early August",
       "closing_date_2026": "2027-07-30",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National (and international)",
       "cost_raw": "Paid (school entry)",
       "cost_slug": "paid",
       "ages": [
+        "ages-4-6",
         "ages-7-9",
         "ages-10-12",
-        "ages-13-16"
+        "ages-13-16",
+        "all-ages"
       ],
       "states": [
         "national"
@@ -671,7 +763,7 @@
       "logo_filename": "comp-logo-amc.svg",
       "audience": "all",
       "description": "60-minute maths problem-solving exam",
-      "who": "Students Years 3-12 in 5 divisions"
+      "who": "Students Years 1-12; an Early Primary division (Years 1 and 2) joins from 2027"
     },
     {
       "id": "apsmo-olympiad",
@@ -679,12 +771,12 @@
       "category": "STEM",
       "category_slug": "stem",
       "sub_category": "",
-      "status": "Confirmed 2026, registrations closed; 2027 opens early November",
+      "status": "Confirmed 2026, registrations closed; 2027 registrations open",
       "pitch": "For high-achieving students who love a challenge! In-class problem solving competitions comprising 4 contests, 5 questions each and no calculators allowed.",
       "when": "Registrations November to April, contests Term 2 and 3",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National (and NZ)",
       "cost_raw": "Paid (school entry)",
       "cost_slug": "paid",
@@ -714,6 +806,50 @@
       "who": "High-achieving Years 5 and 6, or Years 7 and 8, students entered in teams by their school"
     },
     {
+      "id": "school-science-eureka",
+      "name": "Australian Museum School Science Eureka Prize",
+      "category": "STEM",
+      "category_slug": "stem",
+      "sub_category": "",
+      "status": "Annual; 2026 round closed 16 April 2026, 2027 dates not yet published",
+      "pitch": "Make a film of two minutes or less that explains one science idea, solo or in a team of up to six. Prizes reach $3,000, shared with your school.",
+      "when": "Usually opens February, closes mid April",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-11-03",
+      "where": "National",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "science",
+        "stem",
+        "film"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://australian.museum/get-involved/eureka-prizes/enter/school-science-eureka-prize/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "tbc",
+      "first_letter": "A",
+      "logo_filename": "comp-logo-school-science-eureka.png",
+      "audience": "all",
+      "description": "Kids make a film of up to 2 minutes that explains a science idea on that year's theme.",
+      "who": "Primary and secondary school students in Australia, including home-schooled, alone or in teams of up to six"
+    },
+    {
       "id": "childrens-rights-qld",
       "name": "Children's Rights Queensland Art Competition",
       "category": "Art",
@@ -724,7 +860,7 @@
       "when": "Annually",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "QLD",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -751,7 +887,7 @@
       "cross_signal": "",
       "tile_state": "tbc",
       "first_letter": "C",
-      "logo_filename": "comp-logo-childrens-rights-qld.jpg",
+      "logo_filename": "comp-logo-childrens-rights-qld.png",
       "audience": "all",
       "description": "Artwork on rights/respect/love themes",
       "who": "Queensland kids and young people"
@@ -767,7 +903,7 @@
       "when": "Season runs August-April",
       "closing_date_2026": "Aug-Apr",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National (and global)",
       "cost_raw": "Paid (team registration)",
       "cost_slug": "paid",
@@ -800,49 +936,6 @@
       "who": "Explore (6-10), Challenge (9-16), Future Edition (8-16)"
     },
     {
-      "id": "nsw-childrens-week",
-      "name": "NSW Children's Week Art Competition",
-      "category": "Art",
-      "category_slug": "art",
-      "sub_category": "Civic",
-      "status": "Annual unconfirmed",
-      "pitch": "Run by the NSW Advocate for Children and Young People, with themes built around children's rights. Group entries are welcome, three age categories.",
-      "when": "Mid-October",
-      "closing_date_2026": "TBC",
-      "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
-      "where": "NSW",
-      "cost_raw": "Free",
-      "cost_slug": "free",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "nsw"
-      ],
-      "fields": [
-        "art",
-        "culture"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://www.acyp.nsw.gov.au/get-involved/childrens-week-art-competition",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "tbc",
-      "first_letter": "N",
-      "logo_filename": "comp-logo-nsw-childrens-week.jpg",
-      "audience": "all",
-      "description": "Portrait of someone who champions children's rights",
-      "who": "Children and young people up to 18 living in NSW"
-    },
-    {
       "id": "sf3-kids",
       "name": "SF3 Kids (SmartFone Flick Fest)",
       "category": "Photography & Film",
@@ -853,7 +946,7 @@
       "when": "Entries close early September, SF3 Kids finals at the Sydney Opera House in early November",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National (and international)",
       "cost_raw": "Paid - $25 per film (SF3 Kids rate)",
       "cost_slug": "paid",
@@ -895,7 +988,7 @@
       "when": "Annually around October-November",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -935,7 +1028,7 @@
       "when": "Entries close in Term 4; winners presented at the Climate Choices Schools Awards in early December",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "ACT",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -966,17 +1059,60 @@
       "who": "ACT kids from preschool to Year 6 at an ACT school, or homeschooled and living in the ACT"
     },
     {
+      "id": "premiers-reading-vic",
+      "name": "Victorian Premiers' Reading Challenge",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "Reading",
+      "status": "2026 Challenge closed; 2027 dates not yet stated",
+      "pitch": "Not a competition, a challenge. Victorian kids from birth to Year 10 read and record books. For schools, early childhood services and home readers.",
+      "when": "2026 Challenge closed, 2027 dates to come",
+      "closing_date_2026": "TBC",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-11-03",
+      "where": "VIC",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "vic"
+      ],
+      "fields": [
+        "reading"
+      ],
+      "format": [
+        "online",
+        "school-entry",
+        "individual-entry"
+      ],
+      "website": "https://www.vic.gov.au/premiers-reading-challenge",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "tbc",
+      "first_letter": "V",
+      "logo_filename": "comp-logo-premiers-reading-vic.png",
+      "audience": "all",
+      "description": "Read a set number of books, mostly from the Challenge book list, and track them",
+      "who": "All children in Victoria from birth to Year 10"
+    },
+    {
       "id": "wakakirri",
       "name": "Wakakirri National Story-Dance Festival",
       "category": "Performance",
       "category_slug": "performance",
       "sub_category": "",
-      "status": "Confirmed 2026",
+      "status": "Confirmed 2027, registrations open",
       "pitch": "300,000+ students have told a story through dance, drama and music at Australia's national story-dance festival, live in professional theatres or on video.",
       "when": "Performances in Term 3",
       "closing_date_2026": "End of Term 1",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Paid (school entry)",
       "cost_slug": "paid",
@@ -1055,7 +1191,7 @@
       "category_slug": "stem",
       "sub_category": "",
       "status": "Confirmed annual since 1981; 2026 registrations closed 17 May, 2027 topics out December 2026",
-      "pitch": "South Australian kids, Reception to Year 12, enter a model, invention, game or app in awards run since 1981. Cash prizes up to $500; the entry stays yours.",
+      "pitch": "Build it, break it, fix it, enter it. Kids turn a wild idea into a real model, invention, game or app, and the best ones win up to $500.",
       "when": "Registrations open mid January and close mid May; projects due June to early August",
       "closing_date_2026": "2026-05-17",
       "opening_date_2026": "2026-01-13",
@@ -1081,8 +1217,7 @@
         "photography"
       ],
       "format": [
-        "school-entry",
-        "individual-entry"
+        "school-entry"
       ],
       "website": "https://www.oliphantscienceawards.com.au/",
       "cross_tier": "N/A",
@@ -1093,6 +1228,49 @@
       "audience": "all",
       "description": "A science project in one of ten categories, including models and inventions, posters, photography, science writing, games, and programming, apps and robotics",
       "who": "South Australian school students, Reception to Year 12, in all sectors"
+    },
+    {
+      "id": "premiers-reading-sa",
+      "name": "South Australian Premier's Reading Challenge",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "Reading",
+      "status": "2026 reading concluded 4 September; 2027 dates not yet stated",
+      "pitch": "Not a competition, a challenge. South Australian students read, keep a Reading Record and earn certificates and medals. Home-educated kids join too.",
+      "when": "27 January to 4 September in 2026",
+      "closing_date_2026": "2026-09-04",
+      "opening_date_2026": "2026-01-27",
+      "schema_start_date": "2026-01-27",
+      "where": "SA",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "sa"
+      ],
+      "fields": [
+        "reading"
+      ],
+      "format": [
+        "online",
+        "school-entry",
+        "individual-entry"
+      ],
+      "website": "https://premiersreadingchallenge.sa.edu.au/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-premiers-reading-sa.png",
+      "audience": "all",
+      "description": "Read books and keep a Student Reading Record",
+      "who": "South Australian students, including home-educated and individual students"
     },
     {
       "id": "spencil-art-prize",
@@ -1126,7 +1304,7 @@
         "online",
         "individual-entry"
       ],
-      "website": "https://spencil.com.au/artprize/",
+      "website": "https://spencil.com.au/pages/art-prize",
       "cross_tier": "Tier 1",
       "cross_signal": "🟢",
       "tile_state": "annual-again",
@@ -1179,13 +1357,55 @@
       "who": "Aussie kids 5-18 in 4 age categories"
     },
     {
+      "id": "premiers-reading",
+      "name": "NSW Premier's Reading Challenge",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "Reading",
+      "status": "2026 challenge closed 18 September; 2027 dates not yet stated",
+      "pitch": "Not a competition, a challenge. NSW kids from Kindergarten to Year 10 read from the PRC booklists and keep a reading log. Home-schooled kids can sign up too.",
+      "when": "23 February to 18 September in 2026",
+      "closing_date_2026": "2026-09-18",
+      "opening_date_2026": "2026-02-23",
+      "schema_start_date": "2026-02-23",
+      "where": "NSW",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "nsw"
+      ],
+      "fields": [
+        "reading"
+      ],
+      "format": [
+        "school-entry",
+        "individual-entry"
+      ],
+      "website": "https://online.education.nsw.gov.au/prc/home.html",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "N",
+      "logo_filename": "comp-logo-premiers-reading.png",
+      "audience": "all",
+      "description": "Read books from the PRC booklists and keep a reading log",
+      "who": "All NSW students from Kindergarten to Year 10, including home-schooled students, who can register with the PRC themselves"
+    },
+    {
       "id": "think-science",
       "name": "Think Science! Competition (ANSTO)",
       "category": "STEM",
       "category_slug": "stem",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "Run by ANSTO, Australia's nuclear science organisation. Free to enter, with generous prizes for winning schools. Particularly strong at primary level.",
+      "pitch": "Run by ANSTO, Australia's nuclear science organisation. Generous prizes for winning schools. Particularly strong at primary level.",
       "when": "Submissions close 3 July",
       "closing_date_2026": "2026-07-03",
       "opening_date_2026": "2026-02-09",
@@ -1213,7 +1433,7 @@
       "cross_signal": "",
       "tile_state": "annual-again",
       "first_letter": "T",
-      "logo_filename": "comp-logo-think-science.jpg",
+      "logo_filename": "comp-logo-think-science.png",
       "audience": "all",
       "description": "Science inquiry project",
       "who": "Students Years 3-10"
@@ -1302,49 +1522,6 @@
       "who": "Kids 5-15 in three age groups, living in City of Karratha or surrounding regional WA towns"
     },
     {
-      "id": "dorothea-mackellar",
-      "name": "Dorothea Mackellar Poetry Awards",
-      "category": "Writing",
-      "category_slug": "writing",
-      "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "One of Australia's longest-running kids' poetry comps, named for the writer of My Country. Cash prizes, plus an annual anthology of the best poems.",
-      "when": "Closes 30 June",
-      "closing_date_2026": "2026-06-30",
-      "opening_date_2026": "2026-03-01",
-      "schema_start_date": "2026-03-01",
-      "where": "National",
-      "cost_raw": "Paid (small fee)",
-      "cost_slug": "paid",
-      "ages": [
-        "ages-4-6",
-        "ages-7-9",
-        "ages-10-12",
-        "ages-13-16",
-        "all-ages"
-      ],
-      "states": [
-        "national"
-      ],
-      "fields": [
-        "writing",
-        "poetry"
-      ],
-      "format": [
-        "online",
-        "individual-entry"
-      ],
-      "website": "https://dorothea.com.au/entry-information/",
-      "cross_tier": "N/A",
-      "cross_signal": "",
-      "tile_state": "annual-again",
-      "first_letter": "D",
-      "logo_filename": "comp-logo-dorothea-mackellar.jpg",
-      "audience": "all",
-      "description": "Poem max 80 lines, any subject (optional theme)",
-      "who": "Aussie students K-Year 12"
-    },
-    {
       "id": "furphy-junior",
       "name": "Furphy Junior and Youth Literary Award",
       "category": "Writing",
@@ -1393,7 +1570,7 @@
       "category_slug": "writing",
       "sub_category": "Spelling",
       "status": "Confirmed 2026",
-      "pitch": "The classic spoken spelling bee for NSW Years 3 to 6. Kids progress from class to school to regionals, with State Finals held at Penrith.",
+      "pitch": "The classic spoken spelling bee for NSW public schools, Years 3 to 6. Kids progress from class to school to regionals, with State Finals held at Penrith.",
       "when": "Enrolment 2 March to 5 June, State Final 6 November",
       "closing_date_2026": "2026-06-05",
       "opening_date_2026": "2026-03-02",
@@ -1419,10 +1596,10 @@
       "cross_signal": "",
       "tile_state": "annual-again",
       "first_letter": "N",
-      "logo_filename": "comp-logo-nsw-spelling-bee.jpg",
+      "logo_filename": "comp-logo-nsw-spelling-bee.png",
       "audience": "all",
       "description": "Spoken spelling competition",
-      "who": "NSW students Years 3-6 (Junior and Senior categories)"
+      "who": "Years 3 to 6 at NSW public, community and central schools (Junior and Senior categories)"
     },
     {
       "id": "nsw-writeon",
@@ -1431,7 +1608,7 @@
       "category_slug": "writing",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "Run by the NSW Department of Education with the State Library. Winning stories are published in the Best of WriteOn anthology, kids' words in print.",
+      "pitch": "Kids in Years 1 to 6 write a story of up to 500 words from a shared prompt. Run by NESA with the State Library. Winners go in the Best of WriteOn anthology.",
       "when": "Opens 23 March, closes 19 June",
       "closing_date_2026": "2026-06-19",
       "opening_date_2026": "2026-03-23",
@@ -1550,6 +1727,47 @@
       "audience": "all",
       "description": "Any format - poetry, prose, comics - up to 2,000 words or 6 A4 pages",
       "who": "WA students Years 4-12 in three categories (Junior 4-6, Middle 7-8, Senior 9-12)"
+    },
+    {
+      "id": "premiers-reading-wa",
+      "name": "Western Australia Premier's Reading Challenge",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "Reading",
+      "status": "2026 challenge ran 23 March to 12 June; 2027 information still to come",
+      "pitch": "Not a competition, a challenge. WA students from Kindergarten to Year 12 log their reading for a chance at weekly prizes, with top students and schools rewarded too.",
+      "when": "23 March to 12 June in 2026",
+      "closing_date_2026": "2026-06-12",
+      "opening_date_2026": "2026-03-23",
+      "schema_start_date": "2026-03-23",
+      "where": "WA",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "wa"
+      ],
+      "fields": [
+        "reading"
+      ],
+      "format": [
+        "online"
+      ],
+      "website": "https://www.premiersreadingchallenge.wa.edu.au/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "W",
+      "logo_filename": "comp-logo-premiers-reading-wa.png",
+      "audience": "all",
+      "description": "Log your reading for a chance to win weekly prizes",
+      "who": "All WA students from Kindergarten to Year 12"
     },
     {
       "id": "cya-hatchlings",
@@ -1681,7 +1899,7 @@
       "category_slug": "writing",
       "sub_category": "",
       "status": "Confirmed annual; 2026 entries closed 25 September, 2027 dates not yet published",
-      "pitch": "Write a nature poem of 20 lines or fewer and a tree gets planted for it. Shortlisted and winning poems go into a digital library.",
+      "pitch": "Write a nature poem and plant a tree. Shortlisted and winning poems are published in The Poetry Company's digital library and could win up to $2,000 in prizes.",
       "when": "Opens late April (Earth Day), closes late September",
       "closing_date_2026": "2026-09-25",
       "opening_date_2026": "2026-04-22",
@@ -1723,7 +1941,7 @@
       "category_slug": "writing",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "Live or study in WA's Midwest? Writers in Years 3 to 12 can win cash for prose and poetry, and a perpetual trophy goes on display at the winner's school.",
+      "pitch": "Live or study in WA's Midwest or Gascoyne? Writers in Years 3 to 12 can win cash for prose and poetry, plus a perpetual trophy displayed at their school.",
       "when": "Opens 20 April, closes 3 July",
       "closing_date_2026": "2026-07-03",
       "opening_date_2026": "2026-04-20",
@@ -1755,7 +1973,7 @@
       "logo_filename": "comp-logo-randolph-stow.png",
       "audience": "all",
       "description": "Prose up to 1,200 words OR poetry (no word limit)",
-      "who": "Children in Years 3 to 12 who live or study in the WA Midwest Region"
+      "who": "Children in Years 3 to 12 who live or study in the WA Midwest or Gascoyne regions"
     },
     {
       "id": "shaun-tan-award",
@@ -1805,13 +2023,13 @@
       "category": "Writing",
       "category_slug": "writing",
       "sub_category": "",
-      "status": "Confirmed 2026",
-      "pitch": "Cash prizes for first, second and third in every age category, Grades 3 to 12. Any subject at all, with word limits that step up by year level.",
-      "when": "Closes 30 April",
+      "status": "Confirmed annual; 2026 entries closed 30 April at 4pm, 2027 dates not yet published",
+      "pitch": "Open to students living in the Mackay, Whitsunday or Isaac regions, Grades 3 to 12. Any topic you like, and Grades 3 and 4 can upload a handwritten story.",
+      "when": "Entries close late April",
       "closing_date_2026": "2026-04-30",
       "opening_date_2026": "",
       "schema_start_date": "2026-04-30",
-      "where": "National",
+      "where": "QLD (Mackay, Whitsunday and Isaac regions)",
       "cost_raw": "Free",
       "cost_slug": "free",
       "ages": [
@@ -1838,7 +2056,7 @@
       "logo_filename": "comp-logo-whitsunday-voices.jpg",
       "audience": "all",
       "description": "Short story on any topic",
-      "who": "Students Grades 3-12 (5 grade categories)"
+      "who": "Students in Grades 3 to 12 who live in the Mackay, Whitsunday or Isaac regions (5 grade categories)"
     },
     {
       "id": "boroondara-literary",
@@ -1888,7 +2106,7 @@
       "category_slug": "writing",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "A small-but-mighty comp from the Rocky River Writers Club in country SA, with prose and poetry streams. Note: entries must be posted, not emailed.",
+      "pitch": "Write a short story up to 800 words or a poem up to 60 lines for the Laura Literary Awards, run by Rocky River 'Riters in the SA country town of Laura.",
       "when": "Closes 8 May",
       "closing_date_2026": "2026-05-08",
       "opening_date_2026": "",
@@ -1923,6 +2141,49 @@
       "audience": "all",
       "description": "Short story up to 800 words OR poem up to 60 lines",
       "who": "Ages 5 to 18 in prose and poetry sections (5-8, 9-10, 11-12, 13-18)"
+    },
+    {
+      "id": "premiers-reading-qld",
+      "name": "Queensland Premier's Reading Challenge",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "Reading",
+      "status": "2026 reading period concluded; 2027 dates not yet stated",
+      "pitch": "Young Queenslanders read through the reading period and earn a certificate. Open to schools, home-educated students and early childhood centres.",
+      "when": "11 May to 28 August in 2026",
+      "closing_date_2026": "2026-08-28",
+      "opening_date_2026": "2026-05-11",
+      "schema_start_date": "2026-05-11",
+      "where": "QLD",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "qld"
+      ],
+      "fields": [
+        "reading"
+      ],
+      "format": [
+        "online",
+        "school-entry",
+        "individual-entry"
+      ],
+      "website": "https://readingchallenge.education.qld.gov.au/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "Q",
+      "logo_filename": "comp-logo-premiers-reading-qld.jpg",
+      "audience": "all",
+      "description": "Read during the reading period, then certificates are ordered through the PRC database",
+      "who": "Prep to Year 9 at Queensland schools, home-educated students, and under-5s at early childhood centres"
     },
     {
       "id": "act-reconciliation-poster",
@@ -2088,7 +2349,7 @@
       "logo_filename": "comp-logo-banabae-artists.jpg",
       "audience": "all",
       "description": "Original artwork - drawing, painting, collage",
-      "who": "Aussie kids (no strict age cap, primary-aimed)"
+      "who": "Kids aged up to 12"
     },
     {
       "id": "cbca-wa-storybook",
@@ -2301,6 +2562,48 @@
       "audience": "all",
       "description": "Drawing, painting, cartoon, printmaking, manga, sculpture and NT subject classes, plus junior photography in print and digital classes",
       "who": "NT kids from preschool to Year 12 (Junior Art, by grade); Junior Photography is for anyone under 18"
+    },
+    {
+      "id": "premiers-reading-tas",
+      "name": "Tasmanian Premier's Reading Challenge",
+      "category": "Writing",
+      "category_slug": "writing",
+      "sub_category": "Reading",
+      "status": "2026 challenge ran 22 June to 30 August; 2027 dates not yet stated",
+      "pitch": "Not a competition, a personal challenge. Tasmanian students read what they love, from fiction to comics and lyrics, and try to beat their own best tally.",
+      "when": "22 June to 30 August in 2026",
+      "closing_date_2026": "2026-08-30",
+      "opening_date_2026": "2026-06-22",
+      "schema_start_date": "2026-06-22",
+      "where": "TAS",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "tas"
+      ],
+      "fields": [
+        "reading"
+      ],
+      "format": [
+        "online",
+        "school-entry"
+      ],
+      "website": "https://www.decyp.tas.gov.au/about-us/events/premiers-reading-challenge/about-the-challenge/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "T",
+      "logo_filename": "comp-logo-premiers-reading-tas.svg",
+      "audience": "all",
+      "description": "A personal reading challenge, where fiction, non-fiction, comics, lyrics and more all count",
+      "who": "All Tasmanian students"
     },
     {
       "id": "wild-at-art",
@@ -2561,7 +2864,7 @@
       "category_slug": "writing",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "NT kids write and make a real book, cover to cover. The Young Territory Author of the Year takes $500, and entries join a Darwin library collection.",
+      "pitch": "NT kids write and make a real book, cover to cover. The Young Territory Author of the Year takes $500.",
       "when": "Entries close 27 August, winners announced in Darwin in November",
       "closing_date_2026": "2026-08-27",
       "opening_date_2026": "",
@@ -2979,7 +3282,7 @@
       "category": "Performance",
       "category_slug": "performance",
       "sub_category": "",
-      "status": "Confirmed 2026, entries closed 5 October, winners announced November",
+      "status": "Confirmed 2026, entries closed 5 October, winners announced early December 2026",
       "pitch": "Nearly $20,000 in prizes, all paid towards musical equipment or tuition. A breakthrough comp for any kid who writes songs in their bedroom.",
       "when": "Closes 5 October",
       "closing_date_2026": "2026-10-05",
@@ -3014,6 +3317,46 @@
       "audience": "all",
       "description": "Original song",
       "who": "All school-aged children"
+    },
+    {
+      "id": "qvmag-artstart",
+      "name": "ArtStart at the Queen Victoria Museum and Art Gallery",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "",
+      "status": "Confirmed 2026, entries closed 30 October",
+      "pitch": "For 25 years, teachers across Northern Tasmania have sent in student art. Selected pieces are hung, professionally presented, in a real museum gallery.",
+      "when": "Entries close late October, exhibition opens mid December",
+      "closing_date_2026": "2026-10-30",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-10-30",
+      "where": "TAS (Northern Tasmania)",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12"
+      ],
+      "states": [
+        "tas",
+        "regional-only"
+      ],
+      "fields": [
+        "art"
+      ],
+      "format": [
+        "school-entry"
+      ],
+      "website": "https://www.qvmag.tas.gov.au/Learn/Schools-educators/Art-competitions",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "A",
+      "logo_filename": "comp-logo-qvmag-artstart.jpg",
+      "audience": "all",
+      "description": "Original artwork on the exhibition theme, selected for a curated gallery show",
+      "who": "Kindergarten to Grade 6 students across Northern Tasmania, submitted by their teacher"
     },
     {
       "id": "tinted-glass-100-story",
@@ -3139,18 +3482,61 @@
       "who": "Queensland students Prep to Year 6, including home, distance and special schools"
     },
     {
+      "id": "save-the-frogs",
+      "name": "Save The Frogs! Art Contest",
+      "category": "Art",
+      "category_slug": "art",
+      "sub_category": "International",
+      "status": "Confirmed 2026",
+      "pitch": "Frog conservation through art. Open to all ages and free to enter, so Aussie kids are welcome. Quirky, niche and surprisingly popular.",
+      "when": "Closes 1 November",
+      "closing_date_2026": "2026-11-01",
+      "opening_date_2026": "",
+      "schema_start_date": "2026-11-01",
+      "where": "International",
+      "cost_raw": "Free",
+      "cost_slug": "free",
+      "ages": [
+        "ages-4-6",
+        "ages-7-9",
+        "ages-10-12",
+        "ages-13-16",
+        "all-ages"
+      ],
+      "states": [
+        "national"
+      ],
+      "fields": [
+        "art",
+        "environment"
+      ],
+      "format": [
+        "online",
+        "individual-entry"
+      ],
+      "website": "https://savethefrogs.com/art/",
+      "cross_tier": "N/A",
+      "cross_signal": "",
+      "tile_state": "annual-again",
+      "first_letter": "S",
+      "logo_filename": "comp-logo-save-the-frogs.jpg",
+      "audience": "all",
+      "description": "Frog-themed artwork on conservation",
+      "who": "Kids anywhere in the world, any age"
+    },
+    {
       "id": "agnpoty-junior",
       "name": "Australian Geographic Nature Photographer of the Year - Junior Category",
       "category": "Photography & Film",
       "category_slug": "photofilm",
       "sub_category": "",
       "status": "Confirmed 2026",
-      "pitch": "The comp Robert Irwin won as a kid. Run by the SA Museum with Australian Geographic. Junior winners take home $500 and every finalist gets exhibited.",
+      "pitch": "Point a camera at Aussie wildlife, landscapes or tiny macro details and enter up to four shots. Under 18s go in the Junior category, and the winner gets $500.",
       "when": "Entries early Dec - early Feb",
       "closing_date_2026": "2026-02-05",
       "opening_date_2026": "2025-12-08",
       "schema_start_date": "2025-12-08",
-      "where": "National (and NZ)",
+      "where": "Open worldwide (photos of Australia, NZ, Antarctica and New Guinea)",
       "cost_raw": "Paid - $10 first image, $5 each additional",
       "cost_slug": "paid",
       "ages": [
@@ -3169,15 +3555,15 @@
         "online",
         "individual-entry"
       ],
-      "website": "https://www.samuseum.sa.gov.au/c/npoty",
+      "website": "https://www.samuseum.sa.gov.au/c/npoty/competition",
       "cross_tier": "N/A",
       "cross_signal": "",
       "tile_state": "annual-again",
       "first_letter": "A",
-      "logo_filename": "comp-logo-agnpoty-junior.jpg",
+      "logo_filename": "comp-logo-agnpoty-junior.svg",
       "audience": "all",
       "description": "Nature photography in ANZANG bioregion",
-      "who": "Photographers under 18"
+      "who": "Photographers under 18 at the close of entries, anywhere in the world"
     },
     {
       "id": "eckersleys-colouring",
@@ -3190,7 +3576,7 @@
       "when": "Multiple times per year (Easter, holidays, Christmas)",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -3230,7 +3616,7 @@
       "when": "Annually, school-aligned (Term 3)",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",
@@ -3270,7 +3656,7 @@
       "when": "No giveaway running that we can confirm",
       "closing_date_2026": "TBC",
       "opening_date_2026": "",
-      "schema_start_date": "2026-10-24",
+      "schema_start_date": "2026-11-03",
       "where": "National",
       "cost_raw": "Free",
       "cost_slug": "free",

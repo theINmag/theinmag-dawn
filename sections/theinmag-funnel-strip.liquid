@@ -98,6 +98,37 @@
   assign bg3 = 'section_background_competitions3.jpg' | asset_url
 
   assign section_style = '--tfs-pt: ' | append: section.settings.padding_top | append: 'px; --tfs-pb: ' | append: section.settings.padding_bottom | append: 'px;'
+
+  # Tiled texture (2026-10-08, competitions): a second, independent background
+  # mode that works on ANY surface. Same recipe as the field-notes index
+  # editorial section (theinmag-blog-index-editorial): a drawn-pattern asset
+  # tiled at 640px over a base colour, under a cream wash (0 to 100). Set from
+  # the template, so competitions carries the field-notes look without the
+  # blog-only random-texture mode above. Empty filename = off.
+  assign tile_bg = false
+  if section.settings.tile_filename != blank
+    assign tile_bg = true
+    assign tile_src = section.settings.tile_filename | asset_url
+    assign tile_color = section.settings.tile_color | default: '#FFD99B'
+    assign tile_wash = section.settings.tile_wash | default: 55
+    assign tile_alpha = tile_wash | divided_by: 100.0
+    capture tile_style
+      echo ' --tfs-tile-color: '
+      echo tile_color
+      echo '; --tfs-tile-image: '
+      if tile_wash > 0
+        echo 'linear-gradient(rgba(251, 246, 234, '
+        echo tile_alpha
+        echo '), rgba(251, 246, 234, '
+        echo tile_alpha
+        echo ')), '
+      endif
+      echo "url('"
+      echo tile_src
+      echo "');"
+    endcapture
+    assign section_style = section_style | append: tile_style
+  endif
   if show_bg
     assign section_style = section_style | append: ' --tfs-bg: url(' | append: bg1 | append: ');'
   endif
@@ -118,7 +149,7 @@
 
 {%- if tile_count > 0 -%}
 <section
-  class="theinmag-funnel-strip{% if show_bg %} theinmag-funnel-strip--bg{% endif %}"
+  class="theinmag-funnel-strip{% if show_bg %} theinmag-funnel-strip--bg{% endif %}{% if tile_bg %} theinmag-funnel-strip--tile{% endif %}"
   data-theinmag-funnel-strip
   {%- if heading != blank %} aria-labelledby="theinmag-funnel-strip-heading-{{ section.id }}"{%- else %} aria-label="Shop theINmag"{%- endif %}
   style="{{ section_style }}"
@@ -135,6 +166,23 @@
       </div>
     {%- endif -%}
 
+    {%- comment -%}
+      Optional kid mINion (2026-10-08, competitions, Ryan's ask): one random
+      character from the sitewide pool (snippets/theinmag-character-pool, a
+      fresh pick every load) standing to the RIGHT of the tile row, feet on
+      the row's baseline. It lives outside the 820px inner, so it only shows
+      from 1200px up where there is room beside the tiles; narrower screens
+      get no character rather than a squashed one. Off by default; the
+      competitions template switches it on. The slot is a span (Dawn hides
+      empty divs) and stays empty until the pool JS drops the <img> in.
+    {%- endcomment -%}
+    {%- if section.settings.show_character -%}
+      {% render 'theinmag-character-pool' %}
+    {%- endif -%}
+    <div class="theinmag-funnel-strip__row">
+    {%- if section.settings.show_character -%}
+      <span class="theinmag-funnel-strip__character" data-theinmag-pool-character aria-hidden="true"></span>
+    {%- endif -%}
     <ul class="theinmag-funnel-strip__list" data-funnel-list role="list">
       {%- if membership_product != blank and membership_product.id != blank -%}
         <li class="theinmag-funnel-strip__item">
@@ -152,6 +200,7 @@
         </li>
       {%- endif -%}
     </ul>
+    </div>
 
     {%- if cta_label != blank -%}
       <a class="theinmag-funnel-strip__cta" href="{{ cta_link }}">{{ cta_label }} <span aria-hidden="true">&rarr;</span></a>
@@ -305,6 +354,18 @@
     padding-top: clamp(34px, 5vw, 54px);
   }
 
+  /* Tiled texture mode (competitions, 2026-10-08): base colour under a 640px
+     repeating drawn pattern with a cream wash baked into the image stack.
+     Mirrors the field-notes index editorial background exactly. */
+  .theinmag-funnel-strip--tile {
+    background-color: var(--tfs-tile-color, #FFD99B);
+    background-image: var(--tfs-tile-image);
+    background-size: 640px auto;
+    background-position: top center;
+    background-repeat: repeat;
+    padding-top: clamp(34px, 5vw, 54px);
+  }
+
   .theinmag-funnel-strip__inner {
     /* Clean shop-style tiles, capped a little wider than the original
        760 so the three cards read slightly larger. Not the wow pass. */
@@ -371,6 +432,36 @@
 
   .theinmag-funnel-strip__item {
     display: flex;
+  }
+
+  /* Optional mINion beside the tile row (show_character). The row is the
+     positioning box; the character hangs off its right edge, bottom-aligned
+     with the tiles, and only renders from 1200px where the side gutter can
+     hold it. Width tracks the gutter so it never clips on the strip's
+     overflow-x: clip. */
+  .theinmag-funnel-strip__row {
+    position: relative;
+  }
+  .theinmag-funnel-strip__character {
+    display: none;
+  }
+  @media (min-width: 1200px) {
+    .theinmag-funnel-strip__character {
+      display: block;
+      position: absolute;
+      left: 100%;
+      bottom: 0;
+      margin-left: clamp(16px, 2vw, 32px);
+      width: min(230px, calc((100vw - 820px) / 2 - 64px));
+      pointer-events: none;
+    }
+    .theinmag-funnel-strip__character .theinmag-pool-character__img {
+      width: 100%;
+      height: auto;
+      display: block;
+      opacity: 1;
+      transform: none;
+    }
   }
   .theinmag-funnel-strip__item > .theinmag-bundle-tile {
     flex: 1;
@@ -726,6 +817,35 @@
       "label": "Show faded background texture (field notes only)",
       "info": "When on, the strip shows a soft, very transparent kid-pattern texture randomised per page load. It only renders on the field notes blog (index + articles); on any other surface the strip stays plain cream. Leave OFF on competitions and freebies.",
       "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_character",
+      "label": "Show a random kid mINion beside the tiles (desktop only)",
+      "info": "One character from the sitewide pool, a fresh pick every load, standing to the right of the tile row from 1200px wide. Competitions only for now.",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "tile_filename",
+      "label": "Tiled texture filename (any surface)",
+      "info": "Filename of a drawn-pattern image in /assets/ (the field notes index uses teacher_backgroundFAQ.jpg). Tiled at 640px over the colour below, with a cream wash. Leave empty for plain cream."
+    },
+    {
+      "type": "color",
+      "id": "tile_color",
+      "label": "Tiled texture base colour",
+      "default": "#FFD99B"
+    },
+    {
+      "type": "range",
+      "id": "tile_wash",
+      "label": "Tiled texture wash (soften pattern)",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 55
     },
     {
       "type": "header",
