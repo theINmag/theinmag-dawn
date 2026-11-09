@@ -1,13 +1,42 @@
 {%- comment -%}
   theinmag-competitions-faq
-  The competitions page FAQ: five question/answer pairs as native
+  The competitions page FAQ: up to seven question/answer pairs as native
   <details>/<summary> accordions (no JS, answers stay in the DOM) plus the
-  matching FAQPage JSON-LD from the SAME settings, so the markup can never
-  say something the page does not show. Built 2026-10-08 after the FAQ lived
-  as JSON-LD only inside theinmag-competitions.liquid (a Google guideline
+  matching FAQPage JSON-LD built from the SAME resolved list, so the markup can
+  never say something the page does not show. Built 2026-10-08 after the FAQ
+  lived as JSON-LD only inside theinmag-competitions.liquid (a Google guideline
   breach: FAQ markup must match visible content) and after a first visible
   version inside that section was moved here by Ryan: the FAQ sits BELOW the
   mag promo (funnel strip), as the last thing on the page.
+
+  LIVE DATA IN THE ANSWERS (2026-11-10, Ryan's go). Answers are templates with
+  tokens that resolve at render time from the competitions data snippet, so the
+  FAQ can no longer go stale between Compton's Tuesday passes:
+    [live_count]    comps open right now (same expiry rule as the board: the
+                    build-time tile state, downgraded if the ISO closing date
+                    has passed, midnight to midnight)
+    [free_count]    the subset of those whose cost slug is free
+    [closing_names] comps open right now whose closing date falls in the
+                    RENDER month, collected in the same expiry loop (so a comp
+                    that closed yesterday drops out the same day its tile
+                    does), soonest first because the build already sorts
+                    live-now rows by closing date, as a reading list capped at
+                    three: "A", "A and B", "A, B and C", "A, B and N more". Same
+                    shape as _reading_list() in build-competitions-data.py, so
+                    on push day it equals comp_closing_this_month_names in the
+                    snippet (Compton's Tuesday check compares the two). The
+                    snippet variable itself is NOT read here: it is frozen at
+                    build time and would name a closed comp until the next push.
+    [opening_names] comp_opening_soon_names from the snippet (opening dates
+                    arriving between pushes wait for the rebuild, exactly as the
+                    board's own "opens soon" tiles do)
+    [updated]       comp_data_updated (the sweep date)
+    [month]         the render month, full name
+  GUARD: a pair is skipped, on the page AND in the JSON-LD, when its answer
+  still holds an unfilled token, when it needs a names list that is blank,
+  when it quotes [live_count] and that count is zero, or when it says "Most
+  are" ([free_count]) and free is not more than half of live. Answers stay
+  under 40 words as templates.
 
   Background: the field-notes index treatment (a drawn-pattern asset tiled at
   640px over a base colour under a cream wash), same settings as the funnel
@@ -16,12 +45,125 @@
 
   Answers are plain text settings and may carry <a href> links (Google allows
   them in FAQ answer text). They are the page's internal links to send-in and
-  the gallery. No en or em dashes, ever.
+  the gallery. No en or em dashes, ever. Ranges read "to".
 {%- endcomment -%}
+
+{%- include 'theinmag-competitions-data' -%}
 
 {%- liquid
   assign heading = section.settings.heading | default: "got a question about kids' competitions?"
-  assign faq_pairs = '1,2,3,4,5' | split: ','
+  assign faq_pairs = '1,2,3,4,5,6,7' | split: ','
+
+  comment
+    Render-time counts. Mirrors the board's comp_live_states rule exactly:
+    compare the DATE string to the render date (midnight to midnight) so a comp
+    closing today still counts as open all day.
+  endcomment
+  assign today_stamp = 'now' | date: '%Y-%m-%d' | date: '%s' | times: 1
+  assign now_ym = 'now' | date: '%Y-%m'
+  assign live_count = 0
+  assign free_count = 0
+  assign closing_total = 0
+  assign closing_first_two = ''
+  assign closing_third = ''
+  for id in comp_ids
+    assign ci = forloop.index0
+    assign cstate = comp_tile_states[ci]
+    assign cexpiry = comp_expiry_dates[ci]
+    if cexpiry != blank and cstate != 'annual-again'
+      assign cexpiry_stamp = cexpiry | date: '%s' | times: 1
+      if cexpiry_stamp < today_stamp
+        assign cstate = 'annual-again'
+      endif
+    endif
+    if cstate == 'live-now'
+      assign live_count = live_count | plus: 1
+      if comp_cost_slugs[ci] == 'free'
+        assign free_count = free_count | plus: 1
+      endif
+      if cexpiry != blank
+        assign cexpiry_ym = cexpiry | date: '%Y-%m'
+        if cexpiry_ym == now_ym
+          assign closing_total = closing_total | plus: 1
+          if closing_total <= 2
+            assign closing_first_two = closing_first_two | append: comp_names[ci] | append: '~~'
+          elsif closing_total == 3
+            assign closing_third = comp_names[ci]
+          endif
+        endif
+      endif
+    endif
+  endfor
+  assign live_count_text = live_count | append: ''
+  assign free_count_text = free_count | append: ''
+  assign free_twice = free_count | times: 2
+
+  assign closing_names = ''
+  if closing_total > 0
+    assign closing_parts = closing_first_two | split: '~~'
+    if closing_total == 1
+      assign closing_names = closing_parts[0]
+    elsif closing_total == 2
+      assign closing_names = closing_parts[0] | append: ' and ' | append: closing_parts[1]
+    elsif closing_total == 3
+      assign closing_names = closing_parts[0] | append: ', ' | append: closing_parts[1] | append: ' and ' | append: closing_third
+    else
+      assign closing_more = closing_total | minus: 2
+      assign closing_names = closing_parts[0] | append: ', ' | append: closing_parts[1] | append: ' and ' | append: closing_more | append: ' more'
+    endif
+  endif
+
+  assign now_month = 'now' | date: '%B'
+  assign updated_text = comp_data_updated | default: ''
+  assign opening_names = ''
+  if comp_opening_soon_names != blank
+    assign opening_names = comp_opening_soon_names
+  endif
+
+  comment
+    Resolve the pairs ONCE into two parallel lists, then render the visible
+    accordions and the JSON-LD from the same lists.
+  endcomment
+  assign faq_sep = '~~|~~'
+  assign final_qs = ''
+  assign final_as = ''
+  for n in faq_pairs
+    assign q_key = 'faq_q' | append: n
+    assign a_key = 'faq_a' | append: n
+    assign q = section.settings[q_key]
+    assign a = section.settings[a_key]
+    if q == blank or a == blank
+      continue
+    endif
+    if a contains '[closing_names]' and closing_names == blank
+      continue
+    endif
+    if a contains '[opening_names]' and opening_names == blank
+      continue
+    endif
+    if a contains '[updated]' and updated_text == blank
+      continue
+    endif
+    if a contains '[live_count]' and live_count == 0
+      continue
+    endif
+    if a contains '[free_count]' and free_twice <= live_count
+      continue
+    endif
+    assign a = a | replace: '[live_count]', live_count_text
+    assign a = a | replace: '[free_count]', free_count_text
+    assign a = a | replace: '[closing_names]', closing_names
+    assign a = a | replace: '[opening_names]', opening_names
+    assign a = a | replace: '[updated]', updated_text
+    assign a = a | replace: '[month]', now_month
+    if a contains '['
+      continue
+    endif
+    assign final_qs = final_qs | append: q | append: faq_sep
+    assign final_as = final_as | append: a | append: faq_sep
+  endfor
+  assign final_q_list = final_qs | split: faq_sep
+  assign final_a_list = final_as | split: faq_sep
 
   assign tile_src = ''
   if section.settings.tile_filename != blank
@@ -50,20 +192,19 @@
   endcapture
 -%}
 
-{%- if section.settings.faq_q1 != blank and section.settings.faq_a1 != blank -%}
+{%- if final_q_list.size > 0 -%}
 <section
   class="theinmag-cfaq{% if tile_src != blank %} theinmag-cfaq--tile{% endif %}"
   aria-labelledby="theinmag-cfaq-heading-{{ section.id }}"
   style="{{ section_style }}"
+  data-cfaq-live="{{ live_count }}"
+  data-cfaq-free="{{ free_count }}"
+  data-cfaq-closing="{{ closing_total }}"
 >
   <div class="theinmag-cfaq__inner">
     <h2 id="theinmag-cfaq-heading-{{ section.id }}" class="theinmag-cfaq__heading">{{ heading }}</h2>
-    {%- for n in faq_pairs -%}
-      {%- assign q_key = 'faq_q' | append: n -%}
-      {%- assign a_key = 'faq_a' | append: n -%}
-      {%- assign q = section.settings[q_key] -%}
-      {%- assign a = section.settings[a_key] -%}
-      {%- if q != blank and a != blank -%}
+    {%- for q in final_q_list -%}
+      {%- assign a = final_a_list[forloop.index0] -%}
         <details class="theinmag-cfaq__qa">
           <summary class="theinmag-cfaq__q">
             <span>{{ q }}</span>
@@ -71,7 +212,6 @@
           </summary>
           <div class="theinmag-cfaq__a"><p>{{ a }}</p></div>
         </details>
-      {%- endif -%}
     {%- endfor -%}
   </div>
 </section>
@@ -81,21 +221,14 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    {%- assign first_done = false -%}
-    {%- for n in faq_pairs -%}
-      {%- assign q_key = 'faq_q' | append: n -%}
-      {%- assign a_key = 'faq_a' | append: n -%}
-      {%- assign q = section.settings[q_key] -%}
-      {%- assign a = section.settings[a_key] -%}
-      {%- if q != blank and a != blank -%}
-        {%- if first_done -%},{%- endif -%}
+    {%- for q in final_q_list -%}
+      {%- assign a = final_a_list[forloop.index0] -%}
+        {%- unless forloop.first -%},{%- endunless -%}
         {
           "@type": "Question",
           "name": {{ q | json }},
           "acceptedAnswer": { "@type": "Answer", "text": {{ a | json }} }
         }
-        {%- assign first_done = true -%}
-      {%- endif -%}
     {%- endfor -%}
   ]
 }
@@ -189,17 +322,21 @@
     { "type": "text", "id": "tile_filename", "label": "Tiled texture filename", "default": "teacher_backgroundFAQ.jpg", "info": "Drawn-pattern image in /assets/, tiled at 640px over the colour below, under a cream wash. Empty = flat colour." },
     { "type": "color", "id": "tile_color", "label": "Base colour", "default": "#FFD99B" },
     { "type": "range", "id": "tile_wash", "label": "Wash (soften pattern)", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 55 },
-    { "type": "header", "content": "Questions (also emitted as FAQPage JSON-LD)" },
+    { "type": "header", "content": "Questions (also emitted as FAQPage JSON-LD)", "info": "Answers are templates under 40 words. Tokens fill from the competitions data at render time: [live_count] [free_count] [closing_names] [opening_names] [updated] [month]. A pair whose answer keeps an unfilled token, or needs a names list that is empty this week, is skipped on the page and in the schema. No en or em dashes; ranges read 'to'." },
     { "type": "text", "id": "faq_q1", "label": "Q1", "default": "What kids competitions are running in Australia right now?" },
-    { "type": "textarea", "id": "faq_a1", "label": "A1", "default": "This page lists every real Australian kids' competition we have verified for 2026, pulled from all over the country into one spot: art, writing, photography, film, STEM, maths, performance, music and social good. Pick a category, filter by age and state, and click through to the official entry page. New comps are added most weeks." },
+    { "type": "textarea", "id": "faq_a1", "label": "A1", "default": "[live_count] Australian kids' competitions are open for entries right now, each checked against its official page. Pick a category, filter by age and state, then click through to enter. New comps land most weeks." },
     { "type": "text", "id": "faq_q2", "label": "Q2", "default": "Are kids competitions in Australia free to enter?" },
-    { "type": "textarea", "id": "faq_a2", "label": "A2", "default": "Most are free. Some charge a small entry fee (often $5 to $20), and a few are paid-optional, where there is a free option alongside a paid stream with bigger prizes. Every tile on the board shows the cost before you click through." },
+    { "type": "textarea", "id": "faq_a2", "label": "A2", "default": "Most are. [free_count] of the [live_count] open right now cost nothing to enter. The rest charge a small fee, or run a free option beside a paid one. Every tile shows the cost before you click through." },
     { "type": "text", "id": "faq_q3", "label": "Q3", "default": "Can my child enter competitions from any state in Australia?" },
-    { "type": "textarea", "id": "faq_a3", "label": "A3", "default": "Many are national, open to kids anywhere in Australia. Some are state-specific (NSW, VIC, QLD, WA, SA, TAS, NT, ACT), usually run by a state government, library network, regional council or local arts organisation. Use the state filter to see your state's own comps first, with the national ones underneath." },
+    { "type": "textarea", "id": "faq_a3", "label": "A3", "default": "Many are national, open to kids anywhere in Australia. Some are state only, usually run by a state government, library network or council. Use the state filter to see your state's comps first, with the national ones underneath." },
     { "type": "text", "id": "faq_q4", "label": "Q4", "default": "What kinds of kids competitions are listed here?" },
-    { "type": "textarea", "id": "faq_a4", "label": "A4", "default": "Art (painting, drawing, photography, film, dance, music), writing (short stories, poetry, picture books), STEM (maths, coding, science, engineering), spelling and reading challenges, plus competitions tied to social good causes like the environment, water and First Nations culture. theINmag's own open call is on the list too: <a href=\"/pages/send-in\">send in</a> a drawing, story or comic and it could be printed in an upcoming issue. See what other kids have had published in the <a href=\"/pages/gallery\">gallery</a>." },
+    { "type": "textarea", "id": "faq_a4", "label": "A4", "default": "Art, photography, film, writing, poetry, STEM, performance and social good. theINmag's own open call is here too: <a href=\"/pages/send-in\">send in</a> a drawing, story or comic and it could be printed. See other kids' published creations in the <a href=\"/pages/gallery\">gallery</a>." },
     { "type": "text", "id": "faq_q5", "label": "Q5", "default": "How often is this list of competitions updated?" },
-    { "type": "textarea", "id": "faq_a5", "label": "A5", "default": "Weekly. Closing dates, new competitions and entry pages are checked on a regular sweep, and the last-reviewed date sits at the foot of the board. Spotted one we missed? Use the suggest-a-comp button at the top of the board." }
+    { "type": "textarea", "id": "faq_a5", "label": "A5", "default": "Weekly. Every closing date and entry link is checked against its official page on a regular sweep, last done [updated]. Spotted one we missed? Use the suggest-a-comp button at the top of the board." },
+    { "type": "text", "id": "faq_q6", "label": "Q6", "default": "Which kids competitions close this month?" },
+    { "type": "textarea", "id": "faq_a6", "label": "A6", "default": "Closing in [month]: [closing_names]. Each date comes straight from the organiser's page and sits on the tile, so get entries in before it." },
+    { "type": "text", "id": "faq_q7", "label": "Q7", "default": "Which kids competitions open soon?" },
+    { "type": "textarea", "id": "faq_a7", "label": "A7", "default": "Opening next: [opening_names]. They are already on the board, so your kid can start making before entries open." }
   ],
   "presets": [ { "name": "Competitions FAQ", "category": "Pages" } ]
 }
