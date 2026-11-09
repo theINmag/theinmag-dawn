@@ -277,6 +277,10 @@
           {%- if form.posted_successfully? -%}
             <p class="theinmag-archive__suggest-success" role="status">{{ suggest_success }}</p>
           {%- else -%}
+            {%- comment -%} Form type, kept as the FIRST contact[] field: Shopify cannot change the
+               notification subject, so this is the first line of the email body after
+               Country Code ("Form: Blog suggestion"). Pat's inbox routing matches it. {%- endcomment -%}
+            <input type="hidden" name="contact[Form]" value="Blog suggestion">
             {%- if form.errors -%}
               <ul class="theinmag-archive__suggest-errors" role="alert">
                 {%- for error in form.errors -%}
@@ -284,8 +288,6 @@
                 {%- endfor -%}
               </ul>
             {%- endif -%}
-
-            <input type="hidden" name="contact[subject]" value="field notes - blog suggestion">
 
             <label class="visually-hidden" for="theinmag-suggest-idea">Your idea</label>
             <textarea

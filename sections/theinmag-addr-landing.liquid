@@ -106,6 +106,10 @@
                 </h1>
                 <p class="theinmag-addr__sub">{{ section.settings.success_body | escape }}</p>
               {%- else -%}
+                {%- comment -%} Form type, kept as the FIRST contact[] field: Shopify cannot change the
+                   notification subject, so this is the first line of the email body after
+                   Country Code ("Form: Address update"). Pat's inbox routing matches it. {%- endcomment -%}
+                <input type="hidden" name="contact[Form]" value="Address update">
                 <p class="theinmag-addr__eyebrow">{{ section.settings.eyebrow | escape }}</p>
                 <h1 id="theinmag-addr-heading" class="theinmag-addr__heading">
                   {{ section.settings.heading | escape }}

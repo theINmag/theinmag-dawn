@@ -273,6 +273,10 @@
           <p class="theinmag-wsb__card-hint">We will reply by email as soon as we can.</p>
         </div>
       {%- else -%}
+        {%- comment -%} Form type, kept as the FIRST contact[] field: Shopify cannot change the
+           notification subject, so this is the first line of the email body after
+           Country Code ("Form: Workshop enquiry"). Pat's inbox routing matches it. {%- endcomment -%}
+        <input type="hidden" name="contact[Form]" value="Workshop enquiry">
         <h2 class="theinmag-wsb__card-heading">Ask us to visit</h2>
         <p class="theinmag-wsb__card-hint">For schools and homeschool groups. We will reply by email within two business days.</p>
         {%- if form.errors -%}

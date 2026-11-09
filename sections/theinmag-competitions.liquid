@@ -763,6 +763,10 @@
           </p>
           <button type="button" class="theinmag-comps__modal-submit" data-modal-close>close</button>
         {%- else -%}
+          {%- comment -%} Form type, kept as the FIRST contact[] field: Shopify cannot change the
+             notification subject, so this is the first line of the email body after
+             Country Code ("Form: Competition suggestion"). Pat's inbox routing matches it. {%- endcomment -%}
+          <input type="hidden" name="contact[Form]" value="Competition suggestion">
           <p class="theinmag-comps__modal-copy">{{ section.settings.modal_copy | default: 'Adults only. Send the details and we will check it before it goes on the board.' }}</p>
 
           {%- if form.errors -%}
@@ -3410,7 +3414,7 @@
       modalOpenedAt = Date.now();
       document.body.style.overflow = 'hidden';
       chooseCharacter();
-      var firstField = modal.querySelector('input:not([tabindex="-1"]), select, textarea');
+      var firstField = modal.querySelector('input:not([tabindex="-1"]):not([type="hidden"]), select, textarea');
       if (firstField) setTimeout(function () { firstField.focus(); }, 100);
     }
     function closeModal() {
