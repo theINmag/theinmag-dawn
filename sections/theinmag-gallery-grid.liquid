@@ -149,8 +149,8 @@
       var img = document.querySelector('[data-theinmag-loader-char]');
       if (!img) return;
       var base = img.getAttribute('src');
-      var pick = 1 + Math.floor(Math.random() * 53);
-      if (pick === 1) return;
+      var pick = 1 + Math.floor(Math.random() * 88);
+      if (pick === 1 || pick === 16) return; /* #16 wind-up bomb never shown */
       img.addEventListener('error', function revert() {
         img.removeEventListener('error', revert);
         img.src = base;

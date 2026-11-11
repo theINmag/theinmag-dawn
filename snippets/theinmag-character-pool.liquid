@@ -18,6 +18,12 @@
   When you upload more characters, bump pool_max below to the new
   total; the cache invalidates next time the TTL expires or tab closes.
 
+  UPDATE 2026-11-11: the pool is now 1..88 (54-88 are the credited kid
+  mINions). Probing 88 full PNGs per first load would cost ~14 MB, so the
+  probe is replaced by the known contiguous range, minus the exclude list
+  (#16 wind-up bomb: Ryan, no bombs). pool_max MUST equal the real
+  highest file number; a gap would 404 as a broken pop-in.
+
   Keep pool_max equal to the actual file count (no headroom) so the
   per-load probes never 404 - that keeps the console clean. The first
   page load in a tab fires pool_max parallel image probes; slots stay
@@ -32,7 +38,7 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign pool_max = 53
+  assign pool_max = 88
   assign first_url = 'character-1.png' | asset_url
 -%}
 
@@ -110,32 +116,20 @@
         } catch (e) {}
       }
 
+      var EXCLUDE = [16]; /* wind-up bomb: never on the site */
+
       function probe(callback) {
-        /* Parallel-probe characters 1..max. Each new Image() either
-           fires onload (file exists) or onerror (404). When all have
-           settled, call back with the sorted list of valid indices. */
-        var pending = max;
+        /* Known contiguous range 1..max, no network probing (see header). */
         var valid = [];
         for (var i = 1; i <= max; i++) {
-          (function (idx) {
-            var img = new Image();
-            img.onload = function () {
-              valid.push(idx);
-              if (--pending === 0) finish();
-            };
-            img.onerror = function () {
-              if (--pending === 0) finish();
-            };
-            img.src = urlForIndex(idx);
-          })(i);
+          if (EXCLUDE.indexOf(i) === -1) valid.push(i);
         }
-        function finish() {
-          valid.sort(function (a, b) { return a - b; });
-          callback(valid);
-        }
+        callback(valid);
       }
 
       function run(validIndices) {
+        /* Drop excluded and out-of-range indices (old session caches may hold #16). */
+        validIndices = validIndices.filter(function (n) { return EXCLUDE.indexOf(n) === -1 && n <= max; });
         if (!validIndices.length) return;
 
         /* Fisher-Yates shuffle over the discovered valid indices. */

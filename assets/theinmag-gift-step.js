@@ -67,12 +67,12 @@
     var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     /* ---------- a random kid mINion per page load ---------- */
-    // Pool is assets/character-1..53.png; never #16 (wind-up bomb) or #53.
+    // Pool is assets/character-1..88.png; never #16 (wind-up bomb) or #53.
     (function pickMinion() {
       var base = root.getAttribute('data-tgd-minion-base') || '';
       if (!base) return;
       var pool = [];
-      for (var i = 1; i <= 52; i++) if (i !== 16) pool.push(i);
+      for (var i = 1; i <= 88; i++) if (i !== 16 && i !== 53) pool.push(i);
       var n = pool[Math.floor(Math.random() * pool.length)];
       var src = base.split('?')[0].replace(/character-1_300x\.png$/, 'character-' + n + '_300x.png');
       root.querySelectorAll('[data-tgd-minion]').forEach(function (img) { img.src = src; });

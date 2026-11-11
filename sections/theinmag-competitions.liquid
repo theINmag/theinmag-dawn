@@ -145,11 +145,14 @@
     JS retries on 404 so missing indices self-heal). Drop new PNGs in
     /assets/ - no count edit needed unless you cross 100.
   endcomment
-  assign character_count = section.settings.character_count | default: 53
+  assign character_count = section.settings.character_count | default: 88
   assign character_prefix = section.settings.character_prefix | default: 'character-'
   assign character_ext = section.settings.character_ext | default: '.png'
   capture character_attrs
     for i in (1..character_count)
+      if i == 16
+        continue
+      endif
       assign char_filename = character_prefix | append: i | append: character_ext
       assign char_url = char_filename | asset_url
       echo ' data-character-'
@@ -2845,8 +2848,8 @@
        ------------------------------------------------------------------ */
     function getCharacterPool() {
       var pool = [];
-      // Up to 30 supported - cap protects against accidental bigger settings
-      for (var i = 1; i <= 30; i++) {
+      // Up to 100 supported (pool is 1..88, #16 never emitted) - cap protects against accidental bigger settings
+      for (var i = 1; i <= 100; i++) {
         var url = root.dataset['character-' + i];
         if (url) pool.push(url);
       }
@@ -3583,7 +3586,7 @@
       "min": 3,
       "max": 100,
       "step": 1,
-      "default": 53
+      "default": 88
     },
     {
       "type": "text",
