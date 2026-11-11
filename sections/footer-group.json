@@ -86,12 +86,13 @@
         "shipping_refunds_url": "/pages/shipping-refunds",
         "instagram_url": "https://www.instagram.com/the.inmag/",
         "facebook_url": "https://www.facebook.com/theINmagazine/",
-        "youtube_url": ""
+        "youtube_url": "https://www.youtube.com/@theINmag"
       }
     },
     "theinmag-flyout-newsletter": {
       "type": "theinmag-flyout-newsletter",
       "settings": {
+        "enabled": false,
         "scroll_trigger_percent": 10,
         "hidden_handles": "for-kids,submit-your-creation,schools-order,stockist-kit"
       }

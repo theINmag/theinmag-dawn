@@ -136,6 +136,28 @@
         "video_starts_muted": true
       }
     },
+    "bm_videos": {
+      "type": "theinmag-video-row",
+      "settings": {
+        "show": "all",
+        "limit": 3,
+        "mobile_limit": 2,
+        "exclude_current": false,
+        "logo": "none",
+        "heading": "Still teachers at heart",
+        "intro": "Look, we are making magazines now but, let's be honest, you never stop being a teacher. These short videos are our bit to get your kids thinking, making and creating with rich tasks.",
+        "intro_2": "",
+        "link_label": "",
+        "link_url": "",
+        "link_button": false,
+        "background": "cream",
+        "anchor": "latest-videos",
+        "preview_as_live": false,
+        "preview_handle": "",
+        "padding_top": 56,
+        "padding_bottom": 64
+      }
+    },
     "bm_quiz": {
       "type": "theinmag-behind-the-mag-quiz",
       "settings": {
@@ -467,6 +489,7 @@
     "bm_story",
     "bm_press",
     "bm_video",
+    "bm_videos",
     "bm_quiz",
     "bm_crew",
     "bm_see_more",

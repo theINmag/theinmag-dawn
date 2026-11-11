@@ -85,7 +85,7 @@
   endif
 
   assign thumb_large = v_thumb | append: '.jpg' | asset_url
-  assign embed_src = 'https://www.youtube-nocookie.com/embed/' | append: v_id | append: '?rel=0&amp;playsinline=1'
+  assign embed_src = 'https://www.youtube-nocookie.com/embed/' | append: v_id | append: '?rel=0&amp;playsinline=1&amp;enablejsapi=1'
   assign watch_url = 'https://www.youtube.com/watch?v=' | append: v_id
   assign page_url = shop.url | append: '/pages/' | append: v_handle
 
@@ -93,98 +93,420 @@
   if matched and page.content != blank
     assign transcript_html = page.content
   endif
+
+  comment
+    Magazine look (2026-11-05): Post is all caps, so a standalone word
+    "in" would print as a lifted IN outside theINmag (house rule). Any
+    line that contains one falls back to Inter. Check is on the padded,
+    lower-cased, punctuation-stripped text.
+  endcomment
+  assign cover_product = all_products[section.settings.mag_cover_handle]
+
+  comment
+    The red tape carries the kid's question, never just a credit. The
+    question is the summary's first sentence when it ends in "?" (the
+    summary is written from the video, so nothing is invented); the rest
+    of the summary shows below it. No question, no tape: the credit
+    stays a plain line.
+  endcomment
+  comment
+    10 Nov 2026, Ryan: the kid's question drives the lesson but must not be the headline of the
+    page, so the summary is never split into a pulled-out question any more. Summaries now open
+    with the adult's own search question (see VIDEO-RELEASE-FORMAT.md) and the credit stays a
+    plain line.
+  endcomment
+  assign v_question = ''
+  assign summary_rest = v_summary
+  assign q_clean = v_question | downcase | replace: ',', ' ' | replace: '?', ' '
+  assign q_padded = ' ' | append: q_clean | append: ' '
+  assign q_post = true
+  if q_padded contains ' in '
+    assign q_post = false
+  endif
 -%}
 
-<section class="theinmag-video-watch" aria-labelledby="theinmag-video-watch-h1">
-  <div class="theinmag-video-watch__inner">
-    <nav class="theinmag-video-watch__crumbs" aria-label="Breadcrumb">
-      <a href="/pages/videos">Videos</a>
-      <span aria-hidden="true">/</span>
-      <a href="{{ show_anchor }}">{{ show_name }}</a>
-    </nav>
+{%- comment -%}
+  Simplified look (2026-11-06, Ryan: "I like the simplified style ... run with that"), the same language
+  as the field notes post video band: the series ground on top (Picnic = forest green with faint rings
+  and dots; Field Notes = the blog index's peach pattern), video left, the way on right; calm cream
+  body; a loop band into the magazine; then the watch-next row. Every watch page uses this.
+{%- endcomment -%}
+{%- liquid
+  assign v_line = f[9] | strip
+  assign t_clean = v_title | downcase | replace: ',', ' ' | replace: '?', ' ' | replace: '(', ' ' | replace: ')', ' ' | replace: ':', ' '
+  assign t_padded = ' ' | append: t_clean | append: ' '
+  assign title_post = true
+  if t_padded contains ' in '
+    assign title_post = false
+  endif
+  assign cover2 = all_products[section.settings.mag_cover2_handle]
+  assign minion_ids = section.settings.loop_minion_ids | default: '35,37,38,10,20,47,26' | split: ','
+  assign loop_minion_urls = ''
+  for mid in minion_ids
+    assign mfile = 'character-' | append: mid | strip | append: '.png'
+    assign murl = mfile | asset_img_url: '400x'
+    assign loop_minion_urls = loop_minion_urls | append: murl | append: '|'
+  endfor
+  if v_show == 'picnic'
+    assign ground = 'picnic'
+  else
+    assign ground = 'fieldnotes'
+  endif
+-%}
+{%- liquid
+  assign l_who = f[17] | strip
+  assign l_needs = f[18] | strip | split: ';;'
+  assign l_chapters = f[19] | strip | split: ';;'
+  assign l_prompts = f[20] | strip | split: ';;'
+  assign l_intask = f[21] | strip | split: ';;'
+  assign l_faq = f[22] | strip | split: ';;'
+  assign l_opener = f[23] | strip
 
-    <h1 id="theinmag-video-watch-h1" class="theinmag-video-watch__title">{{ v_title }}</h1>
-    <p class="theinmag-video-watch__meta">{{ show_name }}{% if v_area != blank %} <span aria-hidden="true">&middot;</span> {{ v_area }}{% endif %} <span aria-hidden="true">&middot;</span> {{ v_minutes }} <span aria-hidden="true">&middot;</span> with Ryan</p>
-
-    <div class="theinmag-video-watch__player{% if is_coming %} is-coming{% endif %}" data-live-from="{{ v_live_ts }}">
-      {%- if is_coming -%}
-        <img class="theinmag-video-watch__poster" src="{{ thumb_large }}" width="1280" height="720" fetchpriority="high" alt="Thumbnail for {{ v_title | escape }}">
-        <span class="theinmag-video-watch__soon">
-          <span class="theinmag-video-watch__soon-big">out {{ v_live_label }}</span>
-          <span class="theinmag-video-watch__soon-small">It plays right here once it's live.</span>
-        </span>
-        <template data-player-template>
-          <iframe src="{{ embed_src }}" title="{{ v_title | escape }} (video)" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-        </template>
-      {%- else -%}
-        <iframe src="{{ embed_src }}" title="{{ v_title | escape }} (video)" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  comment
+    TALK LAYOUT (Ryan, 10 Nov 2026). A Field Notes video is a talk, not a lesson to run, so
+    its page is a different way to read the paired field notes post: the video on top, the
+    post itself underneath, then the watch-next row and the magazine banner from the
+    template. The hero lede carries the summary (so it says something the opener does not),
+    the lesson blocks (You'll need, pockets, IN task panel, Run it card) do not render, and
+    the chapters heading reads "In this video". Falls back to the lesson layout when the
+    talk has no paired post.
+  endcomment
+  assign is_talk = false
+  assign talk_post = nil
+  if v_show == 'fieldnotes'
+    assign is_talk = true
+    if v_post != blank
+      assign talk_post_key = 'field-notes/' | append: v_post
+      assign talk_post = articles[talk_post_key]
+      if talk_post.content == blank
+        assign talk_post = nil
+      endif
+    endif
+  endif
+  assign lede_text = v_line
+  if is_talk
+    assign lede_text = v_summary
+  endif
+  comment
+    Blog hero data for the paired post (Ryan, 10 Nov: "fully mimic the blog page"). The same
+    reads theinmag-article makes: topic metafield or first tag, author_type picks the byline and
+    role (the article section's schema defaults), author_role_override wins the role line,
+    quick_answer fills the Quick read card, read time uses the audience wpm table.
+  endcomment
+  assign talk_topic = ''
+  assign talk_byline = ''
+  assign talk_role = ''
+  assign talk_quick = ''
+  assign talk_read = ''
+  assign talk_has_cover = false
+  if talk_post
+    if talk_post.image != blank
+      assign talk_has_cover = true
+    endif
+    assign talk_topic = talk_post.metafields.field_notes.primary_topic
+    if talk_topic == blank
+      assign talk_topic = talk_post.tags.first
+    endif
+    assign talk_author = talk_post.metafields.field_notes.author_type | downcase
+    if talk_author == 'tam'
+      assign talk_byline = 'By Tam B.'
+      assign talk_role = 'Classroom teacher & cofounder'
+    else
+      assign talk_byline = 'By Ryan G.'
+      assign talk_role = 'Learning specialist & classroom teacher'
+    endif
+    assign talk_role_override = talk_post.metafields.field_notes.author_role_override
+    if talk_role_override != blank
+      assign talk_role = talk_role_override
+    endif
+    comment
+      The article's other two modes, so a guest or kid post never reads "By Ryan G." (Fable check, 10 Nov):
+      a kid post shows no byline at all (privacy rule); a guest post reads "Meet [name]." like the blog.
+    endcomment
+    assign talk_kid = talk_post.metafields.field_notes.kid_first_name
+    assign talk_guest = talk_post.metafields.field_notes.guest_name | strip
+    if talk_kid != blank
+      assign talk_byline = ''
+      if talk_role_override == blank
+        assign talk_role = ''
+      endif
+    elsif talk_guest != blank
+      assign talk_guest = talk_guest | remove_last: '.'
+      assign talk_byline = 'Meet ' | append: talk_guest | append: '.'
+    endif
+    assign talk_quick = talk_post.metafields.field_notes.quick_answer
+    assign talk_audience = talk_post.metafields.field_notes.read_audience | downcase
+    if talk_audience == 'kids'
+      assign talk_wpm = 125
+    elsif talk_audience == 'parents'
+      assign talk_wpm = 220
+    else
+      assign talk_wpm = 170
+    endif
+    assign talk_words = talk_post.content | strip_html | split: ' ' | size
+    assign talk_minutes = talk_words | times: 1.0 | divided_by: talk_wpm | ceil | at_least: 1
+    assign talk_read = talk_minutes | append: ' min read'
+  endif
+-%}
+{%- comment -%}
+  Lesson page v3 (2026-11-07). One template; only the series ground and the main button change.
+  Order (reader questions): what is it + is it for me (chips, H1) > the video > how do I run it
+  (chapters that jump the player) > what do I ask (pocket questions) > what do I need (Run it card) >
+  why it works (How this is an IN task) > transcript + FAQ > then the shop hero banner and watch next.
+  Content comes from the registry (fields 17 to 22). Research: WATCH-PAGE-RESEARCH + WATCH-PAGE-SPEC-v1.
+{%- endcomment -%}
+<section class="theinmag-video-watch theinmag-video-watch--{{ ground }}" aria-labelledby="theinmag-video-watch-h1">
+  <div class="theinmag-video-watch__band"{% if ground == 'fieldnotes' %} style="--vw-pattern: url('{{ 'teacher_backgroundFAQ.jpg' | asset_url }}');"{% endif %}>
+    {%- if ground == 'picnic' -%}
+      <span class="theinmag-video-watch__decor theinmag-video-watch__decor--rings" aria-hidden="true" style="--decor-mask: url('{{ 'FAQ_HollowCircles.png' | asset_url }}');"></span>
+    {%- endif -%}
+    <div class="theinmag-video-watch__inner">
+      {%- if l_opener != blank -%}
+        {%- comment -%} Centred Post line saying exactly what this video is (registry field 23; Ryan, 10 Nov: the top under the nav felt bare, handwriting tried and binned). Fades up once; reduced motion shows it still. {%- endcomment -%}
+        <p class="theinmag-video-watch__opener">{{ l_opener | escape }}</p>
       {%- endif -%}
-    </div>
-    <p class="theinmag-video-watch__yt"><a href="{{ watch_url }}" target="_blank" rel="noopener">watch on YouTube<span class="visually-hidden"> (opens in a new tab)</span></a></p>
-
-    <div class="theinmag-video-watch__grid">
-      <div class="theinmag-video-watch__main">
-        <p class="theinmag-video-watch__summary">{{ v_summary }}</p>
-
-        <h2 class="theinmag-video-watch__h2">What's in this video?</h2>
-        <ul class="theinmag-video-watch__points">
-          {%- for p in v_points -%}<li>{{ p }}</li>{%- endfor -%}
-        </ul>
-
-        {%- if v_kid != blank -%}
-          <p class="theinmag-video-watch__kid">{{ v_kid }}</p>
-        {%- endif -%}
-
-        {%- if transcript_html != blank -%}
-          <details class="theinmag-video-watch__transcript">
-            <summary>Read the transcript</summary>
-            <div class="theinmag-video-watch__transcript-body">{{ transcript_html }}</div>
-          </details>
-        {%- elsif matched == false -%}
-          <details class="theinmag-video-watch__transcript">
-            <summary>Read the transcript</summary>
-            <div class="theinmag-video-watch__transcript-body"><p>Draft preview: the transcript shows here from the page body once this video's own page exists.</p></div>
-          </details>
-        {%- endif -%}
+      <div class="theinmag-video-watch__toprow">
+        <nav class="theinmag-video-watch__crumbs" aria-label="Breadcrumb">
+          <a href="/pages/videos">Videos</a>
+          <span aria-hidden="true">/</span>
+          <a href="{{ show_anchor }}">{{ show_name }}</a>
+        </nav>
       </div>
-
-      <aside class="theinmag-video-watch__side" aria-label="Next steps">
-        <div class="theinmag-video-watch__card theinmag-video-watch__card--sub">
-          <h2 class="theinmag-video-watch__card-h">{{ section.settings.sub_heading }}</h2>
-          <p>{{ section.settings.sub_copy }}</p>
-          <a class="theinmag-btn theinmag-btn--secondary" href="{{ section.settings.sub_url }}" target="_blank" rel="noopener">{{ section.settings.sub_label }}<span class="visually-hidden"> (opens YouTube in a new tab)</span></a>
-        </div>
-        {%- if v_show == 'fieldnotes' and v_post != blank -%}
-          <div class="theinmag-video-watch__card">
-            <h2 class="theinmag-video-watch__card-h">Rather read it?</h2>
-            <p>The field notes post comes at the same idea from a different angle.</p>
-            <a class="theinmag-btn theinmag-btn--secondary" href="/blogs/field-notes/{{ v_post }}">read the field notes post</a>
+      <div class="theinmag-video-watch__top">
+        <div class="theinmag-video-watch__head">
+          {%- comment -%} Logo and the three strips share one row (Ryan, 10 Nov: the logo is big, put the chips down beside it). {%- endcomment -%}
+          <div class="theinmag-video-watch__brandrow">
+            <div class="theinmag-video-watch__brand theinmag-video-watch__brand--head">
+              {%- if ground == 'picnic' -%}
+                <picture class="theinmag-video-watch__logo theinmag-video-watch__logo--picnic">
+                  <source media="(prefers-reduced-motion: reduce)" srcset="{{ 'picnic-planning-logo-static.png' | asset_url }}">
+                  <img src="{{ 'picnic-planning-logo-anim.webp' | asset_url }}" width="600" height="516" alt="Picnic Planning">
+                </picture>
+              {%- else -%}
+                <img class="theinmag-video-watch__logo theinmag-video-watch__logo--fieldnotes" src="{{ 'fieldnotes_logo_sage.png' | asset_url }}" width="800" height="320" alt="Field Notes">
+              {%- endif -%}
+            </div>
           </div>
-        {%- endif -%}
-        <div class="theinmag-video-watch__card theinmag-video-watch__card--planner">
-          <img src="{{ section.settings.planner_image | default: 'videos-planner-closeup.jpg' | asset_url }}" width="1200" height="675" loading="lazy" alt="{{ section.settings.planner_image_alt | escape }}">
-          <div class="theinmag-video-watch__card-body">
-            <h2 class="theinmag-video-watch__card-h">{{ section.settings.planner_heading }}</h2>
-            <p>{{ section.settings.planner_copy }}</p>
-            <a class="theinmag-btn theinmag-btn--primary" href="{{ section.settings.planner_url }}">{{ section.settings.planner_label }}</a>
-          </div>
+          <h1 id="theinmag-video-watch-h1" class="theinmag-video-watch__title{% unless title_post %} is-inter{% endunless %}">{{ v_title }}</h1>
         </div>
-        <div class="theinmag-video-watch__card theinmag-video-watch__card--mag">
-          {%- if v_show == 'picnic' -%}
-            <h2 class="theinmag-video-watch__card-h">{{ section.settings.mag_heading }}</h2>
-            <p>{{ section.settings.mag_copy }}</p>
+        <div class="theinmag-video-watch__player{% if is_coming %} is-coming{% endif %}" id="lesson-player" data-live-from="{{ v_live_ts }}">
+          {%- if is_coming -%}
+            <img class="theinmag-video-watch__poster" src="{{ thumb_large }}" width="1280" height="720" fetchpriority="high" alt="Thumbnail for {{ v_title | escape }}">
+            <span class="theinmag-video-watch__soon">
+              <span class="theinmag-video-watch__soon-big">out {{ v_live_label }}</span>
+              <span class="theinmag-video-watch__soon-small">It plays right here once it's live.</span>
+            </span>
+            <template data-player-template>
+              <iframe src="{{ embed_src }}" title="{{ v_title | escape }} (video)" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </template>
           {%- else -%}
-            <h2 class="theinmag-video-watch__card-h">{{ section.settings.mag_heading_fn }}</h2>
-            <p>{{ section.settings.mag_copy_fn }}</p>
+            <iframe src="{{ embed_src }}" title="{{ v_title | escape }} (video)" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
           {%- endif -%}
-          <a class="theinmag-video-watch__textlink" href="{{ section.settings.mag_url }}">{{ section.settings.mag_label }} <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <div class="theinmag-video-watch__act">
+          {%- if lede_text != blank -%}<p class="theinmag-video-watch__lede{% if is_talk %} theinmag-video-watch__lede--talk{% endif %}">{{ lede_text }}</p>{%- endif -%}
+          {%- comment -%} Ryan, 10 Nov: the planner and post buttons already live in the Run it card below, so this slot carries the YouTube subscribe link instead (moved down from the breadcrumb row, kept as a small link, not a button). The sitewide footer listener logs it as youtube_click_subscribe. {%- endcomment -%}
+          <div class="theinmag-video-watch__actions">
+            <a class="theinmag-video-watch__sub" href="{{ section.settings.sub_url }}" target="_blank" rel="noopener">subscribe on YouTube<span class="visually-hidden"> (opens in a new tab)</span></a>
+            {%- comment -%} Tam, 10 Nov: the three strips sit in one row under the subscribe link, not beside the logo. {%- endcomment -%}
+            <ul class="theinmag-video-watch__chips" aria-label="About this video">
+              {%- if v_area != blank -%}<li>{{ v_area }}</li>{%- endif -%}
+              <li>{{ v_minutes }}</li>
+              {%- if l_who != blank -%}<li>{{ l_who | split: ',' | first | split: '.' | first }}</li>{%- endif -%}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="theinmag-video-watch__inner theinmag-video-watch__body{% if is_talk %} theinmag-video-watch__body--talk{% endif %}{% if talk_has_cover %} theinmag-video-watch__body--with-cover{% endif %}"{% if talk_has_cover %} data-talk-hero{% endif %}>
+    {%- if talk_has_cover -%}
+      {%- comment -%} Talk pages read like the blog (Ryan, 10 Nov): the post's cover stays put beside the words on desktop, sits above them on a phone,
+        and carries the blog's hero overlay (title, topic, byline, role on a dark scrim) that fades and brightens as the reader scrolls. {%- endcomment -%}
+      <aside class="theinmag-video-watch__cover-col">
+        <div class="theinmag-video-watch__cover-sticky">
+          <img class="theinmag-video-watch__cover-image"
+            srcset="{% if talk_post.image.width >= 600 %}{{ talk_post.image | image_url: width: 600 }} 600w,{% endif %}{% if talk_post.image.width >= 900 %}{{ talk_post.image | image_url: width: 900 }} 900w,{% endif %}{% if talk_post.image.width >= 1600 %}{{ talk_post.image | image_url: width: 1600 }} 1600w,{% endif %}{{ talk_post.image | image_url: width: 1200 }} 1200w"
+            sizes="(min-width: 990px) 50vw, 100vw"
+            src="{{ talk_post.image | image_url: width: 1200 }}"
+            alt="{{ talk_post.image.alt | default: talk_post.title | escape }}" loading="eager" decoding="async" width="{{ talk_post.image.width }}" height="{{ talk_post.image.height }}">
+          <div class="theinmag-video-watch__overlay">
+            <h2 class="theinmag-video-watch__overlay-title">{{ talk_post.title }}</h2>
+            {%- if talk_topic != blank -%}<span class="theinmag-video-watch__overlay-topic">{{ talk_topic }}</span>{%- endif -%}
+            {%- if talk_byline != blank -%}<p class="theinmag-video-watch__overlay-byline">{{ talk_byline }}</p>{%- endif -%}
+            {%- if talk_role != blank -%}<p class="theinmag-video-watch__overlay-role">{{ talk_role }}</p>{%- endif -%}
+          </div>
         </div>
       </aside>
+    {%- endif -%}
+    <div class="theinmag-video-watch__main">
+      {%- unless is_talk -%}
+      <div class="theinmag-video-watch__about">
+        <p class="theinmag-video-watch__summary">{{ v_summary }}</p>
+        {%- if v_kid != blank -%}<p class="theinmag-video-watch__credit">{{ v_kid }}</p>{%- endif -%}
+      </div>
+      {%- endunless -%}
+
+      {%- comment -%} Chapters are a lesson tool; talks do not list them on the page (Ryan, 10 Nov). The VideoObject Clip schema still carries them. {%- endcomment -%}
+      {%- if is_talk == false and l_chapters.size > 0 and l_chapters[0] != blank -%}
+        <h2 class="theinmag-video-watch__h2">How do I run it?</h2>
+        <ol class="theinmag-video-watch__chapters">
+          {%- for c in l_chapters -%}
+            {%- liquid
+              assign cp = c | split: '|'
+              assign ct = cp[0] | strip
+              assign tparts = ct | split: ':'
+              assign secs = tparts[0] | times: 60 | plus: tparts[1]
+            -%}
+            <li><button type="button" class="theinmag-video-watch__chapter" data-seek="{{ secs }}"><span class="theinmag-video-watch__time">{{ ct }}</span><span>{{ cp[1] }}</span></button></li>
+          {%- endfor -%}
+        </ol>
+      {%- endif -%}
+
+      {%- if l_prompts.size > 0 and l_prompts[0] != blank -%}
+        <h2 class="theinmag-video-watch__h2 theinmag-video-watch__h2--pocket">Pocket questions <span>probing questions to keep your kids in flow</span></h2>
+        <div class="theinmag-video-watch__pockets">
+          {%- for pq in l_prompts -%}
+            {%- assign pp = pq | split: '|' -%}
+            <div class="theinmag-video-watch__pocket theinmag-video-watch__pocket--{{ pp[0] | strip }}">
+              <p class="theinmag-video-watch__pocket-label">{% if pp[0] contains 'stuck' %}If they're stuck{% else %}If they're cruising{% endif %}</p>
+              <ul class="theinmag-video-watch__pocket-qs">{%- assign qs = pp[1] | split: '~' -%}{%- for q in qs -%}<li>{{ q | strip }}</li>{%- endfor -%}</ul>
+            </div>
+          {%- endfor -%}
+        </div>
+        {%- if section.settings.pocket_url != blank -%}<p class="theinmag-video-watch__pocket-more"><a class="theinmag-video-watch__textlink" href="{{ section.settings.pocket_url }}">{{ section.settings.pocket_label }} <span aria-hidden="true">&rarr;</span></a></p>{%- endif -%}
+      {%- endif -%}
+
+      {%- if l_intask.size > 0 and l_intask[0] != blank -%}
+        <aside class="theinmag-video-watch__intask" aria-labelledby="intask-h">
+          <span class="theinmag-video-watch__intask-minion" data-loop-minion="{{ loop_minion_urls }}" aria-hidden="true"><img alt="" width="400" height="400" loading="lazy" hidden></span>
+          <h2 id="intask-h" class="theinmag-video-watch__intask-h">How this is an IN task</h2>
+          <dl class="theinmag-video-watch__pillars">
+            {%- for it in l_intask -%}
+              {%- assign ip = it | split: '|' -%}
+              <div><dt>{{ ip[0] }}</dt><dd>{{ ip[1] }}</dd></div>
+            {%- endfor -%}
+          </dl>
+          {%- if section.settings.intask_url != blank -%}
+            <a class="theinmag-video-watch__textlink" href="{{ section.settings.intask_url }}">What is an IN task? <span aria-hidden="true">&rarr;</span></a>
+          {%- endif -%}
+        </aside>
+      {%- endif -%}
+
+      {%- if is_talk and talk_post -%}
+        <article class="theinmag-video-watch__post">
+          {%- unless talk_has_cover -%}
+            <p class="theinmag-video-watch__post-eyebrow">The field notes post</p>
+            <h2 class="theinmag-video-watch__post-title">{{ talk_post.title }}</h2>
+          {%- endunless -%}
+          <header class="theinmag-video-watch__post-meta">
+            {%- if talk_topic != blank -%}<span class="theinmag-video-watch__post-topic">{{ talk_topic }}</span>{%- endif -%}
+            <span>{{ talk_read }}</span>
+            {%- if talk_post.published_at != blank -%}<span>{{ talk_post.published_at | date: '%b %-d, %Y' }}</span>{%- endif -%}
+          </header>
+          {%- if talk_quick != blank -%}
+            <aside class="theinmag-video-watch__quick" aria-label="Quick read">
+              <span class="theinmag-video-watch__quick-label">Quick read</span>
+              <div class="theinmag-video-watch__quick-body rte">{{ talk_quick }}</div>
+            </aside>
+          {%- endif -%}
+          <div class="theinmag-video-watch__post-body">{{ talk_post.content }}</div>
+        </article>
+      {%- endif -%}
+
+      {%- if transcript_html != blank or matched == false -%}
+        <details class="theinmag-video-watch__fold">
+          <summary>Read the transcript</summary>
+          <div class="theinmag-video-watch__fold-body">{% if transcript_html != blank %}{{ transcript_html }}{% else %}<p>Draft preview: the transcript shows here from the page body once this video's own page exists.</p>{% endif %}</div>
+        </details>
+      {%- endif -%}
+      {%- for fq in l_faq -%}
+        {%- if fq != blank -%}
+          {%- assign fp = fq | split: '|' -%}
+          <details class="theinmag-video-watch__fold">
+            <summary>{{ fp[0] }}</summary>
+            <div class="theinmag-video-watch__fold-body"><p>{{ fp[1] }}</p></div>
+          </details>
+        {%- endif -%}
+      {%- endfor -%}
     </div>
+
+    {%- unless is_talk -%}
+    <aside class="theinmag-video-watch__side" aria-label="Run it">
+      <div class="theinmag-video-watch__runit">
+        <h2 class="theinmag-video-watch__runit-h">Run it</h2>
+        {%- if l_needs.size > 0 and l_needs[0] != blank -%}
+          <p class="theinmag-video-watch__runit-label">You'll need</p>
+          <ul class="theinmag-video-watch__needs">
+            {%- for n in l_needs -%}<li>{{ n }}</li>{%- endfor -%}
+          </ul>
+        {%- endif -%}
+        {%- if ground == 'picnic' -%}
+          <a class="theinmag-btn theinmag-btn--primary theinmag-video-watch__runit-btn" href="{{ section.settings.planner_url }}">{{ section.settings.planner_label }}</a>
+        {%- elsif v_post != blank -%}
+          <a class="theinmag-btn theinmag-btn--primary theinmag-video-watch__runit-btn" href="/blogs/field-notes/{{ v_post }}">read the field notes post</a>
+        {%- endif -%}
+        <p class="theinmag-video-watch__runit-email"><a href="/pages/newsletter">{{ section.settings.email_line }}</a></p>
+      </div>
+    </aside>
+    {%- endunless -%}
   </div>
 </section>
 
 <script>
+  (function () {
+    /* Chapters jump the embedded YouTube player (enablejsapi=1) and scroll it into view. */
+    /* Phones ignore playVideo() until the viewer has tapped play once, so until the player reports
+       it has played, a chapter tap reloads the embed at that start time instead. */
+    var started = false;
+    window.addEventListener('message', function (e) {
+      if (typeof e.data !== 'string' || e.data.indexOf('playerState') === -1) return;
+      try {
+        var d = JSON.parse(e.data);
+        if (d.info && d.info.playerState === 1 && !started) {
+          started = true;
+          /* GA4 youtube_play (2026-11-10): first play of the embed on this page view, once.
+             Read by the built-in pagePath dimension like stack_cta_click; video_id needs a
+             custom dimension to query. Guarded: analytics never breaks the player. */
+          try {
+            var pf = document.querySelector('#lesson-player iframe');
+            var pm = pf && pf.src ? pf.src.match(/\/embed\/([^?&/]+)/) : null;
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'youtube_play', { video_id: pm ? pm[1] : '', surface: 'watch_page', page_path: window.location.pathname });
+            }
+          } catch (g) {}
+        }
+      } catch (x) {}
+    });
+    var fr = document.querySelector('#lesson-player iframe');
+    if (fr) fr.addEventListener('load', function () { fr.contentWindow.postMessage(JSON.stringify({ event: 'listening' }), '*'); });
+    document.querySelectorAll('[data-seek]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var f = document.querySelector('#lesson-player iframe');
+        if (!f) return;
+        var t = parseInt(b.getAttribute('data-seek'), 10) || 0;
+        if (started) {
+          f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [t, true] }), '*');
+          f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+        } else {
+          f.src = f.src.replace(/&start=\d+/, '').replace(/&autoplay=1/, '') + '&start=' + t + '&autoplay=1';
+        }
+        document.querySelectorAll('[data-seek].is-current').forEach(function (x) { x.classList.remove('is-current'); });
+        b.classList.add('is-current');
+        document.getElementById('lesson-player').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+  })();
+  (function () {
+    var slot = document.querySelector('[data-loop-minion]');
+    if (!slot) return;
+    var urls = slot.getAttribute('data-loop-minion').split('|').filter(Boolean);
+    if (!urls.length) return;
+    var img = slot.querySelector('img');
+    img.src = urls[Math.floor(Math.random() * urls.length)];
+    img.hidden = false;
+  })();
   (function () {
     var p = document.querySelector('.theinmag-video-watch__player.is-coming');
     if (!p) return;
@@ -194,7 +516,33 @@
     if (!tpl) return;
     p.innerHTML = '';
     p.appendChild(tpl.content.cloneNode(true));
+    /* The player script above only found the iframe that existed at load; this one is new, so
+       start the jsapi handshake here too, or chapters and youtube_play never hear it (Fable, 10 Nov). */
+    var nf = p.querySelector('iframe');
+    if (nf) nf.addEventListener('load', function () { nf.contentWindow.postMessage(JSON.stringify({ event: 'listening' }), '*'); });
     p.classList.remove('is-coming');
+  })();
+  (function () {
+    /* Blog hero fade on talk pages (theinmag-article's rule, 10 Nov): --hero-progress runs 0 to 1 over
+       the first 30vh the cover column travels past the top of the screen. The overlay fades out and the
+       image brightens to natural. Skipped under prefers-reduced-motion (CSS shows everything static). */
+    var hero = document.querySelector('[data-talk-hero]');
+    if (!hero) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var ticking = false;
+    function update() {
+      ticking = false;
+      var rect = hero.getBoundingClientRect();
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      var travel = vh * 0.3;
+      if (travel <= 0) return;
+      var progress = Math.min(1, Math.max(0, -rect.top) / travel);
+      hero.style.setProperty('--hero-progress', progress.toFixed(3));
+    }
+    function onScroll() { if (!ticking) { window.requestAnimationFrame(update); ticking = true; } }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    update();
   })();
 </script>
 
@@ -225,6 +573,15 @@
   "embedUrl": {{ 'https://www.youtube.com/embed/' | append: v_id | json }},
   "url": {{ page_url | json }},
   "inLanguage": "en-AU",
+  {%- if l_chapters.size > 0 and l_chapters[0] != blank %}
+  "hasPart": [
+    {%- for c in l_chapters -%}
+      {%- assign cp = c | split: '|' -%}{%- assign tparts = cp[0] | strip | split: ':' -%}{%- assign secs = tparts[0] | times: 60 | plus: tparts[1] -%}
+      {%- if forloop.last -%}{%- assign endsecs = v_duration | remove: 'PT' | split: 'M' | first | times: 60 -%}{%- else -%}{%- assign nx = l_chapters[forloop.index] | split: '|' | first | strip | split: ':' -%}{%- assign endsecs = nx[0] | times: 60 | plus: nx[1] -%}{%- endif -%}
+      { "@type": "Clip", "name": {{ cp[1] | json }}, "startOffset": {{ secs }}, "endOffset": {{ endsecs }}, "url": {{ watch_url | append: '&t=' | append: secs | json }} }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ],
+  {%- endif %}
   "isFamilyFriendly": true,
   "creator": { "@type": "Person", "name": "Ryan", "jobTitle": "Teacher and learning specialist", "worksFor": { "@type": "Organization", "name": "theINmag" } },
   "publisher": {
@@ -234,177 +591,228 @@
     "sameAs": ["https://www.youtube.com/@theINmag"]
   }
   {%- if transcript_html != blank -%},
-  "transcript": {{ transcript_html | strip_html | strip_newlines | strip | json }}
+  "transcript": {{ transcript_html | replace: '</p>', '</p> ' | replace: '<br>', ' ' | strip_html | strip_newlines | strip | json }}
   {%- endif %}
 }
 </script>
 {%- endif -%}
 
+{%- if l_faq.size > 0 and l_faq[0] != blank -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- for fq in l_faq -%}{%- assign fp = fq | split: '|' -%}
+    { "@type": "Question", "name": {{ fp[0] | strip | json }}, "acceptedAnswer": { "@type": "Answer", "text": {{ fp[1] | strip | json }} } }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ]
+}
+</script>
+{%- endif -%}
 {% stylesheet %}
-  .theinmag-video-watch {
-    background: var(--color-cream);
-    color: var(--color-inky-purple-navy);
-    padding: clamp(20px, 3vw, 40px) 0 clamp(48px, 7vw, 88px);
-  }
-  .theinmag-video-watch__inner {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 0 clamp(16px, 3vw, 32px);
-  }
-  .theinmag-video-watch__crumbs {
-    display: flex;
-    gap: 8px;
-    font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  .theinmag-video-watch__crumbs a { color: var(--color-inky-purple-navy); text-underline-offset: 3px; }
-  .theinmag-video-watch__title {
-    font-family: var(--font-heading);
-    font-weight: 400;
-    font-size: clamp(28px, 4.2vw, 46px);
-    line-height: 1.1;
-    margin: 0 0 8px;
-    max-width: 26ch;
-    text-wrap: pretty;
-  }
-  .theinmag-video-watch__meta {
-    font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    opacity: 0.8;
-    margin: 0 0 clamp(16px, 2.4vw, 24px);
-  }
-  .theinmag-video-watch__player {
-    position: relative;
-    aspect-ratio: 16 / 9;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    background: var(--color-inky-purple-navy);
-    box-shadow: 0 14px 36px rgba(42, 31, 61, 0.22);
-  }
-  .theinmag-video-watch__player iframe,
-  .theinmag-video-watch__poster {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-    object-fit: cover;
-  }
-  .theinmag-video-watch__soon {
-    position: absolute;
-    inset: auto 0 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 64px clamp(16px, 3vw, 28px) clamp(16px, 3vw, 24px);
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0));
-    color: #FFFFFF;
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
-    font-family: var(--font-body);
-  }
-  .theinmag-video-watch__soon-big { font-weight: 700; font-size: clamp(18px, 2.4vw, 26px); }
-  .theinmag-video-watch__soon-small { font-size: 15px; }
-  .theinmag-video-watch__yt {
-    margin: 10px 0 0;
-    font-family: var(--font-body);
-    font-size: 14px;
-    text-align: right;
-  }
-  .theinmag-video-watch__yt a { color: var(--color-inky-purple-navy); text-underline-offset: 3px; }
+  /* Lesson page v3 (2026-11-07). Calm, one ground per series, one mINion, one decoration per screen. */
+  .theinmag-video-watch { background: var(--color-cream); color: var(--color-inky-purple-navy); font-family: var(--font-body); }
+  .theinmag-video-watch__inner { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); position: relative; z-index: 1; }
 
-  .theinmag-video-watch__grid {
-    display: grid;
-    gap: clamp(28px, 4vw, 56px);
-    margin-top: clamp(20px, 3vw, 36px);
+  /* ---------- band ---------- */
+  .theinmag-video-watch__band { position: relative; overflow: hidden; padding: clamp(16px, 2.6vw, 26px) 0 clamp(32px, 4.5vw, 56px); }
+  .theinmag-video-watch--picnic .theinmag-video-watch__band { background-color: #2c634f; color: var(--color-cream); }
+  .theinmag-video-watch--fieldnotes .theinmag-video-watch__band {
+    background-color: #FFD99B;
+    background-image: linear-gradient(rgba(251, 246, 234, 0.55), rgba(251, 246, 234, 0.55)), var(--vw-pattern);
+    background-size: auto, 640px auto; background-repeat: repeat;
   }
-  .theinmag-video-watch__summary {
-    font-family: var(--font-body);
-    font-size: clamp(18px, 1.9vw, 21px);
-    line-height: 1.6;
-    margin: 0 0 24px;
+  .theinmag-video-watch__decor {
+    position: absolute; z-index: 0; pointer-events: none; background-color: #CFEADB; opacity: 0.85;
+    -webkit-mask: var(--decor-mask) center / contain no-repeat; mask: var(--decor-mask) center / contain no-repeat;
+    width: clamp(200px, 24vw, 360px); aspect-ratio: 803 / 736; top: -90px; right: -110px;
   }
-  .theinmag-video-watch__h2 {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: clamp(20px, 2.2vw, 24px);
-    letter-spacing: -0.01em;
-    margin: 0 0 10px;
+  /* Opening line: centred Post, says exactly what the video is (registry field 23), a short yellow strip under it in the chips' family. */
+  .theinmag-video-watch__opener {
+    margin: 0 auto clamp(18px, 2.6vw, 30px); padding: 0 0 14px; max-width: 34ch; text-align: center; position: relative;
+    font-family: var(--font-heading); font-weight: 400; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.2; letter-spacing: 0.03em; text-wrap: balance;
+    animation: theinmag-video-watch-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both;
   }
-  .theinmag-video-watch__points {
-    margin: 0 0 20px;
-    padding-left: 1.2em;
-    font-family: var(--font-body);
-    font-size: 17px;
-    line-height: 1.65;
-  }
-  .theinmag-video-watch__points li { margin-bottom: 6px; }
-  .theinmag-video-watch__kid {
-    font-family: var(--font-body);
-    font-style: italic;
-    font-size: 15px;
-    color: var(--color-purple-dark);
-    margin: 0 0 24px;
-  }
-  .theinmag-video-watch__transcript {
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    font-family: var(--font-body);
-  }
-  .theinmag-video-watch__transcript summary {
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 17px;
-    padding: 16px 0;
-    min-height: 44px;
-  }
-  .theinmag-video-watch__transcript-body {
-    font-size: 16px;
-    line-height: 1.7;
-    max-width: 68ch;
-    padding-bottom: 16px;
-  }
+  .theinmag-video-watch__opener::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 64px; height: 6px; transform: translateX(-50%) rotate(-1.2deg); background: var(--color-yellow); }
+  .theinmag-video-watch--picnic .theinmag-video-watch__opener { color: var(--color-cream); }
+  .theinmag-video-watch--fieldnotes .theinmag-video-watch__opener { color: var(--color-inky-purple-navy); }
+  @keyframes theinmag-video-watch-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .theinmag-video-watch__opener { animation: none; } }
+  .theinmag-video-watch__toprow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin: 0 0 clamp(14px, 2vw, 22px); }
+  .theinmag-video-watch__crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 14px; font-weight: 600; }
+  /* Subscribe link (moved down from the breadcrumb row into the action slot, 10 Nov): the original small link styling. */
+  .theinmag-video-watch__sub { font-size: 14px; font-weight: 700; text-underline-offset: 3px; }
+  .theinmag-video-watch--picnic .theinmag-video-watch__sub { color: var(--color-yellow); }
+  .theinmag-video-watch--fieldnotes .theinmag-video-watch__sub { color: var(--color-purple-dark); }
+  .theinmag-video-watch__crumbs a { color: inherit; text-underline-offset: 3px; }
 
-  .theinmag-video-watch__side { display: flex; flex-direction: column; gap: 20px; }
-  .theinmag-video-watch__card {
-    background: #FFFFFF;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    padding: 22px 22px 24px;
-    font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.55;
-  }
-  .theinmag-video-watch__card p { margin: 0 0 16px; }
-  .theinmag-video-watch__card--planner { padding: 0; overflow: hidden; }
-  .theinmag-video-watch__card--planner img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
-  .theinmag-video-watch__card-body { padding: 20px 22px 24px; }
-  .theinmag-video-watch__card-h {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 20px;
-    line-height: 1.25;
-    letter-spacing: -0.01em;
-    margin: 0 0 8px;
-  }
-  .theinmag-video-watch__card--mag { background: var(--color-lavender); box-shadow: none; }
-  .theinmag-video-watch__textlink {
-    font-weight: 700;
-    color: var(--color-inky-purple-navy);
-    text-underline-offset: 4px;
-  }
-
+  .theinmag-video-watch__top { display: grid; gap: 16px; grid-template-areas: "head" "player" "act"; }
+  .theinmag-video-watch__head { grid-area: head; }
+  .theinmag-video-watch__player { grid-area: player; }
+  .theinmag-video-watch__act { grid-area: act; }
+  .theinmag-video-watch__brandrow { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin: 0 0 14px; }
+  .theinmag-video-watch__brand { display: block; margin: 0; }
   @media (min-width: 990px) {
-    .theinmag-video-watch .theinmag-video-watch__grid {
-      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-      align-items: start;
+    .theinmag-video-watch__top {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      grid-template-areas: "player head" "player act";
+      grid-template-rows: auto 1fr;
+      column-gap: clamp(28px, 3.5vw, 52px); row-gap: 14px;
     }
-    .theinmag-video-watch .theinmag-video-watch__side { position: sticky; top: 120px; }
+    .theinmag-video-watch__head { align-self: end; }
   }
+  /* one row of magazine labels under the subscribe link (Tam, 10 Nov) */
+  .theinmag-video-watch__chips { list-style: none; display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; margin: 2px 0 0; padding: 0; }
+  /* magazine-style highlighter strips (Ryan, 7 Nov: like the coloured labels in the mag, not bubbles) */
+  .theinmag-video-watch__chips li {
+    font-family: var(--font-heading); font-size: 15px; letter-spacing: 0.04em; line-height: 1;
+    padding: 6px 10px 5px; color: var(--color-inky-purple-navy); background: var(--color-yellow);
+  }
+  .theinmag-video-watch__chips li:nth-child(2) { background: var(--color-soft-pink); }
+  .theinmag-video-watch__chips li:nth-child(3) { background: var(--color-wave-purple); }
+  .theinmag-video-watch__title { margin: 0; font-family: var(--font-heading); font-weight: 400; font-size: clamp(26px, 2.7vw, 38px); line-height: 1.12; text-wrap: balance; color: inherit; }
+  .theinmag-video-watch--picnic .theinmag-video-watch__title,
+  .theinmag-video-watch--picnic .theinmag-video-watch__lede,
+  .theinmag-video-watch--picnic .theinmag-video-watch__crumbs a,
+  .theinmag-video-watch--picnic .theinmag-video-watch__small a { color: var(--color-cream); }
+  .theinmag-video-watch--fieldnotes .theinmag-video-watch__title { color: var(--color-inky-purple-navy); }
+  .theinmag-video-watch__title.is-inter { font-family: var(--font-body); font-weight: 700; letter-spacing: -0.01em; }
+  .theinmag-video-watch__player { position: relative; aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; background: #000000; box-shadow: 0 10px 26px rgba(20, 14, 30, 0.22); }
+  .theinmag-video-watch__player iframe,
+  .theinmag-video-watch__poster { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; }
+  .theinmag-video-watch__soon { position: absolute; inset: auto 0 0 0; display: flex; flex-direction: column; gap: 4px; padding: 64px 24px 20px; background: linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0)); color: #FFFFFF; }
+  .theinmag-video-watch__soon-big { font-weight: 700; font-size: clamp(18px, 2.4vw, 26px); }
+  .theinmag-video-watch__lede { margin: 0 0 16px; font-size: 17px; line-height: 1.55; max-width: 40ch; }
+  .theinmag-video-watch__actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin: 0 0 12px; }
+  .theinmag-video-watch__small { margin: 0; font-size: 14px; font-weight: 600; }
+  .theinmag-video-watch__small a { color: inherit; text-underline-offset: 3px; }
+  .theinmag-video-watch__logo { display: block; height: auto; }
+  .theinmag-video-watch__logo img { display: block; width: 100%; height: auto; }
+  /* Tam, 10 Nov: logo a size up, and on desktop it floats a little above the video's top line rather than lining up with it */
+  .theinmag-video-watch__logo--picnic { width: clamp(132px, 12.5vw, 176px); }
+  .theinmag-video-watch__logo--fieldnotes { width: clamp(140px, 13vw, 184px); }
+  @media (min-width: 990px) { .theinmag-video-watch__brandrow { margin-top: -26px; } }
+
+  /* ---------- body ---------- */
+  .theinmag-video-watch__body { display: grid; gap: clamp(32px, 4vw, 56px); padding-top: clamp(32px, 4.5vw, 56px); padding-bottom: clamp(40px, 6vw, 72px); }
+  @media (min-width: 990px) { .theinmag-video-watch__body { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; } }
+  /* Talk layout: one reading column, the field notes post under the video */
+  @media (min-width: 990px) { .theinmag-video-watch__body--talk { grid-template-columns: minmax(0, 760px); justify-content: start; } }
+  /* with a cover: the blog's own treatment. Phone: a 4/5 cover above the words. Desktop: the cover column runs
+     the full height of the post and the image inside it is sticky at the top of the screen, filling the screen
+     top to bottom while the words scroll beside it (theinmag-article's cover-sticky rules). */
+  /* Ryan, 10 Nov: exactly the blog's cover. Full bleed to the left edge of the screen, no gap above it (it
+     meets the hero band), square corners, screen-height sticky on desktop. The body breaks out of the
+     1180px container to do it; the words keep the container's right-hand padding and reading width. */
+  .theinmag-video-watch__body--with-cover { --hero-progress: 0; --hero-darken: 0.3; --color-teal: var(--color-teal-dark, #2D6878); max-width: none; width: 100vw; margin-left: calc(50% - 50vw); padding: 0 0 clamp(40px, 6vw, 72px); row-gap: 0; }
+  /* the blog's body padding at every width (theinmag-article__body-col), so the words sit where they do on the blog */
+  .theinmag-video-watch__body--with-cover .theinmag-video-watch__main { padding: clamp(40px, 6vw, 96px) clamp(40px, 6vw, 96px) 0 clamp(20px, 4vw, 56px); }
+  .theinmag-video-watch__cover-col { background: var(--color-inky-purple-navy); }
+  .theinmag-video-watch__cover-sticky { position: relative; width: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 0; background: var(--color-inky-purple-navy); }
+  @media (min-width: 750px) { .theinmag-video-watch__cover-sticky { aspect-ratio: 3 / 4; } }
+  /* The blog's cover: darkened at rest, brightening to natural and settling from a 4% zoom as --hero-progress runs 0 to 1 */
+  .theinmag-video-watch__cover-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(calc(1 - var(--hero-darken) + (var(--hero-progress) * var(--hero-darken)))); transform: scale(calc(1.04 - (var(--hero-progress) * 0.04))); transition: filter 0.05s linear, transform 0.05s linear; transform-origin: center center; will-change: filter, transform; }
+  /* The blog's hero overlay: white words on a soft scrim, fading and drifting up as the reader scrolls (theinmag-article__overlay, same numbers) */
+  .theinmag-video-watch__overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-start; padding: clamp(24px, 4vw, 56px); color: #FFFFFF; background: linear-gradient(to bottom, rgba(20, 14, 30, 0.55) 0%, rgba(20, 14, 30, 0.18) 45%, rgba(20, 14, 30, 0) 80%); opacity: calc(1 - var(--hero-progress)); transform: translateY(calc(var(--hero-progress) * -32px)) scale(calc(1 + (var(--hero-progress) * 0.04))); transition: opacity 0.05s linear, transform 0.05s linear; transform-origin: left center; pointer-events: none; text-shadow: 0 1px 12px rgba(20, 14, 30, 0.35); will-change: opacity, transform; }
+  .theinmag-video-watch__overlay-title { margin: 0 0 clamp(12px, 1.6vw, 20px); font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 700; font-size: clamp(28px, 4.5vw, 52px); line-height: 1.1; letter-spacing: -0.015em; color: #FFFFFF; max-width: 20ch; }
+  .theinmag-video-watch__overlay-topic { font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 600; font-size: 12px; line-height: 1; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: clamp(10px, 1.2vw, 14px); opacity: 0.92; }
+  .theinmag-video-watch__overlay-byline { margin: 0; font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 500; font-size: clamp(13px, 1.3vw, 15px); line-height: 1.4; letter-spacing: 0.01em; color: #FFFFFF; opacity: 0.92; max-width: 32ch; }
+  .theinmag-video-watch__overlay-role { margin: 4px 0 0; font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 400; font-size: clamp(12px, 1.15vw, 13px); line-height: 1.4; letter-spacing: 0.01em; color: #FFFFFF; opacity: 0.82; max-width: 32ch; }
+  @media (max-width: 989px) { .theinmag-video-watch__cover-col { margin: 0; } }
+  @media (min-width: 990px) {
+    /* align-items stretch, not start: the sticky child needs its column to run the full height of the row or it has nowhere to travel.
+       Two equal columns and the blog's body padding, so the page is the blog page with a video on top. */
+    .theinmag-video-watch__body--with-cover { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 0; justify-content: stretch; align-items: stretch; }
+    .theinmag-video-watch__body--with-cover .theinmag-video-watch__main { max-width: none; }
+    .theinmag-video-watch__cover-col { align-self: stretch; }
+    .theinmag-video-watch__cover-sticky { position: sticky; top: 0; height: 100vh; aspect-ratio: auto; border-radius: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theinmag-video-watch__cover-image { filter: none; transform: none; transition: none; }
+    .theinmag-video-watch__overlay { opacity: 1; transform: none; transition: none; }
+  }
+  @media (prefers-reduced-motion: reduce) and (min-width: 990px) { .theinmag-video-watch__cover-sticky { position: relative; height: auto; aspect-ratio: 3 / 4; } }
+  /* The blog's byline row and Quick read card (theinmag-article__byline-row, __quick-read) */
+  .theinmag-video-watch__post-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 clamp(28px, 3vw, 40px); padding-bottom: clamp(20px, 2.4vw, 28px); border-bottom: 1px solid rgba(42, 31, 61, 0.18); font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 500; font-size: 13px; line-height: 1.3; color: var(--color-inky-purple-navy); opacity: 0.7; }
+  .theinmag-video-watch__post-meta > * + *::before { content: '·'; margin-right: 8px; opacity: 0.6; }
+  .theinmag-video-watch__post-topic { text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; font-weight: 600; color: var(--color-purple-dark); opacity: 1; }
+  .theinmag-video-watch__quick { margin: 0 auto clamp(28px, 3vw, 40px); max-width: 84%; padding: clamp(20px, 2.4vw, 28px) clamp(22px, 2.6vw, 32px); background: #FFFFFF; border-radius: 16px; box-shadow: 0 2px 14px rgba(123, 79, 158, 0.10); }
+  .theinmag-video-watch__quick-label { display: inline-block; margin-bottom: clamp(8px, 1vw, 12px); font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 700; font-size: 12px; line-height: 1; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-purple-dark); }
+  .theinmag-video-watch__quick-body { font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 400; font-style: italic; font-size: clamp(13px, 1.2vw, 14px); line-height: 1.55; color: var(--color-inky-purple-navy); }
+  .theinmag-video-watch__quick-body p { margin: 0 0 0.6em; }
+  .theinmag-video-watch__quick-body p:last-child { margin-bottom: 0; }
+  .theinmag-video-watch__lede--talk { max-width: 46ch; font-size: 16px; }
+  /* The post reads exactly like the blog (same type rules as theinmag-article__body: Inter throughout, blog sizes, teal links) */
+  .theinmag-video-watch__post { margin: 8px 0 36px; }
+  .theinmag-video-watch__post-eyebrow { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-purple-dark); }
+  .theinmag-video-watch__post-title { margin: 0 0 18px; font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 700; font-size: clamp(22px, 2.2vw, 28px); line-height: 1.2; letter-spacing: -0.01em; color: var(--color-inky-purple-navy); }
+  .theinmag-video-watch__post-body { font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 400; font-size: clamp(14px, 1.2vw, 15px); line-height: 1.65; color: var(--color-inky-purple-navy); }
+  .theinmag-video-watch__post-body p { margin: 0 0 1.2em; }
+  .theinmag-video-watch__post-body h2 { margin: 1.6em 0 0.6em; font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 700; font-size: clamp(18px, 1.9vw, 22px); line-height: 1.25; letter-spacing: -0.005em; color: var(--color-inky-purple-navy); }
+  .theinmag-video-watch__post-body h3, .theinmag-video-watch__post-body h4 { margin: 1.4em 0 0.5em; font-family: var(--font-body, 'Inter', system-ui, sans-serif); font-weight: 600; font-size: clamp(15px, 1.5vw, 17px); line-height: 1.3; color: var(--color-inky-purple-navy); }
+  .theinmag-video-watch__post-body img { display: block; max-width: 100%; height: auto; border-radius: 14px; }
+  .theinmag-video-watch__post-body blockquote { margin: 1.4em 0; padding: 4px 0 4px 18px; border-left: 4px solid var(--color-yellow); font-style: normal; }
+  .theinmag-video-watch__post-body ul, .theinmag-video-watch__post-body ol { padding-left: 1.3em; margin: 0 0 1.2em; }
+  .theinmag-video-watch__post-body a { color: var(--color-teal, var(--color-purple-dark)); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  .theinmag-video-watch__main { max-width: 68ch; }
+  .theinmag-video-watch__about { margin: 0 0 36px; }
+  .theinmag-video-watch__summary { margin: 0 0 8px; font-size: clamp(18px, 1.8vw, 20px); line-height: 1.6; }
+  .theinmag-video-watch__credit { margin: 0; font-size: 15px; font-weight: 600; color: var(--color-purple-dark); }
+  .theinmag-video-watch__h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(21px, 2.2vw, 26px); line-height: 1.15; margin: 0 0 14px; }
+
+  .theinmag-video-watch__chapters { list-style: none; margin: 0 0 36px; padding: 0 0 0 14px; border-left: 3px dotted rgba(42, 31, 61, 0.25); }
+  .theinmag-video-watch__chapters li { margin: 0 0 4px; }
+  .theinmag-video-watch__chapter {
+    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 6px 10px; margin-left: -10px;
+    border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; font-size: 16px; text-align: left; cursor: pointer;
+  }
+  .theinmag-video-watch__chapter:hover, .theinmag-video-watch__chapter:focus-visible { background: rgba(249, 194, 60, 0.22); }
+  .theinmag-video-watch__chapter:focus-visible { outline: 2px solid var(--color-inky-purple-navy); outline-offset: 2px; }
+  .theinmag-video-watch__chapter.is-current { background: rgba(249, 194, 60, 0.32); font-weight: 700; }
+  .theinmag-video-watch__time {
+    flex: 0 0 auto; min-width: 52px; text-align: center; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+    padding: 4px 8px; border-radius: 999px; background: none; color: var(--color-inky-purple-navy); border: 1.5px solid currentColor;
+  }
+
+  .theinmag-video-watch__pockets { display: grid; gap: 14px; margin: 0 0 40px; }
+  @media (min-width: 600px) { .theinmag-video-watch__pockets { grid-template-columns: 1fr 1fr; } }
+  .theinmag-video-watch__pocket { border-radius: 16px; padding: 18px 20px; background: #FFFFFF; border: 2px solid var(--color-inky-purple-navy); box-shadow: 4px 4px 0 var(--color-inky-purple-navy); }
+  .theinmag-video-watch__pocket--cruising { box-shadow: 4px 4px 0 var(--color-sage-dark); border-color: var(--color-sage-dark); }
+  .theinmag-video-watch__pocket-label { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-purple-dark); }
+  .theinmag-video-watch__pocket--cruising .theinmag-video-watch__pocket-label { color: #3F6B4F; }
+  .theinmag-video-watch__h2--pocket span { display: block; margin-top: 4px; font-size: 0.62em; color: var(--color-purple-dark); }
+  .theinmag-video-watch__pocket-qs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .theinmag-video-watch__pocket-qs li { font-size: 17px; font-weight: 700; line-height: 1.35; }
+  .theinmag-video-watch__pocket-qs li + li { padding-top: 10px; border-top: 1px dashed rgba(42, 31, 61, 0.25); }
+  .theinmag-video-watch__pocket-more { margin: -24px 0 40px; font-size: 15px; }
+
+  .theinmag-video-watch__intask { position: relative; margin: 0 0 32px; padding: 24px 24px 22px; border-radius: 20px; background: var(--color-lavender); }
+  /* mINion sits inside the tile at top right and the text wraps around it (Ryan, 10 Nov: into the space, and no big gap under the heading) */
+  .theinmag-video-watch__intask-minion { float: right; width: 78px; margin: -4px 0 10px 16px; shape-outside: margin-box; }
+  .theinmag-video-watch__intask-minion img { display: block; width: 100%; height: auto; transform: rotate(6deg); filter: drop-shadow(0 4px 6px rgba(42, 31, 61, 0.2)); }
+  .theinmag-video-watch__intask-h { margin: 0 0 14px; font-family: var(--font-heading); font-weight: 400; font-size: clamp(21px, 2.2vw, 26px); line-height: 1.15; color: var(--color-inky-purple-navy); }
+  .theinmag-video-watch__pillars { margin: 0 0 14px; display: grid; gap: 12px; }
+  .theinmag-video-watch__pillars dt { font-weight: 700; font-size: 16px; margin: 0 0 2px; }
+  .theinmag-video-watch__pillars dd { margin: 0; font-size: 16px; line-height: 1.55; }
+  .theinmag-video-watch__textlink { font-weight: 700; color: var(--color-inky-purple-navy); text-underline-offset: 4px; }
+
+  .theinmag-video-watch__fold { border-top: 1px solid rgba(42, 31, 61, 0.14); }
+  .theinmag-video-watch__fold:last-of-type { border-bottom: 1px solid rgba(42, 31, 61, 0.14); }
+  .theinmag-video-watch__fold summary { cursor: pointer; font-weight: 700; font-size: 16px; padding: 14px 0; min-height: 44px; }
+  .theinmag-video-watch__fold-body { font-size: 16px; line-height: 1.7; padding-bottom: 14px; }
+
+  .theinmag-video-watch__runit { border-radius: 20px; padding: 22px 22px 20px; background: #FFFFFF; box-shadow: 0 2px 14px rgba(42, 31, 61, 0.08); }
+  .theinmag-video-watch__runit-h { margin: 0 0 12px; font-family: var(--font-heading); font-weight: 400; font-size: 24px; }
+  .theinmag-video-watch__runit-label { margin: 0 0 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-purple-dark); }
+  .theinmag-video-watch__needs { list-style: none; margin: 0 0 18px; padding: 0; }
+  .theinmag-video-watch__needs li { position: relative; padding: 0 0 0 26px; margin: 0 0 9px; font-size: 15px; line-height: 1.5; }
+  .theinmag-video-watch__needs li { padding-left: 20px; }
+  .theinmag-video-watch__needs li::before { content: ""; position: absolute; left: 4px; top: 0.55em; width: 8px; height: 8px; border-radius: 50%; background: var(--color-yellow); box-shadow: 0 0 0 2px var(--color-inky-purple-navy); }
+  .theinmag-video-watch__runit-btn { width: 100%; justify-content: center; text-align: center; }
+  .theinmag-video-watch__runit-email { margin: 14px 0 0; font-size: 14px; font-weight: 600; }
+  .theinmag-video-watch__runit-email a { color: var(--color-inky-purple-navy); text-underline-offset: 3px; }
+  @media (min-width: 990px) { .theinmag-video-watch__side { position: sticky; top: 120px; } }
 {% endstylesheet %}
 
 {% schema %}
@@ -415,6 +823,11 @@
   "settings": [
     { "type": "text", "id": "preview_handle", "label": "Draft preview: video handle to show", "info": "Only used when this page's handle is not a video in the list (draft previews). Leave blank on live." },
     { "type": "checkbox", "id": "preview_as_live", "label": "Draft preview: show as live", "default": false, "info": "Leave OFF on the live theme." },
+    { "type": "header", "content": "Magazine look" },
+    { "type": "text", "id": "endpaper_image", "label": "Endpaper art (asset filename)", "default": "videos-endpaper-mag11.jpg", "info": "A crop of the current issue's endpaper art." },
+    { "type": "text", "id": "endpaper_credit", "label": "Endpaper credit", "default": "Endpaper art by Chanel | Melbourne VIC, age 8" },
+    { "type": "text", "id": "points_heading", "label": "Points heading", "default": "What will you get from this video?" },
+    { "type": "text", "id": "mag_cover_handle", "label": "Cover on the magazine card (product handle)", "default": "mag11" },
     { "type": "header", "content": "Subscribe card" },
     { "type": "text", "id": "sub_heading", "label": "Heading", "default": "Want the next one?" },
     { "type": "textarea", "id": "sub_copy", "label": "Copy", "default": "Subscribe and new sessions land in your feed the day they go live." },
@@ -423,7 +836,7 @@
     { "type": "header", "content": "Planner card" },
     { "type": "text", "id": "planner_image", "label": "Image (asset filename)", "default": "videos-planner-closeup.jpg" },
     { "type": "text", "id": "planner_image_alt", "label": "Image alt text", "default": "A filled-in IN task planner on a picnic table" },
-    { "type": "text", "id": "planner_heading", "label": "Heading", "default": "Want the planner Ryan fills in?" },
+    { "type": "text", "id": "planner_heading", "label": "Heading", "default": "Want the planner Ryan uses?" },
     { "type": "textarea", "id": "planner_copy", "label": "Copy", "default": "The free IN task planner turns any kid's question into a rich, open task. Print it, or grab a plain sheet of A4." },
     { "type": "text", "id": "planner_label", "label": "Button label", "default": "get the free IN task planner" },
     { "type": "text", "id": "planner_url", "label": "Button URL", "default": "/planner" },
@@ -433,7 +846,22 @@
     { "type": "text", "id": "mag_heading_fn", "label": "Heading (Field Notes videos)", "default": "What do kids make when they're IN task?" },
     { "type": "textarea", "id": "mag_copy_fn", "label": "Copy (Field Notes videos)", "default": "Every page of theINmag is made by kids 5-13: their art, stories, jokes and ideas, printed three times a year." },
     { "type": "text", "id": "mag_label", "label": "Link label", "default": "see what's inside a Membership" },
-    { "type": "text", "id": "mag_url", "label": "Link URL", "default": "/products/membership" }
+    { "type": "text", "id": "mag_url", "label": "Link URL", "default": "/products/membership" },
+    { "type": "header", "content": "Magazine band (bottom)" },
+    { "type": "checkbox", "id": "show_loop", "label": "Show the built-in magazine band", "default": false, "info": "Off: the page uses the shop hero banner section instead (Ryan, 7 Nov 2026)." },
+    { "type": "text", "id": "loop_eyebrow", "label": "Eyebrow", "default": "the magazine" },
+    { "type": "text", "id": "loop_heading", "label": "Heading", "default": "Made by kids, to get kids making" },
+    { "type": "textarea", "id": "loop_copy", "label": "Copy", "default": "Every page is made by kids 5-13: their art, stories, jokes and questions. Flip through it and see what your kids want to make next." },
+    { "type": "text", "id": "mag_cover2_handle", "label": "Second cover behind (product handle)", "default": "mag10" },
+    { "type": "text", "id": "loop_minion_ids", "label": "mINions (random)", "default": "35,37,38,10,20,47,26", "info": "Vetted character-N.png numbers only; never 16 or 53." },
+    { "type": "header", "content": "Lesson page v3" },
+    { "type": "text", "id": "intask_url", "label": "What is an IN task? link", "info": "Blank hides the link until the cornerstone page exists." },
+    { "type": "text", "id": "email_line", "label": "Email line (Run it card)", "default": "Get the next free lesson and the planner in your inbox" },
+    { "type": "text", "id": "pocket_url", "label": "Pocket questions product link", "info": "Future downloadable Pocket questions. Blank hides the link." },
+    { "type": "text", "id": "pocket_label", "label": "Pocket questions link label", "default": "get the full set of pocket questions" },
+    { "type": "header", "content": "Teaching resources and community (future)" },
+    { "type": "text", "id": "resources_label", "label": "Link label", "info": "Shows under the magazine loop once set, e.g. teaching resources and community" },
+    { "type": "text", "id": "resources_url", "label": "Link URL" }
   ]
 }
 {% endschema %}

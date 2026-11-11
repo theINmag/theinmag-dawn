@@ -36,9 +36,10 @@
   assign force_live = section.settings.preview_as_live
   assign show_filter = section.settings.show
   assign limit = section.settings.limit | default: 6
+  assign mobile_cap = section.settings.mobile_limit | default: 0
   assign bg = section.settings.background | default: 'cream'
   assign exclude_handle = ''
-  if section.settings.exclude_current and template.suffix == 'video'
+  if section.settings.exclude_current and template.name == 'page'
     comment
       Same resolution as theinmag-video-watch: the page's own handle when
       it is a video, otherwise (draft preview only) preview_handle, then the
@@ -63,10 +64,40 @@
 
 <section
   id="{{ section.settings.anchor | default: section.id }}"
-  class="theinmag-video-row theinmag-video-row--{{ bg }}{% if show_filter == 'latest_each' %} theinmag-video-row--pair{% endif %}"
-  style="--vrow-pt: {{ section.settings.padding_top }}px; --vrow-pb: {{ section.settings.padding_bottom }}px;"
+  class="theinmag-video-row theinmag-video-row--{{ bg }}{% if show_filter == 'latest_each' %} theinmag-video-row--pair{% endif %}{% if section.settings.bg_image_filename != blank %} theinmag-video-row--has-bg{% endif %}{% if section.settings.bg_image_filename != blank and section.settings.bg_fade %} theinmag-video-row--fade{% endif %}{% if section.settings.promo %} theinmag-video-row--promo{% if section.settings.promo_video_url != blank %} theinmag-video-row--promo-video{% endif %}{% endif %}"
+  style="--vrow-pt: {{ section.settings.padding_top }}px; --vrow-pb: {{ section.settings.padding_bottom }}px;{% if section.settings.bg_image_filename != blank %} --vrow-bg-colour: {{ section.settings.bg_colour | default: '#FFD99B' }}; --vrow-bg-image: linear-gradient(rgba(251, 246, 234, {{ section.settings.bg_wash | default: 0 | divided_by: 100.0 }}), rgba(251, 246, 234, {{ section.settings.bg_wash | default: 0 | divided_by: 100.0 }})), url('{{ section.settings.bg_image_filename | asset_url }}');{% endif %}"
   {% if section.settings.heading != blank %}aria-labelledby="vrow-h-{{ section.id }}"{% endif %}
 >
+  {%- if section.settings.decor -%}
+    <span class="theinmag-video-row__decor theinmag-video-row__decor--rings" aria-hidden="true" style="--decor-mask: url('{{ 'FAQ_HollowCircles.png' | asset_url }}');"></span>
+    <span class="theinmag-video-row__decor theinmag-video-row__decor--dots" aria-hidden="true" style="--decor-mask: url('{{ 'Dots.png' | asset_url | append: '&width=600' }}');"></span>
+  {%- endif -%}
+  {%- if section.settings.promo -%}
+    {%- comment -%}
+      Promo band (2026-11-06, Ryan): the hub's whiteboard loop behind a short pitch and the newest cards,
+      used on the homepage and the three for pages to send people to /pages/videos. The loop loads only
+      when the band scrolls near the viewport; reduced motion keeps the still. Pause button = hub's icon.
+    {%- endcomment -%}
+    {%- if section.settings.promo_video_url != blank -%}
+    <div class="theinmag-video-row__promo-media" aria-hidden="true">
+      <picture>
+        {%- if section.settings.promo_still_wide != blank -%}<source media="(min-width: 750px)" srcset="{{ section.settings.promo_still_wide | asset_url }}">{%- endif -%}
+        <img class="theinmag-video-row__promo-still" src="{{ section.settings.promo_still | default: 'videos-hero-whiteboard-loop.jpg' | asset_url }}" width="1080" height="1350" loading="lazy" alt="">
+      </picture>
+      {%- if section.settings.promo_video_url != blank -%}
+        <video class="theinmag-video-row__promo-video" muted loop playsinline preload="none" data-promo-video data-src="{{ section.settings.promo_video_url }}"{% if section.settings.promo_video_mobile_url != blank %} data-src-mobile="{{ section.settings.promo_video_mobile_url }}"{% endif %}></video>
+      {%- endif -%}
+      <span class="theinmag-video-row__promo-scrim"></span>
+    </div>
+    {%- endif -%}
+    {%- if section.settings.promo_video_url != blank -%}
+      <button type="button" class="theinmag-video-row__promo-pause" data-promo-pause aria-pressed="false" hidden>
+        <svg class="theinmag-video-row__pp-icon theinmag-video-row__pp-icon--pause" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="#FFFFFF"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="#FFFFFF"/></svg>
+        <svg class="theinmag-video-row__pp-icon theinmag-video-row__pp-icon--play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M8 5.5v13l11-6.5z" fill="#FFFFFF"/></svg>
+        <span class="visually-hidden" data-promo-pause-label>Pause background video</span>
+      </button>
+    {%- endif -%}
+  {%- endif -%}
   <div class="theinmag-video-row__inner">
     <header class="theinmag-video-row__header">
       <div class="theinmag-video-row__brand">
@@ -112,17 +143,34 @@
       {%- endif -%}
       </div>
       <div class="theinmag-video-row__heading-wrap">
+        {%- if section.settings.promo and section.settings.promo_eyebrow != blank -%}
+          <p class="theinmag-video-row__eyebrow">{{ section.settings.promo_eyebrow }}</p>
+        {%- endif -%}
         {%- if section.settings.heading != blank -%}
           <h2 id="vrow-h-{{ section.id }}" class="theinmag-video-row__heading">{{ section.settings.heading }}</h2>
         {%- endif -%}
-        {%- if section.settings.intro != blank -%}
-          <p class="theinmag-video-row__intro">{{ section.settings.intro }}</p>
-        {%- endif -%}
-        {%- if section.settings.intro_2 != blank -%}
-          <p class="theinmag-video-row__intro theinmag-video-row__intro--second">{{ section.settings.intro_2 }}</p>
-        {%- endif -%}
-        {%- if section.settings.link_label != blank and section.settings.link_url != blank -%}
-          <a class="theinmag-video-row__more" href="{{ section.settings.link_url }}">{{ section.settings.link_label }} <span aria-hidden="true">&rarr;</span></a>
+        {%- comment -%} Phones show the opening lines only, with "read more" (Ryan, 6 Nov: get to the videos faster). Desktop shows it all. {%- endcomment -%}
+        <div class="theinmag-video-row__blurb" id="vrow-blurb-{{ section.id }}" data-vrow-blurb>
+          {%- if section.settings.intro != blank -%}
+            <p class="theinmag-video-row__intro theinmag-video-row__intro--first">{{ section.settings.intro }}</p>
+          {%- endif -%}
+          {%- if section.settings.intro_2 != blank -%}
+            <p class="theinmag-video-row__intro theinmag-video-row__intro--second">{{ section.settings.intro_2 }}</p>
+          {%- endif -%}
+          {%- if section.settings.link_label != blank and section.settings.link_url != blank -%}
+            {%- if section.settings.promo -%}
+              <a class="theinmag-btn theinmag-btn--primary theinmag-video-row__promo-cta" href="{{ section.settings.link_url }}">{{ section.settings.link_label }}</a>
+            {%- else -%}
+              {%- if section.settings.link_button -%}
+                <a class="theinmag-btn theinmag-btn--secondary" href="{{ section.settings.link_url }}">{{ section.settings.link_label }}</a>
+              {%- else -%}
+                <a class="theinmag-video-row__more" href="{{ section.settings.link_url }}">{{ section.settings.link_label }} <span aria-hidden="true">&rarr;</span></a>
+              {%- endif -%}
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+        {%- if section.settings.intro != blank and section.settings.promo != true -%}
+          <button type="button" class="theinmag-video-row__toggle" aria-expanded="false" aria-controls="vrow-blurb-{{ section.id }}" data-vrow-toggle>read more</button>
         {%- endif -%}
       </div>
     </header>
@@ -164,7 +212,7 @@
           endif
           assign shown = shown | plus: 1
         -%}
-        <div class="theinmag-video-row__item" role="listitem">
+        <div class="theinmag-video-row__item{% if mobile_cap > 0 and shown > mobile_cap %} theinmag-video-row__item--desktop-only{% endif %}" role="listitem">
           {%- render 'theinmag-video-card', rec: rec, now_ts: now_ts, force_live: force_live -%}
         </div>
       {%- endfor -%}
@@ -186,6 +234,41 @@
 
   /* Random vetted character per load. */
   (function () {
+    (function () {
+      var root = document.getElementById('{{ section.settings.anchor | default: section.id }}');
+      var v = root && root.querySelector('[data-promo-video]');
+      if (!v) return;
+      var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (still) return;
+      var phone = window.matchMedia && window.matchMedia('(max-width: 749px)').matches;
+      var src = (phone && v.getAttribute('data-src-mobile')) || v.getAttribute('data-src');
+      var pb = root.querySelector('[data-promo-pause]');
+      var userPaused = false;
+      function start() {
+        if (!v.src) { v.src = src; }
+        if (!userPaused) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+      }
+      v.addEventListener('playing', function () { v.classList.add('is-playing'); if (pb) pb.hidden = false; });
+      if (pb) pb.addEventListener('click', function () {
+        var lab = pb.querySelector('[data-promo-pause-label]');
+        if (v.paused) { userPaused = false; v.play(); pb.setAttribute('aria-pressed', 'false'); lab.textContent = 'Pause background video'; }
+        else { userPaused = true; v.pause(); pb.setAttribute('aria-pressed', 'true'); lab.textContent = 'Play background video'; }
+      });
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) start(); else if (v.src && !v.paused) v.pause(); });
+        }, { rootMargin: '200px 0px' }).observe(root);
+      } else { start(); }
+    })();
+    document.querySelectorAll('#{{ section.settings.anchor | default: section.id }} [data-vrow-toggle]').forEach(function (btn) {
+      var blurb = document.getElementById(btn.getAttribute('aria-controls'));
+      if (!blurb) return;
+      btn.addEventListener('click', function () {
+        var open = blurb.classList.toggle('is-open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.textContent = open ? 'read less' : 'read more';
+      });
+    });
     document.querySelectorAll('#{{ section.settings.anchor | default: section.id }} [data-video-char]').forEach(function (slot) {
       var urls = slot.getAttribute('data-video-char').split('|').filter(Boolean);
       if (!urls.length) return;
@@ -267,6 +350,91 @@
   .theinmag-video-row--forest .theinmag-video-row__empty { color: var(--color-cream); }
   .theinmag-video-row--forest .theinmag-video-row__more:focus-visible { outline: 3px solid var(--color-cream); outline-offset: 3px; }
 
+  /* Decor (2026-11-06, Ryan): the site's own hollow rings (FAQ) and dot trail,
+     recoloured per ground with a mask and kept faint, tucked into corners. */
+  .theinmag-video-row { overflow: hidden; }
+  /* Drawn-pattern ground, same treatment as the field notes blog index
+     (theinmag-blog-index-editorial): colour under a 640px tile with a cream wash. */
+  .theinmag-video-row--has-bg {
+    background-color: var(--vrow-bg-colour);
+    background-image: var(--vrow-bg-image);
+    background-size: auto, 640px auto;
+    background-repeat: repeat;
+  }
+  /* Optional: cream at the top fading into the pattern below. */
+  .theinmag-video-row--fade.theinmag-video-row--has-bg {
+    background-image: linear-gradient(to bottom, rgb(251, 246, 234) 0%, rgba(251, 246, 234, 0) 70%), var(--vrow-bg-image);
+    background-size: auto, auto, 640px auto;
+  }
+  .theinmag-video-row__decor {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    background-color: var(--decor-colour, var(--color-sage-dark));
+    opacity: var(--decor-opacity, 0.5);
+    -webkit-mask: var(--decor-mask) center / contain no-repeat;
+    mask: var(--decor-mask) center / contain no-repeat;
+  }
+  .theinmag-video-row__decor--rings { width: clamp(200px, 26vw, 400px); aspect-ratio: 803 / 736; top: -90px; right: -120px; }
+  .theinmag-video-row__decor--dots { width: clamp(150px, 18vw, 280px); aspect-ratio: 1; bottom: -40px; left: -50px; transform: rotate(18deg); }
+  .theinmag-video-row--forest .theinmag-video-row__decor--rings { --decor-colour: #CFEADB; --decor-opacity: 0.9; }
+  .theinmag-video-row--forest .theinmag-video-row__decor--dots { --decor-colour: #F4E04D; --decor-opacity: 0.16; }
+  .theinmag-video-row--cream .theinmag-video-row__decor--rings { --decor-colour: var(--color-sage-dark); --decor-opacity: 0.55; }
+  .theinmag-video-row--cream .theinmag-video-row__decor--dots { --decor-colour: var(--color-wave-peach); --decor-opacity: 0.45; }
+  .theinmag-video-row__inner { position: relative; z-index: 1; }
+
+  /* ---------- promo band (homepage + for pages) ---------- */
+  .theinmag-video-row--promo-video {
+    background-color: #1b1426;
+    color: var(--color-cream);
+    min-height: clamp(620px, 88vh, 860px);
+    display: flex;
+    align-items: flex-end;
+  }
+  .theinmag-video-row--promo .theinmag-video-row__inner { width: 100%; }
+  .theinmag-video-row__promo-media { position: absolute; inset: 0; z-index: 0; }
+  .theinmag-video-row__promo-still,
+  .theinmag-video-row__promo-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: 50% 0%;
+  }
+  .theinmag-video-row__promo-video { opacity: 0; transition: opacity 0.6s ease; }
+  .theinmag-video-row__promo-video.is-playing { opacity: 1; }
+  .theinmag-video-row__promo-scrim {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(to top, rgba(20, 14, 30, 0.92) 0%, rgba(20, 14, 30, 0.72) 42%, rgba(20, 14, 30, 0.2) 72%, rgba(20, 14, 30, 0.05) 100%),
+      linear-gradient(to right, rgba(20, 14, 30, 0.55) 0%, rgba(20, 14, 30, 0) 60%);
+  }
+  .theinmag-video-row--promo-video .theinmag-video-row__heading,
+  .theinmag-video-row--promo-video .theinmag-video-row__intro,
+  .theinmag-video-row--promo-video .theinmag-video-row__empty { color: var(--color-cream); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35); }
+  .theinmag-video-row--forest .theinmag-video-row__eyebrow { color: var(--color-cream); }
+  .theinmag-video-row--promo .theinmag-video-row__heading { font-size: clamp(32px, 5vw, 56px); line-height: 1.08; max-width: 18ch; }
+  .theinmag-video-row--promo .theinmag-video-row__intro { font-size: clamp(17px, 1.7vw, 20px); max-width: 44ch; }
+  .theinmag-video-row__eyebrow {
+    font-family: var(--font-body); font-weight: 700; font-size: 13px; letter-spacing: 0.08em;
+    text-transform: uppercase; margin: 0 0 10px; color: inherit;
+  }
+  .theinmag-video-row__promo-cta { margin-top: 8px; }
+  @media (max-width: 749px) {
+    /* phones: the pitch sits high, over the bright window in the clip, so darken evenly */
+    .theinmag-video-row--promo-video .theinmag-video-row__promo-scrim { background: linear-gradient(to bottom, rgba(20, 14, 30, 0.6) 0%, rgba(20, 14, 30, 0.72) 50%, rgba(20, 14, 30, 0.88) 100%); }
+  }
+  .theinmag-video-row__promo-pause {
+    position: absolute; z-index: 2; top: clamp(12px, 2vw, 24px); right: clamp(12px, 2vw, 24px);
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; padding: 0; border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(30, 26, 36, 0.45);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); cursor: pointer;
+  }
+  .theinmag-video-row__promo-pause[hidden] { display: none; }
+  .theinmag-video-row__promo-pause:hover { background: rgba(30, 26, 36, 0.7); }
+  .theinmag-video-row__promo-pause:focus-visible { outline: 3px solid var(--color-yellow); outline-offset: 3px; }
+  .theinmag-video-row__pp-icon { display: block; }
+  .theinmag-video-row__pp-icon--play { display: none; }
+  .theinmag-video-row__promo-pause[aria-pressed="true"] .theinmag-video-row__pp-icon--pause { display: none; }
+  .theinmag-video-row__promo-pause[aria-pressed="true"] .theinmag-video-row__pp-icon--play { display: block; }
   .theinmag-video-row__inner {
     max-width: 1180px;
     margin: 0 auto;
@@ -311,8 +479,8 @@
     animation: theinmag-vrow-bob 4s ease-in-out infinite;
   }
   @keyframes theinmag-vrow-bob {
-    0%, 100% { transform: translateY(0) rotate(-3deg); }
-    50% { transform: translateY(-6px) rotate(3deg); }
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-5px) rotate(2deg); }
   }
   @media (prefers-reduced-motion: reduce) {
     .theinmag-video-row__char img { animation: none; }
@@ -338,6 +506,32 @@
     max-width: 60ch;
     margin: 0 0 10px;
   }
+  .theinmag-video-row__toggle { display: none; }
+  @media (max-width: 749px) {
+    .theinmag-video-row:not(.theinmag-video-row--promo) .theinmag-video-row__blurb:not(.is-open) .theinmag-video-row__intro--first {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+    .theinmag-video-row:not(.theinmag-video-row--promo) .theinmag-video-row__blurb:not(.is-open) .theinmag-video-row__intro--second,
+    .theinmag-video-row:not(.theinmag-video-row--promo) .theinmag-video-row__blurb:not(.is-open) .theinmag-video-row__more { display: none; }
+    .theinmag-video-row__toggle {
+      display: inline-block;
+      min-height: 44px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+    }
+  }
   .theinmag-video-row__more {
     font-family: var(--font-body);
     font-weight: 600;
@@ -361,6 +555,7 @@
   }
   .theinmag-video-row__rail::-webkit-scrollbar { display: none; }
   .theinmag-video-row__item { scroll-snap-align: start; min-width: 0; }
+  @media (max-width: 749px) { .theinmag-video-row__item--desktop-only { display: none; } }
 
   @media (min-width: 750px) {
     .theinmag-video-row__header {
@@ -453,11 +648,14 @@
     top: 50%;
     translate: -50% -50%;
     display: block;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
     transition: scale var(--transition-hover);
   }
   .theinmag-video-card__play svg { display: block; }
-  .theinmag-video-card__link:hover .theinmag-video-card__play { scale: 1.08; }
+  .theinmag-video-card__link:hover .theinmag-video-card__play { scale: 1.06; }
+  .theinmag-video-card__play svg rect { transition: fill-opacity var(--transition-hover); }
+  .theinmag-video-card__link:hover .theinmag-video-card__play svg rect,
+  .theinmag-video-card__link:focus-visible .theinmag-video-card__play svg rect { fill-opacity: 0.78; }
 
   /* "out Thu 5 Nov": white text on a dark scrim, never a coloured pill. */
   .theinmag-video-card__soon {
@@ -523,6 +721,7 @@
         { "value": "latest_each", "label": "Newest of each series (homepage, for pages)" }
       ] },
     { "type": "range", "id": "limit", "label": "Max cards", "min": 1, "max": 12, "step": 1, "default": 6 },
+    { "type": "range", "id": "mobile_limit", "label": "Max cards on phones", "min": 0, "max": 12, "step": 1, "default": 0, "info": "0 = same as Max cards. Cards past this number are hidden on phones only." },
     { "type": "checkbox", "id": "exclude_current", "label": "Hide the video this watch page is about", "default": false },
     { "type": "select", "id": "logo", "label": "Show logo", "default": "none",
       "options": [
@@ -538,6 +737,19 @@
     { "type": "text", "id": "character_ids", "label": "Character ids beside the Picnic logo", "info": "Comma list of vetted character-N.png numbers. Check each NAME first; never 16 (bomb) or 53." },
     { "type": "text", "id": "link_label", "label": "Link label" },
     { "type": "text", "id": "link_url", "label": "Link URL" },
+    { "type": "checkbox", "id": "decor", "label": "Faint rings and dots in the corners", "default": false },
+    { "type": "checkbox", "id": "link_button", "label": "Show the link as a button", "default": false },
+    { "type": "header", "content": "Promo band (homepage + for pages)" },
+    { "type": "checkbox", "id": "promo", "label": "Promo band: video background, big pitch, button", "default": false },
+    { "type": "text", "id": "promo_eyebrow", "label": "Promo eyebrow" },
+    { "type": "text", "id": "promo_video_url", "label": "Promo video (desktop, wide MP4 URL)" },
+    { "type": "text", "id": "promo_video_mobile_url", "label": "Promo video (phones, tall MP4 URL)" },
+    { "type": "text", "id": "promo_still", "label": "Promo still (tall, asset filename)", "default": "videos-hero-whiteboard-loop.jpg" },
+    { "type": "text", "id": "promo_still_wide", "label": "Promo still (wide, asset filename)", "default": "videos-hero-whiteboard-loop-wide.jpg" },
+    { "type": "text", "id": "bg_image_filename", "label": "Pattern background (asset filename)", "info": "Drawn-pattern image tiled at 640px, like the blog index (teacher_backgroundFAQ.jpg). Blank = plain colour." },
+    { "type": "color", "id": "bg_colour", "label": "Colour under the pattern", "default": "#FFD99B" },
+    { "type": "range", "id": "bg_wash", "label": "Cream wash over the pattern", "min": 0, "max": 90, "step": 5, "unit": "%", "default": 55 },
+    { "type": "checkbox", "id": "bg_fade", "label": "Fade from cream into the pattern", "default": false, "info": "Needs a pattern background. Cream at the top, pattern showing through at the bottom." },
     { "type": "select", "id": "background", "label": "Background", "default": "cream",
       "options": [
         { "value": "cream", "label": "Cream" },

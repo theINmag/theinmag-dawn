@@ -6,7 +6,7 @@
         "preview_handle": "",
         "preview_as_live": false,
         "planner_image": "videos-planner-closeup.jpg",
-        "planner_heading": "Want the planner Ryan fills in?",
+        "planner_heading": "Want the planner Ryan uses?",
         "planner_copy": "The free IN task planner turns any kid's question into a rich, open task. Print it, or grab a plain sheet of A4.",
         "planner_label": "get the free IN task planner",
         "planner_url": "/planner",
@@ -20,7 +20,11 @@
         "sub_heading": "Want the next one?",
         "sub_copy": "Subscribe and new sessions land in your feed the day they go live.",
         "sub_label": "subscribe on YouTube",
-        "sub_url": "https://www.youtube.com/channel/UCgPTt7iKbW5J_3eC9d8QRXA?sub_confirmation=1"
+        "sub_url": "https://www.youtube.com/channel/UCgPTt7iKbW5J_3eC9d8QRXA?sub_confirmation=1",
+        "endpaper_image": "videos-endpaper-mag11.jpg",
+        "endpaper_credit": "Endpaper art by Chanel | Melbourne VIC, age 8",
+        "points_heading": "What will you get from this video?",
+        "mag_cover_handle": "mag11"
       }
     },
     "more": {
@@ -30,21 +34,39 @@
         "limit": 3,
         "exclude_current": true,
         "logo": "none",
-        "heading": "What should I watch next?",
+        "heading": "Enjoyed this?",
         "intro": "",
         "link_label": "see every video",
         "link_url": "/pages/videos",
-        "background": "mint",
+        "background": "cream",
         "anchor": "more-videos",
         "preview_as_live": false,
         "padding_top": 56,
         "padding_bottom": 72,
-        "preview_handle": ""
+        "preview_handle": "",
+        "link_button": true
+      }
+    },
+    "mag_banner": {
+      "type": "theinmag-shop-hero",
+      "settings": {
+        "banner_mode": true,
+        "banner_headline": "Made by kids, to get kids making",
+        "subhead": "Every page is made by kids 5-13. Flip through it and see what they want to make next.",
+        "banner_button_label": "Check it out",
+        "hero_image_alt": "theINmag latest issue cover photo.",
+        "show_price_ctas": true,
+        "preview_sold_out": false,
+        "show_character": false,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "hover_video_url": "https://cdn.shopify.com/s/files/1/0980/5031/0460/files/hover-mag-kids-making-v3.mp4?v=1794360671"
       }
     }
   },
   "order": [
     "main",
-    "more"
+    "more",
+    "mag_banner"
   ]
 }

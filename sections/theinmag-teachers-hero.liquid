@@ -80,9 +80,7 @@
       <{{ headline_tag }}
         class="theinmag-teachers-hero__headline"
         id="theinmag-teachers-hero-headline-{{ section.id }}"
-      >
-        {{ headline_html }}
-      </{{ headline_tag }}>
+      >{{- headline_html | strip -}}</{{ headline_tag }}>
 
       {%- if subhead_html != blank -%}
         <p class="theinmag-teachers-hero__subhead">
