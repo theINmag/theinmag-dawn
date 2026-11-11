@@ -29,8 +29,9 @@
   page load in a tab fires pool_max parallel image probes; slots stay
   opacity:0 until they settle.
 
-  Cache invalidation: sessionStorage clears with the tab. If you add
-  files mid-session and want to see them immediately, open a new tab.
+  Cache: no longer READ by this snippet (fixed 2026-11-11, stale caches
+  capped at 53). It is still written each load because the 404, address,
+  submitted and stockist swappers read it.
 
   Scaling note: Math.random() per page load + Fisher-Yates shuffle on
   the discovered indices = a fresh permutation every visit.
@@ -79,32 +80,23 @@
       var max = data.max || 100;
       var firstUrl = data.firstUrl;
       var cacheKey = 'theinmagCharacterPool';
-      var ttl = 60 * 60 * 1000; /* 1 hour */
 
-      var cached = readCache();
-      if (cached) {
-        run(cached);
-      } else {
-        probe(function (valid) {
-          writeCache(valid);
-          run(valid);
-        });
-      }
+      /* EXCLUDE must be assigned before probe/run are called (a var
+         declared lower down is still undefined here: that crash hid
+         every mINion sitewide on 11 Nov 2026). */
+      var EXCLUDE = [16]; /* wind-up bomb: never on the site */
+
+      /* The range is known, so always build it fresh. Old session caches
+         from the probing era stop at 53 and would hide 54-88 for an
+         hour. The cache is still written because the 404, address and
+         stockist swappers read it. */
+      probe(function (valid) {
+        writeCache(valid);
+        run(valid);
+      });
 
       function urlForIndex(n) {
         return firstUrl.replace('character-1.png', 'character-' + n + '.png');
-      }
-
-      function readCache() {
-        try {
-          var raw = sessionStorage.getItem(cacheKey);
-          if (!raw) return null;
-          var parsed = JSON.parse(raw);
-          if (!parsed || !parsed.ts || !parsed.indices) return null;
-          if (Date.now() - parsed.ts > ttl) return null;
-          if (!parsed.indices.length) return null;
-          return parsed.indices.slice();
-        } catch (e) { return null; }
       }
 
       function writeCache(indices) {
@@ -115,8 +107,6 @@
           }));
         } catch (e) {}
       }
-
-      var EXCLUDE = [16]; /* wind-up bomb: never on the site */
 
       function probe(callback) {
         /* Known contiguous range 1..max, no network probing (see header). */
