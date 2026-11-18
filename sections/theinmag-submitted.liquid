@@ -83,6 +83,18 @@
             {{ section.settings.cta_label }}
           </a>
         {%- endif -%}
+        {%- comment -%}
+          Print bridge (2026-11-18, weekly pass rec): the gallery lightbox line,
+          reused. Issue rolls with shop.metafields.theinmag.current_issue_number.
+          Event submitted_bridge_click, read by the built-in pagePath dimension.
+        {%- endcomment -%}
+        {%- if section.settings.show_print_bridge -%}
+          {%- assign sb_issue = shop.metafields.theinmag.current_issue_number.value | default: 'Mag11' -%}
+          <p class="theinmag-submitted__bridge">
+            Creations like this get printed in <span style="white-space:nowrap">the<span class="theinmag-in">IN</span>mag.</span>
+            <a href="/products/{{ sb_issue | downcase }}#see-inside" data-theinmag-submitted-bridge>Peek inside {{ sb_issue }} <span aria-hidden="true">&rarr;</span></a>
+          </p>
+        {%- endif -%}
       </div>
 
     </div>
@@ -330,6 +342,20 @@
 
   .theinmag-submitted__sub strong { font-weight: 700; opacity: 1; }
   .theinmag-submitted__cta { margin-top: clamp(8px, 1.4vw, 14px); }
+  .theinmag-submitted__bridge {
+    margin: 14px 0 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--color-inky-purple-navy, #2A1F3D);
+    max-width: 44ch;
+  }
+  .theinmag-submitted__bridge a {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
 
   /* ---- Beat 2: portrait "phone view" page-tiles ---- */
 
@@ -840,6 +866,16 @@
   })();
 </script>
 
+<script>
+  (function () {
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('[data-theinmag-submitted-bridge]');
+      if (!a || typeof window.gtag !== 'function') return;
+      try { window.gtag('event', 'submitted_bridge_click', { link_url: a.getAttribute('href') }); } catch (err) {}
+    });
+  })();
+</script>
+
 {% schema %}
 {
   "name": "Send IN celebration",
@@ -858,6 +894,7 @@
     { "type": "text", "id": "sub_suffix", "label": "Message - after the mag number", "default": "Fingers crossed! Our team can't wait to see it." },
     { "type": "text", "id": "cta_label", "label": "Button label", "default": "Send IN more!" },
     { "type": "text", "id": "cta_link", "label": "Button link", "default": "/pages/send-in" },
+    { "type": "checkbox", "id": "show_print_bridge", "label": "Show 'gets printed, peek inside' line", "default": true },
     { "type": "header", "content": "Gallery tile (portrait, live submissions)" },
     { "type": "text", "id": "gallery_name", "label": "Tile name (top bar)", "default": "Live gallery" },
     { "type": "text", "id": "gallery_link", "label": "Link", "default": "/pages/gallery" },

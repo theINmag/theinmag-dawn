@@ -1193,3 +1193,43 @@ body.theinmag-gallery-lightbox-open .theinmag-gallery-float-cta {
     transform: none !important;
   }
 }
+
+/* Name index (2026-11-18): plain-text list of every creation so Google and
+   kids can find names that windowing keeps out of the DOM. */
+.theinmag-gallery-index {
+  max-width: 1180px;
+  margin: 32px auto 0;
+  padding: 0 16px;
+  font-family: var(--font-body);
+  color: var(--color-cream);
+}
+.theinmag-gallery-index__summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 12px 0;
+}
+/* Dawn base.css strips the summary marker, so draw an open/close cue. */
+.theinmag-gallery-index__summary::after { content: ' \25BE'; }
+.theinmag-gallery-index[open] > .theinmag-gallery-index__summary::after { content: ' \25B4'; }
+.theinmag-gallery-index__list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  columns: 1;
+  column-gap: 24px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+@media (min-width: 750px) { .theinmag-gallery-index__list { columns: 3; } }
+.theinmag-gallery-index__name {
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.theinmag-gallery-index__name:focus-visible { outline: 2px solid var(--color-yellow); outline-offset: 2px; }

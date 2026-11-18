@@ -237,6 +237,7 @@
       this.setupInfiniteScroll();
       this.bindResize();
       this.fillWhileVisible();
+      try { this.buildNameIndex(); } catch (e) { console.warn('[gallery] name index skipped', e); }
       this.updateWindow();
       this.pumpVisibleMedia();
       this.hideLoader();
@@ -596,6 +597,69 @@
         }
       }
       this.updateSentinel();
+    },
+
+    // NAME INDEX (2026-11-18). Windowing (live 6 Nov) fixed the iOS crash but
+    // meant Google, which renders without scrolling, only saw the first batch of
+    // cards; gallery impressions fell from ~170 a day to ~5 the next morning.
+    // Before that, a bug rendered every card on load, which is the only reason
+    // Google had indexed the kids' names and towns. Kids must be able to find
+    // their own creations, so every creation in the feed is listed here as plain
+    // text: no images, no carousels, so none of the crash cost. Closed <details>
+    // content is still indexed. Tapping a name runs the on-page search for it.
+    buildNameIndex: function () {
+      if (!this.all || !this.all.length || document.querySelector('[data-theinmag-gallery-index]')) return;
+      var self = this;
+      var wrap = document.createElement('details');
+      wrap.className = 'theinmag-gallery-index';
+      wrap.setAttribute('data-theinmag-gallery-index', '');
+      var sum = document.createElement('summary');
+      sum.className = 'theinmag-gallery-index__summary';
+      // The feed is the last ~3 months; older creations are reachable by the
+      // search box (archive), so say which set this is.
+      sum.textContent = 'Looking for your creation? Names from the last 3 months (' + this.all.length + ')';
+      wrap.appendChild(sum);
+      var list = document.createElement('ul');
+      list.className = 'theinmag-gallery-index__list';
+      var frag = document.createDocumentFragment();
+      for (var i = 0; i < this.all.length; i++) {
+        var c = this.all[i];
+        if (!c || !c.first_name) continue;
+        var li = document.createElement('li');
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'theinmag-gallery-index__name';
+        b.setAttribute('data-name', c.first_name);
+        b.textContent = this.attribution(c);
+        li.appendChild(b);
+        frag.appendChild(li);
+      }
+      list.appendChild(frag);
+      wrap.appendChild(list);
+      list.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-name]');
+        if (!btn) return;
+        var input = document.querySelector('[data-theinmag-gallery-search]');
+        var name = btn.getAttribute('data-name');
+        wrap.open = false;
+        if (input) {
+          input.value = name;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          var top = input.getBoundingClientRect().top + window.pageYOffset - 120;
+          window.scrollTo(0, Math.max(0, top));
+          // Keep keyboard focus somewhere sensible after the details closes,
+          // without popping the phone keyboard open.
+          if (self.columns) {
+            self.columns.setAttribute('tabindex', '-1');
+            try { self.columns.focus({ preventScroll: true }); } catch (e) {}
+          }
+        } else {
+          self.state.query = name.toLowerCase();
+          self.applyFilter();
+        }
+      });
+      var anchor = this.sentinel || this.columns;
+      anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
     },
 
     updateSentinel: function () {
