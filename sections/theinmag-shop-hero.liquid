@@ -322,6 +322,10 @@
         >
       {%- endif -%}
 
+      {%- comment -%} Optional hover clip (2026-11-06, Ryan): a silent loop of kids with the mag fades in over the photo on hover (pointer devices) or once scrolled into view (touch). Reduced motion keeps the photo. {%- endcomment -%}
+      {%- if section.settings.hover_video_url != blank -%}
+        <video class="theinmag-shop-hero__hover" muted loop playsinline preload="none" aria-hidden="true" data-shop-hero-hover data-src="{{ section.settings.hover_video_url }}"></video>
+      {%- endif -%}
       {%- if hero_state == 'presale' -%}
         <span class="theinmag-shop-hero__preorder-stamp" aria-label="Pre-order open">Pre-order</span>
       {%- endif -%}
@@ -373,6 +377,25 @@
     </div>
   </div>
 </section>
+{%- if section.settings.hover_video_url != blank -%}
+<script>
+  (function () {
+    var v = document.querySelector('#shopify-section-{{ section.id }} [data-shop-hero-hover]');
+    if (!v || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    var box = v.parentElement;
+    function load() { if (!v.src) v.src = v.getAttribute('data-src'); }
+    function on() { load(); var p = v.play(); if (p && p.catch) p.catch(function () {}); v.classList.add('is-on'); }
+    function off() { v.classList.remove('is-on'); v.pause(); }
+    var fine = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (fine) {
+      box.addEventListener('mouseenter', on);
+      box.addEventListener('mouseleave', off);
+    } else if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) on(); else off(); }); }, { threshold: 0.5 }).observe(box);
+    }
+  })();
+</script>
+{%- endif -%}
 
 <script>
   (function () {
@@ -468,6 +491,12 @@
     object-fit: cover;
     display: block;
   }
+  .theinmag-shop-hero__hover {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity 0.45s ease; pointer-events: none;
+  }
+  .theinmag-shop-hero__hover.is-on { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .theinmag-shop-hero__hover { display: none; } }
 
   /* Pre-order stamp - peach pill, top-right corner of photo. Soft shadow
      so it lifts off the photo without competing. Only rendered in the
@@ -716,6 +745,12 @@
     {
       "type": "header",
       "content": "Banner mode"
+    },
+    {
+      "type": "text",
+      "id": "hover_video_url",
+      "label": "Hover clip (silent MP4 URL, square)",
+      "info": "Optional. Fades in over the photo on hover (desktop) or when scrolled into view (phones)."
     },
     {
       "type": "checkbox",
