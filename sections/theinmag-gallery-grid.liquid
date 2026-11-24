@@ -199,7 +199,12 @@
   </p>
 
   {%- comment -%} Community takedown path - keeps us safe + lets families flag anything. {%- endcomment -%}
-  <p class="theinmag-gallery-grid__takedown">
+  {%- comment -%} Ownership line (24 Nov 2026, Ryan): families gave US permission, nobody else. {%- endcomment -%}
+  <p class="theinmag-gallery-grid__takedown theinmag-gallery-grid__ownership">
+    Every creation here belongs to the kid who made it. Please don't copy, save or reuse them.
+  </p>
+
+  <p class="theinmag-gallery-grid__takedown theinmag-gallery-grid__takedown--after">
     Spot a creation that shouldn't be here? Email <a href="mailto:heyhey@theinmag.com.au?subject=Gallery%20takedown%20request">heyhey@theinmag.com.au</a> and we'll take it down.
   </p>
 
@@ -212,6 +217,8 @@
       line-height: 1.5;
       color: rgba(255, 255, 255, 0.62);
     }
+    .theinmag-gallery-grid__ownership { color: rgba(255, 255, 255, 0.85); margin-bottom: 0; }
+    .theinmag-gallery-grid__takedown--after { margin-top: 8px; }
     .theinmag-gallery-grid__takedown a {
       color: inherit;
       text-decoration: underline;

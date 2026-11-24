@@ -905,7 +905,7 @@
     },
 
     buildCard: function (c, index) {
-      var fulls = (c.images || []).map(function (u) { return sized(u, 1400); });
+      var fulls = (c.images || []).map(function (u) { return sized(u, 1000); });
       var cover = (c.images && c.images.length) ? sized(c.images[0], this.coverWidth()) : '';
       var attribution = this.attribution(c);
 

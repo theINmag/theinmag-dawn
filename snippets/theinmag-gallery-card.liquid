@@ -67,12 +67,12 @@
   assign cover_url = ''
   assign image_urls_str = ''
   for img in images
-    assign full_url = img | image_url: width: 1400
+    assign full_url = img | image_url: width: 1000
     if full_url == blank
-      assign full_url = img.preview_image | image_url: width: 1400
+      assign full_url = img.preview_image | image_url: width: 1000
     endif
     if full_url == blank
-      assign full_url = img.image | image_url: width: 1400
+      assign full_url = img.image | image_url: width: 1000
     endif
     if full_url == blank
       assign full_url = img.url
